@@ -1,0 +1,140 @@
+import React, { useState } from 'react';
+import { ScrollView, Text, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import ScreenHeader from '../../components/ui/ScreenHeader';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import { colors } from '../../theme/colors';
+import { authApi } from '../../lib/authApi';
+
+export default function ChangePasswordScreen() {
+  const [form, setForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleChange = (field) => (value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (error) {
+      setError('');
+    }
+    if (success) {
+      setSuccess('');
+    }
+  };
+
+  const handleSubmit = async () => {
+    setError('');
+    setSuccess('');
+
+    if (!form.currentPassword || !form.newPassword || !form.confirmPassword) {
+      setError('모든 항목을 입력해주세요.');
+      return;
+    }
+
+    if (form.newPassword !== form.confirmPassword) {
+      setError('새 비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await authApi.changePassword({
+        current_password: form.currentPassword,
+        new_password: form.newPassword,
+        confirm_password: form.confirmPassword,
+      });
+      setSuccess('비밀번호가 변경되었습니다.');
+    } catch (apiError) {
+      setError(apiError?.message || '비밀번호 변경에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <ScreenHeader title="비밀번호 변경" />
+      <ScrollView contentContainerStyle={styles.container}>
+        <Card style={styles.card}>
+          <Text style={styles.cardTitle}>비밀번호를 변경하세요</Text>
+          <Text style={styles.cardSubtitle}>
+            안전을 위해 8자 이상의 조합을 권장합니다.
+          </Text>
+          <Input
+            label="현재 비밀번호"
+            value={form.currentPassword}
+            onChangeText={handleChange('currentPassword')}
+            placeholder="현재 비밀번호"
+            secureTextEntry
+            required
+          />
+          <Input
+            label="새 비밀번호"
+            value={form.newPassword}
+            onChangeText={handleChange('newPassword')}
+            placeholder="새 비밀번호"
+            secureTextEntry
+            required
+          />
+          <Input
+            label="새 비밀번호 확인"
+            value={form.confirmPassword}
+            onChangeText={handleChange('confirmPassword')}
+            placeholder="새 비밀번호 확인"
+            secureTextEntry
+            required
+          />
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {success ? <Text style={styles.successText}>{success}</Text> : null}
+        </Card>
+        <Button style={styles.saveButton} onPress={handleSubmit} loading={isSubmitting} disabled={isSubmitting}>
+          {isSubmitting ? '처리 중...' : '변경하기'}
+        </Button>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.neutral[900],
+    marginBottom: 6,
+  },
+  cardSubtitle: {
+    fontSize: 12,
+    color: colors.neutral[500],
+    marginBottom: 12,
+  },
+  errorText: {
+    fontSize: 12,
+    color: colors.error[600],
+    marginTop: 4,
+  },
+  successText: {
+    fontSize: 12,
+    color: colors.success[600],
+    marginTop: 4,
+  },
+  saveButton: {
+    marginTop: 8,
+  },
+});

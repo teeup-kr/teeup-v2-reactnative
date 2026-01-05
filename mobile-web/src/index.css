@@ -1,0 +1,209 @@
+@import 'pretendard/dist/web/static/pretendard.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 기본 스타일 */
+body {
+  margin: 0;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'system-ui', 'Roboto', 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #FAFAFA;
+  color: #424242;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* 커스텀 컴포넌트 스타일 */
+@layer components {
+  /* 버튼 스타일 */
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary-600 hover:bg-secondary-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white font-medium px-6 py-3 rounded-lg transition-all duration-200;
+  }
+  
+  .btn-ghost {
+    @apply text-primary-600 hover:bg-primary-50 font-medium px-6 py-3 rounded-lg transition-all duration-200;
+  }
+  
+  /* 카드 스타일 */
+  .card {
+    @apply bg-white rounded-xl shadow-md border border-neutral-200 p-6 transition-all duration-200 hover:shadow-lg;
+  }
+  
+  .card-elevated {
+    @apply bg-white rounded-xl shadow-lg border border-neutral-200 p-6 transition-all duration-200 hover:shadow-xl;
+  }
+  
+  /* 입력 필드 스타일 */
+  .input-field {
+    @apply w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 placeholder-neutral-400;
+  }
+  
+  .input-error {
+    @apply border-error-500 focus:ring-error-500 focus:border-error-500;
+  }
+  
+  /* 상태 뱃지 스타일 */
+  .badge-success {
+    @apply bg-success-50 text-success-700 px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .badge-warning {
+    @apply bg-warning-50 text-warning-700 px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .badge-error {
+    @apply bg-error-50 text-error-700 px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .badge-info {
+    @apply bg-info-50 text-info-700 px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  /* 타이포그래피 스타일 */
+  .heading-1 {
+    @apply text-4xl font-bold text-neutral-900 leading-tight;
+  }
+  
+  .heading-2 {
+    @apply text-3xl font-bold text-neutral-900 leading-tight;
+  }
+  
+  .heading-3 {
+    @apply text-2xl font-semibold text-neutral-900 leading-tight;
+  }
+  
+  .heading-4 {
+    @apply text-xl font-semibold text-neutral-900 leading-tight;
+  }
+  
+  .body-large {
+    @apply text-lg text-neutral-700 leading-relaxed;
+  }
+  
+  .body-medium {
+    @apply text-base text-neutral-700 leading-relaxed;
+  }
+  
+  .body-small {
+    @apply text-sm text-neutral-600 leading-relaxed;
+  }
+  
+  .caption {
+    @apply text-xs text-neutral-500 leading-relaxed;
+  }
+  
+  /* 레이아웃 스타일 */
+  .container-main {
+    @apply w-full px-4 sm:px-6 lg:px-8;
+  }
+  
+  .container-content {
+    @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .container-narrow {
+    @apply max-w-2xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  /* 그리드 스타일 */
+  .grid-cards {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+  
+  .grid-cards-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+  }
+  
+  .grid-cards-4 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
+  }
+  
+  /* 스크롤바 숨김 유틸리티 */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* 애니메이션 클래스는 Tailwind config에서 정의됨 */
+  
+  /* 골프 특화 스타일 */
+  .golf-card {
+    @apply bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200;
+  }
+  
+  .score-display {
+    @apply bg-white border-2 border-primary-200 rounded-lg p-4 text-center font-mono text-2xl font-bold text-primary-800;
+  }
+  
+  .handicap-badge {
+    @apply bg-secondary-100 text-secondary-800 px-3 py-1 rounded-full text-sm font-semibold;
+  }
+  
+  .meeting-status {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .meeting-status-active {
+    @apply bg-success-100 text-success-800;
+  }
+  
+  .meeting-status-pending {
+    @apply bg-warning-100 text-warning-800;
+  }
+  
+  .meeting-status-completed {
+    @apply bg-neutral-100 text-neutral-800;
+  }
+  
+  .meeting-status-CANCELED {
+    @apply bg-error-100 text-error-800;
+  }
+}
+
+/* 유틸리티 클래스 */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .glass-effect {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20;
+  }
+  
+  .gradient-primary {
+    @apply bg-gradient-to-r from-primary-600 to-primary-700;
+  }
+  
+  .gradient-secondary {
+    @apply bg-gradient-to-r from-secondary-600 to-secondary-700;
+  }
+  
+  .gradient-accent {
+    @apply bg-gradient-to-r from-accent-600 to-accent-700;
+  }
+}
