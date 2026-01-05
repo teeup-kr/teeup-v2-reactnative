@@ -109,7 +109,9 @@ export const googleAuth = {
     const state = createState();
     await tokenStorage.setOauthState(state);
 
-    const redirectUri = `${config.APP_SCHEME}://auth/google/callback`;
+    // host가 들어가면 path가 깨질 수 있어(예: teeup://auth/google/callback → hostname=auth),
+    // expo-router 라우트(`/auth/google/callback`)와 동일하게 맞추기 위해 host 없는 형태로 고정합니다.
+    const redirectUri = `${config.APP_SCHEME}:///auth/google/callback`;
     const params = new URLSearchParams({
       client_id: config.GOOGLE_CLIENT_ID,
       redirect_uri: redirectUri,

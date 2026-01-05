@@ -218,7 +218,7 @@ export default function ClubRegisterScreen() {
           클럽 등록 신청
         </Button>
         <Text style={styles.noticeText}>등록 후 관리자의 승인이 필요합니다.</Text>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

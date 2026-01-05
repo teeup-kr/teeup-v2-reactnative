@@ -1,5 +1,1 @@
-import { Redirect } from 'expo-router';
-
-export default function TermsRedirect() {
-  return <Redirect href="/auth/terms" />;
-}
+export { default } from '../src/screens/terms/TermsScreen';

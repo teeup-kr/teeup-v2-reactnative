@@ -105,7 +105,7 @@ export default function ClubFeesScreen() {
         <Button variant="primary" size="lg">
           회비 납부하기
         </Button>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

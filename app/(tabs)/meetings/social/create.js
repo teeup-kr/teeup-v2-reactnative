@@ -453,7 +453,7 @@ export function SocialForm({ mode = 'create' }) {
             </Button>
           </>
         )}
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

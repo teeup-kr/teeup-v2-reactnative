@@ -65,7 +65,7 @@ export default function ForgotPasswordScreen() {
             {isSubmitting ? '전송 중...' : '링크 받기'}
           </Button>
         </Card>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

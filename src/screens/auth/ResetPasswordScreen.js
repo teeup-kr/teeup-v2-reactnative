@@ -90,7 +90,7 @@ export default function ResetPasswordScreen() {
             {isSubmitting ? '처리 중...' : '비밀번호 변경'}
           </Button>
         </Card>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

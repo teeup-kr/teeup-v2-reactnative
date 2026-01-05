@@ -108,7 +108,7 @@ export default function TermsScreen() {
             </View>
           )}
         </Card>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

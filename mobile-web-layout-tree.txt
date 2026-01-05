@@ -1,0 +1,37 @@
+mobile-web layout tree (2025 build)
+
+1. src/App.jsx
+   ├─ QueryClientProvider (@tanstack/react-query)
+   │   └─ Router (BrowserRouter)
+   │      └─ div.min-h-screen.flex.flex-col.bg-gray-50
+   │         ├─ Header (components/layout/Header.jsx)
+   │         │   ├─ Logo + back button
+   │         │   ├─ Desktop nav links (클럽/모임/기록/공지)
+   │         │   └─ Auth area (Login/Register or user badge + Bell/User/Logout)
+   │         ├─ main.flex-1.pb-16
+   │         │   └─ Routes (public/auth/club/meeting/profile/notice/faq/redirects)
+   │         ├─ Footer (components/layout/Footer.jsx)
+   │         ├─ BottomNavigation (components/layout/BottomNavigation.jsx)
+   │         │   └─ five buttons: 전체 (menu), 홈, 클럽, 모임, 마이(로그인/마이페이지)
+   │         └─ FullMenu overlay (components/layout/FullMenu.jsx)
+   │             ├─ Opens when bottom nav '전체' clicked (App state)
+   │             ├─ Categorized menu sections (주요 기능/클럽/모임/정보 및 설정)
+   │             └─ Handles ESC, logout, auth gating
+   └─ Header/Bottom components pull hooks (useAuth) and APIs (notifications)
+
+2. components/layout/MainLayout.jsx (unused entry but documents desired shell)
+   ├─ Header
+   ├─ Sidebar (components/layout/Sidebar.jsx)
+   │   ├─ Floating drawer on mobile triggered via BottomNavigation menu button
+   │   ├─ Logo, close button, auth user summary
+   │   ├─ Menu links (public + auth only)
+   │   └─ Login/Logout actions
+   ├─ main.children
+   ├─ Footer
+   └─ BottomNavigation to open Sidebar
+
+3. Layout subtree relations
+   ├─ Header + Footer + BottomNavigation/FullMenu wrap every route in App.jsx
+   ├─ Sidebar/FullMenu share the same navigation set, toggled by mobile menu buttons
+   ├─ Pages (mobile-web/src/pages/**) are rendered inside Routes but rely on the shared layout for chrome
+   └─ No additional layout wrappers (MainLayout not wired in App.jsx)

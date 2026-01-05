@@ -78,7 +78,7 @@ export default function ClubActivitiesScreen() {
             ))
           )}
         </Card>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

@@ -140,7 +140,7 @@ export default function ClubDetailScreen() {
             <Text style={styles.secondaryButtonText}>가입 신청</Text>
           </Pressable>
         </View>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

@@ -1,8 +1,9 @@
 export const config = {
   API_BASE_URL: 'https://www.teeup.run/api',
   API_VERSION: 'v1',
-  GOOGLE_CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID',
-  APP_SCHEME: 'teeuplink',
+  GOOGLE_CLIENT_ID: '791884628850-gkqbgna2cn1ari12jielsttrsqvjrkm8.apps.googleusercontent.com',
+  // app.json(expo.scheme)과 동일해야 딥링크/OAuth 리다이렉트가 정상 동작합니다.
+  APP_SCHEME: 'teeup',
 };
 
 export const getApiBaseUrl = () => {

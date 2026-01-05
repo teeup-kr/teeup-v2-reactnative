@@ -80,7 +80,7 @@ export default function FaqScreen() {
             );
           })
         )}
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

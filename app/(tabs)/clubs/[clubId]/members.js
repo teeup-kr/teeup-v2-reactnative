@@ -120,7 +120,7 @@ export default function ClubMemberManageScreen() {
             ))
           )}
         </View>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

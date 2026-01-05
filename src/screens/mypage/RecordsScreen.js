@@ -11,7 +11,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import ScreenHeader from '../../components/ui/ScreenHeader';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
@@ -19,6 +18,8 @@ import RoundingStatsCard from '../../components/profile/RoundingStatsCard';
 import SimpleScoreInputModal from '../../components/meetings/SimpleScoreInputModal';
 import { roundsApi, usersApi } from '../../lib/api';
 import { colors } from '../../theme/colors';
+import AppHeader from '../../components/layout/AppHeader';
+import AppFooter from '../../components/layout/AppFooter';
 
 const statusTabs = [
   { id: 'all', label: '전체' },
@@ -196,8 +197,8 @@ export default function RecordsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScreenHeader title="기록 관리" />
       <ScrollView contentContainerStyle={styles.container}>
+        <AppHeader />
         <RoundingStatsCard
           stats={statsData}
           isLoading={statsLoading}
@@ -334,7 +335,8 @@ export default function RecordsScreen() {
             </Button>
           </View>
         )}
-      </ScrollView>
+        <AppFooter />
+</ScrollView>
 
       <SimpleScoreInputModal
         visible={scoreModalOpen}

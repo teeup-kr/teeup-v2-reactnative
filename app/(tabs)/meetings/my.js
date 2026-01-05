@@ -7,6 +7,8 @@ import ScreenHeader from '../../../src/components/ui/ScreenHeader';
 import Card from '../../../src/components/ui/Card';
 import { colors } from '../../../src/theme/colors';
 import { usersApi } from '../../../src/lib/api';
+import { useAuth } from '../../../src/context/AuthContext';
+import LoginRequired from '../../../src/components/auth/LoginRequired';
 
 const formatMeetingDate = (value) => {
   if (!value) return '-';
@@ -17,11 +19,14 @@ const formatMeetingDate = (value) => {
 
 export default function MyMeetingsScreen() {
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [meetings, setMeetings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const loadMeetings = async () => {
       try {
         setIsLoading(true);
@@ -46,7 +51,26 @@ export default function MyMeetingsScreen() {
     };
 
     loadMeetings();
-  }, []);
+  }, [isAuthenticated]);
+
+  if (authLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.stateContainer}>
+          <ActivityIndicator size="large" color={colors.primary[600]} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <LoginRequired
+        message="로그인 후 이용가능합니다"
+        description="내 모임을 보려면 로그인이 필요합니다."
+      />
+    );
+  }
 
   const normalizedMeetings = useMemo(() => (
     meetings.map((meeting) => {
@@ -104,7 +128,7 @@ export default function MyMeetingsScreen() {
             ))
           )}
         </View>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }
@@ -135,6 +159,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderRadius: 16,
     paddingVertical: 4,
+  },
+  stateContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   stateRow: {
     paddingVertical: 16,

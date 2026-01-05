@@ -11,12 +11,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import ScreenHeader from '../../components/ui/ScreenHeader';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { usersApi } from '../../lib/api';
 import { colors } from '../../theme/colors';
+import AppHeader from '../../components/layout/AppHeader';
+import AppFooter from '../../components/layout/AppFooter';
 
 const genderOptions = [
   { id: 'male', label: '남성', value: 'M' },
@@ -117,10 +118,13 @@ export default function EditProfileScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <ScreenHeader title="회원정보 수정" />
-        <View style={styles.stateContainer}>
-          <ActivityIndicator size="large" color={colors.primary[600]} />
-        </View>
+        <ScrollView contentContainerStyle={styles.container}>
+          <AppHeader />
+          <View style={styles.stateContainer}>
+            <ActivityIndicator size="large" color={colors.primary[600]} />
+          </View>
+          <AppFooter />
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -128,18 +132,21 @@ export default function EditProfileScreen() {
   if (error) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <ScreenHeader title="회원정보 수정" />
-        <View style={styles.stateContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
+        <ScrollView contentContainerStyle={styles.container}>
+          <AppHeader />
+          <View style={styles.stateContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+          <AppFooter />
+        </ScrollView>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScreenHeader title="회원정보 수정" />
       <ScrollView contentContainerStyle={styles.container}>
+        <AppHeader />
         <Card style={styles.card}>
           <Text style={styles.cardTitle}>기본 정보</Text>
           <Input
@@ -232,7 +239,8 @@ export default function EditProfileScreen() {
         <Button style={styles.saveButton} onPress={handleSave} loading={saving}>
           저장하기
         </Button>
-      </ScrollView>
+        <AppFooter />
+</ScrollView>
     </SafeAreaView>
   );
 }

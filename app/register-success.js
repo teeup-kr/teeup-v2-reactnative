@@ -16,7 +16,7 @@ export default function RegisterSuccessScreen() {
           <Text style={styles.buttonText}>로그인으로 이동</Text>
         </Pressable>
       </View>
-    </SafeAreaView>
+</SafeAreaView>
   );
 }
 

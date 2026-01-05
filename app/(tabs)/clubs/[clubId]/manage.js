@@ -47,7 +47,7 @@ export default function ClubManageScreen() {
             </Pressable>
           ))}
         </View>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

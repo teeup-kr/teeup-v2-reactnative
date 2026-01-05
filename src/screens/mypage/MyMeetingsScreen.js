@@ -277,7 +277,7 @@ export default function MyMeetingsScreen() {
             </Pressable>
           </View>
         )}
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

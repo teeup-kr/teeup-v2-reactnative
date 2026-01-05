@@ -4,6 +4,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
+import { useAuth } from '../context/AuthContext';
+import AppHeader from '../components/layout/AppHeader';
+import AppFooter from '../components/layout/AppFooter';
 
 const features = [
   {
@@ -45,12 +48,13 @@ const FeatureCard = ({ title, description, emoji, background, accent }) => {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const isAuthenticated = false;
+  const { isAuthenticated } = useAuth();
   const heroGradient = ['#059669', '#0F766E'];
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
+        <AppHeader />
         <LinearGradient
           colors={heroGradient}
           start={{ x: 0, y: 0 }}
@@ -127,6 +131,7 @@ export default function HomeScreen() {
             </Text>
           )}
         </View>
+        <AppFooter />
       </ScrollView>
     </SafeAreaView>
   );
@@ -135,7 +140,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.neutral[50],
+    backgroundColor: colors.white,
   },
   container: {
     backgroundColor: colors.neutral[50],

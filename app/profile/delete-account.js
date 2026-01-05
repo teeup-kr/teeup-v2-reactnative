@@ -1,1 +1,5 @@
-export { default } from '../../src/screens/mypage/WithdrawScreen';
+import { Redirect } from 'expo-router';
+
+export default function DeleteAccountRedirect() {
+  return <Redirect href="/mypage?tab=withdraw" />;
+}

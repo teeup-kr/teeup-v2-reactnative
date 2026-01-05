@@ -97,7 +97,7 @@ export default function WithdrawScreen() {
           탈퇴 진행
         </Button>
         {resultMessage ? <Text style={styles.successText}>{resultMessage}</Text> : null}
-      </ScrollView>
+</ScrollView>
 
       <Modal
         visible={modalOpen}

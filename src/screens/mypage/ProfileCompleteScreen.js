@@ -92,7 +92,7 @@ export default function ProfileCompleteScreen() {
         </Card>
 
         <Button style={styles.saveButton}>프로필 저장</Button>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

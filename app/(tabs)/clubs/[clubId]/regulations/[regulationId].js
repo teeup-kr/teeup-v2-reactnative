@@ -75,7 +75,7 @@ export default function ClubRegulationDetailScreen() {
         </Pressable>
         <Text style={styles.helperText}>규정 수정 화면은 동일한 작성 화면으로 연결됩니다.</Text>
         <Text style={styles.helperText}>Regulation ID: {resolvedRegulationId || regulationId}</Text>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

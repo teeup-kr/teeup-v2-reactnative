@@ -624,7 +624,7 @@ export function RoundingForm({ mode = 'create' }) {
             </Button>
           </>
         )}
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

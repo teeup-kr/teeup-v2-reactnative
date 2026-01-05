@@ -21,11 +21,13 @@ import Button from '../src/components/ui/Button';
 import { colors } from '../src/theme/colors';
 import { authApi, googleAuth } from '../src/lib/authApi';
 import { config } from '../src/config/env';
+import { useAuth } from '../src/context/AuthContext';
 
 const logoImage = require('../assets/teeuplink-logo.png');
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { refreshAuth } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -72,6 +74,7 @@ export default function LoginScreen() {
         email: formData.email.trim(),
         password: formData.password,
       });
+      await refreshAuth();
       router.replace('/');
     } catch (error) {
       const message = error?.message || '로그인에 실패했습니다.';
@@ -152,7 +155,7 @@ export default function LoginScreen() {
 
               <View style={styles.helperRow}>
                 <Text style={styles.helperText}>비밀번호를 잊으셨나요?</Text>
-                <Pressable onPress={() => router.push('/forgot-password')}>
+                <Pressable onPress={() => router.push('/auth/forgot-password')}>
                   <Text style={styles.helperLink}>비밀번호 찾기</Text>
                 </Pressable>
               </View>
@@ -175,7 +178,7 @@ export default function LoginScreen() {
                 </Pressable>
               </View>
             </Card>
-          </ScrollView>
+</ScrollView>
         </KeyboardAvoidingView>
       </LinearGradient>
     </SafeAreaView>

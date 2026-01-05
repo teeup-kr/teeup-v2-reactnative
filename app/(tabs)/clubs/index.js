@@ -1,202 +1,579 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  Pressable,
   ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import Card from '../../../src/components/ui/Card';
 import Button from '../../../src/components/ui/Button';
 import { colors } from '../../../src/theme/colors';
-import { clubApi } from '../../../src/lib/api';
 import { clubsApi } from '../../../src/lib/clubsApi';
+import { useAuth } from '../../../src/context/AuthContext';
+import LoginRequired from '../../../src/components/auth/LoginRequired';
+import AppHeader from '../../../src/components/layout/AppHeader';
+import AppFooter from '../../../src/components/layout/AppFooter';
 
+const logoImage = require('../../../assets/teeuplink-logo.png');
+
+const VALID_TABS = ['my', 'all', 'applications', 'join-applications'];
 const tabs = [
   { id: 'my', label: '내 클럽' },
-  { id: 'all', label: '클럽 찾기' },
-  { id: 'applications', label: '개설 신청' },
-  { id: 'join', label: '가입 신청' },
+  { id: 'all', label: '클럽 찾아보기' },
+  { id: 'applications', label: '클럽 등록 신청 내역' },
+  { id: 'join-applications', label: '가입 신청 내역' },
 ];
 
-const statusLabel = {
-  ACTIVE: '활성',
-  APPROVED: '승인',
-  PENDING: '승인 대기',
-  OPEN: '모집 중',
-  REVIEW: '심사 중',
-  WAITING: '가입 대기',
-  REJECTED: '반려',
-  CANCELED: '취소',
+const statusFilterOptions = [
+  { value: 'ALL', label: '전체 상태' },
+  { value: 'APPROVED', label: '승인됨' },
+  { value: 'PENDING', label: '승인 대기' },
+  { value: 'REJECTED', label: '거부됨' },
+];
+
+const myClubStatusOptions = [
+  { value: 'ACTIVE', label: '활성/승인' },
+  { value: 'INACTIVE', label: '비공개' },
+  { value: 'ALL', label: '전체' },
+];
+
+const Badge = ({ text, backgroundColor, textColor, style }) => (
+  <View style={[styles.badge, { backgroundColor }, style]}>
+    <Text style={[styles.badgeText, { color: textColor }]}>{text}</Text>
+  </View>
+);
+
+const getStatusBadge = (status, clubDeletedAt) => {
+  if (clubDeletedAt) {
+    return <Badge text="삭제됨" backgroundColor={colors.error[50]} textColor={colors.error[700]} />;
+  }
+
+  const normalizedStatus = String(status || '').toUpperCase();
+  const statusConfig = {
+    ACTIVE: { text: '활성', bg: colors.success[50], fg: colors.success[700] },
+    APPROVED: { text: '활성', bg: colors.success[50], fg: colors.success[700] },
+    INACTIVE: { text: '비공개', bg: colors.neutral[100], fg: colors.neutral[800] },
+    PENDING: { text: '승인 대기', bg: colors.warning[50], fg: colors.warning[700] },
+    REJECTED: { text: '거부됨', bg: colors.error[50], fg: colors.error[700] },
+    CANCELED: { text: '취소됨', bg: colors.error[50], fg: colors.error[700] },
+    SUSPENDED: { text: '정지', bg: colors.error[50], fg: colors.error[700] },
+  };
+
+  const fallback = { text: status || '알 수 없음', bg: colors.neutral[100], fg: colors.neutral[800] };
+  const config = statusConfig[normalizedStatus] || fallback;
+  return <Badge text={config.text} backgroundColor={config.bg} textColor={config.fg} />;
 };
 
-const statusColor = {
-  ACTIVE: colors.success[600],
-  APPROVED: colors.success[600],
-  PENDING: colors.warning[600],
-  OPEN: colors.primary[600],
-  REVIEW: colors.accent[600],
-  WAITING: colors.warning[600],
-  REJECTED: colors.error[600],
-  CANCELED: colors.neutral[500],
+const getMembershipStatusBadge = (status) => {
+  if (!status || status === 'null' || status === '') return null;
+  const normalizedStatus = String(status).toUpperCase().trim();
+  const validStatuses = ['APPROVED', 'ACTIVE', 'PENDING', 'REJECTED'];
+  if (!validStatuses.includes(normalizedStatus)) return null;
+
+  const statusConfig = {
+    APPROVED: { text: '가입됨', bg: colors.success[50], fg: colors.success[700] },
+    ACTIVE: { text: '가입됨', bg: colors.success[50], fg: colors.success[700] },
+    PENDING: { text: '가입 대기', bg: colors.warning[50], fg: colors.warning[700] },
+    REJECTED: { text: '가입 거부', bg: colors.error[50], fg: colors.error[700] },
+  };
+
+  const config = statusConfig[normalizedStatus];
+  if (!config) return null;
+  return <Badge text={config.text} backgroundColor={config.bg} textColor={config.fg} />;
 };
 
-const ClubCard = ({ club, onPress }) => {
+const getClubTypeBadge = (type) => {
+  const typeConfig = {
+    REGULAR: { text: '정기 모임', bg: colors.info[50], fg: colors.info[700] },
+    IRREGULAR: { text: '비정기 모임', bg: colors.accent[50], fg: colors.accent[700] },
+    ROUND: { text: '라운딩', bg: colors.primary[50], fg: colors.primary[700] },
+    SOCIAL: { text: '소셜 모임', bg: colors.secondary[50], fg: colors.secondary[700] },
+    MIXED: { text: '혼합', bg: colors.neutral[100], fg: colors.neutral[800] },
+  };
+
+  const normalizedType = String(type || '').toUpperCase();
+  const config = typeConfig[normalizedType];
+  if (!config) return null;
+  return <Badge text={config.text} backgroundColor={config.bg} textColor={config.fg} />;
+};
+
+const getMembershipRoleBadge = (role) => {
+  if (!role) return null;
+  const normalizedRole = String(role).toUpperCase();
+  const roleConfig = {
+    LEADER: { text: '리더', bg: colors.accent[50], fg: colors.accent[700] },
+    MANAGER: { text: '매니저', bg: colors.info[50], fg: colors.info[700] },
+    MEMBER: { text: '일반회원', bg: colors.neutral[100], fg: colors.neutral[800] },
+  };
+  const config = roleConfig[normalizedRole] || roleConfig.MEMBER;
+  return <Badge text={config.text} backgroundColor={config.bg} textColor={config.fg} style={styles.roleBadge} />;
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return '-';
+  try {
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return '-';
+    return date.toLocaleDateString('ko-KR');
+  } catch {
+    return '-';
+  }
+};
+
+const normalizePaginatedResponse = (payload) => {
+  if (Array.isArray(payload)) return { data: payload, total_pages: 1 };
+  if (Array.isArray(payload?.data)) return payload;
+  if (Array.isArray(payload?.items)) return { ...payload, data: payload.items };
+  if (Array.isArray(payload?.value)) return { ...payload, data: payload.value };
+  if (Array.isArray(payload?.results)) return { ...payload, data: payload.results };
+  return { data: [], total_pages: 1 };
+};
+
+const ClubCard = ({ club, variant, onPress }) => {
+  const showStatus = variant === 'all' || variant === 'my' || variant === 'applications';
+  const showMembershipStatus = variant === 'my' || variant === 'join-applications';
+  const showMembershipRole = variant === 'my' || variant === 'join-applications';
+
+  const statusBadge = showStatus ? getStatusBadge(club?.status, club?.club_deleted_at) : null;
+  const membershipBadge = showMembershipStatus ? getMembershipStatusBadge(club?.membership_status) : null;
+  const typeBadge = getClubTypeBadge(club?.type);
+  const roleBadge = showMembershipRole ? getMembershipRoleBadge(club?.membership_role) : null;
+
   return (
-    <Card style={styles.card}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>{club.name}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: statusColor[club.status] || colors.neutral[400] }]}
-        >
-          <Text style={styles.statusText}>{statusLabel[club.status] || club.status}</Text>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.cardPressable, pressed && styles.cardPressed]}>
+      <Card style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardTitleRow}>
+            <View style={styles.logoCircle}>
+              <Image source={logoImage} style={styles.logoImage} resizeMode="contain" />
+            </View>
+            <Text style={styles.cardTitle} numberOfLines={1}>
+              {club?.name || '클럽명 없음'}
+            </Text>
+          </View>
+          <View style={styles.badgeStack}>
+            {statusBadge}
+            {membershipBadge}
+          </View>
         </View>
-      </View>
-      <View style={styles.cardMeta}>
-        <View style={styles.metaItem}>
-          <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
-          <Text style={styles.metaText}>{club.location}</Text>
+
+        <View style={styles.badgeRow}>
+          {typeBadge}
+          {roleBadge}
         </View>
-        <View style={styles.metaItem}>
-          <FontAwesome5 name="users" size={12} color={colors.neutral[500]} />
-          <Text style={styles.metaText}>{club.members}명</Text>
+
+        <Text style={styles.cardDescription} numberOfLines={2}>
+          {club?.description || ''}
+        </Text>
+
+        <View style={styles.metaList}>
+          <View style={styles.metaItem}>
+            <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
+            <Text style={styles.metaText} numberOfLines={1}>
+              {club?.location || '-'}
+            </Text>
+          </View>
+          <View style={styles.metaItem}>
+            <FontAwesome5 name="user-friends" size={12} color={colors.neutral[500]} />
+            <Text style={styles.metaText}>멤버 {club?.member_count ?? 0}명</Text>
+          </View>
         </View>
-      </View>
-      <Pressable style={styles.detailButton} onPress={onPress}>
-        <Text style={styles.detailButtonText}>상세 보기</Text>
-      </Pressable>
-    </Card>
+
+        <View style={styles.cardFooter}>
+          <Text style={styles.cardDate}>
+            {variant === 'applications' ? `신청일: ${formatDate(club?.created_at)}` : formatDate(club?.created_at || club?.joined_at)}
+          </Text>
+          <Text style={styles.cardLink}>자세히 보기 →</Text>
+        </View>
+      </Card>
+    </Pressable>
   );
 };
 
 export default function ClubsScreen() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('my');
+  const params = useLocalSearchParams();
+  const tabParam = Array.isArray(params.tab) ? params.tab[0] : params.tab;
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+
+  const initialTab = useMemo(() => {
+    if (tabParam && VALID_TABS.includes(tabParam)) return tabParam;
+    return 'my';
+  }, [tabParam]);
+
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [myClubStatusFilter, setMyClubStatusFilter] = useState('ACTIVE');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
   const [clubs, setClubs] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-
-  const normalizeList = useCallback((payload) => {
-    if (Array.isArray(payload)) return payload;
-    if (Array.isArray(payload?.data)) return payload.data;
-    if (Array.isArray(payload?.items)) return payload.items;
-    if (Array.isArray(payload?.value)) return payload.value;
-    if (Array.isArray(payload?.results)) return payload.results;
-    return [];
-  }, []);
-
-  const normalizeClub = useCallback((club) => ({
-    id: club?.id || club?.club_id || club?.application_id || club?.name,
-    name: club?.name || '클럽명 없음',
-    location: club?.location || club?.region || '-',
-    members: club?.member_count ?? club?.members ?? club?.memberCount ?? 0,
-    status: club?.status || club?.membership_status || club?.application_status || 'PENDING',
-  }), []);
-
-  const loadClubs = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError('');
-      let response;
-      if (activeTab === 'my') {
-        response = await clubsApi.getMyClubs({ page: 1, limit: 20 });
-      } else if (activeTab === 'all') {
-        const search = searchTerm.trim();
-        response = await clubsApi.getClubs({ page: 1, limit: 20, ...(search ? { search } : {}) });
-      } else if (activeTab === 'applications') {
-        response = await clubsApi.getMyClubApplications({ page: 1, limit: 20 });
-      } else if (activeTab === 'join') {
-        response = await clubApi.getClubApplications({ page: 1, limit: 20 });
-      }
-      const list = normalizeList(response);
-      setClubs(list.map(normalizeClub));
-    } catch (fetchError) {
-      console.error('클럽 목록 조회 실패:', fetchError);
-      setError(fetchError?.message || '클럽 목록을 불러오는데 실패했습니다.');
-      setClubs([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activeTab, normalizeClub, normalizeList, searchTerm]);
+  const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
 
   useEffect(() => {
-    loadClubs();
-  }, [loadClubs]);
+    if (!tabParam || !VALID_TABS.includes(tabParam)) return;
+    setActiveTab(tabParam);
+  }, [tabParam]);
 
-  const filteredClubs = useMemo(() => {
-    const list = clubs || [];
-    if (!searchTerm.trim()) return list;
-    return list.filter((club) => club.name.includes(searchTerm.trim()));
-  }, [clubs, searchTerm]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const loadClubs = async () => {
+      try {
+        setIsLoading(true);
+        setError('');
+        let response;
+
+        if (activeTab === 'my') {
+          response = await clubsApi.getMyClubs({ page: currentPage, limit: 6 });
+        } else if (activeTab === 'applications') {
+          response = await clubsApi.getMyClubApplications({ page: currentPage, limit: 6 });
+        } else if (activeTab === 'join-applications') {
+          response = await clubsApi.getMyClubs({ page: currentPage, limit: 6, status_filter: 'PENDING' });
+        } else {
+          response = await clubsApi.getClubs({
+            page: currentPage,
+            limit: 6,
+            ...(debouncedSearchTerm ? { search: debouncedSearchTerm } : {}),
+          });
+        }
+
+        const payload = normalizePaginatedResponse(response);
+        let list = Array.isArray(payload?.data) ? payload.data : [];
+
+        if (activeTab === 'my') {
+          list = list.filter((club) => {
+            const membershipStatus = club?.membership_status;
+            const hasValidMembership =
+              membershipStatus &&
+              membershipStatus !== 'null' &&
+              membershipStatus !== '' &&
+              ['APPROVED', 'ACTIVE', 'PENDING'].includes(String(membershipStatus).toUpperCase().trim());
+            return hasValidMembership;
+          });
+
+          if (myClubStatusFilter && myClubStatusFilter !== 'ALL') {
+            if (myClubStatusFilter === 'ACTIVE') {
+              list = list.filter((club) => club.status === 'ACTIVE' || club.status === 'APPROVED');
+            } else {
+              list = list.filter((club) => club.status === myClubStatusFilter);
+            }
+          }
+
+          list = [...list].sort((a, b) => {
+            const dateA = new Date(a.created_at || a.joined_at || 0);
+            const dateB = new Date(b.created_at || b.joined_at || 0);
+            return dateB - dateA;
+          });
+        }
+
+        if (activeTab === 'join-applications') {
+          const currentUserId = user?.id;
+          list = list.filter((club) => club?.created_by !== currentUserId);
+        }
+
+        if (activeTab === 'all') {
+          list = list.filter((club) => club?.status !== 'INACTIVE');
+        }
+
+        setClubs(list);
+        setTotalPages(payload?.total_pages || 1);
+      } catch (fetchError) {
+        console.error('클럽 목록 조회 실패:', fetchError);
+        setError(fetchError?.message || '클럽 목록을 불러올 수 없습니다');
+        setClubs([]);
+        setTotalPages(1);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (isAuthenticated) {
+      loadClubs();
+    }
+  }, [
+    activeTab,
+    currentPage,
+    debouncedSearchTerm,
+    isAuthenticated,
+    myClubStatusFilter,
+    statusFilter,
+    user?.id,
+  ]);
+
+  const handleTabChange = useCallback(
+    (tabId) => {
+      setActiveTab(tabId);
+      setIsStatusFilterOpen(false);
+      setCurrentPage(1);
+      router.setParams({ tab: tabId });
+    },
+    [router],
+  );
+
+  const handleClubPress = useCallback(
+    (club) => {
+      if (club?.status === 'INACTIVE') {
+        Alert.alert('비공개 클럽', '해당 클럽은 비공개 상태입니다.');
+        return;
+      }
+      router.push(`/clubs/${club?.display_id || club?.id}`);
+    },
+    [router],
+  );
+
+  const pageNumbers = useMemo(() => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+    const groupStart = Math.floor((currentPage - 1) / 5) * 5 + 1;
+    const groupEnd = Math.min(groupStart + 4, totalPages);
+    const numbers = [];
+    for (let page = groupStart; page <= groupEnd; page += 1) {
+      numbers.push(page);
+    }
+    return numbers;
+  }, [currentPage, totalPages]);
+
+  if (authLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.stateContainer}>
+          <ActivityIndicator size="large" color={colors.primary[600]} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <LoginRequired
+        message="로그인 후 이용가능합니다"
+        description="클럽 목록을 보려면 로그인이 필요합니다."
+      />
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
+        <AppHeader />
+
         <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.title}>클럽</Text>
-            <Text style={styles.subtitle}>내 모임과 클럽을 관리하세요</Text>
-          </View>
+          <Text style={styles.title}>클럽 목록</Text>
           <Button variant="primary" size="sm" onPress={() => router.push('/clubs/register')}>
-            클럽 만들기
+            클럽 등록
           </Button>
         </View>
 
-        <View style={styles.tabRow}>
-          {tabs.map((tab) => (
-            <Pressable
-              key={tab.id}
-              onPress={() => setActiveTab(tab.id)}
-              style={[styles.tabButton, activeTab === tab.id && styles.tabButtonActive]}
-            >
-              <Text style={[styles.tabText, activeTab === tab.id && styles.tabTextActive]}>
-                {tab.label}
-              </Text>
-            </Pressable>
-          ))}
+        <View style={styles.tabBar}>
+          <View style={styles.tabBarRow}>
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <Pressable
+                  key={tab.id}
+                  onPress={() => handleTabChange(tab.id)}
+                  style={[styles.tabButton, isActive && styles.tabButtonActive]}
+                >
+                  <Text style={[styles.tabText, isActive && styles.tabTextActive]}>{tab.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
 
-        <View style={styles.searchBox}>
-          <FontAwesome5 name="search" size={14} color={colors.neutral[400]} />
-          <TextInput
-            value={searchTerm}
-            onChangeText={setSearchTerm}
-            placeholder="클럽 이름으로 검색"
-            style={styles.searchInput}
-            placeholderTextColor={colors.neutral[400]}
-          />
-        </View>
+        <View style={styles.searchFilterRow}>
+          <View style={styles.searchBox}>
+            <FontAwesome5 name="search" size={14} color={colors.neutral[400]} />
+            <TextInput
+              value={searchTerm}
+              onChangeText={setSearchTerm}
+              placeholder="클럽명, 설명, 위치로 검색..."
+              style={styles.searchInput}
+              placeholderTextColor={colors.neutral[400]}
+            />
+          </View>
 
-        <View style={styles.cardList}>
-          {isLoading ? (
-            <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
-              <Text style={styles.stateText}>클럽을 불러오는 중...</Text>
-            </View>
-          ) : error ? (
-            <View style={styles.emptyState}>
-              <FontAwesome5 name="exclamation-circle" size={24} color={colors.neutral[300]} />
-              <Text style={styles.emptyText}>{error}</Text>
-            </View>
-          ) : (
-            <>
-              {filteredClubs.map((club) => (
-                <ClubCard key={club.id} club={club} onPress={() => router.push(`/clubs/${club.id}`)} />
-              ))}
-              {filteredClubs.length === 0 && (
-                <View style={styles.emptyState}>
-                  <FontAwesome5 name="exclamation-circle" size={24} color={colors.neutral[300]} />
-                  <Text style={styles.emptyText}>표시할 클럽이 없습니다.</Text>
+          {activeTab === 'all' && (
+            <View style={styles.statusFilterWrap}>
+              <Pressable
+                onPress={() => setIsStatusFilterOpen((prev) => !prev)}
+                style={styles.statusFilterButton}
+              >
+                <Text style={styles.statusFilterText}>
+                  {statusFilterOptions.find((option) => option.value === statusFilter)?.label || '전체 상태'}
+                </Text>
+                <FontAwesome5
+                  name={isStatusFilterOpen ? 'chevron-up' : 'chevron-down'}
+                  size={12}
+                  color={colors.neutral[400]}
+                />
+              </Pressable>
+              {isStatusFilterOpen && (
+                <View style={styles.statusFilterMenu}>
+                  {statusFilterOptions.map((option) => (
+                    <Pressable
+                      key={option.value}
+                      onPress={() => {
+                        setStatusFilter(option.value);
+                        setIsStatusFilterOpen(false);
+                        setCurrentPage(1);
+                      }}
+                      style={styles.statusFilterMenuItem}
+                    >
+                      <Text style={styles.statusFilterMenuText}>{option.label}</Text>
+                    </Pressable>
+                  ))}
                 </View>
               )}
-            </>
+            </View>
           )}
         </View>
+
+        {activeTab === 'my' && (
+          <View style={styles.myStatusRow}>
+            {myClubStatusOptions.map((option) => {
+              const selected = myClubStatusFilter === option.value;
+              return (
+                <Pressable
+                  key={option.value}
+                  onPress={() => {
+                    setMyClubStatusFilter(option.value);
+                    setCurrentPage(1);
+                  }}
+                  style={[styles.myStatusButton, selected && styles.myStatusButtonActive]}
+                >
+                  <Text style={[styles.myStatusText, selected && styles.myStatusTextActive]}>{option.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+
+        {isLoading ? (
+          <View style={styles.loadingRow}>
+            <ActivityIndicator size="small" color={colors.primary[600]} />
+          </View>
+        ) : error ? (
+          <Card style={styles.errorCard}>
+            <Text style={styles.errorText}>{error}</Text>
+          </Card>
+        ) : clubs.length === 0 ? (
+          <View style={styles.emptyState}>
+            <FontAwesome5
+              name={activeTab === 'applications' ? 'file-alt' : 'users'}
+              size={44}
+              color={colors.neutral[300]}
+            />
+            <Text style={styles.emptyTitle}>
+              {activeTab === 'all'
+                ? '클럽이 없습니다'
+                : activeTab === 'applications'
+                ? '개설 신청 내역'
+                : activeTab === 'join-applications'
+                ? '가입 신청 내역'
+                : '내 클럽'}
+            </Text>
+            <Text style={styles.emptySubtitle}>
+              {activeTab === 'all'
+                ? searchTerm || statusFilter !== 'ALL'
+                  ? '검색 조건에 맞는 클럽이 없습니다.'
+                  : '아직 등록된 클럽이 없습니다.'
+                : activeTab === 'applications'
+                ? '클럽 개설 신청 내역이 없습니다.'
+                : activeTab === 'join-applications'
+                ? '가입 승인 대기 중인 클럽이 없습니다.'
+                : '가입한 클럽이 없습니다. 클럽에 가입해보세요!'}
+            </Text>
+            {activeTab === 'all' && !searchTerm && statusFilter === 'ALL' ? (
+              <Button variant="primary" size="sm" onPress={() => router.push('/clubs/register')}>
+                첫 번째 클럽 등록하기
+              </Button>
+            ) : activeTab === 'applications' ? (
+              <Button variant="primary" size="sm" onPress={() => router.push('/clubs/register')}>
+                클럽 등록하기
+              </Button>
+            ) : activeTab === 'my' || activeTab === 'join-applications' ? (
+              <Button variant="primary" size="sm" onPress={() => handleTabChange('all')}>
+                클럽 둘러보기
+              </Button>
+            ) : null}
+          </View>
+        ) : (
+          <>
+            <View style={styles.cardList}>
+              {clubs.map((club) => {
+                const variant = activeTab === 'applications' ? 'applications' : activeTab;
+                const key = club?.id || club?.display_id || `${activeTab}-${club?.name}`;
+                const onPress = () => {
+                  if (activeTab === 'applications') {
+                    router.push(`/clubs/applications/${club.id}`);
+                    return;
+                  }
+                  handleClubPress(club);
+                };
+
+                return <ClubCard key={key} club={club} variant={variant} onPress={onPress} />;
+              })}
+            </View>
+
+            {totalPages > 1 && (
+              <View style={styles.paginationRow}>
+                <Pressable
+                  onPress={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  style={[styles.pageNavButton, currentPage === 1 && styles.pageNavButtonDisabled]}
+                >
+                  <Text style={styles.pageNavText}>이전</Text>
+                </Pressable>
+
+                {pageNumbers.map((pageNum) => {
+                  const selected = pageNum === currentPage;
+                  return (
+                    <Pressable
+                      key={`page-${pageNum}`}
+                      onPress={() => setCurrentPage(pageNum)}
+                      style={[styles.pageNumber, selected && styles.pageNumberActive]}
+                    >
+                      <Text style={[styles.pageNumberText, selected && styles.pageNumberTextActive]}>
+                        {pageNum}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+
+                <Pressable
+                  onPress={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  style={[styles.pageNavButton, currentPage === totalPages && styles.pageNavButtonDisabled]}
+                >
+                  <Text style={styles.pageNavText}>다음</Text>
+                </Pressable>
+              </View>
+            )}
+          </>
+        )}
+
+        <AppFooter />
       </ScrollView>
     </SafeAreaView>
   );
@@ -205,54 +582,57 @@ export default function ClubsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.neutral[50],
+    backgroundColor: colors.white,
   },
   container: {
     padding: 16,
     paddingBottom: 24,
   },
+  stateContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   title: {
     fontSize: 22,
     fontWeight: '700',
     color: colors.neutral[900],
   },
-  subtitle: {
-    fontSize: 12,
-    color: colors.neutral[600],
-    marginTop: 4,
-  },
-  tabRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  tabBar: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.neutral[200],
     marginBottom: 16,
   },
+  tabBarRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
   tabButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
-    backgroundColor: colors.white,
-    marginRight: 8,
-    marginBottom: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    marginRight: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
   tabButtonActive: {
-    backgroundColor: colors.primary[600],
-    borderColor: colors.primary[600],
+    borderBottomColor: colors.primary[500],
   },
   tabText: {
     fontSize: 12,
-    color: colors.neutral[600],
     fontWeight: '600',
+    color: colors.neutral[500],
   },
   tabTextActive: {
-    color: colors.white,
+    color: colors.primary[600],
+  },
+  searchFilterRow: {
+    gap: 12,
   },
   searchBox: {
     flexDirection: 'row',
@@ -270,79 +650,238 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.neutral[900],
   },
-  cardList: {
-    marginTop: 16,
+  statusFilterWrap: {
+    position: 'relative',
+    zIndex: 10,
   },
-  stateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-  },
-  stateText: {
-    marginLeft: 8,
-    fontSize: 12,
-    color: colors.neutral[500],
-  },
-  card: {
-    marginBottom: 12,
-  },
-  cardHeader: {
+  statusFilterButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    backgroundColor: colors.white,
   },
-  cardTitle: {
+  statusFilterText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.neutral[700],
+  },
+  statusFilterMenu: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    backgroundColor: colors.white,
+    overflow: 'hidden',
+  },
+  statusFilterMenuItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.neutral[100],
+  },
+  statusFilterMenuText: {
+    fontSize: 13,
+    color: colors.neutral[700],
+    fontWeight: '600',
+  },
+  myStatusRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  myStatusButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: colors.neutral[100],
+  },
+  myStatusButtonActive: {
+    backgroundColor: colors.primary[600],
+  },
+  myStatusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.neutral[700],
+  },
+  myStatusTextActive: {
+    color: colors.white,
+  },
+  loadingRow: {
+    paddingVertical: 32,
+    alignItems: 'center',
+  },
+  errorCard: {
+    marginTop: 16,
+  },
+  errorText: {
+    fontSize: 12,
+    color: colors.error[700],
+  },
+  emptyState: {
+    paddingVertical: 48,
+    alignItems: 'center',
+  },
+  emptyTitle: {
+    marginTop: 16,
     fontSize: 16,
     fontWeight: '700',
     color: colors.neutral[900],
-    flex: 1,
-    marginRight: 8,
   },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  emptySubtitle: {
+    marginTop: 8,
+    marginBottom: 16,
+    fontSize: 12,
+    color: colors.neutral[600],
+    textAlign: 'center',
+    paddingHorizontal: 24,
+  },
+  cardList: {
+    marginTop: 16,
+  },
+  cardPressable: {
+    marginBottom: 12,
+  },
+  cardPressed: {
+    opacity: 0.95,
+  },
+  card: {
+    padding: 16,
     borderRadius: 12,
   },
-  statusText: {
-    color: colors.white,
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0,
+    marginRight: 8,
+  },
+  logoCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  logoImage: {
+    width: 22,
+    height: 22,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.neutral[900],
+    flex: 1,
+  },
+  badgeStack: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 10,
+  },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  badgeText: {
     fontSize: 11,
     fontWeight: '600',
   },
-  cardMeta: {
-    flexDirection: 'row',
+  roleBadge: {
+    paddingHorizontal: 8,
+  },
+  cardDescription: {
+    fontSize: 12,
+    color: colors.neutral[600],
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  metaList: {
+    gap: 6,
     marginBottom: 12,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 12,
+    gap: 6,
   },
   metaText: {
     fontSize: 12,
     color: colors.neutral[600],
-    marginLeft: 4,
+    flex: 1,
   },
-  detailButton: {
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
+  cardFooter: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  detailButtonText: {
+  cardDate: {
+    fontSize: 11,
+    color: colors.neutral[400],
+  },
+  cardLink: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.neutral[700],
+    color: colors.primary[600],
   },
-  emptyState: {
+  paginationRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 24,
+    justifyContent: 'center',
+    marginTop: 20,
+    flexWrap: 'wrap',
+    gap: 8,
   },
-  emptyText: {
-    marginTop: 8,
+  pageNavButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  pageNavButtonDisabled: {
+    opacity: 0.4,
+  },
+  pageNavText: {
     fontSize: 12,
+    fontWeight: '600',
     color: colors.neutral[500],
+  },
+  pageNumber: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  pageNumberActive: {
+    backgroundColor: colors.primary[600],
+  },
+  pageNumberText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.neutral[500],
+  },
+  pageNumberTextActive: {
+    color: colors.white,
   },
 });

@@ -100,7 +100,7 @@ export default function ClubRegulationsScreen() {
             ))
           )}
         </Card>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

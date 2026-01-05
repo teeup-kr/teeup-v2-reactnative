@@ -10,11 +10,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import ScreenHeader from '../../components/ui/ScreenHeader';
 import Card from '../../components/ui/Card';
 import { usersApi } from '../../lib/api';
 import { clubsApi } from '../../lib/clubsApi';
 import { colors } from '../../theme/colors';
+import AppHeader from '../../components/layout/AppHeader';
+import AppFooter from '../../components/layout/AppFooter';
 
 const formatDate = (value) => {
   if (!value) return '-';
@@ -116,11 +117,14 @@ export default function OverviewScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <ScreenHeader title="마이페이지 개요" />
-        <View style={styles.stateContainer}>
-          <ActivityIndicator size="large" color={colors.primary[600]} />
-          <Text style={styles.stateText}>로딩 중...</Text>
-        </View>
+        <ScrollView contentContainerStyle={styles.container}>
+          <AppHeader />
+          <View style={styles.stateContainer}>
+            <ActivityIndicator size="large" color={colors.primary[600]} />
+            <Text style={styles.stateText}>로딩 중...</Text>
+          </View>
+          <AppFooter />
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -128,11 +132,14 @@ export default function OverviewScreen() {
   if (error) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <ScreenHeader title="마이페이지 개요" />
-        <View style={styles.stateContainer}>
-          <FontAwesome5 name="info-circle" size={32} color={colors.error[500]} />
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
+        <ScrollView contentContainerStyle={styles.container}>
+          <AppHeader />
+          <View style={styles.stateContainer}>
+            <FontAwesome5 name="info-circle" size={32} color={colors.error[500]} />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+          <AppFooter />
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -148,8 +155,8 @@ export default function OverviewScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScreenHeader title="마이페이지 개요" />
       <ScrollView contentContainerStyle={styles.container}>
+        <AppHeader />
         <Card style={styles.card}>
           <Text style={styles.cardTitle}>기본 정보</Text>
           <View style={styles.infoGrid}>
@@ -243,7 +250,8 @@ export default function OverviewScreen() {
             ))
           )}
         </Card>
-      </ScrollView>
+        <AppFooter />
+</ScrollView>
     </SafeAreaView>
   );
 }

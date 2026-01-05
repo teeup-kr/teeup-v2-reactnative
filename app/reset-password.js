@@ -1,1 +1,5 @@
-export { default } from '../src/screens/auth/ResetPasswordScreen';
+import { Redirect } from 'expo-router';
+
+export default function ResetPasswordRedirect() {
+  return <Redirect href="/auth/reset-password" />;
+}

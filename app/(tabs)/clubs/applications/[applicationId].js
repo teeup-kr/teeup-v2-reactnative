@@ -82,7 +82,7 @@ export default function ClubApplicationDetailScreen() {
         <Button variant="outline" size="lg">
           신청 취소
         </Button>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

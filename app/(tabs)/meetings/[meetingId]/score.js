@@ -102,7 +102,7 @@ export default function ScoreInputScreen() {
         <Button variant="primary" size="lg">
           스코어 저장
         </Button>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

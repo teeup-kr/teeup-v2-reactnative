@@ -1,0 +1,67 @@
+mobile-web -> RN route/layout mapping
+
+Global layout (mobile-web)
+- Header (logo/auth/links)
+- Main (Routes)
+- Footer
+- BottomNavigation (전체/홈/클럽/모임/마이)
+- FullMenu overlay (auth-gated items)
+
+RN target (expo-router)
+- Root layout should render Header + Slot + Footer + BottomNavigation + FullMenu
+- (tabs) group should be plain Slot (no Tabs navigator)
+
+Route mapping
+- /                      -> app/(tabs)/index.js
+- /login                 -> app/login.js
+- /register              -> app/register.js
+- /register-success      -> app/register-success.js
+- /auth/forgot-password  -> app/forgot-password.js
+- /auth/reset-password   -> app/reset-password.js
+- /terms                 -> app/terms.js (redirects to /auth/terms)
+- /auth/terms            -> app/auth/terms.js
+
+Clubs
+- /clubs                               -> app/(tabs)/clubs/index.js
+- /clubs/register                      -> app/(tabs)/clubs/register.js
+- /clubs/:clubId                        -> app/(tabs)/clubs/[clubId]/index.js
+- /clubs/:clubId/manage                 -> app/(tabs)/clubs/[clubId]/manage.js
+- /clubs/:clubId/members                -> app/(tabs)/clubs/[clubId]/members.js
+- /clubs/:clubId/notices                -> app/(tabs)/clubs/[clubId]/notices.js
+- /clubs/:clubId/regulations            -> app/(tabs)/clubs/[clubId]/regulations/index.js
+- /clubs/:clubId/regulations/create     -> app/(tabs)/clubs/[clubId]/regulations/create.js
+- /clubs/:clubId/regulations/:id        -> app/(tabs)/clubs/[clubId]/regulations/[regulationId].js
+- /clubs/:clubId/fees                   -> app/(tabs)/clubs/[clubId]/fees.js
+- /clubs/:clubId/stats                  -> app/(tabs)/clubs/[clubId]/stats.js
+- /clubs/:clubId/activities             -> app/(tabs)/clubs/[clubId]/activities.js
+- /clubs/applications/:applicationId    -> app/(tabs)/clubs/applications/[applicationId].js
+
+Meetings
+- /meetings                             -> app/(tabs)/meetings/index.js
+- /meetings/my                          -> app/(tabs)/meetings/my.js
+- /meetings/:meetingType/:meetingId     -> app/(tabs)/meetings/[meetingType]/[meetingId]/index.js
+- /meetings/rounding/create             -> app/(tabs)/meetings/rounding/create.js
+- /meetings/rounding/:meetingId/edit    -> app/(tabs)/meetings/rounding/[meetingId]/edit.js
+- /meetings/social/create               -> app/(tabs)/meetings/social/create.js
+- /meetings/social/:meetingId/edit      -> app/(tabs)/meetings/social/[meetingId]/edit.js
+- /meetings/:meetingId/expense          -> app/(tabs)/meetings/[meetingId]/expense.js
+- /meetings/:meetingId/stats            -> app/(tabs)/meetings/[meetingId]/stats.js
+- /meetings/:meetingId/score            -> app/(tabs)/meetings/[meetingId]/score.js
+
+My Page / misc
+- /mypage                               -> app/(tabs)/mypage/index.js
+- /mypage/notifications                 -> app/(tabs)/mypage/notifications.js
+- /mypage/records                       -> app/(tabs)/mypage/records.js
+- /mypage/overview                      -> app/(tabs)/mypage/overview.js
+- /mypage/edit                          -> app/(tabs)/mypage/edit.js
+- /mypage/change-password               -> app/(tabs)/mypage/change-password.js
+- /mypage/withdraw                      -> app/(tabs)/mypage/withdraw.js
+
+Notices/FAQ
+- /notices                              -> src/screens/notices/NoticeListScreen.js (app/notices.js if present)
+- /notices/:id                          -> src/screens/notices/NoticeDetailScreen.js
+- /faq                                  -> app/faq.js
+
+Auth gating targets (match mobile-web FullMenu)
+- Require login: /mypage, /meetings/my, /meetings/*/create, /clubs/register, club manage/member/fees/stats/activities, profile pages
+- Public: /, /clubs, /meetings, /notices, /faq, /terms, /login, /register

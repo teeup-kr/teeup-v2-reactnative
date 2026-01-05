@@ -38,7 +38,7 @@ export default function ClubRegulationCreateScreen() {
         <Button variant="primary" size="lg">
           저장하기
         </Button>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

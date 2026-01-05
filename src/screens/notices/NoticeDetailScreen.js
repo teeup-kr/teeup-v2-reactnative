@@ -62,7 +62,7 @@ export default function NoticeDetailScreen() {
             <Text style={styles.loadingText}>공지사항을 찾을 수 없습니다.</Text>
           )}
         </Card>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

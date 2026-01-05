@@ -79,7 +79,7 @@ export default function NoticeListScreen() {
           <Text style={styles.infoTitle}>문의가 필요하신가요?</Text>
           <Text style={styles.infoText}>FAQ에서 답을 찾거나 고객센터로 문의해주세요.</Text>
         </Card>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

@@ -98,7 +98,7 @@ export default function ExpenseScreen() {
         <Button variant="primary" size="lg">
           정산 시작
         </Button>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

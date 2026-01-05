@@ -96,7 +96,7 @@ export default function ChangePasswordScreen() {
         <Button style={styles.saveButton} onPress={handleSubmit} loading={isSubmitting} disabled={isSubmitting}>
           {isSubmitting ? '처리 중...' : '변경하기'}
         </Button>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }

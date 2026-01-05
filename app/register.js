@@ -476,7 +476,7 @@ export default function RegisterScreen() {
                     />
                     <Text style={styles.checkboxLabel}>서비스 이용약관 동의 (필수)</Text>
                     <Pressable
-                      onPress={() => router.push('/auth/terms?tab=terms')}
+                      onPress={() => router.push('/terms?tab=terms')}
                     >
                       <Text style={styles.termsLink}>[보기]</Text>
                     </Pressable>
@@ -489,7 +489,7 @@ export default function RegisterScreen() {
                     />
                     <Text style={styles.checkboxLabel}>개인정보처리방침 동의 (필수)</Text>
                     <Pressable
-                      onPress={() => router.push('/auth/terms?tab=privacy')}
+                      onPress={() => router.push('/terms?tab=privacy')}
                     >
                       <Text style={styles.termsLink}>[보기]</Text>
                     </Pressable>
@@ -502,7 +502,7 @@ export default function RegisterScreen() {
                     />
                     <Text style={styles.checkboxLabel}>개인정보 수집 및 이용 동의 (필수)</Text>
                     <Pressable
-                      onPress={() => router.push('/auth/terms?tab=collection')}
+                      onPress={() => router.push('/terms?tab=collection')}
                     >
                       <Text style={styles.termsLink}>[보기]</Text>
                     </Pressable>
@@ -515,7 +515,7 @@ export default function RegisterScreen() {
                     />
                     <Text style={styles.checkboxLabel}>마케팅정보 수신동의 (선택)</Text>
                     <Pressable
-                      onPress={() => router.push('/auth/terms?tab=marketing')}
+                      onPress={() => router.push('/terms?tab=marketing')}
                     >
                       <Text style={styles.termsLink}>[보기]</Text>
                     </Pressable>
@@ -552,7 +552,7 @@ export default function RegisterScreen() {
                 </Pressable>
               </View>
             </Card>
-          </ScrollView>
+</ScrollView>
         </KeyboardAvoidingView>
       </LinearGradient>
     </SafeAreaView>

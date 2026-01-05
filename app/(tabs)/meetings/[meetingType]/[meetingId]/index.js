@@ -515,7 +515,7 @@ export default function MeetingDetailScreen() {
         {activeTab === 'my-settlement' && isRoundingMeeting && (
           <MySettlementView meetingId={meetingIdValue} />
         )}
-      </ScrollView>
+</ScrollView>
 
       <RoundingJoinModal
         visible={joinModalOpen && isRoundingMeeting}

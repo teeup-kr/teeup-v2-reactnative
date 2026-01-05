@@ -186,7 +186,8 @@ export const clubsApi = {
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.search) queryParams.append('search', params.search);
     if (params.type) queryParams.append('type', params.type);
-    if (params.status) queryParams.append('status', params.status);
+    if (params.status_filter) queryParams.append('status_filter', params.status_filter);
+    if (!params.status_filter && params.status) queryParams.append('status_filter', params.status);
 
     const response = await apiClient.get(`/clubs/?${queryParams.toString()}`);
     return response.data;
@@ -196,6 +197,8 @@ export const clubsApi = {
     const queryParams = new URLSearchParams();
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.status_filter) queryParams.append('status_filter', params.status_filter);
+    if (!params.status_filter && params.status) queryParams.append('status_filter', params.status);
 
     const response = await apiClient.get(`/clubs/my?${queryParams.toString()}`);
     return response.data;

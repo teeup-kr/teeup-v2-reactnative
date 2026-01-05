@@ -86,7 +86,7 @@ export default function ClubStatsScreen() {
             <Text style={styles.chartText}>차트 영역 (추후 연결)</Text>
           </View>
         </Card>
-      </ScrollView>
+</ScrollView>
     </SafeAreaView>
   );
 }
