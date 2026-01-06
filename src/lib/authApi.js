@@ -83,9 +83,7 @@ export const authApi = {
     });
   },
   async googleLogin(oauthData) {
-    const response = await oauthRequest('/auth/oauth/google/callback', {
-      body: oauthData,
-    });
+    const response = await oauthRequest('/auth/oauth/google/callback',oauthData);
     await saveAuthData(response);
     return response;
   },

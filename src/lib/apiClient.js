@@ -127,35 +127,27 @@ export const apiRequest = async (path, options = {}) => {
   return payload;
 };
 
-export const oauthRequest = async (path, options = {}) => {
-  const {
-    method = 'POST',
-    params,
-    headers = {},
-    body,
-  } = options;
-
-  const url = `${buildUrl(path)}${buildQuery(params)}`;
+export const oauthRequest = async (path, authData) => {
+  
+  const url = `${buildUrl(path)}`;
 
   const requestHeaders = {
-    'Content-Type': 'application/json',
-    ...headers,
+    'Content-Type': 'application/json'
   };
 
-  console.log('[OAuth Request]', {
-    method,
-    url,
-    params,
-    headers: requestHeaders,
-    body: sanitizePayload(body),
-  });
+  // console.log('[OAuth Request]', {
+  //     url,
+  //     method,
+  //     headers: requestHeaders,
+  //     body: body
+  //   });
 
   let response;
   try {
     response = await fetch(url, {
-      method,
+      method: 'POST',
       headers: requestHeaders,
-      body: body ? JSON.stringify(body) : undefined,
+      body: JSON.stringify(authData)
     });
   } catch (networkError) {
     console.warn('[OAuth Network Error]', {
@@ -170,7 +162,7 @@ export const oauthRequest = async (path, options = {}) => {
   const payload = isJson ? await response.json() : null;
 
   console.log('[OAuth Response]', {
-    method,
+    method: 'POST',
     url,
     status: response.status,
     payload: sanitizePayload(payload),
@@ -181,7 +173,7 @@ export const oauthRequest = async (path, options = {}) => {
     error.status = response.status;
     error.payload = payload;
     console.warn('[OAuth Error]', {
-      method,
+      method : 'POST',
       url,
       status: response.status,
       payload: sanitizePayload(payload),

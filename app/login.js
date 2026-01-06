@@ -19,8 +19,8 @@ import Card from '../src/components/ui/Card';
 import Input from '../src/components/ui/Input';
 import { useAuth } from '../src/context/AuthContext';
 import { authApi } from '../src/lib/authApi';
-import { colors } from '../src/theme/colors';
 import { tokenStorage } from '../src/lib/tokenStorage';
+import { colors } from '../src/theme/colors';
 
 const logoImage = require('../assets/teeuplink-logo.png');
 
@@ -112,26 +112,31 @@ const signInWithGoogle = async () => {
 
   try {
     const authState = await authorize(buildGoogleAuthConfig(oauthState));
-    const stateParam =
-      authState?.authorizeAdditionalParameters?.state ??
-      authState?.tokenAdditionalParameters?.state;
-    const code = authState.authorizationCode;
+    // console.log('Google OAuth State:', authState);
+    // const stateParam =
+    //   authState?.authorizeAdditionalParameters?.state ??
+    //   authState?.tokenAdditionalParameters?.state;
+    // const code = authState.authorizationCode;
 
-    if (!code) {
-      throw new Error('Google 인증 코드가 존재하지 않습니다.');
-    }
+    // if (!code) {
+    //   throw new Error('Google 인증 코드가 존재하지 않습니다.');
+    // }
 
-    if (stateParam && stateParam !== oauthState) {
-      throw new Error('Google 인증 상태가 일치하지 않습니다.');
-    }
+    // if (stateParam && stateParam !== oauthState) {
+    //   throw new Error('Google 인증 상태가 일치하지 않습니다.');
+    // }
 
+    // const payload = {
+    //   provider: 'google',
+    //   code,
+    //   ...(oauthState ? { state: oauthState } : {}),
+    //   redirect_uri: config.redirectUrl,
+    // };
     const payload = {
-      provider: 'google',
-      code,
-      ...(oauthState ? { state: oauthState } : {}),
-      redirect_uri: config.redirectUrl,
+      "provider": "google",
+      "authorizationCode": authState.authorizationCode,
+      "codeVerifier": authState.codeVerifier
     };
-
     await authApi.googleLogin(payload);
     await refreshAuth();
     router.replace('/');
