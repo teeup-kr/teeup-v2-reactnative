@@ -1,27 +1,26 @@
-import React, { useState } from 'react';
+import { FontAwesome } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  Image,
-  Linking,
-  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
+import { authorize } from 'react-native-app-auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import { FontAwesome } from '@expo/vector-icons';
+import Button from '../src/components/ui/Button';
 import Card from '../src/components/ui/Card';
 import Input from '../src/components/ui/Input';
-import Button from '../src/components/ui/Button';
-import { colors } from '../src/theme/colors';
-import { authApi, googleAuth } from '../src/lib/authApi';
-import { config } from '../src/config/env';
 import { useAuth } from '../src/context/AuthContext';
+import { authApi } from '../src/lib/authApi';
+import { colors } from '../src/theme/colors';
+import { tokenStorage } from '../src/lib/tokenStorage';
 
 const logoImage = require('../assets/teeuplink-logo.png');
 
@@ -38,6 +37,7 @@ export default function LoginScreen() {
     general: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
 
   const handleInputChange = (field) => (value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -84,18 +84,66 @@ export default function LoginScreen() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      if (config.GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID') {
-        Alert.alert('Google 로그인', 'Google 클라이언트 ID를 설정해주세요.');
-        return;
-      }
-      const { url } = await googleAuth.getAuthUrl();
-      await Linking.openURL(url);
-    } catch (error) {
-      Alert.alert('Google 로그인', 'Google 로그인 요청에 실패했습니다.');
+const config = {
+  issuer: 'https://accounts.google.com',
+  clientId: '791884628850-gkqbgna2cn1ari12jielsttrsqvjrkm8.apps.googleusercontent.com',
+  redirectUrl: 'com.googleusercontent.apps.791884628850-gkqbgna2cn1ari12jielsttrsqvjrkm8:/oauth2redirect',
+  scopes: ['openid', 'profile', 'email'],
+};
+
+const buildGoogleAuthConfig = (state) => ({
+  ...config,
+  skipCodeExchange: true,
+  usePKCE: true,
+  additionalParameters: {
+    ...(config.additionalParameters || {}),
+    ...(state ? { state } : {}),
+  },
+});
+
+const generateOauthState = () => `google_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+const signInWithGoogle = async () => {
+  setErrors((prev) => ({ ...prev, general: '' }));
+  setIsGoogleSigningIn(true);
+
+  const oauthState = generateOauthState();
+  await tokenStorage.setOauthState(oauthState);
+
+  try {
+    const authState = await authorize(buildGoogleAuthConfig(oauthState));
+    const stateParam =
+      authState?.authorizeAdditionalParameters?.state ??
+      authState?.tokenAdditionalParameters?.state;
+    const code = authState.authorizationCode;
+
+    if (!code) {
+      throw new Error('Google 인증 코드가 존재하지 않습니다.');
     }
-  };
+
+    if (stateParam && stateParam !== oauthState) {
+      throw new Error('Google 인증 상태가 일치하지 않습니다.');
+    }
+
+    const payload = {
+      provider: 'google',
+      code,
+      ...(oauthState ? { state: oauthState } : {}),
+      redirect_uri: config.redirectUrl,
+    };
+
+    await authApi.googleLogin(payload);
+    await refreshAuth();
+    router.replace('/');
+  } catch (error) {
+    console.error('Google 로그인 에러:', error);
+    const message = error?.message || 'Google 로그인에 실패했습니다.';
+    setErrors((prev) => ({ ...prev, general: message }));
+  } finally {
+    await tokenStorage.clearOauthState();
+    setIsGoogleSigningIn(false);
+  }
+};
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -166,7 +214,13 @@ export default function LoginScreen() {
                 <View style={styles.dividerLine} />
               </View>
 
-              <Button variant="outline" size="lg" onPress={handleGoogleLogin}>
+              <Button
+                variant="outline"
+                size="lg"
+                onPress={signInWithGoogle}
+                loading={isGoogleSigningIn}
+                disabled={isSubmitting || isGoogleSigningIn}
+              >
                 <FontAwesome name="google" size={16} color={colors.neutral[700]} style={styles.iconGap} />
                 <Text style={styles.outlineText}>Google로 로그인</Text>
               </Button>

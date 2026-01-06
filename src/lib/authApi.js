@@ -1,6 +1,5 @@
-import { apiRequest } from './apiClient';
+import { apiRequest, oauthRequest } from './apiClient';
 import { tokenStorage } from './tokenStorage';
-import { config } from '../config/env';
 
 const saveAuthData = async (authResponse) => {
   if (!authResponse?.access_token) {
@@ -84,8 +83,7 @@ export const authApi = {
     });
   },
   async googleLogin(oauthData) {
-    const response = await apiRequest('/auth/oauth/google/callback', {
-      method: 'POST',
+    const response = await oauthRequest('/auth/oauth/google/callback', {
       body: oauthData,
     });
     await saveAuthData(response);
@@ -97,34 +95,5 @@ export const authApi = {
   },
   async deleteAccount() {
     return apiRequest('/auth/withdraw', { method: 'DELETE', auth: true });
-  },
-};
-
-const createState = () => {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-};
-
-export const googleAuth = {
-  async getAuthUrl() {
-    const state = createState();
-    await tokenStorage.setOauthState(state);
-
-    // host가 들어가면 path가 깨질 수 있어(예: teeup://auth/google/callback → hostname=auth),
-    // expo-router 라우트(`/auth/google/callback`)와 동일하게 맞추기 위해 host 없는 형태로 고정합니다.
-    const redirectUri = `${config.APP_SCHEME}:///auth/google/callback`;
-    const params = new URLSearchParams({
-      client_id: config.GOOGLE_CLIENT_ID,
-      redirect_uri: redirectUri,
-      response_type: 'code',
-      scope: 'openid email profile',
-      access_type: 'offline',
-      prompt: 'consent',
-      state,
-    });
-
-    return {
-      url: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
-      state,
-    };
   },
 };

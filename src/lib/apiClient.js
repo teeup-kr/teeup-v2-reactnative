@@ -41,6 +41,14 @@ const buildQuery = (params = {}) => {
   return `?${query.toString()}`;
 };
 
+const buildUrl = (path) => {
+  if (!path) {
+    throw new Error('요청 경로를 지정해주세요.');
+  }
+  const urlPath = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE_URL}${urlPath}`;
+};
+
 export const apiRequest = async (path, options = {}) => {
   const {
     method = 'GET',
@@ -50,8 +58,7 @@ export const apiRequest = async (path, options = {}) => {
     auth = false,
   } = options;
 
-  const urlPath = path.startsWith('/') ? path : `/${path}`;
-  const url = `${API_BASE_URL}${urlPath}${buildQuery(params)}`;
+  const url = `${buildUrl(path)}${buildQuery(params)}`;
 
   const requestHeaders = {
     'Content-Type': 'application/json',
@@ -120,6 +127,71 @@ export const apiRequest = async (path, options = {}) => {
   return payload;
 };
 
+export const oauthRequest = async (path, options = {}) => {
+  const {
+    method = 'POST',
+    params,
+    headers = {},
+    body,
+  } = options;
+
+  const url = `${buildUrl(path)}${buildQuery(params)}`;
+
+  const requestHeaders = {
+    'Content-Type': 'application/json',
+    ...headers,
+  };
+
+  console.log('[OAuth Request]', {
+    method,
+    url,
+    params,
+    headers: requestHeaders,
+    body: sanitizePayload(body),
+  });
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method,
+      headers: requestHeaders,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (networkError) {
+    console.warn('[OAuth Network Error]', {
+      method,
+      url,
+      message: networkError?.message,
+    });
+    throw networkError;
+  }
+
+  const isJson = response.headers.get('content-type')?.includes('application/json');
+  const payload = isJson ? await response.json() : null;
+
+  console.log('[OAuth Response]', {
+    method,
+    url,
+    status: response.status,
+    payload: sanitizePayload(payload),
+  });
+
+  if (!response.ok) {
+    const error = new Error(payload?.detail || payload?.message || 'OAuth 요청에 실패했습니다.');
+    error.status = response.status;
+    error.payload = payload;
+    console.warn('[OAuth Error]', {
+      method,
+      url,
+      status: response.status,
+      payload: sanitizePayload(payload),
+    });
+    throw error;
+  }
+
+  return payload;
+};
+
 export const apiRequestForm = async (path, options = {}) => {
   const {
     method = 'POST',
@@ -129,8 +201,7 @@ export const apiRequestForm = async (path, options = {}) => {
     auth = false,
   } = options;
 
-  const urlPath = path.startsWith('/') ? path : `/${path}`;
-  const url = `${API_BASE_URL}${urlPath}${buildQuery(params)}`;
+  const url = `${buildUrl(path)}${buildQuery(params)}`;
 
   const requestHeaders = {
     ...headers,
