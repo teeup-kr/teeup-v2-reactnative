@@ -38,7 +38,12 @@ yarn-error.*
 
 # generated native folders
 /ios
-/android
+/android/*
+!/android/app/
+/android/app/*
+!/android/app/build.gradle
+!/android/build.gradle
+!/android/gradle.properties
 
 mobile-web/
 backend/
