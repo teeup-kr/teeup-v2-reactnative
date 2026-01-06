@@ -1,3 +1,4 @@
+import { URLSearchParams } from 'react-native-url-polyfill';
 import { getApiBaseUrl } from '../config/env';
 import { tokenStorage } from './tokenStorage';
 
@@ -151,7 +152,7 @@ export const oauthRequest = async (path, authData) => {
     });
   } catch (networkError) {
     console.warn('[OAuth Network Error]', {
-      method,
+      method : 'POST',
       url,
       message: networkError?.message,
     });

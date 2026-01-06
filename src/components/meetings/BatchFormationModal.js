@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
+import { extractList } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
 
 const formationModeOptions = [
@@ -59,7 +60,7 @@ export default function BatchFormationModal({
               preview: true,
               batchMode: true,
             });
-            const teams = response?.data?.teams || response?.teams || [];
+            const teams = extractList(response?.data?.teams || response?.teams || response);
             return {
               mode,
               label: formationModeOptions.find((option) => option.value === mode)?.label || mode,

@@ -13,17 +13,7 @@ import ScreenHeader from '../../../src/components/ui/ScreenHeader';
 import Button from '../../../src/components/ui/Button';
 import Card from '../../../src/components/ui/Card';
 import { colors } from '../../../src/theme/colors';
-
-const clubTypes = [
-  { id: 'REGULAR', label: '정기 모임' },
-  { id: 'IRREGULAR', label: '비정기 모임' },
-];
-
-const feeCycles = [
-  { id: 'MONTHLY', label: '월 1회' },
-  { id: 'QUARTERLY', label: '분기 1회' },
-  { id: 'YEARLY', label: '연 1회' },
-];
+import { clubRegisterTypes, clubFeeCycles } from '../../../src/constants/clubConstants';
 
 export default function ClubRegisterScreen() {
   const [formData, setFormData] = useState({
@@ -67,7 +57,7 @@ export default function ClubRegisterScreen() {
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>클럽 타입</Text>
             <View style={styles.chipRow}>
-              {clubTypes.map((type) => (
+              {clubRegisterTypes.map((type) => (
                 <Pressable
                   key={type.id}
                   onPress={() => handleChange('type')(type.id)}
@@ -173,7 +163,7 @@ export default function ClubRegisterScreen() {
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>회비 주기</Text>
                 <View style={styles.chipRow}>
-                  {feeCycles.map((cycle) => (
+                  {clubFeeCycles.map((cycle) => (
                     <Pressable
                       key={cycle.id}
                       onPress={() => setFeeCycle(cycle.id)}

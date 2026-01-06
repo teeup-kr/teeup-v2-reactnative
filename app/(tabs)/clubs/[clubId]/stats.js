@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
@@ -6,6 +6,7 @@ import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
 import Card from '../../../../src/components/ui/Card';
 import { colors } from '../../../../src/theme/colors';
 import { clubsApi } from '../../../../src/lib/clubsApi';
+import { extractData } from '../../../../src/lib/responseUtils';
 
 export default function ClubStatsScreen() {
   const { clubId } = useLocalSearchParams();
@@ -16,15 +17,16 @@ export default function ClubStatsScreen() {
 
   useEffect(() => {
     const loadStats = async () => {
+      setError('');
       if (!resolvedId) {
+        setStatsData(null);
         setIsLoading(false);
         return;
       }
       try {
         setIsLoading(true);
-        setError('');
         const response = await clubsApi.getClubStats(resolvedId);
-        const data = response?.data || response || null;
+        const data = extractData(response);
         setStatsData(data);
       } catch (fetchError) {
         console.error('클럽 통계 조회 실패:', fetchError);
@@ -37,23 +39,27 @@ export default function ClubStatsScreen() {
     loadStats();
   }, [resolvedId]);
 
-  const stats = useMemo(() => ([
+  const activeMembers = statsData?.active_members ?? statsData?.activeMembers ?? '-';
+  const totalMeetings = statsData?.total_meetings ?? statsData?.totalMeetings ?? '-';
+  const settlementCompleted = statsData?.settlement_completed ?? statsData?.settlementCompleted ?? '-';
+
+  const stats = [
     {
       id: 'members',
       label: '활성 멤버',
-      value: statsData?.active_members ?? statsData?.activeMembers ?? '-',
+      value: activeMembers,
     },
     {
       id: 'meetings',
       label: '총 모임',
-      value: statsData?.total_meetings ?? statsData?.totalMeetings ?? '-',
+      value: totalMeetings,
     },
     {
       id: 'settlement',
       label: '정산 완료',
-      value: statsData?.settlement_completed ?? statsData?.settlementCompleted ?? '-',
+      value: settlementCompleted,
     },
-  ]), [statsData]);
+  ];
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -86,7 +92,7 @@ export default function ClubStatsScreen() {
             <Text style={styles.chartText}>차트 영역 (추후 연결)</Text>
           </View>
         </Card>
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

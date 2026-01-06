@@ -21,29 +21,23 @@ import { useAuth } from '../../../src/context/AuthContext';
 import LoginRequired from '../../../src/components/auth/LoginRequired';
 import AppHeader from '../../../src/components/layout/AppHeader';
 import AppFooter from '../../../src/components/layout/AppFooter';
+import {
+  clubValidTabs,
+  clubTabs,
+  clubStatusFilterOptions,
+  clubMyStatusOptions,
+} from '../../../src/constants/clubConstants';
+import {
+  getClubStatusBadgeConfig,
+  getClubMembershipStatusBadgeConfig,
+  getClubTypeBadgeConfig,
+  getClubRoleBadgeConfig,
+  formatClubDate,
+  normalizePaginatedResponse,
+} from '../../../src/lib/clubUtils';
 
 const logoImage = require('../../../assets/teeuplink-logo.png');
 
-const VALID_TABS = ['my', 'all', 'applications', 'join-applications'];
-const tabs = [
-  { id: 'my', label: '내 클럽' },
-  { id: 'all', label: '클럽 찾아보기' },
-  { id: 'applications', label: '클럽 등록 신청 내역' },
-  { id: 'join-applications', label: '가입 신청 내역' },
-];
-
-const statusFilterOptions = [
-  { value: 'ALL', label: '전체 상태' },
-  { value: 'APPROVED', label: '승인됨' },
-  { value: 'PENDING', label: '승인 대기' },
-  { value: 'REJECTED', label: '거부됨' },
-];
-
-const myClubStatusOptions = [
-  { value: 'ACTIVE', label: '활성/승인' },
-  { value: 'INACTIVE', label: '비공개' },
-  { value: 'ALL', label: '전체' },
-];
 
 const Badge = ({ text, backgroundColor, textColor, style }) => (
   <View style={[styles.badge, { backgroundColor }, style]}>
@@ -51,101 +45,17 @@ const Badge = ({ text, backgroundColor, textColor, style }) => (
   </View>
 );
 
-const getStatusBadge = (status, clubDeletedAt) => {
-  if (clubDeletedAt) {
-    return <Badge text="삭제됨" backgroundColor={colors.error[50]} textColor={colors.error[700]} />;
-  }
-
-  const normalizedStatus = String(status || '').toUpperCase();
-  const statusConfig = {
-    ACTIVE: { text: '활성', bg: colors.success[50], fg: colors.success[700] },
-    APPROVED: { text: '활성', bg: colors.success[50], fg: colors.success[700] },
-    INACTIVE: { text: '비공개', bg: colors.neutral[100], fg: colors.neutral[800] },
-    PENDING: { text: '승인 대기', bg: colors.warning[50], fg: colors.warning[700] },
-    REJECTED: { text: '거부됨', bg: colors.error[50], fg: colors.error[700] },
-    CANCELED: { text: '취소됨', bg: colors.error[50], fg: colors.error[700] },
-    SUSPENDED: { text: '정지', bg: colors.error[50], fg: colors.error[700] },
-  };
-
-  const fallback = { text: status || '알 수 없음', bg: colors.neutral[100], fg: colors.neutral[800] };
-  const config = statusConfig[normalizedStatus] || fallback;
-  return <Badge text={config.text} backgroundColor={config.bg} textColor={config.fg} />;
-};
-
-const getMembershipStatusBadge = (status) => {
-  if (!status || status === 'null' || status === '') return null;
-  const normalizedStatus = String(status).toUpperCase().trim();
-  const validStatuses = ['APPROVED', 'ACTIVE', 'PENDING', 'REJECTED'];
-  if (!validStatuses.includes(normalizedStatus)) return null;
-
-  const statusConfig = {
-    APPROVED: { text: '가입됨', bg: colors.success[50], fg: colors.success[700] },
-    ACTIVE: { text: '가입됨', bg: colors.success[50], fg: colors.success[700] },
-    PENDING: { text: '가입 대기', bg: colors.warning[50], fg: colors.warning[700] },
-    REJECTED: { text: '가입 거부', bg: colors.error[50], fg: colors.error[700] },
-  };
-
-  const config = statusConfig[normalizedStatus];
-  if (!config) return null;
-  return <Badge text={config.text} backgroundColor={config.bg} textColor={config.fg} />;
-};
-
-const getClubTypeBadge = (type) => {
-  const typeConfig = {
-    REGULAR: { text: '정기 모임', bg: colors.info[50], fg: colors.info[700] },
-    IRREGULAR: { text: '비정기 모임', bg: colors.accent[50], fg: colors.accent[700] },
-    ROUND: { text: '라운딩', bg: colors.primary[50], fg: colors.primary[700] },
-    SOCIAL: { text: '소셜 모임', bg: colors.secondary[50], fg: colors.secondary[700] },
-    MIXED: { text: '혼합', bg: colors.neutral[100], fg: colors.neutral[800] },
-  };
-
-  const normalizedType = String(type || '').toUpperCase();
-  const config = typeConfig[normalizedType];
-  if (!config) return null;
-  return <Badge text={config.text} backgroundColor={config.bg} textColor={config.fg} />;
-};
-
-const getMembershipRoleBadge = (role) => {
-  if (!role) return null;
-  const normalizedRole = String(role).toUpperCase();
-  const roleConfig = {
-    LEADER: { text: '리더', bg: colors.accent[50], fg: colors.accent[700] },
-    MANAGER: { text: '매니저', bg: colors.info[50], fg: colors.info[700] },
-    MEMBER: { text: '일반회원', bg: colors.neutral[100], fg: colors.neutral[800] },
-  };
-  const config = roleConfig[normalizedRole] || roleConfig.MEMBER;
-  return <Badge text={config.text} backgroundColor={config.bg} textColor={config.fg} style={styles.roleBadge} />;
-};
-
-const formatDate = (dateString) => {
-  if (!dateString) return '-';
-  try {
-    const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return '-';
-    return date.toLocaleDateString('ko-KR');
-  } catch {
-    return '-';
-  }
-};
-
-const normalizePaginatedResponse = (payload) => {
-  if (Array.isArray(payload)) return { data: payload, total_pages: 1 };
-  if (Array.isArray(payload?.data)) return payload;
-  if (Array.isArray(payload?.items)) return { ...payload, data: payload.items };
-  if (Array.isArray(payload?.value)) return { ...payload, data: payload.value };
-  if (Array.isArray(payload?.results)) return { ...payload, data: payload.results };
-  return { data: [], total_pages: 1 };
-};
-
 const ClubCard = ({ club, variant, onPress }) => {
   const showStatus = variant === 'all' || variant === 'my' || variant === 'applications';
   const showMembershipStatus = variant === 'my' || variant === 'join-applications';
   const showMembershipRole = variant === 'my' || variant === 'join-applications';
 
-  const statusBadge = showStatus ? getStatusBadge(club?.status, club?.club_deleted_at) : null;
-  const membershipBadge = showMembershipStatus ? getMembershipStatusBadge(club?.membership_status) : null;
-  const typeBadge = getClubTypeBadge(club?.type);
-  const roleBadge = showMembershipRole ? getMembershipRoleBadge(club?.membership_role) : null;
+  const statusConfig = showStatus ? getClubStatusBadgeConfig(club?.status, club?.club_deleted_at) : null;
+  const membershipConfig = showMembershipStatus
+    ? getClubMembershipStatusBadgeConfig(club?.membership_status)
+    : null;
+  const typeConfig = getClubTypeBadgeConfig(club?.type);
+  const roleConfig = showMembershipRole ? getClubRoleBadgeConfig(club?.membership_role) : null;
 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.cardPressable, pressed && styles.cardPressed]}>
@@ -160,14 +70,27 @@ const ClubCard = ({ club, variant, onPress }) => {
             </Text>
           </View>
           <View style={styles.badgeStack}>
-            {statusBadge}
-            {membershipBadge}
+            {statusConfig ? (
+              <Badge text={statusConfig.text} backgroundColor={statusConfig.bg} textColor={statusConfig.fg} />
+            ) : null}
+            {membershipConfig ? (
+              <Badge text={membershipConfig.text} backgroundColor={membershipConfig.bg} textColor={membershipConfig.fg} />
+            ) : null}
           </View>
         </View>
 
         <View style={styles.badgeRow}>
-          {typeBadge}
-          {roleBadge}
+          {typeConfig ? (
+            <Badge text={typeConfig.text} backgroundColor={typeConfig.bg} textColor={typeConfig.fg} />
+          ) : null}
+          {roleConfig ? (
+            <Badge
+              text={roleConfig.text}
+              backgroundColor={roleConfig.bg}
+              textColor={roleConfig.fg}
+              style={styles.roleBadge}
+            />
+          ) : null}
         </View>
 
         <Text style={styles.cardDescription} numberOfLines={2}>
@@ -189,7 +112,7 @@ const ClubCard = ({ club, variant, onPress }) => {
 
         <View style={styles.cardFooter}>
           <Text style={styles.cardDate}>
-            {variant === 'applications' ? `신청일: ${formatDate(club?.created_at)}` : formatDate(club?.created_at || club?.joined_at)}
+            {variant === 'applications' ? `신청일: ${formatClubDate(club?.created_at)}` : formatClubDate(club?.created_at || club?.joined_at)}
           </Text>
           <Text style={styles.cardLink}>자세히 보기 →</Text>
         </View>
@@ -205,7 +128,7 @@ export default function ClubsScreen() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   const initialTab = useMemo(() => {
-    if (tabParam && VALID_TABS.includes(tabParam)) return tabParam;
+    if (tabParam && clubValidTabs.includes(tabParam)) return tabParam;
     return 'my';
   }, [tabParam]);
 
@@ -223,7 +146,7 @@ export default function ClubsScreen() {
   const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
 
   useEffect(() => {
-    if (!tabParam || !VALID_TABS.includes(tabParam)) return;
+    if (!tabParam || !clubValidTabs.includes(tabParam)) return;
     setActiveTab(tabParam);
   }, [tabParam]);
 
@@ -386,7 +309,7 @@ export default function ClubsScreen() {
 
         <View style={styles.tabBar}>
           <View style={styles.tabBarRow}>
-            {tabs.map((tab) => {
+            {clubTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <Pressable
@@ -420,7 +343,7 @@ export default function ClubsScreen() {
                 style={styles.statusFilterButton}
               >
                 <Text style={styles.statusFilterText}>
-                  {statusFilterOptions.find((option) => option.value === statusFilter)?.label || '전체 상태'}
+                  {clubStatusFilterOptions.find((option) => option.value === statusFilter)?.label || '전체 상태'}
                 </Text>
                 <FontAwesome5
                   name={isStatusFilterOpen ? 'chevron-up' : 'chevron-down'}
@@ -430,7 +353,7 @@ export default function ClubsScreen() {
               </Pressable>
               {isStatusFilterOpen && (
                 <View style={styles.statusFilterMenu}>
-                  {statusFilterOptions.map((option) => (
+                  {clubStatusFilterOptions.map((option) => (
                     <Pressable
                       key={option.value}
                       onPress={() => {
@@ -451,7 +374,7 @@ export default function ClubsScreen() {
 
         {activeTab === 'my' && (
           <View style={styles.myStatusRow}>
-            {myClubStatusOptions.map((option) => {
+            {clubMyStatusOptions.map((option) => {
               const selected = myClubStatusFilter === option.value;
               return (
                 <Pressable

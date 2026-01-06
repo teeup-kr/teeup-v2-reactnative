@@ -1,14 +1,14 @@
-import { useEffect } from 'react';
-import { Slot } from 'expo-router';
-import { Platform, StyleSheet, View } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as NavigationBar from 'expo-navigation-bar';
-import { colors } from '../src/theme/colors';
-import { AuthProvider } from '../src/context/AuthContext';
-import { AppLayoutProvider } from '../src/context/AppLayoutContext';
+import { Slot } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomNavigationBar, { bottomNavHeight } from '../src/components/layout/BottomNavigationBar';
 import FullMenu from '../src/components/layout/FullMenu';
+import { AppLayoutProvider } from '../src/context/AppLayoutContext';
+import { AuthProvider } from '../src/context/AuthContext';
+import { colors } from '../src/theme/colors';
 
 function AppShell() {
   const insets = useSafeAreaInsets();

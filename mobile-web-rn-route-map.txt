@@ -58,8 +58,8 @@ My Page / misc
 - /mypage/withdraw                      -> app/(tabs)/mypage/withdraw.js
 
 Notices/FAQ
-- /notices                              -> src/screens/notices/NoticeListScreen.js (app/notices.js if present)
-- /notices/:id                          -> src/screens/notices/NoticeDetailScreen.js
+- /notices                              -> app/notices/index.js
+- /notices/:id                          -> app/notices/[noticeId].js
 - /faq                                  -> app/faq.js
 
 Auth gating targets (match mobile-web FullMenu)

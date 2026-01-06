@@ -17,84 +17,20 @@ import Card from '../../../../src/components/ui/Card';
 import DateTimeField from '../../../../src/components/ui/DateTimeField';
 import { colors } from '../../../../src/theme/colors';
 import { roundsApi, clubApi } from '../../../../src/lib/api';
-
-const teamModes = [
-  { id: 'GENDER_SEPARATED', label: '성별 분리' },
-  { id: 'MIXED', label: '혼성' },
-];
-
-const meetingSubtypes = [
-  { id: 'REGULAR', label: '정기' },
-  { id: 'IRREGULAR', label: '비정기' },
-  { id: 'ONE_TIME', label: '일회성' },
-];
-
-const settlementMethods = [
-  { id: 'EQUAL_SPLIT', label: 'N분의 1' },
-  { id: 'INDIVIDUAL', label: '개별 정산' },
-];
-
-const extractData = (payload) => {
-  if (!payload) return null;
-  if (payload.data && Object.keys(payload).length === 1) return payload.data;
-  return payload.data ?? payload;
-};
-
-const extractList = (payload) => {
-  if (!payload) return [];
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload.data)) return payload.data;
-  if (Array.isArray(payload.items)) return payload.items;
-  return [];
-};
-
-const toDateTimeLocalValue = (value) => {
-  if (!value) return '';
-  const safeValue = typeof value === 'string' && value.includes(' ') ? value.replace(' ', 'T') : value;
-  const date = new Date(safeValue);
-  if (Number.isNaN(date.getTime())) return '';
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-};
-
-const convertToKST = (value) => {
-  if (!value) return undefined;
-  const normalized = value.trim().replace(' ', 'T');
-  if (normalized.includes('+') || normalized.endsWith('Z')) return normalized;
-  if (normalized.length === 16) return `${normalized}:00+09:00`;
-  return `${normalized}+09:00`;
-};
-
-const normalizeNumber = (value, fallback = 0) => {
-  if (value === '' || value === null || value === undefined) return fallback;
-  const parsed = Number(value);
-  if (Number.isNaN(parsed)) return fallback;
-  return parsed;
-};
-
-const parseTeeTimes = (value) =>
-  value
-    .split(',')
-    .map((time) => time.trim())
-    .filter((time) => time.length > 0);
-
-const validateMeetingTimeWithTeeTimes = (meetingTime, teeTimes) => {
-  if (!meetingTime || teeTimes.length === 0) return true;
-  const meetingDate = new Date(meetingTime);
-  if (Number.isNaN(meetingDate.getTime())) return true;
-  const meetingDateStr = meetingTime.includes('T') ? meetingTime.split('T')[0] : meetingTime.substring(0, 10);
-  const earliest = [...teeTimes].sort()[0];
-  if (!earliest) return true;
-  const [teeHour, teeMinute] = earliest.split(':').map(Number);
-  if (Number.isNaN(teeHour) || Number.isNaN(teeMinute)) return true;
-  const teeDateTime = new Date(`${meetingDateStr}T00:00:00`);
-  teeDateTime.setHours(teeHour, teeMinute, 0, 0);
-  return meetingDate < teeDateTime;
-};
+import {
+  roundingTeamModes,
+  roundingMeetingSubtypes,
+  roundingSettlementMethods,
+} from '../../../../src/constants/meetingConstants';
+import {
+  extractData,
+  extractList,
+  toDateTimeLocalValue,
+  convertToKST,
+  normalizeNumber,
+  parseTeeTimes,
+  validateMeetingTimeWithTeeTimes,
+} from '../../../../src/lib/meetingUtils';
 
 const ChipOption = ({ label, selected, onPress }) => (
   <Pressable
@@ -154,7 +90,7 @@ export function RoundingForm({ mode = 'create' }) {
     try {
       setClubsLoading(true);
       const response = await clubApi.getMyClubs();
-      const list = extractList(response?.data ?? response);
+      const list = extractList(response);
       const activeClubs = list.filter(
         (club) => club.status === 'ACTIVE' || club.status === 'APPROVED',
       );
@@ -298,7 +234,7 @@ export function RoundingForm({ mode = 'create' }) {
       caddy_fee: caddyFee,
       cart_fee: cartFee,
       total_cost: greenFee + caddyFee + cartFee,
-      settlement_method: settlementMethods.some((method) => method.id === form.settlement_method)
+      settlement_method: roundingSettlementMethods.some((method) => method.id === form.settlement_method)
         ? form.settlement_method
         : 'EQUAL_SPLIT',
     };
@@ -528,7 +464,7 @@ export function RoundingForm({ mode = 'create' }) {
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>팀 구성 방식</Text>
                 <View style={styles.chipRow}>
-                  {teamModes.map((modeOption) => (
+                  {roundingTeamModes.map((modeOption) => (
                     <ChipOption
                       key={modeOption.id}
                       label={modeOption.label}
@@ -542,7 +478,7 @@ export function RoundingForm({ mode = 'create' }) {
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>모임 유형</Text>
                 <View style={styles.chipRow}>
-                  {meetingSubtypes.map((subtype) => (
+                  {roundingMeetingSubtypes.map((subtype) => (
                     <ChipOption
                       key={subtype.id}
                       label={subtype.label}
@@ -607,7 +543,7 @@ export function RoundingForm({ mode = 'create' }) {
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>정산 방식</Text>
                 <View style={styles.chipRow}>
-                  {settlementMethods.map((method) => (
+                  {roundingSettlementMethods.map((method) => (
                     <ChipOption
                       key={method.id}
                       label={method.label}

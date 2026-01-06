@@ -8,6 +8,7 @@ import Button from '../../../../../src/components/ui/Button';
 import Card from '../../../../../src/components/ui/Card';
 import { colors } from '../../../../../src/theme/colors';
 import { clubsApi } from '../../../../../src/lib/clubsApi';
+import { extractList } from '../../../../../src/lib/responseUtils';
 
 export default function ClubRegulationsScreen() {
   const router = useRouter();
@@ -27,22 +28,16 @@ export default function ClubRegulationsScreen() {
         setIsLoading(true);
         setError('');
         const response = await clubsApi.getClubRegulations(resolvedId, { page: 1, limit: 50 });
-        const list = Array.isArray(response?.data)
-          ? response.data
-          : Array.isArray(response)
-            ? response
-            : response?.items || [];
-        const normalized = Array.isArray(list)
-          ? list.map((item) => ({
-              id: item?.id || item?.regulation_id || item?.title,
-              title: item?.title || '규정',
-              updated: item?.updated_at
-                ? item.updated_at.slice(0, 10)
-                : item?.created_at
-                  ? item.created_at.slice(0, 10)
-                  : '-',
-            }))
-          : [];
+        const list = extractList(response);
+        const normalized = list.map((item) => ({
+          id: item?.id || item?.regulation_id || item?.title,
+          title: item?.title || '규정',
+          updated: item?.updated_at
+            ? item.updated_at.slice(0, 10)
+            : item?.created_at
+              ? item.created_at.slice(0, 10)
+              : '-',
+        }));
         setRegulations(normalized);
       } catch (fetchError) {
         console.error('클럽 규정 조회 실패:', fetchError);
@@ -100,7 +95,7 @@ export default function ClubRegulationsScreen() {
             ))
           )}
         </Card>
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

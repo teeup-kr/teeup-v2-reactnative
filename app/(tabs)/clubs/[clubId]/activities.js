@@ -6,6 +6,7 @@ import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
 import Card from '../../../../src/components/ui/Card';
 import { colors } from '../../../../src/theme/colors';
 import { clubsApi } from '../../../../src/lib/clubsApi';
+import { extractList } from '../../../../src/lib/responseUtils';
 
 export default function ClubActivitiesScreen() {
   const { clubId } = useLocalSearchParams();
@@ -16,20 +17,17 @@ export default function ClubActivitiesScreen() {
 
   useEffect(() => {
     const loadActivities = async () => {
+      setError('');
       if (!resolvedId) {
+        setActivities([]);
         setIsLoading(false);
         return;
       }
       try {
         setIsLoading(true);
-        setError('');
         const response = await clubsApi.getClubActivities(resolvedId, { page: 1, limit: 50 });
-        const list = Array.isArray(response?.data)
-          ? response.data
-          : Array.isArray(response)
-            ? response
-            : response?.items || [];
-        setActivities(Array.isArray(list) ? list : []);
+        const list = extractList(response);
+        setActivities(list);
       } catch (fetchError) {
         console.error('클럽 활동 내역 조회 실패:', fetchError);
         setError(fetchError?.message || '활동 내역을 불러오는데 실패했습니다.');
@@ -61,24 +59,31 @@ export default function ClubActivitiesScreen() {
               <Text style={styles.stateText}>등록된 활동 내역이 없습니다.</Text>
             </View>
           ) : (
-            activities.map((item) => (
-              <View key={item?.id || item?.activity_id || item?.title} style={styles.itemRow}>
-                <View style={styles.itemInfo}>
-                  <Text style={styles.itemTitle}>{item?.title || '활동'}</Text>
-                  <Text style={styles.itemDetail}>{item?.description || item?.detail || '-'}</Text>
+            activities.map((item, index) => {
+              const activityKey = item?.id || item?.activity_id || item?.title || `activity-${index}`;
+              const title = item?.title || '활동';
+              const detail = item?.description || item?.detail || '-';
+              let activityDate = '-';
+
+              if (item?.date) {
+                activityDate = String(item.date).slice(0, 10);
+              } else if (item?.created_at) {
+                activityDate = item.created_at.slice(0, 10);
+              }
+
+              return (
+                <View key={activityKey} style={styles.itemRow}>
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.itemTitle}>{title}</Text>
+                    <Text style={styles.itemDetail}>{detail}</Text>
+                  </View>
+                  <Text style={styles.itemDate}>{activityDate}</Text>
                 </View>
-                <Text style={styles.itemDate}>
-                  {item?.date
-                    ? String(item.date).slice(0, 10)
-                    : item?.created_at
-                      ? item.created_at.slice(0, 10)
-                      : '-'}
-                </Text>
-              </View>
-            ))
+              );
+            })
           )}
         </Card>
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

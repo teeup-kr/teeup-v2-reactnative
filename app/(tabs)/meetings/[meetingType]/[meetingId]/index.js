@@ -28,34 +28,8 @@ import RoundingJoinModal from '../../../../../src/components/meetings/RoundingJo
 import SocialJoinModal from '../../../../../src/components/meetings/SocialJoinModal';
 import { roundsApi, socialsApi, usersApi } from '../../../../../src/lib/api';
 import { colors } from '../../../../../src/theme/colors';
-
-const extractData = (payload) => {
-  if (!payload) return null;
-  if (payload.data && Object.keys(payload).length === 1) return payload.data;
-  return payload.data ?? payload;
-};
-
-const extractList = (payload) => {
-  if (!payload) return [];
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload.data)) return payload.data;
-  if (Array.isArray(payload.items)) return payload.items;
-  return [];
-};
-
-const formatDateTime = (value) => {
-  if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleString('ko-KR');
-};
-
-const tabConfig = [
-  { key: 'participants', label: '참가자' },
-  { key: 'teams', label: '팀' },
-  { key: 'settlement', label: '정산' },
-  { key: 'my-settlement', label: '내 정산' },
-];
+import { meetingDetailTabs } from '../../../../../src/constants/meetingConstants';
+import { extractData, extractList, formatDateTime } from '../../../../../src/lib/meetingUtils';
 
 export default function MeetingDetailScreen() {
   const { meetingType, meetingId } = useLocalSearchParams();
@@ -441,7 +415,7 @@ export default function MeetingDetailScreen() {
         )}
 
         <View style={styles.tabRow}>
-          {tabConfig
+          {meetingDetailTabs
             .filter((tab) => (isRoundingMeeting ? true : tab.key === 'participants'))
             .map((tab) => (
               <Pressable

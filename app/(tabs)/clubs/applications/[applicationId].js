@@ -7,6 +7,7 @@ import Card from '../../../../src/components/ui/Card';
 import Button from '../../../../src/components/ui/Button';
 import { colors } from '../../../../src/theme/colors';
 import { clubsApi } from '../../../../src/lib/clubsApi';
+import { extractData } from '../../../../src/lib/responseUtils';
 
 export default function ClubApplicationDetailScreen() {
   const { applicationId } = useLocalSearchParams();
@@ -25,7 +26,7 @@ export default function ClubApplicationDetailScreen() {
         setIsLoading(true);
         setError('');
         const response = await clubsApi.getClubApplication(resolvedId);
-        const data = response?.data || response || null;
+        const data = extractData(response);
         setApplication(data);
       } catch (fetchError) {
         console.error('클럽 신청 조회 실패:', fetchError);
@@ -82,7 +83,7 @@ export default function ClubApplicationDetailScreen() {
         <Button variant="outline" size="lg">
           신청 취소
         </Button>
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

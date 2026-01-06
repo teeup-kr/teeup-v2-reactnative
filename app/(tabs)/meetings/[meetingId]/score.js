@@ -7,6 +7,7 @@ import Button from '../../../../src/components/ui/Button';
 import Card from '../../../../src/components/ui/Card';
 import { colors } from '../../../../src/theme/colors';
 import { roundsApi } from '../../../../src/lib/api';
+import { extractList } from '../../../../src/lib/responseUtils';
 
 export default function ScoreInputScreen() {
   const { meetingId } = useLocalSearchParams();
@@ -25,12 +26,8 @@ export default function ScoreInputScreen() {
         setIsLoading(true);
         setError('');
         const response = await roundsApi.getRoundParticipants(resolvedId);
-        const list = Array.isArray(response?.data)
-          ? response.data
-          : Array.isArray(response)
-            ? response
-            : response?.items || [];
-        setParticipants(Array.isArray(list) ? list : []);
+        const list = extractList(response);
+        setParticipants(list);
       } catch (fetchError) {
         console.error('참가자 조회 실패:', fetchError);
         setError(fetchError?.message || '참가자를 불러오는데 실패했습니다.');
@@ -102,7 +99,7 @@ export default function ScoreInputScreen() {
         <Button variant="primary" size="lg">
           스코어 저장
         </Button>
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

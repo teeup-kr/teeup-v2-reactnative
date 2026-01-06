@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-nat
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { roundsApi } from '../../lib/api';
+import { extractData } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
 
 const formatCurrency = (value) => {
@@ -33,7 +34,7 @@ export default function SettlementViewModal({
         setLoading(true);
         setError(null);
         const response = await roundsApi.getMeetingSettlement(meetingId);
-        setSettlement(response?.data || response || null);
+        setSettlement(extractData(response));
       } catch (fetchError) {
         console.error('정산 조회 실패:', fetchError);
         setError('정산 정보를 불러오는데 실패했습니다.');

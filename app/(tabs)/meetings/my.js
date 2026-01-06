@@ -9,13 +9,7 @@ import { colors } from '../../../src/theme/colors';
 import { usersApi } from '../../../src/lib/api';
 import { useAuth } from '../../../src/context/AuthContext';
 import LoginRequired from '../../../src/components/auth/LoginRequired';
-
-const formatMeetingDate = (value) => {
-  if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleDateString('ko-KR');
-};
+import { extractList, formatMeetingListDate } from '../../../src/lib/meetingUtils';
 
 export default function MyMeetingsScreen() {
   const router = useRouter();
@@ -32,15 +26,8 @@ export default function MyMeetingsScreen() {
         setIsLoading(true);
         setError('');
         const response = await usersApi.getMyMeetings({ page: 1, limit: 20 });
-        const payload = response?.data ? response : { data: response };
-        const list = Array.isArray(payload?.data)
-          ? payload.data
-          : Array.isArray(response?.items)
-            ? response.items
-            : Array.isArray(response)
-              ? response
-              : [];
-        setMeetings(Array.isArray(list) ? list : []);
+        const list = extractList(response);
+        setMeetings(list);
       } catch (fetchError) {
         console.error('내 모임 조회 실패:', fetchError);
         setError(fetchError?.message || '모임을 불러오는데 실패했습니다.');
@@ -52,6 +39,20 @@ export default function MyMeetingsScreen() {
 
     loadMeetings();
   }, [isAuthenticated]);
+
+  const normalizedMeetings = useMemo(() => (
+    meetings.map((meeting) => {
+      const meetingType = meeting?.meeting_type || meeting?.type || 'ROUND';
+      const typeSlug = meetingType === 'ROUND' || meetingType === 'ROUNDING' ? 'rounding' : 'social';
+      return {
+        id: meeting?.id || meeting?.meeting_id,
+        name: meeting?.meeting_name || meeting?.title || '모임',
+        type: typeSlug,
+        date: formatMeetingListDate(meeting?.meeting_time || meeting?.date),
+        status: meeting?.status || meeting?.application_status || '-',
+      };
+    })
+  ), [meetings]);
 
   if (authLoading) {
     return (
@@ -71,20 +72,6 @@ export default function MyMeetingsScreen() {
       />
     );
   }
-
-  const normalizedMeetings = useMemo(() => (
-    meetings.map((meeting) => {
-      const meetingType = meeting?.meeting_type || meeting?.type || 'ROUND';
-      const typeSlug = meetingType === 'ROUND' || meetingType === 'ROUNDING' ? 'rounding' : 'social';
-      return {
-        id: meeting?.id || meeting?.meeting_id,
-        name: meeting?.meeting_name || meeting?.title || '모임',
-        type: typeSlug,
-        date: formatMeetingDate(meeting?.meeting_time || meeting?.date),
-        status: meeting?.status || meeting?.application_status || '-',
-      };
-    })
-  ), [meetings]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -128,7 +115,7 @@ export default function MyMeetingsScreen() {
             ))
           )}
         </View>
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

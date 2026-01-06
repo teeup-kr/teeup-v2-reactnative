@@ -1,1 +1,1 @@
-export { default } from '../../src/screens/mypage/ChangePasswordScreen';
+export { default } from '../(tabs)/mypage/change-password';

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
@@ -7,11 +7,8 @@ import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
 import Card from '../../../../src/components/ui/Card';
 import { colors } from '../../../../src/theme/colors';
 import { clubsApi } from '../../../../src/lib/clubsApi';
-
-const statusColors = {
-  ACTIVE: colors.success[600],
-  PENDING: colors.warning[600],
-};
+import { clubMemberStatusColors } from '../../../../src/constants/clubConstants';
+import { extractList } from '../../../../src/lib/responseUtils';
 
 export default function ClubMemberManageScreen() {
   const { clubId } = useLocalSearchParams();
@@ -22,20 +19,17 @@ export default function ClubMemberManageScreen() {
 
   useEffect(() => {
     const loadMembers = async () => {
+      setError('');
       if (!resolvedId) {
+        setMembers([]);
         setIsLoading(false);
         return;
       }
       try {
         setIsLoading(true);
-        setError('');
         const response = await clubsApi.getClubMembers(resolvedId, { page: 1, limit: 50 });
-        const list = Array.isArray(response?.data)
-          ? response.data
-          : Array.isArray(response)
-            ? response
-            : response?.items || [];
-        setMembers(Array.isArray(list) ? list : []);
+        const list = extractList(response);
+        setMembers(list);
       } catch (fetchError) {
         console.error('클럽 멤버 조회 실패:', fetchError);
         setError(fetchError?.message || '멤버 정보를 불러오는데 실패했습니다.');
@@ -48,17 +42,16 @@ export default function ClubMemberManageScreen() {
     loadMembers();
   }, [resolvedId]);
 
-  const summaryText = useMemo(() => {
-    const total = members.length;
-    const pending = members.filter((member) => {
-      const status = member?.status || member?.membership_status;
-      return status === 'PENDING' || status === 'WAITING';
-    }).length;
-    return `총 ${total}명 · 승인 대기 ${pending}명`;
-  }, [members]);
+  const normalizedMembers = [];
+  let pendingCount = 0;
 
-  const normalizedMembers = useMemo(() => (
-    members.map((member) => ({
+  for (const member of members) {
+    const status = member?.status || member?.membership_status || 'ACTIVE';
+    if (status === 'PENDING' || status === 'WAITING') {
+      pendingCount += 1;
+    }
+
+    normalizedMembers.push({
       id: member?.id || member?.member_id || member?.user_id,
       name:
         member?.user?.name ||
@@ -68,9 +61,11 @@ export default function ClubMemberManageScreen() {
         member?.nickname ||
         '-',
       role: member?.role || member?.membership_role || '-',
-      status: member?.status || member?.membership_status || 'ACTIVE',
-    }))
-  ), [members]);
+      status,
+    });
+  }
+
+  const summaryText = `총 ${normalizedMembers.length}명 · 승인 대기 ${pendingCount}명`;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -108,7 +103,7 @@ export default function ClubMemberManageScreen() {
                 <View
                   style={[
                     styles.statusBadge,
-                    { backgroundColor: statusColors[member.status] || colors.neutral[400] },
+                    { backgroundColor: clubMemberStatusColors[member.status] || colors.neutral[400] },
                   ]}
                 >
                   <Text style={styles.statusText}>{member.status}</Text>
@@ -120,7 +115,7 @@ export default function ClubMemberManageScreen() {
             ))
           )}
         </View>
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

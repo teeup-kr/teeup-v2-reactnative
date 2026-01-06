@@ -1,3 +1,4 @@
+import { URLSearchParams } from 'react-native-url-polyfill';
 import { apiRequest, apiRequestForm } from './apiClient';
 import { apiClient, buildRequestConfig } from './httpClient';
 

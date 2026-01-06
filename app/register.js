@@ -17,30 +17,9 @@ import Card from '../src/components/ui/Card';
 import Button from '../src/components/ui/Button';
 import { colors } from '../src/theme/colors';
 import { authApi } from '../src/lib/authApi';
+import { registerInitialForm, registerInitialErrors } from '../src/constants/authConstants';
 
 const logoImage = require('../assets/teeuplink-logo.png');
-
-const initialForm = {
-  email: '',
-  password: '',
-  nickname: '',
-  average_score: '',
-  terms_agreement: false,
-  privacy_policy: false,
-  privacy_collection: false,
-  marketing_consent: false,
-};
-
-const initialErrors = {
-  email: '',
-  password: '',
-  confirmPassword: '',
-  nickname: '',
-  average_score: '',
-  terms_agreement: '',
-  privacy_policy: '',
-  privacy_collection: '',
-};
 
 const Checkbox = ({ checked, onPress }) => {
   return (
@@ -52,9 +31,9 @@ const Checkbox = ({ checked, onPress }) => {
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const [formData, setFormData] = useState(initialForm);
+  const [formData, setFormData] = useState(registerInitialForm);
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [validationErrors, setValidationErrors] = useState(initialErrors);
+  const [validationErrors, setValidationErrors] = useState(registerInitialErrors);
   const [emailChecked, setEmailChecked] = useState(false);
   const [emailMessage, setEmailMessage] = useState('');
   const [nicknameChecked, setNicknameChecked] = useState(false);

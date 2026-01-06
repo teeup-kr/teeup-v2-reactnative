@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { usersApi } from '../../lib/api';
+import { extractData } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
 
 const formatDate = (value) => {
@@ -44,8 +45,7 @@ export default function LastMeetingResultCard({ userId }) {
       setLoading(true);
       setError(null);
       const response = await usersApi.getLastMeetingResult(userId);
-      const data = response?.data || response || null;
-      setResult(data);
+      setResult(extractData(response));
     } catch (fetchError) {
       console.error('직전 대회 성적 조회 실패:', fetchError);
       setError('직전 대회 성적을 불러오는데 실패했습니다.');

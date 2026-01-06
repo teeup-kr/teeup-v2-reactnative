@@ -4,6 +4,7 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import SettlementViewModal from './SettlementViewModal';
 import { roundsApi } from '../../lib/api';
+import { extractData } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
 
 const ROUND_METHODS = [
@@ -49,8 +50,8 @@ export default function SettlementManager({
       setLoading(true);
       setError(null);
       const response = await roundsApi.getMeetingSettlement(meetingId);
-      setSettlement(response?.data || response || null);
-    } catch (fetchError) {
+      setSettlement(extractData(response));
+    } catch (_fetchError) {
       setSettlement(null);
     } finally {
       setLoading(false);

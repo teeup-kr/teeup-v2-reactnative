@@ -12,33 +12,25 @@ import { useAuth } from '../../../src/context/AuthContext';
 import LoginRequired from '../../../src/components/auth/LoginRequired';
 import AppHeader from '../../../src/components/layout/AppHeader';
 import AppFooter from '../../../src/components/layout/AppFooter';
-
-const VALID_TABS = ['rounding', 'social'];
-const tabs = [
-  { id: 'rounding', label: '라운딩 모임' },
-  { id: 'social', label: '소셜 모임' },
-];
+import { meetingTabs, meetingValidTabs } from '../../../src/constants/meetingConstants';
+import {
+  formatYmd,
+  parseYmd,
+  getDateRange,
+  filterByDate,
+  filterByStatus,
+  formatMeetingTime,
+  formatCost,
+  extractList,
+  getMeetingTypeBadgeConfig,
+  getMeetingStatusBadgeConfigs,
+} from '../../../src/lib/meetingUtils';
 
 const Badge = ({ text, backgroundColor, textColor }) => (
   <View style={[styles.badge, { backgroundColor }]}>
     <Text style={[styles.badgeText, { color: textColor }]}>{text}</Text>
   </View>
 );
-
-const formatYmd = (date) => {
-  if (!date) return '';
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-};
-
-const parseYmd = (value) => {
-  if (!value) return null;
-  const [yyyy, mm, dd] = String(value).split('-').map((v) => Number(v));
-  if (!yyyy || !mm || !dd) return null;
-  return new Date(yyyy, mm - 1, dd);
-};
 
 const DateField = ({ value, onChange }) => {
   const [open, setOpen] = useState(false);
@@ -68,232 +60,12 @@ const DateField = ({ value, onChange }) => {
   );
 };
 
-const isPastDateTime = (value) => {
-  if (!value) return false;
-  try {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return false;
-    return date.getTime() <= Date.now();
-  } catch {
-    return false;
-  }
-};
-
-const getDateRange = (startDate, endDate) => {
-  if (!startDate && !endDate) return null;
-  const start = startDate ? new Date(startDate) : null;
-  const end = endDate ? new Date(endDate) : null;
-  if (end) {
-    end.setHours(23, 59, 59, 999);
-  }
-  return { startDate: start, endDate: end };
-};
-
-const filterByDate = (meetings, dateRange) => {
-  if (!dateRange || (!dateRange.startDate && !dateRange.endDate)) return meetings;
-  return meetings.filter((meeting) => {
-    if (!meeting?.meeting_time) return false;
-    const meetingDate = new Date(meeting.meeting_time);
-    if (Number.isNaN(meetingDate.getTime())) return false;
-
-    if (dateRange.startDate && dateRange.endDate) {
-      return meetingDate >= dateRange.startDate && meetingDate <= dateRange.endDate;
-    }
-    if (dateRange.startDate) {
-      return meetingDate >= dateRange.startDate;
-    }
-    if (dateRange.endDate) {
-      return meetingDate <= dateRange.endDate;
-    }
-    return true;
-  });
-};
-
-const isMeetingActive = (meeting) => {
-  const status = meeting?.status;
-  const participantCount = meeting?.participant_count || 0;
-  const applicationDeadline = meeting?.application_deadline;
-  const applicationClosedEarly = meeting?.application_closed_early || false;
-  const meetingType = meeting?.meeting_type || meeting?.type;
-  const isRoundingMeeting = meetingType === 'ROUND' || meetingType === 'ROUNDING';
-  const meetingTime = meeting?.meeting_time;
-  const settlementConfirmed = meeting?.settlement_confirmed;
-  const roundingCompletedAt = meeting?.rounding_completed_at;
-
-  const isMinParticipantsNotMet = isRoundingMeeting
-    ? participantCount >= 1 && participantCount <= 3
-    : participantCount === 1;
-
-  const isDeadlinePassed = applicationDeadline ? isPastDateTime(applicationDeadline) : false;
-  const isApplicationClosed = isDeadlinePassed || applicationClosedEarly;
-
-  const isCanceled =
-    status === 'CANCELED' || (status === 'SCHEDULED' && isApplicationClosed && isMinParticipantsNotMet);
-
-  if (settlementConfirmed === true) {
-    return false;
-  }
-
-  if (meeting?.is_completed === true) {
-    return false;
-  }
-
-  if (status === 'COMPLETED') {
-    return false;
-  }
-
-  const isMeetingTimePassed = meetingTime ? isPastDateTime(meetingTime) : false;
-
-  if (isRoundingMeeting) {
-    if (roundingCompletedAt) {
-      return false;
-    }
-    if (isMeetingTimePassed && !roundingCompletedAt) {
-      return false;
-    }
-  } else if (isMeetingTimePassed) {
-    return false;
-  }
-
-  return !isCanceled;
-};
-
-const filterByStatus = (meetings, statusFilter) => {
-  if (statusFilter === 'active') {
-    return meetings.filter((meeting) => isMeetingActive(meeting));
-  }
-  return meetings.filter((meeting) => !isMeetingActive(meeting));
-};
-
-const formatMeetingTime = (meetingTime) => {
-  try {
-    if (!meetingTime) return meetingTime;
-    const date = new Date(meetingTime);
-    if (Number.isNaN(date.getTime())) return meetingTime;
-
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    const hh = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-
-    return `${yyyy}년 ${mm}월 ${dd}일 ${hh}:${min}`;
-  } catch {
-    return meetingTime;
-  }
-};
-
-const formatCost = (cost) => {
-  if (!cost) return '미정';
-  try {
-    return `${Number(cost).toLocaleString()}원`;
-  } catch {
-    return `${cost}원`;
-  }
-};
-
-const getMeetingTypeBadge = (type) => {
-  const normalized = String(type || '').toUpperCase();
-  if (normalized === 'SOCIAL') {
-    return <Badge text="소셜" backgroundColor={colors.success[50]} textColor={colors.success[700]} />;
-  }
-  return <Badge text="라운딩" backgroundColor={colors.info[50]} textColor={colors.info[700]} />;
-};
-
-const getStatusBadges = (meeting) => {
-  const status = meeting?.status;
-  const participantCount = meeting?.participant_count || 0;
-  const applicationDeadline = meeting?.application_deadline;
-  const applicationClosedEarly = meeting?.application_closed_early || false;
-  const meetingType = meeting?.meeting_type || meeting?.type;
-  const isRoundingMeeting = meetingType === 'ROUND' || meetingType === 'ROUNDING';
-  const meetingTime = meeting?.meeting_time;
-
-  const isMinParticipantsNotMet = isRoundingMeeting
-    ? participantCount >= 1 && participantCount <= 3
-    : participantCount === 1;
-
-  const isDeadlinePassed = applicationDeadline ? isPastDateTime(applicationDeadline) : false;
-  const isApplicationClosed = isDeadlinePassed || applicationClosedEarly;
-  const isMeetingTimePassed = meetingTime ? isPastDateTime(meetingTime) : false;
-
-  const isMeetingCompleted =
-    meeting?.is_completed === true || meeting?.status === 'COMPLETED' || isMeetingTimePassed;
-
-  const isCanceled =
-    status === 'CANCELED' || (status === 'SCHEDULED' && isApplicationClosed && isMinParticipantsNotMet);
-
-  if (isCanceled) {
-    return [<Badge key="canceled" text="취소" backgroundColor={colors.error[50]} textColor={colors.error[700]} />];
-  }
-
-  if (meeting?.settlement_confirmed === true) {
-    return [<Badge key="closed" text="종료" backgroundColor={colors.success[50]} textColor={colors.success[700]} />];
-  }
-
-  if (isRoundingMeeting && isMeetingTimePassed && !meeting?.rounding_completed_at) {
-    return [
-      <Badge
-        key="not-started"
-        text="미진행"
-        backgroundColor={colors.neutral[100]}
-        textColor={colors.neutral[700]}
-      />,
-    ];
-  }
-
-  if (status === 'IN_PROGRESS') {
-    return [
-      <Badge
-        key="in-progress"
-        text="진행중"
-        backgroundColor={colors.warning[50]}
-        textColor={colors.warning[700]}
-      />,
-    ];
-  }
-
-  if (meeting?.settlement_confirmed === false && Array.isArray(meeting?.teams) && meeting.teams.length > 0) {
-    return [<Badge key="done" text="완료" backgroundColor={colors.success[50]} textColor={colors.success[700]} />];
-  }
-
-  const isApplicationClosedStatus = status === 'SCHEDULED' && isApplicationClosed && !isMinParticipantsNotMet;
-  const badges = [];
-
-  if (isApplicationClosedStatus) {
-    badges.push(
-      <Badge
-        key="closed-recruit"
-        text="모집마감"
-        backgroundColor={colors.warning[50]}
-        textColor={colors.warning[700]}
-      />,
-    );
-  }
-
-  if (isMeetingCompleted && !isCanceled) {
-    badges.push(
-      <Badge
-        key="meeting-done"
-        text="모임완료"
-        backgroundColor={colors.success[50]}
-        textColor={colors.success[700]}
-      />,
-    );
-  }
-
-  if (!isApplicationClosedStatus && !isMeetingCompleted) {
-    badges.push(
-      <Badge key="scheduled" text="예정" backgroundColor={colors.info[50]} textColor={colors.info[700]} />,
-    );
-  }
-
-  return badges;
-};
 
 const MeetingCard = ({ meeting, onPress }) => {
   const meetingType = meeting?.meeting_type || meeting?.type || 'ROUND';
   const maxParticipants = meeting?.max_participants ?? meeting?.maxParticipants;
+  const typeConfig = getMeetingTypeBadgeConfig(meetingType);
+  const statusBadges = getMeetingStatusBadgeConfigs(meeting);
 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.cardPressable, pressed && styles.cardPressed]}>
@@ -308,8 +80,23 @@ const MeetingCard = ({ meeting, onPress }) => {
             </Text>
           </View>
           <View style={styles.cardBadgeRow}>
-            {getMeetingTypeBadge(meetingType)}
-            <View style={styles.statusBadgeRow}>{getStatusBadges(meeting)}</View>
+            {typeConfig ? (
+              <Badge
+                text={typeConfig.text}
+                backgroundColor={typeConfig.backgroundColor}
+                textColor={typeConfig.textColor}
+              />
+            ) : null}
+            <View style={styles.statusBadgeRow}>
+              {statusBadges.map((badge) => (
+                <Badge
+                  key={badge.key}
+                  text={badge.text}
+                  backgroundColor={badge.backgroundColor}
+                  textColor={badge.textColor}
+                />
+              ))}
+            </View>
           </View>
         </View>
 
@@ -424,14 +211,14 @@ export default function MeetingsScreen() {
 
   useEffect(() => {
     if (!tabParam) return;
-    if (!VALID_TABS.includes(tabParam)) return;
+    if (!meetingValidTabs.includes(tabParam)) return;
     setActiveTab(tabParam);
   }, [tabParam]);
 
   const fetchClubs = useCallback(async () => {
     try {
       const response = await clubApi.getMyClubs();
-      const clubs = response?.data || response || [];
+      const clubs = extractList(response);
       const activeClubs = clubs.filter((club) => club.status === 'ACTIVE' || club.status === 'APPROVED');
       setHasClubs(activeClubs.length > 0);
     } catch (err) {
@@ -460,7 +247,7 @@ export default function MeetingsScreen() {
           };
 
           const pageResponse = await roundsApi.getRounds(requestParams);
-          const pageMeetings = Array.isArray(pageResponse?.data) ? pageResponse.data : [];
+          const pageMeetings = extractList(pageResponse);
 
           if (pageMeetings.length === 0) {
             hasMore = false;
@@ -500,7 +287,7 @@ export default function MeetingsScreen() {
       try {
         const requestParams = { page, limit: 6, ...(search ? { search } : {}) };
         const response = await socialsApi.getSocials(requestParams);
-        const socialData = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+        const socialData = extractList(response);
 
         const socials = socialData.map((social) => ({
           ...social,
@@ -735,7 +522,7 @@ export default function MeetingsScreen() {
 
             <View style={styles.tabBar}>
               <View style={styles.tabBarRow}>
-                {tabs.map((tab) => {
+                {meetingTabs.map((tab) => {
                   const selected = activeTab === tab.id;
                   return (
                     <Pressable
@@ -1373,4 +1160,3 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 });
-

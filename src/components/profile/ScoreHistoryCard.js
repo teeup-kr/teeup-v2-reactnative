@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { usersApi } from '../../lib/api';
+import { extractList } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
 
 const formatDate = (value) => {
@@ -29,8 +30,8 @@ export default function ScoreHistoryCard({ userId, initialLimit = 10 }) {
       setLoading(true);
       setError(null);
       const response = await usersApi.getUserScoreHistory(userId, fetchLimit);
-      const data = response?.data || response || [];
-      setHistory(Array.isArray(data) ? data : []);
+      const data = extractList(response);
+      setHistory(data);
     } catch (fetchError) {
       console.error('스코어 히스토리 조회 실패:', fetchError);
       setError('스코어 히스토리를 불러오는데 실패했습니다.');

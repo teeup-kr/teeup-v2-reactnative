@@ -7,6 +7,7 @@ import Card from '../../../../src/components/ui/Card';
 import Button from '../../../../src/components/ui/Button';
 import { colors } from '../../../../src/theme/colors';
 import { clubsApi } from '../../../../src/lib/clubsApi';
+import { extractList } from '../../../../src/lib/responseUtils';
 
 export default function ClubFeesScreen() {
   const { clubId } = useLocalSearchParams();
@@ -25,12 +26,8 @@ export default function ClubFeesScreen() {
         setIsLoading(true);
         setError('');
         const response = await clubsApi.getClubFees(resolvedId, { page: 1, limit: 50 });
-        const list = Array.isArray(response?.data)
-          ? response.data
-          : Array.isArray(response)
-            ? response
-            : response?.items || [];
-        setFees(Array.isArray(list) ? list : []);
+        const list = extractList(response);
+        setFees(list);
       } catch (fetchError) {
         console.error('회비 목록 조회 실패:', fetchError);
         setError(fetchError?.message || '회비 정보를 불러오는데 실패했습니다.');
@@ -105,7 +102,7 @@ export default function ClubFeesScreen() {
         <Button variant="primary" size="lg">
           회비 납부하기
         </Button>
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

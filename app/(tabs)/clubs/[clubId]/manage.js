@@ -6,15 +6,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
 import Card from '../../../../src/components/ui/Card';
 import { colors } from '../../../../src/theme/colors';
-
-const sections = [
-  { id: 'members', label: '멤버 관리', icon: 'users', route: 'members' },
-  { id: 'notices', label: '공지사항', icon: 'bullhorn', route: 'notices' },
-  { id: 'regulations', label: '클럽 규정', icon: 'file-alt', route: 'regulations' },
-  { id: 'fees', label: '회비 관리', icon: 'money-bill-wave', route: 'fees' },
-  { id: 'stats', label: '통계', icon: 'chart-line', route: 'stats' },
-  { id: 'activities', label: '활동 내역', icon: 'clipboard-list', route: 'activities' },
-];
+import { clubManageSections } from '../../../../src/constants/clubConstants';
 
 export default function ClubManageScreen() {
   const { clubId } = useLocalSearchParams();
@@ -30,7 +22,7 @@ export default function ClubManageScreen() {
         </Card>
 
         <View style={styles.sectionList}>
-          {sections.map((section) => (
+          {clubManageSections.map((section) => (
             <Pressable
               key={section.id}
               style={styles.sectionItem}

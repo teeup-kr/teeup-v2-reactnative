@@ -7,6 +7,7 @@ import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
 import Card from '../../../../src/components/ui/Card';
 import { colors } from '../../../../src/theme/colors';
 import { clubsApi } from '../../../../src/lib/clubsApi';
+import { extractList } from '../../../../src/lib/responseUtils';
 
 export default function ClubNoticesScreen() {
   const { clubId } = useLocalSearchParams();
@@ -25,19 +26,13 @@ export default function ClubNoticesScreen() {
         setIsLoading(true);
         setError('');
         const response = await clubsApi.getClubNotices(resolvedId, { page: 1, limit: 20 });
-        const list = Array.isArray(response?.data)
-          ? response.data
-          : Array.isArray(response)
-            ? response
-            : response?.items || [];
-        const normalized = Array.isArray(list)
-          ? list.map((notice) => ({
-              id: notice?.id || notice?.notice_id || notice?.title,
-              title: notice?.title || '공지사항',
-              date: notice?.created_at ? notice.created_at.slice(0, 10) : notice?.date || '-',
-              pinned: notice?.is_pinned || notice?.is_important || notice?.pinned || false,
-            }))
-          : [];
+        const list = extractList(response);
+        const normalized = list.map((notice) => ({
+          id: notice?.id || notice?.notice_id || notice?.title,
+          title: notice?.title || '공지사항',
+          date: notice?.created_at ? notice.created_at.slice(0, 10) : notice?.date || '-',
+          pinned: notice?.is_pinned || notice?.is_important || notice?.pinned || false,
+        }));
         setNotices(normalized);
       } catch (fetchError) {
         console.error('클럽 공지 조회 실패:', fetchError);
@@ -88,7 +83,7 @@ export default function ClubNoticesScreen() {
             ))
           )}
         </Card>
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

@@ -7,6 +7,7 @@ import Card from '../../../../src/components/ui/Card';
 import Button from '../../../../src/components/ui/Button';
 import { colors } from '../../../../src/theme/colors';
 import { roundsApi } from '../../../../src/lib/api';
+import { extractList } from '../../../../src/lib/responseUtils';
 
 export default function ExpenseScreen() {
   const { meetingId } = useLocalSearchParams();
@@ -25,12 +26,8 @@ export default function ExpenseScreen() {
         setIsLoading(true);
         setError('');
         const response = await roundsApi.getRoundExpenses(resolvedId);
-        const list = Array.isArray(response?.data)
-          ? response.data
-          : Array.isArray(response)
-            ? response
-            : response?.items || [];
-        setExpenses(Array.isArray(list) ? list : []);
+        const list = extractList(response);
+        setExpenses(list);
       } catch (fetchError) {
         console.error('경비 조회 실패:', fetchError);
         setError(fetchError?.message || '경비 정보를 불러오는데 실패했습니다.');
@@ -98,7 +95,7 @@ export default function ExpenseScreen() {
         <Button variant="primary" size="lg">
           정산 시작
         </Button>
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

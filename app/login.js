@@ -19,6 +19,7 @@ import Card from '../src/components/ui/Card';
 import Input from '../src/components/ui/Input';
 import { useAuth } from '../src/context/AuthContext';
 import { authApi } from '../src/lib/authApi';
+import { buildGoogleAuthConfig, generateOauthState } from '../src/lib/authUtils';
 import { tokenStorage } from '../src/lib/tokenStorage';
 import { colors } from '../src/theme/colors';
 
@@ -84,71 +85,52 @@ export default function LoginScreen() {
     }
   };
 
-const config = {
-  issuer: 'https://accounts.google.com',
-  clientId: '791884628850-gkqbgna2cn1ari12jielsttrsqvjrkm8.apps.googleusercontent.com',
-  redirectUrl: 'com.googleusercontent.apps.791884628850-gkqbgna2cn1ari12jielsttrsqvjrkm8:/oauth2redirect',
-  scopes: ['openid', 'profile', 'email'],
-};
+  const signInWithGoogle = async () => {
+    setErrors((prev) => ({ ...prev, general: '' }));
+    setIsGoogleSigningIn(true);
 
-const buildGoogleAuthConfig = (state) => ({
-  ...config,
-  skipCodeExchange: true,
-  usePKCE: true,
-  additionalParameters: {
-    ...(config.additionalParameters || {}),
-    ...(state ? { state } : {}),
-  },
-});
+    const oauthState = generateOauthState();
+    await tokenStorage.setOauthState(oauthState);
 
-const generateOauthState = () => `google_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    try {
+      const authState = await authorize(buildGoogleAuthConfig(oauthState));
+      // console.log('Google OAuth State:', authState);
+      // const stateParam =
+      //   authState?.authorizeAdditionalParameters?.state ??
+      //   authState?.tokenAdditionalParameters?.state;
+      // const code = authState.authorizationCode;
 
-const signInWithGoogle = async () => {
-  setErrors((prev) => ({ ...prev, general: '' }));
-  setIsGoogleSigningIn(true);
+      // if (!code) {
+      //   throw new Error('Google 인증 코드가 존재하지 않습니다.');
+      // }
 
-  const oauthState = generateOauthState();
-  await tokenStorage.setOauthState(oauthState);
+      // if (stateParam && stateParam !== oauthState) {
+      //   throw new Error('Google 인증 상태가 일치하지 않습니다.');
+      // }
 
-  try {
-    const authState = await authorize(buildGoogleAuthConfig(oauthState));
-    // console.log('Google OAuth State:', authState);
-    // const stateParam =
-    //   authState?.authorizeAdditionalParameters?.state ??
-    //   authState?.tokenAdditionalParameters?.state;
-    // const code = authState.authorizationCode;
-
-    // if (!code) {
-    //   throw new Error('Google 인증 코드가 존재하지 않습니다.');
-    // }
-
-    // if (stateParam && stateParam !== oauthState) {
-    //   throw new Error('Google 인증 상태가 일치하지 않습니다.');
-    // }
-
-    // const payload = {
-    //   provider: 'google',
-    //   code,
-    //   ...(oauthState ? { state: oauthState } : {}),
-    //   redirect_uri: config.redirectUrl,
-    // };
-    const payload = {
-      "provider": "google",
-      "authorizationCode": authState.authorizationCode,
-      "codeVerifier": authState.codeVerifier
-    };
-    await authApi.googleLogin(payload);
-    await refreshAuth();
-    router.replace('/');
-  } catch (error) {
-    console.error('Google 로그인 에러:', error);
-    const message = error?.message || 'Google 로그인에 실패했습니다.';
-    setErrors((prev) => ({ ...prev, general: message }));
-  } finally {
-    await tokenStorage.clearOauthState();
-    setIsGoogleSigningIn(false);
-  }
-};
+      // const payload = {
+      //   provider: 'google',
+      //   code,
+      //   ...(oauthState ? { state: oauthState } : {}),
+      //   redirect_uri: config.redirectUrl,
+      // };
+      const payload = {
+        provider: 'google',
+        authorizationCode: authState.authorizationCode,
+        codeVerifier: authState.codeVerifier,
+      };
+      await authApi.googleLogin(payload);
+      await refreshAuth();
+      router.replace('/');
+    } catch (error) {
+      console.error('Google 로그인 에러:', error);
+      const message = error?.message || 'Google 로그인에 실패했습니다.';
+      setErrors((prev) => ({ ...prev, general: message }));
+    } finally {
+      await tokenStorage.clearOauthState();
+      setIsGoogleSigningIn(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>

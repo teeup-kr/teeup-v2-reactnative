@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { roundsApi } from '../../lib/api';
+import { extractData } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
 
 const formatCurrency = (value) => {
@@ -23,7 +24,7 @@ export default function MySettlementView({ meetingId }) {
         setLoading(true);
         setError(null);
         const response = await roundsApi.getMySettlement(meetingId);
-        setData(response?.data || response || null);
+        setData(extractData(response));
       } catch (fetchError) {
         console.error('내 정산 조회 실패:', fetchError);
         setError('정산 정보를 불러오는데 실패했습니다.');

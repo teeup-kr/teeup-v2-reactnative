@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { notificationsApi } from '../../lib/api';
+import { extractList } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
 
 const formatDateTime = (value) => {
@@ -35,7 +36,7 @@ export default function NotificationList({ meetingId, limit = 10 }) {
         type_filter: meetingId ? undefined : 'MEETING_CANCELLATION',
       });
 
-      let items = response?.data || response || [];
+      let items = extractList(response);
       if (meetingId) {
         items = items.filter(
           (notification) => notification.related_entity_id === meetingId,
