@@ -1,7 +1,9 @@
+import { config } from '../config/env';
+
 export const googleAuthConfig = {
   issuer: 'https://accounts.google.com',
-  clientId: '791884628850-gkqbgna2cn1ari12jielsttrsqvjrkm8.apps.googleusercontent.com',
-  redirectUrl: 'com.googleusercontent.apps.791884628850-gkqbgna2cn1ari12jielsttrsqvjrkm8:/oauth2redirect',
+  clientId: config.GOOGLE_CLIENT_ID,
+  redirectUrl: config.GOOGLE_REDIRECT_URI,
   scopes: ['openid', 'profile', 'email'],
 };
 
