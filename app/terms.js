@@ -1,12 +1,12 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
-import ScreenHeader from '../src/components/ui/ScreenHeader';
+import { useEffect, useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '../src/components/ui/Card';
-import { colors } from '../src/theme/colors';
-import { termsApi } from '../src/lib/termsApi';
+import ScreenHeader from '../src/components/ui/ScreenHeader';
 import { termsTabs } from '../src/constants/termsConstants';
+import { termsApi } from '../src/lib/termsApi';
+import { colors } from '../src/theme/colors';
 
 const TabButton = ({ label, selected, onPress }) => (
   <Pressable

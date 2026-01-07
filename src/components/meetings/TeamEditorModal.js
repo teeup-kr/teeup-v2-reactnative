@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
-import Modal from '../ui/Modal';
+import { useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
-import { colors } from '../../theme/colors';
+import Modal from '../ui/Modal';
 
 const buildTeams = (initialTeams) => {
   if (!Array.isArray(initialTeams)) return [];

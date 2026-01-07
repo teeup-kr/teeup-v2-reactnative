@@ -1,15 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
-import ScreenHeader from '../../../src/components/ui/ScreenHeader';
-import Card from '../../../src/components/ui/Card';
-import { colors } from '../../../src/theme/colors';
-import { usersApi } from '../../../src/lib/api';
-import { useAuth } from '../../../src/context/AuthContext';
+import { useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LoginRequired from '../../../src/components/auth/LoginRequired';
+import Card from '../../../src/components/ui/Card';
+import ScreenHeader from '../../../src/components/ui/ScreenHeader';
+import { useAuth } from '../../../src/context/AuthContext';
+import { usersApi } from '../../../src/lib/api';
 import { extractList, formatMeetingListDate } from '../../../src/lib/meetingUtils';
+import { colors } from '../../../src/theme/colors';
 
 export default function MyMeetingsScreen() {
   const router = useRouter();

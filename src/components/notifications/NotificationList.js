@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { notificationsApi } from '../../lib/api';
 import { extractList } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';

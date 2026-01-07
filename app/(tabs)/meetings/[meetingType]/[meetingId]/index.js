@@ -1,35 +1,35 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import BatchFormationModal from '@/components/meetings/BatchFormationModal';
+import FormationHistoryModal from '@/components/meetings/FormationHistoryModal';
+import MeetingWorkflowStatus from '@/components/meetings/MeetingWorkflowStatus';
+import MySettlementView from '@/components/meetings/MySettlementView';
+import RoundingCompleteModal from '@/components/meetings/RoundingCompleteModal';
+import RoundingJoinModal from '@/components/meetings/RoundingJoinModal';
+import SettlementManager from '@/components/meetings/SettlementManager';
+import SimpleScoreInputModal from '@/components/meetings/SimpleScoreInputModal';
+import SocialJoinModal from '@/components/meetings/SocialJoinModal';
+import TeamEditorModal from '@/components/meetings/TeamEditorModal';
+import TeamFormationModal from '@/components/meetings/TeamFormationModal';
+import TeamFormationPreviewModal from '@/components/meetings/TeamFormationPreviewModal';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { meetingDetailTabs } from '@/constants/meetingConstants';
+import { roundsApi, socialsApi, usersApi } from '@/lib/api';
+import { extractData, extractList, formatDateTime } from '@/lib/meetingUtils';
+import { colors } from '@/theme/colors';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-  Alert,
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
-import { FontAwesome5 } from '@expo/vector-icons';
-import ScreenHeader from '../../../../../src/components/ui/ScreenHeader';
-import Card from '../../../../../src/components/ui/Card';
-import Button from '../../../../../src/components/ui/Button';
-import MeetingWorkflowStatus from '../../../../../src/components/meetings/MeetingWorkflowStatus';
-import SettlementManager from '../../../../../src/components/meetings/SettlementManager';
-import MySettlementView from '../../../../../src/components/meetings/MySettlementView';
-import TeamFormationModal from '../../../../../src/components/meetings/TeamFormationModal';
-import TeamFormationPreviewModal from '../../../../../src/components/meetings/TeamFormationPreviewModal';
-import TeamEditorModal from '../../../../../src/components/meetings/TeamEditorModal';
-import BatchFormationModal from '../../../../../src/components/meetings/BatchFormationModal';
-import FormationHistoryModal from '../../../../../src/components/meetings/FormationHistoryModal';
-import RoundingCompleteModal from '../../../../../src/components/meetings/RoundingCompleteModal';
-import SimpleScoreInputModal from '../../../../../src/components/meetings/SimpleScoreInputModal';
-import RoundingJoinModal from '../../../../../src/components/meetings/RoundingJoinModal';
-import SocialJoinModal from '../../../../../src/components/meetings/SocialJoinModal';
-import { roundsApi, socialsApi, usersApi } from '../../../../../src/lib/api';
-import { colors } from '../../../../../src/theme/colors';
-import { meetingDetailTabs } from '../../../../../src/constants/meetingConstants';
-import { extractData, extractList, formatDateTime } from '../../../../../src/lib/meetingUtils';
 
 export default function MeetingDetailScreen() {
   const { meetingType, meetingId } = useLocalSearchParams();

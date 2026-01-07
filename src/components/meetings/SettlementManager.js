@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Button from '../ui/Button';
-import Input from '../ui/Input';
-import SettlementViewModal from './SettlementViewModal';
+import { useCallback, useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { roundsApi } from '../../lib/api';
 import { extractData } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
+import SettlementViewModal from './SettlementViewModal';
 
 const ROUND_METHODS = [
   { value: 'EQUAL_SPLIT', label: 'N분의 1' },

@@ -1,12 +1,11 @@
-import React from 'react';
-import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
-import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '../../../../src/components/ui/Card';
-import { colors } from '../../../../src/theme/colors';
+import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
 import { clubManageSections } from '../../../../src/constants/clubConstants';
+import { colors } from '../../../../src/theme/colors';
 
 export default function ClubManageScreen() {
   const { clubId } = useLocalSearchParams();

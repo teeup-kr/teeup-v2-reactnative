@@ -1,36 +1,36 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  Pressable,
-  ActivityIndicator,
-  Alert,
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
 import Button from '../../../../src/components/ui/Button';
 import Card from '../../../../src/components/ui/Card';
 import DateTimeField from '../../../../src/components/ui/DateTimeField';
-import { colors } from '../../../../src/theme/colors';
-import { roundsApi, clubApi } from '../../../../src/lib/api';
+import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
 import {
-  roundingTeamModes,
-  roundingMeetingSubtypes,
-  roundingSettlementMethods,
+    roundingMeetingSubtypes,
+    roundingSettlementMethods,
+    roundingTeamModes,
 } from '../../../../src/constants/meetingConstants';
+import { clubApi, roundsApi } from '../../../../src/lib/api';
 import {
-  extractData,
-  extractList,
-  toDateTimeLocalValue,
-  convertToKST,
-  normalizeNumber,
-  parseTeeTimes,
-  validateMeetingTimeWithTeeTimes,
+    convertToKST,
+    extractData,
+    extractList,
+    normalizeNumber,
+    parseTeeTimes,
+    toDateTimeLocalValue,
+    validateMeetingTimeWithTeeTimes,
 } from '../../../../src/lib/meetingUtils';
+import { colors } from '../../../../src/theme/colors';
 
 const ChipOption = ({ label, selected, onPress }) => (
   <Pressable

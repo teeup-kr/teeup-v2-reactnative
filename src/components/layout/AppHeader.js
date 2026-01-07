@@ -1,6 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../theme/colors';
 
 const logoImage = require('../../../assets/teeuplink-logo.png');

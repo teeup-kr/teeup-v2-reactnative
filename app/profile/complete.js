@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
 import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import ScreenHeader from '../../src/components/ui/ScreenHeader';
-import Card from '../../src/components/ui/Card';
 import Button from '../../src/components/ui/Button';
+import Card from '../../src/components/ui/Card';
 import Input from '../../src/components/ui/Input';
+import ScreenHeader from '../../src/components/ui/ScreenHeader';
 import { colors } from '../../src/theme/colors';
 
 export default function ProfileCompleteScreen() {

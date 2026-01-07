@@ -1,11 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../../theme/colors';
 import { useAppLayout } from '../../context/AppLayoutContext';
 import { useAuth } from '../../context/AuthContext';
+import { colors } from '../../theme/colors';
 
 const TAB_HEIGHT = 56;
 

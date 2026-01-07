@@ -1,11 +1,10 @@
-import React from 'react';
 import {
-  Modal as RNModal,
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  ScrollView,
+    Pressable,
+    Modal as RNModal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 import { colors } from '../../theme/colors';
 

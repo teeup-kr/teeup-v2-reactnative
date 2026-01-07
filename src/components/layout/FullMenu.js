@@ -1,11 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../../theme/colors';
 import { useAppLayout } from '../../context/AppLayoutContext';
 import { useAuth } from '../../context/AuthContext';
+import { colors } from '../../theme/colors';
 
 const MenuItem = ({ icon, label, onPress, isLast }) => (
   <View>

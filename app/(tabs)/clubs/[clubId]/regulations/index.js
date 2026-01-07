@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { clubsApi } from '@/lib/clubsApi';
+import { extractList } from '@/lib/responseUtils';
+import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
-import ScreenHeader from '../../../../../src/components/ui/ScreenHeader';
-import Button from '../../../../../src/components/ui/Button';
-import Card from '../../../../../src/components/ui/Card';
-import { colors } from '../../../../../src/theme/colors';
-import { clubsApi } from '../../../../../src/lib/clubsApi';
-import { extractList } from '../../../../../src/lib/responseUtils';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ClubRegulationsScreen() {
   const router = useRouter();

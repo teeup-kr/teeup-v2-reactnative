@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import Modal from '../ui/Modal';
+import { useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
-import { colors } from '../../theme/colors';
+import Modal from '../ui/Modal';
 
 const formationModeOptions = [
   { value: 'GENDER_SEPARATED_HANDICAP', label: '성별 분리 + 핸디캡 기준' },

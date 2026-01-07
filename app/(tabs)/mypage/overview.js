@@ -1,23 +1,23 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+    ActivityIndicator,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AppFooter from '../../../src/components/layout/AppFooter';
+import AppHeader from '../../../src/components/layout/AppHeader';
 import Card from '../../../src/components/ui/Card';
 import { usersApi } from '../../../src/lib/api';
 import { clubsApi } from '../../../src/lib/clubsApi';
-import { colors } from '../../../src/theme/colors';
-import AppHeader from '../../../src/components/layout/AppHeader';
-import AppFooter from '../../../src/components/layout/AppFooter';
 import { formatProfileDate, getGenderLabel } from '../../../src/lib/mypageUtils';
 import { extractData, extractList } from '../../../src/lib/responseUtils';
+import { colors } from '../../../src/theme/colors';
 
 export default function OverviewScreen() {
   const router = useRouter();

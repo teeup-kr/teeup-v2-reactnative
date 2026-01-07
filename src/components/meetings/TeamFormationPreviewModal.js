@@ -1,8 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import Modal from '../ui/Modal';
-import Button from '../ui/Button';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../theme/colors';
+import Button from '../ui/Button';
+import Modal from '../ui/Modal';
 
 const formationModeLabels = {
   GENDER_SEPARATED_HANDICAP: '성별 분리 + 핸디캡 기준',

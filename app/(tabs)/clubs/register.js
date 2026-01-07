@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useState } from 'react';
 import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  Pressable,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FontAwesome5 } from '@expo/vector-icons';
-import ScreenHeader from '../../../src/components/ui/ScreenHeader';
 import Button from '../../../src/components/ui/Button';
 import Card from '../../../src/components/ui/Card';
+import ScreenHeader from '../../../src/components/ui/ScreenHeader';
+import { clubFeeCycles, clubRegisterTypes } from '../../../src/constants/clubConstants';
 import { colors } from '../../../src/theme/colors';
-import { clubRegisterTypes, clubFeeCycles } from '../../../src/constants/clubConstants';
 
 export default function ClubRegisterScreen() {
   const [formData, setFormData] = useState({

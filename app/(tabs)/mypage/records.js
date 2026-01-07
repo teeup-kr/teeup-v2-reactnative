@@ -1,28 +1,28 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AppFooter from '../../../src/components/layout/AppFooter';
+import AppHeader from '../../../src/components/layout/AppHeader';
+import SimpleScoreInputModal from '../../../src/components/meetings/SimpleScoreInputModal';
+import RoundingStatsCard from '../../../src/components/profile/RoundingStatsCard';
+import Button from '../../../src/components/ui/Button';
 import Card from '../../../src/components/ui/Card';
 import Modal from '../../../src/components/ui/Modal';
-import Button from '../../../src/components/ui/Button';
-import RoundingStatsCard from '../../../src/components/profile/RoundingStatsCard';
-import SimpleScoreInputModal from '../../../src/components/meetings/SimpleScoreInputModal';
-import { roundsApi, usersApi } from '../../../src/lib/api';
-import { colors } from '../../../src/theme/colors';
-import AppHeader from '../../../src/components/layout/AppHeader';
-import AppFooter from '../../../src/components/layout/AppFooter';
 import { recordStatusTabs } from '../../../src/constants/mypageConstants';
+import { roundsApi, usersApi } from '../../../src/lib/api';
 import { formatProfileDate } from '../../../src/lib/mypageUtils';
 import { extractData, extractList } from '../../../src/lib/responseUtils';
+import { colors } from '../../../src/theme/colors';
 
 const FilterChip = ({ label, selected, onPress }) => (
   <Pressable

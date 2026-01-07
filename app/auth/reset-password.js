@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { ScrollView, Text, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
-import ScreenHeader from '../../src/components/ui/ScreenHeader';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Button from '../../src/components/ui/Button';
 import Card from '../../src/components/ui/Card';
 import Input from '../../src/components/ui/Input';
-import Button from '../../src/components/ui/Button';
-import { colors } from '../../src/theme/colors';
+import ScreenHeader from '../../src/components/ui/ScreenHeader';
 import { authApi } from '../../src/lib/authApi';
+import { colors } from '../../src/theme/colors';
 
 export default function ResetPasswordScreen() {
   const { token } = useLocalSearchParams();

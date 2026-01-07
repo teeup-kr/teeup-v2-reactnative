@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import { useMemo, useState } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../theme/colors';
 
 const parseDateTimeValue = (value) => {

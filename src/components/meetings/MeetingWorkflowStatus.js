@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import Button from '../ui/Button';
+import { useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../theme/colors';
+import Button from '../ui/Button';
 
 const STEP_CONFIG = [
   { key: 'CREATED', label: '모임 생성', icon: 'clipboard-list' },

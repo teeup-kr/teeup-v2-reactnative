@@ -1,40 +1,40 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import Card from '../../../src/components/ui/Card';
-import Button from '../../../src/components/ui/Button';
-import { colors } from '../../../src/theme/colors';
-import { clubsApi } from '../../../src/lib/clubsApi';
-import { useAuth } from '../../../src/context/AuthContext';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    Image,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LoginRequired from '../../../src/components/auth/LoginRequired';
-import AppHeader from '../../../src/components/layout/AppHeader';
 import AppFooter from '../../../src/components/layout/AppFooter';
+import AppHeader from '../../../src/components/layout/AppHeader';
+import Button from '../../../src/components/ui/Button';
+import Card from '../../../src/components/ui/Card';
 import {
-  clubValidTabs,
-  clubTabs,
-  clubStatusFilterOptions,
-  clubMyStatusOptions,
+    clubMyStatusOptions,
+    clubStatusFilterOptions,
+    clubTabs,
+    clubValidTabs,
 } from '../../../src/constants/clubConstants';
+import { useAuth } from '../../../src/context/AuthContext';
+import { clubsApi } from '../../../src/lib/clubsApi';
 import {
-  getClubStatusBadgeConfig,
-  getClubMembershipStatusBadgeConfig,
-  getClubTypeBadgeConfig,
-  getClubRoleBadgeConfig,
-  formatClubDate,
-  normalizePaginatedResponse,
+    formatClubDate,
+    getClubMembershipStatusBadgeConfig,
+    getClubRoleBadgeConfig,
+    getClubStatusBadgeConfig,
+    getClubTypeBadgeConfig,
+    normalizePaginatedResponse,
 } from '../../../src/lib/clubUtils';
+import { colors } from '../../../src/theme/colors';
 
 const logoImage = require('../../../assets/teeuplink-logo.png');
 

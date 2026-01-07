@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { roundsApi } from '../../lib/api';
 import { extractData } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';

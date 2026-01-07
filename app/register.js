@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  TextInput,
-  Image,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import Card from '../src/components/ui/Card';
+import { useEffect, useState } from 'react';
+import {
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../src/components/ui/Button';
-import { colors } from '../src/theme/colors';
+import Card from '../src/components/ui/Card';
+import { registerInitialErrors, registerInitialForm } from '../src/constants/authConstants';
 import { authApi } from '../src/lib/authApi';
-import { registerInitialForm, registerInitialErrors } from '../src/constants/authConstants';
+import { colors } from '../src/theme/colors';
 
 const logoImage = require('../assets/teeuplink-logo.png');
 

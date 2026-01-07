@@ -1,11 +1,10 @@
-import React from 'react';
-import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../theme/colors';
-import AppHeader from '../layout/AppHeader';
 import AppFooter from '../layout/AppFooter';
+import AppHeader from '../layout/AppHeader';
 
 export default function LoginRequired({
   message = '로그인 후 이용 가능합니다.',

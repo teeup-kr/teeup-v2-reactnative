@@ -1,6 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../theme/colors';
 
 const statCards = (stats) => [

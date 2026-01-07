@@ -1,10 +1,10 @@
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { colors } from '@/theme/colors';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button from '../../../../../src/components/ui/Button';
-import Card from '../../../../../src/components/ui/Card';
-import ScreenHeader from '../../../../../src/components/ui/ScreenHeader';
-import { colors } from '../../../../../src/theme/colors';
 
 export default function ClubRegulationCreateScreen() {
   const [title, setTitle] = useState('');

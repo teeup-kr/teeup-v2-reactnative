@@ -1,26 +1,26 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import Card from '../../../src/components/ui/Card';
-import Button from '../../../src/components/ui/Button';
-import Input from '../../../src/components/ui/Input';
-import { usersApi } from '../../../src/lib/api';
-import { colors } from '../../../src/theme/colors';
-import AppHeader from '../../../src/components/layout/AppHeader';
+import { useCallback, useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppFooter from '../../../src/components/layout/AppFooter';
+import AppHeader from '../../../src/components/layout/AppHeader';
+import Button from '../../../src/components/ui/Button';
+import Card from '../../../src/components/ui/Card';
+import Input from '../../../src/components/ui/Input';
 import { genderOptions } from '../../../src/constants/mypageConstants';
-import { normalizeGender, formatBirthdate } from '../../../src/lib/mypageUtils';
+import { usersApi } from '../../../src/lib/api';
+import { formatBirthdate, normalizeGender } from '../../../src/lib/mypageUtils';
 import { extractData } from '../../../src/lib/responseUtils';
+import { colors } from '../../../src/theme/colors';
 
 export default function EditProfileScreen() {
   const router = useRouter();

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { authApi } from '../../../src/lib/authApi';
 import { tokenStorage } from '../../../src/lib/tokenStorage';
 import { colors } from '../../../src/theme/colors';
