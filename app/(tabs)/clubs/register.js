@@ -1,9 +1,5 @@
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import ScreenHeader from '@/components/ui/ScreenHeader';
-import { clubFeeCycles, clubRegisterTypes } from '@/constants/clubConstants';
-import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Pressable,
@@ -15,7 +11,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { clubFeeCycles, clubRegisterTypes } from '@/constants/clubConstants';
+import { clubsApi } from '@/lib/clubsApi';
+import { colors } from '@/theme/colors';
+
+
 export default function ClubRegisterScreen() {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     name: '',
     type: 'REGULAR',
@@ -24,15 +30,89 @@ export default function ClubRegisterScreen() {
     location: '',
     contact: '',
     additionalInfo: '',
-    attachment: '클럽 소개서.pdf',
+    attachment: '',
+
+    // 🔽 추가
+    hasRegularFee: false,
+    regularFeeAmount: '',
+    regularFeeCycle: '', // 예: 'MONTHLY'
+    regularFeeDescription: '',
   });
-  const [hasRegularFee, setHasRegularFee] = useState(false);
-  const [feeAmount, setFeeAmount] = useState('');
-  const [feeCycle, setFeeCycle] = useState('MONTHLY');
-  const [feeDescription, setFeeDescription] = useState('');
+
+  const [errors, setErrors] = useState({
+    name: '',
+    description: '',
+    member_count: '',
+    location: '',
+    contact: '',
+    additional_info: '',
+
+    has_regular_fee: '',
+    regular_fee_amount: '',
+    regular_fee_cycle: '',
+    regular_fee_description: '',
+
+    general: '',
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (field) => (value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleRegister = async () => {
+    setErrors({
+      name: '',
+      description: '',
+      member_count: '',
+      location: '',
+      contact: '',
+      additional_info: '',
+      has_regular_fee: '',
+      regular_fee_amount: '',
+      regular_fee_cycle: '',
+      regular_fee_description: '',
+      general: '',
+    });
+
+    try {
+      setIsSubmitting(true);
+
+      const payload = {
+        name: formData.name,
+        type: formData.type,
+        description: formData.description,
+        member_count: Number(formData.memberCount) || 1,
+        location: formData.location,
+        contact_info: formData.contact,
+        additional_info: formData.additionalInfo || null,
+
+        // 🔽 정기 회비 필수 필드
+        has_regular_fee: formData.hasRegularFee,
+
+        // 🔽 조건부 필드
+        regular_fee_amount: formData.hasRegularFee
+          ? Number(formData.regularFeeAmount) || 0
+          : null,
+
+        regular_fee_cycle: formData.hasRegularFee
+          ? formData.regularFeeCycle || null
+          : null,
+
+        regular_fee_description: formData.hasRegularFee
+          ? formData.regularFeeDescription || null
+          : null,
+      };
+
+      await clubsApi.registerClubApplication(payload);
+      router.replace('/');
+    } catch (error) {
+      const message = error?.message || '클럽 생성에 실패했습니다.';
+      setErrors((prev) => ({ ...prev, general: message }));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -51,6 +131,7 @@ export default function ClubRegisterScreen() {
               placeholder="클럽명을 입력하세요"
               style={styles.input}
               placeholderTextColor={colors.neutral[400]}
+              error={errors.name}
             />
           </View>
 
@@ -93,6 +174,7 @@ export default function ClubRegisterScreen() {
                 keyboardType="numeric"
                 style={styles.input}
                 placeholderTextColor={colors.neutral[400]}
+                error={errors.memberCount}
               />
             </View>
             <View style={[styles.halfField, styles.halfFieldLast]}>
@@ -138,21 +220,43 @@ export default function ClubRegisterScreen() {
               <Text style={styles.sectionTitle}>정기 회비</Text>
               <Text style={styles.sectionSubtitle}>회비가 있다면 설정해주세요.</Text>
             </View>
+
             <Pressable
-              onPress={() => setHasRegularFee((prev) => !prev)}
-              style={[styles.toggle, hasRegularFee && styles.toggleActive]}
+              onPress={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  hasRegularFee: !prev.hasRegularFee,
+
+                  // OFF로 바꿀 때 값 정리 (중요)
+                  regularFeeAmount: !prev.hasRegularFee ? prev.regularFeeAmount : '',
+                  regularFeeCycle: !prev.hasRegularFee ? prev.regularFeeCycle : '',
+                  regularFeeDescription: !prev.hasRegularFee ? prev.regularFeeDescription : '',
+                }))
+              }
+              style={[
+                styles.toggle,
+                formData.hasRegularFee && styles.toggleActive,
+              ]}
             >
-              <Text style={styles.toggleText}>{hasRegularFee ? 'ON' : 'OFF'}</Text>
+              <Text style={styles.toggleText}>
+                {formData.hasRegularFee ? 'ON' : 'OFF'}
+              </Text>
             </Pressable>
           </View>
 
-          {hasRegularFee && (
+          {formData.hasRegularFee && (
             <View>
+              {/* 회비 금액 */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>회비 금액</Text>
                 <TextInput
-                  value={feeAmount}
-                  onChangeText={setFeeAmount}
+                  value={formData.regularFeeAmount}
+                  onChangeText={(text) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      regularFeeAmount: text,
+                    }))
+                  }
                   placeholder="예: 50000"
                   keyboardType="numeric"
                   style={styles.input}
@@ -160,16 +264,32 @@ export default function ClubRegisterScreen() {
                 />
               </View>
 
+              {/* 회비 주기 */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>회비 주기</Text>
                 <View style={styles.chipRow}>
                   {clubFeeCycles.map((cycle) => (
                     <Pressable
                       key={cycle.id}
-                      onPress={() => setFeeCycle(cycle.id)}
-                      style={[styles.chip, feeCycle === cycle.id && styles.chipActive]}
+                      onPress={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          regularFeeCycle: cycle.id, // 'MONTHLY' | 'YEARLY'
+                        }))
+                      }
+                      style={[
+                        styles.chip,
+                        formData.regularFeeCycle === cycle.id &&
+                        styles.chipActive,
+                      ]}
                     >
-                      <Text style={[styles.chipText, feeCycle === cycle.id && styles.chipTextActive]}>
+                      <Text
+                        style={[
+                          styles.chipText,
+                          formData.regularFeeCycle === cycle.id &&
+                          styles.chipTextActive,
+                        ]}
+                      >
                         {cycle.label}
                       </Text>
                     </Pressable>
@@ -177,11 +297,17 @@ export default function ClubRegisterScreen() {
                 </View>
               </View>
 
+              {/* 회비 설명 */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>회비 설명</Text>
                 <TextInput
-                  value={feeDescription}
-                  onChangeText={setFeeDescription}
+                  value={formData.regularFeeDescription}
+                  onChangeText={(text) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      regularFeeDescription: text,
+                    }))
+                  }
                   placeholder="회비 사용처 또는 납부 안내"
                   style={[styles.input, styles.textArea]}
                   multiline
@@ -204,7 +330,12 @@ export default function ClubRegisterScreen() {
           </Pressable>
         </Card>
 
-        <Button variant="primary" size="lg">
+        <Button
+          variant="primary"
+          size="lg"
+          onPress={handleRegister}
+          disabled={isSubmitting}
+        >
           클럽 등록 신청
         </Button>
         <Text style={styles.noticeText}>등록 후 관리자의 승인이 필요합니다.</Text>
