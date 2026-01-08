@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+
 import { roundsApi } from '../../lib/api';
 import { extractData } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
+
 import SettlementViewModal from './SettlementViewModal';
 
 const ROUND_METHODS = [
@@ -34,7 +36,6 @@ export default function SettlementManager({
   participants = [],
   onSettlementCreated,
   onConfirmSettlement,
-  meeting,
 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -52,6 +53,8 @@ export default function SettlementManager({
       const response = await roundsApi.getMeetingSettlement(meetingId);
       setSettlement(extractData(response));
     } catch (_fetchError) {
+      console.error('정산 조회 실패:', _fetchError);
+      setError('정산 정보를 불러오는데 실패했습니다.');
       setSettlement(null);
     } finally {
       setLoading(false);

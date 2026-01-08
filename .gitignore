@@ -47,3 +47,4 @@ yarn-error.*
 
 mobile-web/
 backend/
+.vscode/settings.json

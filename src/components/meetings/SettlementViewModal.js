@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+
 import { roundsApi } from '../../lib/api';
 import { extractData } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
@@ -17,9 +18,7 @@ export default function SettlementViewModal({
   isOpen,
   visible,
   onClose,
-  meetingId,
-  meetingType,
-  participants = [],
+  meetingId
 }) {
   const isVisible = visible ?? isOpen;
   const [loading, setLoading] = useState(true);

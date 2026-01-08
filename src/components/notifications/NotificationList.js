@@ -1,6 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+
 import { notificationsApi } from '../../lib/api';
 import { extractList } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
@@ -59,10 +60,10 @@ export default function NotificationList({ meetingId, limit = 10 }) {
         prev.map((notification) =>
           notification.id === notificationId
             ? {
-                ...notification,
-                status: 'READ',
-                read_at: new Date().toISOString(),
-              }
+              ...notification,
+              status: 'READ',
+              read_at: new Date().toISOString(),
+            }
             : notification,
         ),
       );

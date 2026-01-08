@@ -1,6 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+
 import { colors } from '../../theme/colors';
 
 export default function ScreenHeader({ title, onBack }) {

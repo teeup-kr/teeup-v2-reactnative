@@ -1,5 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
+
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';

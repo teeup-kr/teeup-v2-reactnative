@@ -2,6 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { useAppLayout } from '../../context/AppLayoutContext';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
@@ -51,32 +52,32 @@ export default function FullMenu() {
         { icon: 'list', label: '모임 목록', onPress: () => navigate('/meetings') },
         ...(isAuthenticated
           ? [
-              { icon: 'calendar-check', label: '내 모임', onPress: () => navigate('/meetings/my', true) },
-              { icon: 'clipboard-list', label: '기록 관리', onPress: () => navigate('/mypage?tab=records', true) },
-              { icon: 'user', label: '마이페이지', onPress: () => navigate('/mypage', true) },
-            ]
+            { icon: 'calendar-check', label: '내 모임', onPress: () => navigate('/meetings/my', true) },
+            { icon: 'clipboard-list', label: '기록 관리', onPress: () => navigate('/mypage?tab=records', true) },
+            { icon: 'user', label: '마이페이지', onPress: () => navigate('/mypage', true) },
+          ]
           : []),
       ],
     },
     ...(isAuthenticated
       ? [
-          {
-            items: [
-              { icon: 'users', label: '내 클럽 보기', onPress: () => navigate('/clubs', true) },
-              { icon: 'user-friends', label: '클럽 만들기', onPress: () => navigate('/clubs/register', true) },
-            ],
-          },
-        ]
+        {
+          items: [
+            { icon: 'users', label: '내 클럽 보기', onPress: () => navigate('/clubs', true) },
+            { icon: 'user-friends', label: '클럽 만들기', onPress: () => navigate('/clubs/register', true) },
+          ],
+        },
+      ]
       : []),
     ...(isAuthenticated
       ? [
-          {
-            items: [
-              { icon: 'golf-ball', label: '라운딩 모임 만들기', onPress: () => navigate('/meetings/rounding/create', true) },
-              { icon: 'calendar-plus', label: '소셜 모임 만들기', onPress: () => navigate('/meetings/social/create', true) },
-            ],
-          },
-        ]
+        {
+          items: [
+            { icon: 'golf-ball', label: '라운딩 모임 만들기', onPress: () => navigate('/meetings/rounding/create', true) },
+            { icon: 'calendar-plus', label: '소셜 모임 만들기', onPress: () => navigate('/meetings/social/create', true) },
+          ],
+        },
+      ]
       : []),
     {
       items: [

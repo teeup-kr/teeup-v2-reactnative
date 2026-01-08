@@ -1,6 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+
 import { usersApi } from '../../lib/api';
 import { extractList } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';

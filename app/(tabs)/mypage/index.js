@@ -1,7 +1,8 @@
+import { Redirect, useLocalSearchParams } from 'expo-router';
+
 import LoginRequired from '@/components/auth/LoginRequired';
 import { mypageTabRoutes } from '@/constants/mypageConstants';
 import { useAuth } from '@/context/AuthContext';
-import { Redirect, useLocalSearchParams } from 'expo-router';
 
 export default function MyPageScreen() {
   const { isAuthenticated, isLoading } = useAuth();

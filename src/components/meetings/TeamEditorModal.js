@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -19,8 +20,6 @@ export default function TeamEditorModal({
   visible,
   onClose,
   teams: initialTeams,
-  participants = [],
-  meetingId,
   onSave,
   processing,
 }) {

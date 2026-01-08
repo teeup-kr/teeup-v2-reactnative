@@ -1,8 +1,3 @@
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import { registerInitialErrors, registerInitialForm } from '@/constants/authConstants';
-import { authApi } from '@/lib/authApi';
-import { colors } from '@/theme/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -18,6 +13,12 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import { registerInitialErrors, registerInitialForm } from '@/constants/authConstants';
+import { authApi } from '@/lib/authApi';
+import { colors } from '@/theme/colors';
 
 const logoImage = require('../assets/teeuplink-logo.png');
 

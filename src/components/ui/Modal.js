@@ -1,11 +1,12 @@
 import {
-    Pressable,
-    Modal as RNModal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Pressable,
+  Modal as RNModal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
+
 import { colors } from '../../theme/colors';
 
 export default function Modal({

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
 import { extractList } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';

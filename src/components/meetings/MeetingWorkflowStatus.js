@@ -1,6 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 
@@ -25,7 +26,6 @@ export default function MeetingWorkflowStatus({
   participants = [],
   teams = [],
   userRole,
-  applicationStatus,
   confirmedParticipants = [],
   isApplicationDeadlinePassed,
   isApplicationClosedEarly,

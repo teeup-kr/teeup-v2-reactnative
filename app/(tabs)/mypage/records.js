@@ -1,15 +1,3 @@
-import AppFooter from '@/components/layout/AppFooter';
-import AppHeader from '@/components/layout/AppHeader';
-import SimpleScoreInputModal from '@/components/meetings/SimpleScoreInputModal';
-import RoundingStatsCard from '@/components/profile/RoundingStatsCard';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import Modal from '@/components/ui/Modal';
-import { recordStatusTabs } from '@/constants/mypageConstants';
-import { roundsApi, usersApi } from '@/lib/api';
-import { formatProfileDate } from '@/lib/mypageUtils';
-import { extractData, extractList } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -23,6 +11,19 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import AppFooter from '@/components/layout/AppFooter';
+import AppHeader from '@/components/layout/AppHeader';
+import SimpleScoreInputModal from '@/components/meetings/SimpleScoreInputModal';
+import RoundingStatsCard from '@/components/profile/RoundingStatsCard';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
+import { recordStatusTabs } from '@/constants/mypageConstants';
+import { roundsApi, usersApi } from '@/lib/api';
+import { formatProfileDate } from '@/lib/mypageUtils';
+import { extractData, extractList } from '@/lib/responseUtils';
+import { colors } from '@/theme/colors';
 
 const FilterChip = ({ label, selected, onPress }) => (
   <Pressable

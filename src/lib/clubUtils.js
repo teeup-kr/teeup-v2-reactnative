@@ -1,10 +1,11 @@
-import { colors } from '../theme/colors';
 import {
-  clubStatusBadgeConfig,
   clubMembershipStatusBadgeConfig,
-  clubTypeBadgeConfig,
   clubRoleBadgeConfig,
+  clubStatusBadgeConfig,
+  clubTypeBadgeConfig,
 } from '../constants/clubConstants';
+import { colors } from '../theme/colors';
+
 import { extractList } from './responseUtils';
 
 export const getClubStatusBadgeConfig = (status, clubDeletedAt) => {

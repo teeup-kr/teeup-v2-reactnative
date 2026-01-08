@@ -1,3 +1,17 @@
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import DateTimeField from '@/components/ui/DateTimeField';
@@ -12,19 +26,6 @@ import {
   toDateTimeLocalValue,
 } from '@/lib/meetingUtils';
 import { colors } from '@/theme/colors';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ChipOption = ({ label, selected, onPress }) => (
   <Pressable

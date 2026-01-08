@@ -1,3 +1,17 @@
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import BatchFormationModal from '@/components/meetings/BatchFormationModal';
 import FormationHistoryModal from '@/components/meetings/FormationHistoryModal';
 import MeetingWorkflowStatus from '@/components/meetings/MeetingWorkflowStatus';
@@ -17,19 +31,6 @@ import { meetingDetailTabs } from '@/constants/meetingConstants';
 import { roundsApi, socialsApi, usersApi } from '@/lib/api';
 import { extractData, extractList, formatDateTime } from '@/lib/meetingUtils';
 import { colors } from '@/theme/colors';
-import { FontAwesome5 } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-    ActivityIndicator,
-    Alert,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function MeetingDetailScreen() {
   const { meetingType, meetingId } = useLocalSearchParams();
@@ -489,7 +490,7 @@ export default function MeetingDetailScreen() {
         {activeTab === 'my-settlement' && isRoundingMeeting && (
           <MySettlementView meetingId={meetingIdValue} />
         )}
-</ScrollView>
+      </ScrollView>
 
       <RoundingJoinModal
         visible={joinModalOpen && isRoundingMeeting}

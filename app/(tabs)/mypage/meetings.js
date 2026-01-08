@@ -1,15 +1,3 @@
-import Card from '@/components/ui/Card';
-import ScreenHeader from '@/components/ui/ScreenHeader';
-import {
-  myMeetingsRoleConfig,
-  myMeetingsStatusConfig,
-  myMeetingsStatusTabs,
-  myMeetingsTypeConfig,
-  myMeetingsTypeTabs,
-} from '@/constants/mypageConstants';
-import { usersApi } from '@/lib/api';
-import { extractList, formatMeetingTimeShort, getMeetingStatusKey } from '@/lib/meetingUtils';
-import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -22,6 +10,19 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import Card from '@/components/ui/Card';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import {
+  myMeetingsRoleConfig,
+  myMeetingsStatusConfig,
+  myMeetingsStatusTabs,
+  myMeetingsTypeConfig,
+  myMeetingsTypeTabs,
+} from '@/constants/mypageConstants';
+import { usersApi } from '@/lib/api';
+import { extractList, formatMeetingTimeShort, getMeetingStatusKey } from '@/lib/meetingUtils';
+import { colors } from '@/theme/colors';
 
 const FilterChip = ({ label, selected, onPress }) => (
   <Pressable

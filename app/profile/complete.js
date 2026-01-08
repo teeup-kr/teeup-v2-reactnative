@@ -1,8 +1,3 @@
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import Input from '@/components/ui/Input';
-import ScreenHeader from '@/components/ui/ScreenHeader';
-import { colors } from '@/theme/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
@@ -12,6 +7,12 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Input from '@/components/ui/Input';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { colors } from '@/theme/colors';
 
 export default function ProfileCompleteScreen() {
   const [form, setForm] = useState({

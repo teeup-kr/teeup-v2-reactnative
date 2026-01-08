@@ -1,9 +1,10 @@
-import { authApi } from '@/lib/authApi';
-import { tokenStorage } from '@/lib/tokenStorage';
-import { colors } from '@/theme/colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+
+import { authApi } from '@/lib/authApi';
+import { tokenStorage } from '@/lib/tokenStorage';
+import { colors } from '@/theme/colors';
 
 export default function GoogleCallbackScreen() {
   const router = useRouter();

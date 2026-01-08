@@ -1,9 +1,10 @@
+import { ScrollView, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import AppFooter from '@/components/layout/AppFooter';
 import AppHeader from '@/components/layout/AppHeader';
 import NotificationList from '@/components/notifications/NotificationList';
 import { colors } from '@/theme/colors';
-import { ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function NotificationsScreen() {
   return (

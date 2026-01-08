@@ -1,11 +1,3 @@
-import AppFooter from '@/components/layout/AppFooter';
-import AppHeader from '@/components/layout/AppHeader';
-import Card from '@/components/ui/Card';
-import { usersApi } from '@/lib/api';
-import { clubsApi } from '@/lib/clubsApi';
-import { formatProfileDate, getGenderLabel } from '@/lib/mypageUtils';
-import { extractData, extractList } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -18,6 +10,15 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import AppFooter from '@/components/layout/AppFooter';
+import AppHeader from '@/components/layout/AppHeader';
+import Card from '@/components/ui/Card';
+import { usersApi } from '@/lib/api';
+import { clubsApi } from '@/lib/clubsApi';
+import { formatProfileDate, getGenderLabel } from '@/lib/mypageUtils';
+import { extractData, extractList } from '@/lib/responseUtils';
+import { colors } from '@/theme/colors';
 
 export default function OverviewScreen() {
   const router = useRouter();

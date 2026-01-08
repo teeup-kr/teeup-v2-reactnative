@@ -1,11 +1,12 @@
-import Card from '@/components/ui/Card';
-import ScreenHeader from '@/components/ui/ScreenHeader';
-import { roundsApi } from '@/lib/api';
-import { colors } from '@/theme/colors';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import Card from '@/components/ui/Card';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { roundsApi } from '@/lib/api';
+import { colors } from '@/theme/colors';
 
 export default function MeetingStatsScreen() {
   const { meetingId } = useLocalSearchParams();
