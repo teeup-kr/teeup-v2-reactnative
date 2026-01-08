@@ -1,6 +1,6 @@
+import { colors } from '@/theme/colors';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../../../src/theme/colors';
 
 export default function DriveCallbackScreen() {
   return (

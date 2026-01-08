@@ -1,23 +1,23 @@
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import { registerInitialErrors, registerInitialForm } from '@/constants/authConstants';
+import { authApi } from '@/lib/authApi';
+import { colors } from '@/theme/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button from '../src/components/ui/Button';
-import Card from '../src/components/ui/Card';
-import { registerInitialErrors, registerInitialForm } from '../src/constants/authConstants';
-import { authApi } from '../src/lib/authApi';
-import { colors } from '../src/theme/colors';
 
 const logoImage = require('../assets/teeuplink-logo.png');
 
@@ -504,12 +504,12 @@ export default function RegisterScreen() {
                 {(validationErrors.terms_agreement ||
                   validationErrors.privacy_policy ||
                   validationErrors.privacy_collection) && (
-                  <Text style={styles.errorText}>
-                    {validationErrors.terms_agreement ||
-                      validationErrors.privacy_policy ||
-                      validationErrors.privacy_collection}
-                  </Text>
-                )}
+                    <Text style={styles.errorText}>
+                      {validationErrors.terms_agreement ||
+                        validationErrors.privacy_policy ||
+                        validationErrors.privacy_collection}
+                    </Text>
+                  )}
               </View>
 
               <Button
@@ -531,7 +531,7 @@ export default function RegisterScreen() {
                 </Pressable>
               </View>
             </Card>
-</ScrollView>
+          </ScrollView>
         </KeyboardAvoidingView>
       </LinearGradient>
     </SafeAreaView>

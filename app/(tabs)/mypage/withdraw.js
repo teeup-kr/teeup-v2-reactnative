@@ -1,21 +1,21 @@
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { authApi } from '@/lib/authApi';
+import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button from '../../../src/components/ui/Button';
-import Card from '../../../src/components/ui/Card';
-import Modal from '../../../src/components/ui/Modal';
-import ScreenHeader from '../../../src/components/ui/ScreenHeader';
-import { authApi } from '../../../src/lib/authApi';
-import { colors } from '../../../src/theme/colors';
 
 export default function WithdrawScreen() {
   const router = useRouter();

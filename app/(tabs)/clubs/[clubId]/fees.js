@@ -1,13 +1,13 @@
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { clubsApi } from '@/lib/clubsApi';
+import { extractList } from '@/lib/responseUtils';
+import { colors } from '@/theme/colors';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button from '../../../../src/components/ui/Button';
-import Card from '../../../../src/components/ui/Card';
-import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
-import { clubsApi } from '../../../../src/lib/clubsApi';
-import { extractList } from '../../../../src/lib/responseUtils';
-import { colors } from '../../../../src/theme/colors';
 
 export default function ClubFeesScreen() {
   const { clubId } = useLocalSearchParams();

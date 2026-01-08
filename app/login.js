@@ -1,3 +1,11 @@
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Input from '@/components/ui/Input';
+import { useAuth } from '@/context/AuthContext';
+import { authApi } from '@/lib/authApi';
+import { buildGoogleAuthConfig, generateOauthState } from '@/lib/authUtils';
+import { tokenStorage } from '@/lib/tokenStorage';
+import { colors } from '@/theme/colors';
 import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -14,14 +22,6 @@ import {
 } from 'react-native';
 import { authorize } from 'react-native-app-auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button from '../src/components/ui/Button';
-import Card from '../src/components/ui/Card';
-import Input from '../src/components/ui/Input';
-import { useAuth } from '../src/context/AuthContext';
-import { authApi } from '../src/lib/authApi';
-import { buildGoogleAuthConfig, generateOauthState } from '../src/lib/authUtils';
-import { tokenStorage } from '../src/lib/tokenStorage';
-import { colors } from '../src/theme/colors';
 
 const logoImage = require('../assets/teeuplink-logo.png');
 
@@ -219,7 +219,7 @@ export default function LoginScreen() {
                 </Pressable>
               </View>
             </Card>
-</ScrollView>
+          </ScrollView>
         </KeyboardAvoidingView>
       </LinearGradient>
     </SafeAreaView>

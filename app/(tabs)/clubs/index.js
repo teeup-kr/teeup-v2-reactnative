@@ -1,40 +1,40 @@
+import LoginRequired from '@/components/auth/LoginRequired';
+import AppFooter from '@/components/layout/AppFooter';
+import AppHeader from '@/components/layout/AppHeader';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import {
+  clubMyStatusOptions,
+  clubStatusFilterOptions,
+  clubTabs,
+  clubValidTabs,
+} from '@/constants/clubConstants';
+import { useAuth } from '@/context/AuthContext';
+import { clubsApi } from '@/lib/clubsApi';
+import {
+  formatClubDate,
+  getClubMembershipStatusBadgeConfig,
+  getClubRoleBadgeConfig,
+  getClubStatusBadgeConfig,
+  getClubTypeBadgeConfig,
+  normalizePaginatedResponse,
+} from '@/lib/clubUtils';
+import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LoginRequired from '../../../src/components/auth/LoginRequired';
-import AppFooter from '../../../src/components/layout/AppFooter';
-import AppHeader from '../../../src/components/layout/AppHeader';
-import Button from '../../../src/components/ui/Button';
-import Card from '../../../src/components/ui/Card';
-import {
-    clubMyStatusOptions,
-    clubStatusFilterOptions,
-    clubTabs,
-    clubValidTabs,
-} from '../../../src/constants/clubConstants';
-import { useAuth } from '../../../src/context/AuthContext';
-import { clubsApi } from '../../../src/lib/clubsApi';
-import {
-    formatClubDate,
-    getClubMembershipStatusBadgeConfig,
-    getClubRoleBadgeConfig,
-    getClubStatusBadgeConfig,
-    getClubTypeBadgeConfig,
-    normalizePaginatedResponse,
-} from '../../../src/lib/clubUtils';
-import { colors } from '../../../src/theme/colors';
 
 const logoImage = require('../../../assets/teeuplink-logo.png');
 
@@ -411,10 +411,10 @@ export default function ClubsScreen() {
               {activeTab === 'all'
                 ? '클럽이 없습니다'
                 : activeTab === 'applications'
-                ? '개설 신청 내역'
-                : activeTab === 'join-applications'
-                ? '가입 신청 내역'
-                : '내 클럽'}
+                  ? '개설 신청 내역'
+                  : activeTab === 'join-applications'
+                    ? '가입 신청 내역'
+                    : '내 클럽'}
             </Text>
             <Text style={styles.emptySubtitle}>
               {activeTab === 'all'
@@ -422,10 +422,10 @@ export default function ClubsScreen() {
                   ? '검색 조건에 맞는 클럽이 없습니다.'
                   : '아직 등록된 클럽이 없습니다.'
                 : activeTab === 'applications'
-                ? '클럽 개설 신청 내역이 없습니다.'
-                : activeTab === 'join-applications'
-                ? '가입 승인 대기 중인 클럽이 없습니다.'
-                : '가입한 클럽이 없습니다. 클럽에 가입해보세요!'}
+                  ? '클럽 개설 신청 내역이 없습니다.'
+                  : activeTab === 'join-applications'
+                    ? '가입 승인 대기 중인 클럽이 없습니다.'
+                    : '가입한 클럽이 없습니다. 클럽에 가입해보세요!'}
             </Text>
             {activeTab === 'all' && !searchTerm && statusFilter === 'ALL' ? (
               <Button variant="primary" size="sm" onPress={() => router.push('/clubs/register')}>

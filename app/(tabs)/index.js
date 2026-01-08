@@ -1,12 +1,12 @@
+import AppFooter from '@/components/layout/AppFooter';
+import AppHeader from '@/components/layout/AppHeader';
+import { homeFeatures } from '@/constants/homeConstants';
+import { useAuth } from '@/context/AuthContext';
+import { colors } from '@/theme/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AppFooter from '../../src/components/layout/AppFooter';
-import AppHeader from '../../src/components/layout/AppHeader';
-import { homeFeatures } from '../../src/constants/homeConstants';
-import { useAuth } from '../../src/context/AuthContext';
-import { colors } from '../../src/theme/colors';
 
 const FeatureCard = ({ title, description, emoji, background, accent }) => {
   return (

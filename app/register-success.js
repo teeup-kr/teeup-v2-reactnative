@@ -1,7 +1,7 @@
+import { colors } from '@/theme/colors';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../src/theme/colors';
 
 export default function RegisterSuccessScreen() {
   const router = useRouter();
@@ -15,7 +15,7 @@ export default function RegisterSuccessScreen() {
           <Text style={styles.buttonText}>로그인으로 이동</Text>
         </Pressable>
       </View>
-</SafeAreaView>
+    </SafeAreaView>
   );
 }
 

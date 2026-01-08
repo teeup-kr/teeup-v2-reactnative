@@ -1,19 +1,19 @@
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { clubFeeCycles, clubRegisterTypes } from '@/constants/clubConstants';
+import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button from '../../../src/components/ui/Button';
-import Card from '../../../src/components/ui/Card';
-import ScreenHeader from '../../../src/components/ui/ScreenHeader';
-import { clubFeeCycles, clubRegisterTypes } from '../../../src/constants/clubConstants';
-import { colors } from '../../../src/theme/colors';
 
 export default function ClubRegisterScreen() {
   const [formData, setFormData] = useState({
@@ -208,7 +208,7 @@ export default function ClubRegisterScreen() {
           클럽 등록 신청
         </Button>
         <Text style={styles.noticeText}>등록 후 관리자의 승인이 필요합니다.</Text>
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

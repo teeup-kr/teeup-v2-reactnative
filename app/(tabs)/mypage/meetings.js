@@ -1,27 +1,27 @@
+import Card from '@/components/ui/Card';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import {
+  myMeetingsRoleConfig,
+  myMeetingsStatusConfig,
+  myMeetingsStatusTabs,
+  myMeetingsTypeConfig,
+  myMeetingsTypeTabs,
+} from '@/constants/mypageConstants';
+import { usersApi } from '@/lib/api';
+import { extractList, formatMeetingTimeShort, getMeetingStatusKey } from '@/lib/meetingUtils';
+import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Card from '../../../src/components/ui/Card';
-import ScreenHeader from '../../../src/components/ui/ScreenHeader';
-import {
-    myMeetingsRoleConfig,
-    myMeetingsStatusConfig,
-    myMeetingsStatusTabs,
-    myMeetingsTypeConfig,
-    myMeetingsTypeTabs,
-} from '../../../src/constants/mypageConstants';
-import { usersApi } from '../../../src/lib/api';
-import { extractList, formatMeetingTimeShort, getMeetingStatusKey } from '../../../src/lib/meetingUtils';
-import { colors } from '../../../src/theme/colors';
 
 const FilterChip = ({ label, selected, onPress }) => (
   <Pressable

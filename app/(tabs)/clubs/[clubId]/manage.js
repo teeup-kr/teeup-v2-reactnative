@@ -1,11 +1,11 @@
+import Card from '@/components/ui/Card';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { clubManageSections } from '@/constants/clubConstants';
+import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Card from '../../../../src/components/ui/Card';
-import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
-import { clubManageSections } from '../../../../src/constants/clubConstants';
-import { colors } from '../../../../src/theme/colors';
 
 export default function ClubManageScreen() {
   const { clubId } = useLocalSearchParams();
@@ -38,7 +38,7 @@ export default function ClubManageScreen() {
             </Pressable>
           ))}
         </View>
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

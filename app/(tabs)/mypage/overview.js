@@ -1,23 +1,23 @@
+import AppFooter from '@/components/layout/AppFooter';
+import AppHeader from '@/components/layout/AppHeader';
+import Card from '@/components/ui/Card';
+import { usersApi } from '@/lib/api';
+import { clubsApi } from '@/lib/clubsApi';
+import { formatProfileDate, getGenderLabel } from '@/lib/mypageUtils';
+import { extractData, extractList } from '@/lib/responseUtils';
+import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AppFooter from '../../../src/components/layout/AppFooter';
-import AppHeader from '../../../src/components/layout/AppHeader';
-import Card from '../../../src/components/ui/Card';
-import { usersApi } from '../../../src/lib/api';
-import { clubsApi } from '../../../src/lib/clubsApi';
-import { formatProfileDate, getGenderLabel } from '../../../src/lib/mypageUtils';
-import { extractData, extractList } from '../../../src/lib/responseUtils';
-import { colors } from '../../../src/theme/colors';
 
 export default function OverviewScreen() {
   const router = useRouter();

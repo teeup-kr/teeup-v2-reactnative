@@ -1,30 +1,30 @@
+import LoginRequired from '@/components/auth/LoginRequired';
+import AppFooter from '@/components/layout/AppFooter';
+import AppHeader from '@/components/layout/AppHeader';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import { meetingTabs, meetingValidTabs } from '@/constants/meetingConstants';
+import { useAuth } from '@/context/AuthContext';
+import { clubApi, roundsApi, socialsApi } from '@/lib/api';
+import {
+  extractList,
+  filterByDate,
+  filterByStatus,
+  formatCost,
+  formatMeetingTime,
+  formatYmd,
+  getDateRange,
+  getMeetingStatusBadgeConfigs,
+  getMeetingTypeBadgeConfig,
+  parseYmd,
+} from '@/lib/meetingUtils';
+import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LoginRequired from '../../../src/components/auth/LoginRequired';
-import AppFooter from '../../../src/components/layout/AppFooter';
-import AppHeader from '../../../src/components/layout/AppHeader';
-import Button from '../../../src/components/ui/Button';
-import Card from '../../../src/components/ui/Card';
-import { meetingTabs, meetingValidTabs } from '../../../src/constants/meetingConstants';
-import { useAuth } from '../../../src/context/AuthContext';
-import { clubApi, roundsApi, socialsApi } from '../../../src/lib/api';
-import {
-    extractList,
-    filterByDate,
-    filterByStatus,
-    formatCost,
-    formatMeetingTime,
-    formatYmd,
-    getDateRange,
-    getMeetingStatusBadgeConfigs,
-    getMeetingTypeBadgeConfig,
-    parseYmd,
-} from '../../../src/lib/meetingUtils';
-import { colors } from '../../../src/theme/colors';
 
 const Badge = ({ text, backgroundColor, textColor }) => (
   <View style={[styles.badge, { backgroundColor }]}>

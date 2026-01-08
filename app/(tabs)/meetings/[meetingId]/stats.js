@@ -1,11 +1,11 @@
+import Card from '@/components/ui/Card';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { roundsApi } from '@/lib/api';
+import { colors } from '@/theme/colors';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Card from '../../../../src/components/ui/Card';
-import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
-import { roundsApi } from '../../../../src/lib/api';
-import { colors } from '../../../../src/theme/colors';
 
 export default function MeetingStatsScreen() {
   const { meetingId } = useLocalSearchParams();
@@ -106,7 +106,7 @@ export default function MeetingStatsScreen() {
             <Text style={styles.chartText}>차트 영역 (추후 연결)</Text>
           </View>
         </Card>
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

@@ -1,15 +1,15 @@
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { clubDetailStatusLabel, clubDetailTypeLabel } from '@/constants/clubConstants';
+import { clubsApi } from '@/lib/clubsApi';
+import { extractData } from '@/lib/responseUtils';
+import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button from '../../../../src/components/ui/Button';
-import Card from '../../../../src/components/ui/Card';
-import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
-import { clubDetailStatusLabel, clubDetailTypeLabel } from '../../../../src/constants/clubConstants';
-import { clubsApi } from '../../../../src/lib/clubsApi';
-import { extractData } from '../../../../src/lib/responseUtils';
-import { colors } from '../../../../src/theme/colors';
 
 export default function ClubDetailScreen() {
   const router = useRouter();

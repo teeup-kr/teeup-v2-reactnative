@@ -1,12 +1,12 @@
+import Card from '@/components/ui/Card';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { faqApi } from '@/lib/api';
+import { normalizeFaqList } from '@/lib/faqUtils';
+import { colors } from '@/theme/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Card from '../src/components/ui/Card';
-import ScreenHeader from '../src/components/ui/ScreenHeader';
-import { faqApi } from '../src/lib/api';
-import { normalizeFaqList } from '../src/lib/faqUtils';
-import { colors } from '../src/theme/colors';
 
 export default function FaqScreen() {
   const [items, setItems] = useState([]);

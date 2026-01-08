@@ -1,30 +1,30 @@
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import DateTimeField from '@/components/ui/DateTimeField';
+import ScreenHeader from '@/components/ui/ScreenHeader';
+import { socialSettlementMethods, socialTypeOptions } from '@/constants/meetingConstants';
+import { clubApi, socialsApi } from '@/lib/api';
+import {
+  convertToKST,
+  extractData,
+  extractList,
+  normalizeNumber,
+  toDateTimeLocalValue,
+} from '@/lib/meetingUtils';
+import { colors } from '@/theme/colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button from '../../../../src/components/ui/Button';
-import Card from '../../../../src/components/ui/Card';
-import DateTimeField from '../../../../src/components/ui/DateTimeField';
-import ScreenHeader from '../../../../src/components/ui/ScreenHeader';
-import { socialSettlementMethods, socialTypeOptions } from '../../../../src/constants/meetingConstants';
-import { clubApi, socialsApi } from '../../../../src/lib/api';
-import {
-    convertToKST,
-    extractData,
-    extractList,
-    normalizeNumber,
-    toDateTimeLocalValue,
-} from '../../../../src/lib/meetingUtils';
-import { colors } from '../../../../src/theme/colors';
 
 const ChipOption = ({ label, selected, onPress }) => (
   <Pressable
@@ -407,7 +407,7 @@ export function SocialForm({ mode = 'create' }) {
             </Button>
           </>
         )}
-</ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
