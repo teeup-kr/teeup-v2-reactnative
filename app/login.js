@@ -24,7 +24,7 @@ import { buildGoogleAuthConfig, generateOauthState } from '@/lib/authUtils';
 import { tokenStorage } from '@/lib/tokenStorage';
 import { colors } from '@/theme/colors';
 
-const logoImage = require('../assets/teeuplink-logo.png');
+const logoImage = require('../public/icons/icon-512.png');
 
 export default function LoginScreen() {
   const router = useRouter();

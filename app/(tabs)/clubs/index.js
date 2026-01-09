@@ -37,7 +37,7 @@ import {
 } from '@/lib/clubUtils';
 import { colors } from '@/theme/colors';
 
-const logoImage = require('../../../assets/teeuplink-logo.png');
+const logoImage = require('../../../public/icons/icon-512.png');
 
 
 const Badge = ({ text, backgroundColor, textColor, style }) => (

@@ -1,5 +1,6 @@
 import * as NavigationBar from 'expo-navigation-bar';
 import { Slot } from 'expo-router';
+import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
@@ -38,6 +39,18 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      {/* 2. 웹 PWA를 위한 Head 설정 추가 */}
+      <Head>
+        <title>TeeUp</title>
+        <link rel="manifest" href="/manifest.json" />
+
+        {/* iOS PWA */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="TeeUp" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+      </Head>
+
       <StatusBar style="dark" backgroundColor={colors.white} />
       <AuthProvider>
         <AppLayoutProvider>
