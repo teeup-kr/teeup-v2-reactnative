@@ -37,7 +37,7 @@ import {
 } from '@/lib/clubUtils';
 import { colors } from '@/theme/colors';
 
-const logoImage = require('../../../public/icons/icon-512.png');
+const logoImage = require('../../../public/icons/icon-512-transparent.png');
 
 
 const Badge = ({ text, backgroundColor, textColor, style }) => (

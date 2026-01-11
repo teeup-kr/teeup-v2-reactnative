@@ -41,7 +41,7 @@ export default function HomeScreen() {
           <View style={styles.heroInner}>
             <View style={styles.heroLogoWrap}>
               <Image
-                source={require('../../public/icons/icon-512.png')}
+                source={require('../../public/icons/icon-512-transparent.png')}
                 style={styles.heroLogo}
                 resizeMode="contain"
               />

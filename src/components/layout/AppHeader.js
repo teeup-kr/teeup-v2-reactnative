@@ -3,7 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../../theme/colors';
 
-const logoImage = require('../../../public/icons/icon-512.png');
+const logoImage = require('../../../public/icons/icon-512-transparent.png');
 
 export default function AppHeader() {
   const router = useRouter();

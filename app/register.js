@@ -20,7 +20,7 @@ import { registerInitialErrors, registerInitialForm } from '@/constants/authCons
 import { authApi } from '@/lib/authApi';
 import { colors } from '@/theme/colors';
 
-const logoImage = require('../public/icons/icon-512.png');
+const logoImage = require('../public/icons/icon-512-transparent.png');
 
 const Checkbox = ({ checked, onPress }) => {
   return (

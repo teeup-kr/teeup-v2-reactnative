@@ -24,7 +24,7 @@ import { buildGoogleAuthConfig, generateOauthState } from '@/lib/authUtils';
 import { tokenStorage } from '@/lib/tokenStorage';
 import { colors } from '@/theme/colors';
 
-const logoImage = require('../public/icons/icon-512.png');
+const logoImage = require('../public/icons/icon-512-transparent.png');
 
 export default function LoginScreen() {
   const router = useRouter();
