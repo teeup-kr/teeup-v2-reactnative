@@ -9,12 +9,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Modal from '@/components/ui/Modal';
-import ScreenHeader from '@/components/ui/ScreenHeader';
 import { authApi } from '@/lib/authApi';
 import { colors } from '@/theme/colors';
 
@@ -55,17 +53,16 @@ export default function WithdrawScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScreenHeader title="회원탈퇴" />
+    <View style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.warningCard}>
           <View style={styles.warningHeader}>
             <FontAwesome5 name="exclamation-triangle" size={16} color={colors.error[600]} />
             <Text style={styles.warningTitle}>회원 탈퇴 안내</Text>
           </View>
-          <Text style={styles.warningText}>• 탈퇴 시 가입한 클럽 및 기록 데이터가 삭제됩니다.</Text>
-          <Text style={styles.warningText}>• 복구가 불가능하므로 신중하게 진행해주세요.</Text>
-          <Text style={styles.warningText}>• 법령에 따라 일부 정보는 일정 기간 보관됩니다.</Text>
+          <Text style={styles.warningText}>• 회원 탈퇴 시 개인정보는 관련 법령에 따라 처리됩니다.</Text>
+          <Text style={styles.warningText}>• 가입한 클럽, 모임, 골프 기록 및 통계 데이터는 삭제되며 복구할 수 없습니다.</Text>
+          <Text style={styles.warningText}>• 법령에 따라 일부 정보는 일정 기간 보관될 수 있습니다.</Text>
         </View>
 
         <Card style={styles.card}>
@@ -83,7 +80,7 @@ export default function WithdrawScreen() {
         </Card>
 
         <Card style={styles.card}>
-          <Text style={styles.inputLabel}>확인을 위해 "회원탈퇴"를 입력하세요.</Text>
+          <Text style={styles.inputLabel}>확인을 위해 '회원탈퇴'를 입력하세요.*</Text>
           <TextInput
             value={confirmText}
             onChangeText={setConfirmText}
@@ -94,8 +91,8 @@ export default function WithdrawScreen() {
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
         </Card>
 
-        <Button style={styles.withdrawButton} onPress={handleSubmit}>
-          탈퇴 진행
+        <Button style={styles.withdrawButton} onPress={handleSubmit} color="#dc2626">
+          회원 탈퇴
         </Button>
         {resultMessage ? <Text style={styles.successText}>{resultMessage}</Text> : null}
       </ScrollView>
@@ -129,7 +126,7 @@ export default function WithdrawScreen() {
         <Text style={styles.modalText}>회원 탈퇴 후에는 모든 데이터가 삭제됩니다.</Text>
         <Text style={styles.modalText}>정말로 탈퇴하시겠습니까?</Text>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 

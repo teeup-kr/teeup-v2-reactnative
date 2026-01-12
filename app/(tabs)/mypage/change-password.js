@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -80,7 +79,7 @@ export default function ChangePasswordScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <ScreenHeader title="비밀번호 변경" />
       <ScrollView contentContainerStyle={styles.container}>
         <Card style={styles.card}>
@@ -119,7 +118,7 @@ export default function ChangePasswordScreen() {
           {isSubmitting ? '처리 중...' : '변경하기'}
         </Button>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

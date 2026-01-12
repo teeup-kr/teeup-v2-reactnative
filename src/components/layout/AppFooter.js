@@ -5,7 +5,6 @@ import { colors } from '../../theme/colors';
 export default function AppFooter() {
   return (
     <View style={styles.container}>
-      <Text style={styles.company}>티업링크</Text>
       <Text style={styles.meta}>© 2025 티업링크. All rights reserved.</Text>
     </View>
   );
@@ -18,12 +17,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.neutral[200],
     paddingHorizontal: 16,
     paddingVertical: 16,
-  },
-  company: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.neutral[900],
-    marginBottom: 4,
+    alignItems: 'center'
   },
   meta: {
     fontSize: 11,

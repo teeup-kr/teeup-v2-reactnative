@@ -29,11 +29,11 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.neutral[200],
   },
   inner: {
+    height: 48,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
   },
   left: {
     flexDirection: 'row',

@@ -1,101 +1,475 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-import AppFooter from '@/components/layout/AppFooter';
-import AppHeader from '@/components/layout/AppHeader';
-import SimpleScoreInputModal from '@/components/meetings/SimpleScoreInputModal';
-import RoundingStatsCard from '@/components/profile/RoundingStatsCard';
-import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import Modal from '@/components/ui/Modal';
-import { recordStatusTabs } from '@/constants/mypageConstants';
 import { roundsApi, usersApi } from '@/lib/api';
-import { formatProfileDate } from '@/lib/mypageUtils';
-import { extractData, extractList } from '@/lib/responseUtils';
 import { colors } from '@/theme/colors';
 
-const FilterChip = ({ label, selected, onPress }) => (
-  <Pressable
-    onPress={onPress}
-    style={({ pressed }) => [
-      styles.chip,
-      selected && styles.chipActive,
-      pressed && styles.chipPressed,
-    ]}
-  >
-    <Text style={[styles.chipText, selected && styles.chipTextActive]}>{label}</Text>
-  </Pressable>
-);
+/**
+ * RecordsTab (React Native)
+ * - Web RecordsTab UI를 RN 스타일로 재구현
+ * - usersApi / roundsApi는 기존 프로젝트 경로 사용
+ * - SimpleScoreInputModal 포함(내부 컴포넌트)
+ *
+ * 기대 응답 형태가 서로 달라도 동작하도록 최대한 방어적으로 파싱함.
+ */
 
-export default function RecordsScreen() {
+/* =========================
+   Utils
+========================= */
+const asNumber = (v, fallback = 0) => {
+  const n = typeof v === 'string' ? parseFloat(v) : v;
+  return Number.isFinite(n) ? n : fallback;
+};
+
+const pickData = (resp) => {
+  // axios 응답(resp.data) or plain object 대응
+  if (!resp) return null;
+  if (resp.data !== undefined) return resp.data;
+  return resp;
+};
+
+const formatKoreanDate = (dateLike) => {
+  if (!dateLike) return '-';
+  const d = new Date(dateLike);
+  if (Number.isNaN(d.getTime())) return '-';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}년 ${m}월 ${day}일`;
+};
+
+/* =========================
+   RoundingStatsCard (RN)
+========================= */
+const RoundingStatsCard = ({ stats, isLoading, error }) => {
+  if (isLoading) {
+    return (
+      <View style={styles.statsGrid}>
+        {[1, 2, 3, 4].map((i) => (
+          <View key={i} style={[styles.statCard, styles.statCardSkeleton]} />
+        ))}
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card style={styles.statsErrorCard}>
+        <Text style={styles.statsErrorText}>통계 정보를 불러오는데 실패했습니다.</Text>
+      </Card>
+    );
+  }
+
+  const totalGames = asNumber(stats?.total_games, 0);
+  if (!stats || totalGames === 0) {
+    return (
+      <Card style={styles.statsEmptyCard}>
+        <Text style={styles.statsEmptyText}>아직 기록된 라운딩이 없습니다.</Text>
+      </Card>
+    );
+  }
+
+  const cards = [
+    {
+      id: 'total',
+      label: '총 경기 수',
+      value: `${asNumber(stats?.total_games, 0)}`,
+      unit: '경기',
+      icon: 'history',
+      color: colors.primary?.[700] ?? colors.primary[600],
+      bg: colors.primary?.[50] ?? colors.neutral[50],
+      border: colors.primary?.[200] ?? colors.neutral[200],
+    },
+    {
+      id: 'average',
+      label: '평균 스코어',
+      value:
+        stats?.average_score !== null && stats?.average_score !== undefined
+          ? asNumber(stats?.average_score, 0).toFixed(1)
+          : '-',
+      unit: '',
+      icon: 'chart-line',
+      color: colors.neutral[800],
+      bg: colors.neutral[50],
+      border: colors.neutral[200],
+    },
+    {
+      id: 'recent5',
+      label: '최근 5경기 평균',
+      value:
+        stats?.recent_5_avg !== null && stats?.recent_5_avg !== undefined
+          ? asNumber(stats?.recent_5_avg, 0).toFixed(1)
+          : '-',
+      unit: '',
+      icon: 'trophy',
+      color: colors.neutral[800],
+      bg: colors.neutral[50],
+      border: colors.neutral[200],
+    },
+    {
+      id: 'best-worst',
+      label: '최고/최저',
+      value:
+        stats?.best_score !== null &&
+          stats?.best_score !== undefined &&
+          stats?.worst_score !== null &&
+          stats?.worst_score !== undefined
+          ? `${stats.best_score} / ${stats.worst_score}`
+          : '-',
+      unit: '',
+      icon: 'medal',
+      color: colors.neutral[800],
+      bg: colors.neutral[50],
+      border: colors.neutral[200],
+    },
+  ];
+
+  return (
+    <View style={styles.statsGrid}>
+      {cards.map((c) => (
+        <View
+          key={c.id}
+          style={[
+            styles.statCard,
+            { backgroundColor: c.bg, borderColor: c.border },
+          ]}
+        >
+          <View style={styles.statHeaderRow}>
+            <FontAwesome5 name={c.icon} size={12} color={c.color} />
+            <Text style={styles.statLabel}>{c.label}</Text>
+          </View>
+          <View style={styles.statValueRow}>
+            <Text style={[styles.statValue, { color: c.color }]}>{c.value}</Text>
+            {!!c.unit && <Text style={styles.statUnit}>{c.unit}</Text>}
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+/* =========================
+   SimpleScoreInputModal (RN)
+========================= */
+const SimpleScoreInputModal = ({
+  visible,
+  onClose,
+  meetingId,
+  participantId,
+  currentHandicap,
+  onSuccess,
+  shouldCompleteRounding = false,
+}) => {
+  const [grossScore, setGrossScore] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const newHandicap = useMemo(() => {
+    if (!grossScore) return null;
+    const gross = parseInt(grossScore, 10);
+    if (Number.isNaN(gross)) return null;
+    const handicap = gross - 72;
+    const clamped = Math.max(0, Math.min(72, handicap));
+    return clamped.toFixed(1);
+  }, [grossScore]);
+
+  const resetLocal = useCallback(() => {
+    setGrossScore('');
+    setIsSubmitting(false);
+    setErrors({});
+  }, []);
+
+  const validate = useCallback(() => {
+    const next = {};
+    if (!grossScore || grossScore.trim() === '') {
+      next.grossScore = '라운딩 스코어를 입력해주세요.';
+    } else {
+      const score = parseInt(grossScore, 10);
+      if (Number.isNaN(score)) next.grossScore = '숫자만 입력 가능합니다.';
+      else if (score < 55 || score > 144)
+        next.grossScore = '스코어는 55~144 사이의 값이어야 합니다.';
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  }, [grossScore]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!validate()) return;
+
+    try {
+      setIsSubmitting(true);
+
+      if (shouldCompleteRounding) {
+        await roundsApi.completeRounding(meetingId);
+      }
+
+      await roundsApi.submitSimpleScore(meetingId, participantId, {
+        gross_score: parseInt(grossScore, 10),
+      });
+
+      onSuccess?.(shouldCompleteRounding);
+      onClose?.();
+      resetLocal();
+    } catch (err) {
+      console.error('점수 입력 실패:', err);
+      const detail =
+        err?.response?.data?.detail ||
+        err?.message ||
+        '점수 입력에 실패했습니다.';
+      setErrors({ submit: detail });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [
+    validate,
+    shouldCompleteRounding,
+    meetingId,
+    participantId,
+    grossScore,
+    onSuccess,
+    onClose,
+    resetLocal,
+  ]);
+
+  const closeAndReset = () => {
+    if (isSubmitting) return;
+    onClose?.();
+    resetLocal();
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={closeAndReset}
+    >
+      <View style={styles.modalBackdrop}>
+        <View style={styles.modalSheet}>
+          {/* Header */}
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>점수 입력</Text>
+            <Pressable
+              onPress={closeAndReset}
+              style={({ pressed }) => [
+                styles.iconBtn,
+                pressed && { opacity: 0.7 },
+              ]}
+              disabled={isSubmitting}
+            >
+              <FontAwesome5 name="times" size={18} color={colors.neutral[500]} />
+            </Pressable>
+          </View>
+
+          <ScrollView contentContainerStyle={styles.modalBody}>
+            {/* Current Handicap */}
+            <View style={styles.handicapBox}>
+              <Text style={styles.handicapLabel}>현재 핸디캡</Text>
+              <Text style={styles.handicapValue}>
+                {currentHandicap !== null &&
+                  currentHandicap !== undefined &&
+                  currentHandicap !== ''
+                  ? asNumber(currentHandicap, 0).toFixed(1)
+                  : '-'}
+              </Text>
+            </View>
+
+            {/* Score input */}
+            <Text style={styles.fieldLabel}>
+              라운딩 스코어 <Text style={{ color: colors.error[600] }}>*</Text>
+            </Text>
+            <TextInput
+              value={grossScore}
+              onChangeText={(t) => {
+                // 빈 값 허용
+                if (t === '') {
+                  setGrossScore('');
+                  return;
+                }
+                // 숫자만
+                if (!/^\d+$/.test(t)) return;
+
+                // 앞 0 제거
+                if (t.length > 1 && t[0] === '0') {
+                  const stripped = t.replace(/^0+/, '') || '0';
+                  if (stripped === '0') {
+                    setGrossScore('');
+                    return;
+                  }
+                  setGrossScore(stripped);
+                  return;
+                }
+
+                setGrossScore(t);
+              }}
+              placeholder="55~144 사이의 숫자 입력"
+              keyboardType="number-pad"
+              editable={!isSubmitting}
+              style={[
+                styles.input,
+                errors.grossScore ? styles.inputError : styles.inputNormal,
+              ]}
+            />
+            {!!errors.grossScore && (
+              <Text style={styles.errorText}>{errors.grossScore}</Text>
+            )}
+
+            {/* New handicap preview */}
+            {newHandicap !== null && (
+              <View style={styles.previewBox}>
+                <View style={styles.previewRow}>
+                  <Text style={styles.previewLabel}>새로운 핸디캡 (예상)</Text>
+                  <Text style={styles.previewValue}>{newHandicap}</Text>
+                </View>
+                <Text style={styles.previewHint}>
+                  라운딩 스코어 - 72 = 새로운 핸디캡{'\n'}(최근 5경기 평균으로
+                  재계산됩니다)
+                </Text>
+              </View>
+            )}
+
+            {!!errors.submit && (
+              <View style={styles.submitErrorBox}>
+                <Text style={styles.submitErrorText}>{errors.submit}</Text>
+              </View>
+            )}
+
+            {/* Buttons */}
+            <View style={styles.modalBtnRow}>
+              <Pressable
+                onPress={closeAndReset}
+                disabled={isSubmitting}
+                style={({ pressed }) => [
+                  styles.modalBtn,
+                  styles.modalBtnOutline,
+                  pressed && { opacity: 0.85 },
+                  isSubmitting && { opacity: 0.5 },
+                ]}
+              >
+                <Text style={styles.modalBtnOutlineText}>취소</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={handleSubmit}
+                disabled={isSubmitting || !grossScore}
+                style={({ pressed }) => [
+                  styles.modalBtn,
+                  styles.modalBtnPrimary,
+                  pressed && { opacity: 0.9 },
+                  (isSubmitting || !grossScore) && { opacity: 0.5 },
+                ]}
+              >
+                {isSubmitting ? (
+                  <View style={styles.inlineRow}>
+                    <ActivityIndicator size="small" color={colors.white} />
+                    <Text style={styles.modalBtnPrimaryText}>저장 중...</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.modalBtnPrimaryText}>
+                    {shouldCompleteRounding ? '라운딩 종료 후 저장' : '저장'}
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+/* =========================
+   ComingSoon Modal (RN)
+========================= */
+const ComingSoonModal = ({ visible, onClose }) => {
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.modalBackdrop}>
+        <View style={styles.modalSheet}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>준비중</Text>
+            <Pressable
+              onPress={onClose}
+              style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}
+            >
+              <FontAwesome5 name="times" size={18} color={colors.neutral[500]} />
+            </Pressable>
+          </View>
+
+          <View style={[styles.modalBody, { paddingBottom: 18 }]}>
+            <View style={{ alignItems: 'center', marginBottom: 12 }}>
+              <FontAwesome5 name="golf-ball" size={40} color={colors.neutral[400]} />
+            </View>
+            <Text style={styles.comingSoonTitle}>이 기능은 현재 준비중입니다</Text>
+            <Text style={styles.comingSoonSub}>상세 점수 입력 기능은 곧 제공될 예정입니다.</Text>
+
+            <Pressable
+              onPress={onClose}
+              style={({ pressed }) => [
+                styles.fullPrimaryBtn,
+                pressed && { opacity: 0.9 },
+              ]}
+            >
+              <Text style={styles.fullPrimaryBtnText}>닫기</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+/* =========================
+   RecordsTab Screen (RN)
+========================= */
+export default function RecordsTab() {
   const router = useRouter();
-  const [scoreStatus, setScoreStatus] = useState('all');
+
+  const [scoreStatus, setScoreStatus] = useState('all'); // all, missing, completed
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [meetings, setMeetings] = useState([]);
+
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState(null);
+  const [stats, setStats] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [statsData, setStatsData] = useState(null);
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [statsError, setStatsError] = useState(null);
+  const [meetings, setMeetings] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const [userProfile, setUserProfile] = useState(null);
-  const [handicapInfo, setHandicapInfo] = useState(null);
+  const [currentHandicap, setCurrentHandicap] = useState(null);
 
-  const [scoreModalOpen, setScoreModalOpen] = useState(false);
-  const [comingSoonOpen, setComingSoonOpen] = useState(false);
+  const [showScoreModal, setShowScoreModal] = useState(false);
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState(null);
   const [selectedParticipantId, setSelectedParticipantId] = useState(null);
 
-  const userId = useMemo(() => {
-    return userProfile?.id || userProfile?.data?.id || null;
-  }, [userProfile]);
-
-  const currentHandicap = useMemo(() => {
-    if (!handicapInfo) return null;
-    return handicapInfo.calculated_handicap ?? handicapInfo.initial_handicap ?? null;
-  }, [handicapInfo]);
-
-  const fetchProfile = useCallback(async () => {
-    try {
-      const response = await usersApi.getMyProfile();
-      setUserProfile(extractData(response));
-    } catch (fetchError) {
-      console.error('프로필 조회 실패:', fetchError);
-    }
-  }, []);
-
-  const fetchHandicap = useCallback(async (id) => {
-    if (!id) return;
-    try {
-      const response = await usersApi.getUserHandicap(id);
-      setHandicapInfo(extractData(response));
-    } catch (fetchError) {
-      console.error('핸디캡 조회 실패:', fetchError);
-    }
-  }, []);
+  const limit = 10;
 
   const fetchStats = useCallback(async () => {
     try {
       setStatsLoading(true);
       setStatsError(null);
-      const response = await usersApi.getRoundingStats();
-      setStatsData(extractData(response));
-    } catch (fetchError) {
-      console.error('통계 조회 실패:', fetchError);
-      setStatsError(fetchError);
+
+      const resp = await usersApi.getRoundingStats();
+      setStats(pickData(resp));
+    } catch (e) {
+      console.error(e);
+      setStatsError(e);
     } finally {
       setStatsLoading(false);
     }
@@ -105,254 +479,470 @@ export default function RecordsScreen() {
     try {
       setLoading(true);
       setError(null);
-      const params = {
+
+      const resp = await usersApi.getMyRoundingMeetings({
+        score_status: scoreStatus,
         page,
-        limit: 10,
-        ...(scoreStatus !== 'all' ? { score_status: scoreStatus } : {}),
-      };
-      const response = await usersApi.getMyRoundingMeetings(params);
-      const items = extractList(response);
-      setMeetings(items);
-      setTotalPages(response?.total_pages || response?.totalPages || 1);
-    } catch (fetchError) {
-      console.error('라운딩 기록 조회 실패:', fetchError);
-      setError('기록 정보를 불러오는데 실패했습니다.');
+        limit,
+      });
+
+      const data = pickData(resp) || resp || {};
+      // 가능한 케이스:
+      // { data: [], total_pages: n } 또는 { data: { data: [] } } 등
+      const list = data?.data ?? data?.list ?? [];
+      setMeetings(Array.isArray(list) ? list : []);
+      setTotalPages(asNumber(data?.total_pages, 1) || 1);
+    } catch (e) {
+      console.error(e);
+      setError(e);
     } finally {
       setLoading(false);
     }
-  }, [page, scoreStatus]);
+  }, [scoreStatus, page]);
 
-  useEffect(() => {
-    fetchProfile();
+  const fetchHandicap = useCallback(async () => {
+    // 웹은 userProfile + userId로 조회했지만,
+    // RN에서는 프로젝트마다 구현이 다르므로 최대한 방어적으로 처리
+    try {
+      // 1) 내 프로필에서 id 얻기
+      const profileResp = await usersApi.getMyProfile?.();
+      const profile = pickData(profileResp);
+      const userId = profile?.id || profile?.data?.id;
+
+      if (!userId || !usersApi.getUserHandicap) return;
+
+      const handicapResp = await usersApi.getUserHandicap(userId);
+      const handicapData = pickData(handicapResp) || {};
+      const info = handicapData?.data || handicapData;
+
+      const calculated = info?.calculated_handicap;
+      const initial = info?.initial_handicap;
+      const value =
+        calculated ?? initial ?? null;
+
+      setCurrentHandicap(value);
+    } catch (e) {
+      // 핸디캡은 실패해도 치명적이지 않게 무시
+      console.warn('handicap fetch failed:', e?.message || e);
+    }
+  }, []);
+
+  React.useEffect(() => {
     fetchStats();
-  }, [fetchProfile, fetchStats]);
+  }, [fetchStats]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchMeetings();
   }, [fetchMeetings]);
 
-  useEffect(() => {
-    if (userId) {
-      fetchHandicap(userId);
-    }
-  }, [userId, fetchHandicap]);
+  React.useEffect(() => {
+    fetchHandicap();
+  }, [fetchHandicap]);
 
-  const handleOpenScoreModal = async (meeting) => {
-    const meetingId = meeting?.meeting_id || meeting?.id;
-    if (!meetingId) {
-      Alert.alert('안내', '모임 정보를 찾을 수 없습니다.');
-      return;
-    }
+  const missingMeetings = useMemo(
+    () => meetings.filter((m) => !m?.has_score),
+    [meetings]
+  );
+  const completedMeetings = useMemo(
+    () => meetings.filter((m) => !!m?.has_score),
+    [meetings]
+  );
 
-    try {
-      const participants = await roundsApi.getRoundParticipants(meetingId);
-      const list = extractList(participants);
-      const me = list.find((participant) => participant.user_id === userId);
-      if (!me) {
-        Alert.alert('안내', '참가자 정보를 찾을 수 없습니다.');
-        return;
+  const openScoreModal = useCallback(
+    async (meeting) => {
+      try {
+        const participantsResp = await roundsApi.getRoundParticipants(
+          meeting.meeting_id
+        );
+        const participants = pickData(participantsResp);
+        const list = Array.isArray(participants)
+          ? participants
+          : participants?.data || [];
+
+        // 웹은 user.id로 찾았는데 RN에서는 user hook이 없으니
+        // 내 프로필로 다시 얻거나, API가 "me"를 내려준다면 그걸 쓰면 됨.
+        // 여기서는 usersApi.getMyProfile을 재사용해서 userId 확보.
+        const profileResp = await usersApi.getMyProfile?.();
+        const profile = pickData(profileResp);
+        const myUserId = profile?.id || profile?.data?.id;
+
+        const mine = list.find((p) => p.user_id === myUserId);
+
+        if (!mine) {
+          Alert.alert('오류', '참가자 정보를 찾을 수 없습니다.');
+          return;
+        }
+
+        setSelectedParticipantId(mine.id);
+        setSelectedMeeting(meeting);
+        setShowScoreModal(true);
+      } catch (e) {
+        console.error('참가자 조회 실패:', e);
+        Alert.alert('오류', '참가자 정보를 불러오는데 실패했습니다.');
       }
-      setSelectedMeeting(meeting);
-      setSelectedParticipantId(me.id);
-      setScoreModalOpen(true);
-    } catch (fetchError) {
-      console.error('참가자 조회 실패:', fetchError);
-      Alert.alert('오류', '참가자 정보를 불러오는데 실패했습니다.');
-    }
-  };
+    },
+    [setShowScoreModal]
+  );
 
-  const handleScoreSuccess = () => {
-    setScoreModalOpen(false);
+  const onScoreSuccess = useCallback(async () => {
+    setShowScoreModal(false);
     setSelectedMeeting(null);
     setSelectedParticipantId(null);
-    fetchMeetings();
-    fetchStats();
-    if (userId) {
-      fetchHandicap(userId);
-    }
+    // 재조회
+    await fetchMeetings();
+    await fetchStats();
+    await fetchHandicap();
+  }, [fetchMeetings, fetchStats, fetchHandicap]);
+
+  const goToDetail = useCallback((meetingId) => {
+    router.push(`/meetings/rounding/${meetingId}`);
+  }, [router]);
+
+  const renderMeetingCard = (meeting, isCompleted = false) => {
+    return (
+      <View
+        key={meeting.meeting_id}
+        style={[
+          styles.meetingBox,
+          isCompleted ? styles.meetingCompleted : styles.meetingMissing,
+        ]}
+      >
+        <Pressable onPress={() => goToDetail(meeting.meeting_id)}>
+          <Text style={styles.meetingTitle} numberOfLines={1}>
+            {meeting.meeting_name}
+          </Text>
+        </Pressable>
+
+        <Text style={styles.meetingClub}>{meeting.club_name}</Text>
+
+        <View style={styles.meetingDatesRow}>
+          <Text style={styles.meetingDateText}>
+            경기일: {formatKoreanDate(meeting.meeting_time)}
+          </Text>
+          <Text style={styles.meetingDot}>•</Text>
+          <Text style={styles.meetingDateText}>
+            종료일: {formatKoreanDate(meeting.rounding_completed_at)}
+          </Text>
+        </View>
+
+        {isCompleted && (
+          <View style={styles.scoreRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.scoreLabel}>라운딩 스코어</Text>
+              <Text style={styles.scoreValue}>{meeting.gross_score}</Text>
+            </View>
+            {currentHandicap !== null && currentHandicap !== undefined && (
+              <View style={{ flex: 1 }}>
+                <Text style={styles.scoreLabel}>업데이트된 핸디캡</Text>
+                <Text style={styles.handicapGreen}>
+                  {asNumber(currentHandicap, 0).toFixed(1)}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        <View style={styles.cardBtnRow}>
+          {!isCompleted ? (
+            <>
+              <Pressable
+                onPress={() => openScoreModal(meeting)}
+                style={({ pressed }) => [
+                  styles.primaryBtn,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <View style={styles.inlineRow}>
+                  <FontAwesome5 name="golf-ball" size={14} color={colors.white} />
+                  <Text style={styles.primaryBtnText}>점수 입력</Text>
+                </View>
+              </Pressable>
+
+              <Pressable
+                onPress={() => setShowComingSoonModal(true)}
+                style={({ pressed }) => [
+                  styles.outlineBtn,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <Text style={styles.outlineBtnText}>상세 입력</Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Pressable
+                onPress={() => openScoreModal(meeting)}
+                style={({ pressed }) => [
+                  styles.outlineBtn,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <View style={styles.inlineRow}>
+                  <FontAwesome5
+                    name="edit"
+                    size={14}
+                    color={colors.neutral[700]}
+                  />
+                  <Text style={styles.outlineBtnText}>수정</Text>
+                </View>
+              </Pressable>
+
+              <Pressable
+                onPress={() => setShowComingSoonModal(true)}
+                style={({ pressed }) => [
+                  styles.softPrimaryBtn,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <Text style={styles.softPrimaryBtnText}>상세 수정</Text>
+              </Pressable>
+            </>
+          )}
+        </View>
+      </View>
+    );
   };
 
-  const handleDetailNavigate = (meeting) => {
-    const meetingId = meeting?.meeting_id || meeting?.id;
-    if (meetingId) {
-      router.push(`/meetings/rounding/${meetingId}`);
-    }
-  };
+  if (loading && meetings.length === 0) {
+    return (
+      <View style={styles.safeArea}>
+        <View style={styles.centerBox}>
+          <ActivityIndicator size="large" color={colors.primary[600]} />
+          <Text style={styles.centerText}>로딩 중...</Text>
+        </View>
+      </View>
+    );
+  }
 
-  const filteredMeetings = meetings.filter((meeting) => {
-    if (scoreStatus === 'all') return true;
-    const hasScore = meeting?.has_score || meeting?.gross_score !== null && meeting?.gross_score !== undefined;
-    return scoreStatus === 'completed' ? hasScore : !hasScore;
-  });
-
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <AppHeader />
-        <RoundingStatsCard
-          stats={statsData}
-          isLoading={statsLoading}
-          error={statsError}
-        />
-
-        <Card style={styles.filterCard}>
-          <Text style={styles.sectionTitle}>스코어 입력 상태</Text>
-          <View style={styles.chipRow}>
-            {recordStatusTabs.map((tab) => (
-              <FilterChip
-                key={tab.id}
-                label={tab.label}
-                selected={scoreStatus === tab.id}
-                onPress={() => {
-                  setScoreStatus(tab.id);
-                  setPage(1);
-                }}
-              />
-            ))}
+  if (error) {
+    const message =
+      error?.response?.data?.detail ||
+      error?.message ||
+      '알 수 없는 오류가 발생했습니다.';
+    return (
+      <View style={styles.safeArea}>
+        <Card style={styles.errorCard}>
+          <View style={{ alignItems: 'center', gap: 10 }}>
+            <FontAwesome5 name="times" size={36} color={colors.error[600]} />
+            <Text style={styles.errorTitle}>기록 정보를 불러오는데 실패했습니다.</Text>
+            <Text style={styles.errorSub}>{message}</Text>
           </View>
         </Card>
+      </View>
+    );
+  }
 
-        {loading ? (
-          <View style={styles.stateRow}>
-            <ActivityIndicator size="small" color={colors.primary[600]} />
-            <Text style={styles.stateText}>기록을 불러오는 중...</Text>
+  const showMissingSection =
+    (scoreStatus === 'all' || scoreStatus === 'missing') &&
+    missingMeetings.length > 0;
+
+  const showCompletedSection =
+    (scoreStatus === 'all' || scoreStatus === 'completed') &&
+    completedMeetings.length > 0;
+
+  const showEmpty = meetings.length === 0;
+
+  return (
+    <View style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* Stats */}
+        <RoundingStatsCard stats={stats} isLoading={statsLoading} error={statsError} />
+
+        {/* Filter buttons */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterRow}
+        >
+          <Pressable
+            onPress={() => {
+              setScoreStatus('all');
+              setPage(1);
+            }}
+            style={({ pressed }) => [
+              styles.filterBtn,
+              scoreStatus === 'all' ? styles.filterBtnActive : styles.filterBtnNormal,
+              pressed && { opacity: 0.9 },
+            ]}
+          >
+            <Text
+              style={[
+                styles.filterBtnText,
+                scoreStatus === 'all' ? styles.filterBtnTextActive : styles.filterBtnTextNormal,
+              ]}
+            >
+              전체
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              setScoreStatus('missing');
+              setPage(1);
+            }}
+            style={({ pressed }) => [
+              styles.filterBtn,
+              scoreStatus === 'missing'
+                ? styles.filterBtnDangerActive
+                : styles.filterBtnNormal,
+              pressed && { opacity: 0.9 },
+            ]}
+          >
+            <Text
+              style={[
+                styles.filterBtnText,
+                scoreStatus === 'missing'
+                  ? styles.filterBtnTextActive
+                  : styles.filterBtnTextNormal,
+              ]}
+            >
+              미입력 ({missingMeetings.length})
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              setScoreStatus('completed');
+              setPage(1);
+            }}
+            style={({ pressed }) => [
+              styles.filterBtn,
+              scoreStatus === 'completed'
+                ? styles.filterBtnSuccessActive
+                : styles.filterBtnNormal,
+              pressed && { opacity: 0.9 },
+            ]}
+          >
+            <Text
+              style={[
+                styles.filterBtnText,
+                scoreStatus === 'completed'
+                  ? styles.filterBtnTextActive
+                  : styles.filterBtnTextNormal,
+              ]}
+            >
+              입력완료 ({completedMeetings.length})
+            </Text>
+          </Pressable>
+        </ScrollView>
+
+        {/* Missing section */}
+        {showMissingSection && (
+          <View style={{ marginTop: 6 }}>
+            <View style={styles.sectionHeaderRow}>
+              <View style={styles.inlineRow}>
+                <FontAwesome5 name="exclamation-circle" size={16} color={colors.error[600]} />
+                <Text style={styles.sectionTitle}>점수 입력 대기</Text>
+              </View>
+              <View style={styles.badgeRed}>
+                <Text style={styles.badgeRedText}>{missingMeetings.length}</Text>
+              </View>
+            </View>
+
+            <View style={{ gap: 10 }}>
+              {missingMeetings.map((m) => renderMeetingCard(m, false))}
+            </View>
           </View>
-        ) : error ? (
-          <Card style={styles.errorCard}>
-            <Text style={styles.errorText}>{error}</Text>
-          </Card>
-        ) : filteredMeetings.length === 0 ? (
-          <Card style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>표시할 기록이 없습니다.</Text>
-            <Text style={styles.emptySubtitle}>다른 필터를 선택해보세요.</Text>
-          </Card>
-        ) : (
-          filteredMeetings.map((meeting, index) => {
-            const hasScore = meeting?.has_score || meeting?.gross_score !== null && meeting?.gross_score !== undefined;
-            const meetingId = meeting?.meeting_id || meeting?.id;
-            const meetingKey = meetingId || `meeting-${index}`;
-            const detailDate = meeting?.meeting_time ? formatProfileDate(meeting.meeting_time) : '-';
-            const completedDate = meeting?.rounding_completed_at ? formatProfileDate(meeting.rounding_completed_at) : '-';
-
-            return (
-              <Card
-                key={meetingKey}
-                style={hasScore ? styles.recordCard : styles.missingCard}
-              >
-                <View style={styles.recordHeader}>
-                  <View style={styles.recordTitleWrap}>
-                    <Pressable onPress={() => handleDetailNavigate(meeting)}>
-                      <Text style={styles.recordTitle}>{meeting?.meeting_name || '모임명 없음'}</Text>
-                    </Pressable>
-                    <Text style={styles.recordSubtitle}>{meeting?.club_name || '-'}</Text>
-                  </View>
-                  <View style={styles.recordHeaderActions}>
-                    <View style={hasScore ? styles.completeBadge : styles.missingBadge}>
-                      <Text style={hasScore ? styles.completeBadgeText : styles.missingBadgeText}>
-                        {hasScore ? '완료' : '미입력'}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.recordDateRow}>
-                  <Text style={styles.recordDate}>경기일: {detailDate}</Text>
-                  <Text style={styles.recordDate}>종료일: {completedDate}</Text>
-                </View>
-
-                {hasScore ? (
-                  <View style={styles.scoreRow}>
-                    <View>
-                      <Text style={styles.scoreLabel}>라운딩 스코어</Text>
-                      <Text style={styles.scoreValue}>{meeting?.gross_score}</Text>
-                    </View>
-                    {currentHandicap !== null && (
-                      <View>
-                        <Text style={styles.scoreLabel}>업데이트된 핸디캡</Text>
-                        <Text style={styles.scoreValue}>
-                          {Number(currentHandicap).toFixed(1)}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                ) : (
-                  <View style={styles.missingNotice}>
-                    <FontAwesome5 name="exclamation-circle" size={14} color={colors.error[600]} />
-                    <Text style={styles.missingNoticeText}>점수를 입력해야 핸디캡이 계산됩니다.</Text>
-                  </View>
-                )}
-
-                <View style={styles.actionRow}>
-                  <Button
-                    variant={hasScore ? 'outline' : 'primary'}
-                    size="sm"
-                    style={styles.actionButton}
-                    onPress={() => handleOpenScoreModal(meeting)}
-                  >
-                    {hasScore ? '수정' : '점수 입력'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    style={styles.actionButton}
-                    onPress={() => setComingSoonOpen(true)}
-                  >
-                    상세 {hasScore ? '수정' : '입력'}
-                  </Button>
-                </View>
-              </Card>
-            );
-          })
         )}
 
+        {/* Completed section */}
+        {showCompletedSection && (
+          <View style={{ marginTop: 10 }}>
+            <View style={styles.sectionHeaderRow}>
+              <View style={styles.inlineRow}>
+                <FontAwesome5 name="check-circle" size={16} color={colors.success?.[600] ?? '#059669'} />
+                <Text style={styles.sectionTitle}>기록 내역</Text>
+              </View>
+            </View>
+
+            <View style={{ gap: 10 }}>
+              {completedMeetings.map((m) => renderMeetingCard(m, true))}
+            </View>
+          </View>
+        )}
+
+        {/* Empty */}
+        {showEmpty && (
+          <Card style={styles.emptyCard}>
+            <FontAwesome5 name="golf-ball" size={32} color={colors.neutral[400]} />
+            <Text style={styles.emptyText}>
+              {scoreStatus === 'missing'
+                ? '점수 입력이 필요한 모임이 없습니다.'
+                : scoreStatus === 'completed'
+                  ? '입력 완료된 기록이 없습니다.'
+                  : '라운딩 종료된 모임이 없습니다.'}
+            </Text>
+          </Card>
+        )}
+
+        {/* Pagination */}
         {totalPages > 1 && (
           <View style={styles.paginationRow}>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onPress={() => setPage((prev) => Math.max(1, prev - 1))}
+            <Pressable
+              onPress={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              style={({ pressed }) => [
+                styles.pageBtn,
+                page === 1 && styles.pageBtnDisabled,
+                pressed && { opacity: 0.9 },
+              ]}
             >
-              이전
-            </Button>
-            <Text style={styles.paginationText}>{page} / {totalPages}</Text>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages}
-              onPress={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              <Text style={styles.pageBtnText}>이전</Text>
+            </Pressable>
+
+            <Text style={styles.paginationText}>
+              {page} / {totalPages}
+            </Text>
+
+            <Pressable
+              onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              style={({ pressed }) => [
+                styles.pageBtn,
+                page === totalPages && styles.pageBtnDisabled,
+                pressed && { opacity: 0.9 },
+              ]}
             >
-              다음
-            </Button>
+              <Text style={styles.pageBtnText}>다음</Text>
+            </Pressable>
           </View>
         )}
-        <AppFooter />
+
+        {loading && meetings.length > 0 && (
+          <View style={styles.stateRow}>
+            <ActivityIndicator size="small" color={colors.primary[600]} />
+            <Text style={styles.stateText}>불러오는 중...</Text>
+          </View>
+        )}
       </ScrollView>
 
+      {/* Score Modal */}
       <SimpleScoreInputModal
-        visible={scoreModalOpen}
-        onClose={() => setScoreModalOpen(false)}
-        meetingId={selectedMeeting?.meeting_id || selectedMeeting?.id}
+        visible={showScoreModal}
+        onClose={() => {
+          setShowScoreModal(false);
+          setSelectedMeeting(null);
+          setSelectedParticipantId(null);
+        }}
+        meetingId={selectedMeeting?.meeting_id}
         participantId={selectedParticipantId}
         currentHandicap={currentHandicap}
-        onSuccess={handleScoreSuccess}
+        onSuccess={onScoreSuccess}
+        shouldCompleteRounding={false}
       />
 
-      <Modal
-        visible={comingSoonOpen}
-        title="상세 입력"
-        onClose={() => setComingSoonOpen(false)}
-        footer={(
-          <Button size="sm" onPress={() => setComingSoonOpen(false)}>
-            확인
-          </Button>
-        )}
-      >
-        <Text style={styles.modalText}>상세 입력은 준비 중입니다.</Text>
-      </Modal>
-    </SafeAreaView>
+      {/* Coming soon */}
+      <ComingSoonModal
+        visible={showComingSoonModal}
+        onClose={() => setShowComingSoonModal(false)}
+      />
+    </View>
   );
 }
 
+/* =========================
+   Styles
+========================= */
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -360,182 +950,531 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 28,
   },
-  filterCard: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.neutral[800],
-    marginBottom: 10,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    backgroundColor: colors.neutral[100],
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  chipActive: {
-    backgroundColor: colors.primary[600],
-  },
-  chipPressed: {
-    opacity: 0.9,
-  },
-  chipText: {
-    fontSize: 12,
-    color: colors.neutral[600],
-    fontWeight: '600',
-  },
-  chipTextActive: {
-    color: colors.white,
-  },
-  stateRow: {
-    flexDirection: 'row',
+
+  /* Center states */
+  centerBox: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    gap: 8,
+    gap: 10,
+    padding: 16,
   },
-  stateText: {
-    fontSize: 12,
+  centerText: {
+    fontSize: 13,
     color: colors.neutral[600],
   },
-  errorCard: {
+
+  /* Stats */
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 14,
+  },
+  statCard: {
+    width: '48%',
     borderWidth: 1,
-    borderColor: colors.error[500],
+    borderRadius: 14,
+    padding: 12,
   },
-  errorText: {
-    color: colors.error[600],
-    fontSize: 12,
+  statCardSkeleton: {
+    backgroundColor: colors.neutral[100],
+    borderColor: colors.neutral[200],
+    height: 88,
   },
-  emptyCard: {
+  statHeaderRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 24,
+    gap: 6,
+    marginBottom: 10,
   },
-  emptyTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.neutral[800],
+  statLabel: {
+    fontSize: 11,
+    color: colors.neutral[600],
+    fontWeight: '600',
   },
-  emptySubtitle: {
+  statValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  statUnit: {
     fontSize: 12,
     color: colors.neutral[500],
+  },
+  statsErrorCard: {
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.error[200],
+    backgroundColor: colors.error[50],
+  },
+  statsErrorText: {
+    fontSize: 12,
+    color: colors.error[700],
+  },
+  statsEmptyCard: {
+    marginBottom: 12,
+    backgroundColor: colors.neutral[50],
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    alignItems: 'center',
+    paddingVertical: 18,
+  },
+  statsEmptyText: {
+    fontSize: 13,
+    color: colors.neutral[600],
+    fontWeight: '600',
+  },
+
+  /* Filter row */
+  filterRow: {
+    gap: 8,
+    paddingBottom: 6,
+    marginBottom: 6,
+  },
+  filterBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  filterBtnNormal: {
+    backgroundColor: colors.white,
+    borderColor: colors.neutral[300],
+  },
+  filterBtnActive: {
+    backgroundColor: colors.primary[600],
+    borderColor: colors.primary[600],
+  },
+  filterBtnDangerActive: {
+    backgroundColor: colors.error[600],
+    borderColor: colors.error[600],
+  },
+  filterBtnSuccessActive: {
+    backgroundColor: '#059669',
+    borderColor: '#059669',
+  },
+  filterBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  filterBtnTextNormal: {
+    color: colors.neutral[700],
+  },
+  filterBtnTextActive: {
+    color: colors.white,
+  },
+
+  /* Section headers */
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
     marginTop: 6,
   },
-  recordCard: {
-    marginBottom: 16,
-  },
-  missingCard: {
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: colors.error[500],
-    backgroundColor: colors.error[50],
-  },
-  recordHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  recordTitleWrap: {
-    flex: 1,
-  },
-  recordTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '800',
     color: colors.neutral[900],
+    marginLeft: 6,
   },
-  recordSubtitle: {
-    marginTop: 4,
-    fontSize: 12,
-    color: colors.neutral[500],
-  },
-  recordHeaderActions: {
-    alignItems: 'flex-end',
-  },
-  missingBadge: {
-    backgroundColor: colors.error[50],
+  badgeRed: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 999,
+    backgroundColor: colors.error[100],
   },
-  missingBadgeText: {
+  badgeRedText: {
     fontSize: 11,
+    fontWeight: '800',
     color: colors.error[700],
-    fontWeight: '600',
   },
-  completeBadge: {
-    backgroundColor: colors.success[50],
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+
+  /* Meeting card */
+  meetingBox: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 14,
+    backgroundColor: colors.white,
   },
-  completeBadgeText: {
-    fontSize: 11,
-    color: colors.success[700],
-    fontWeight: '600',
+  meetingMissing: {
+    borderColor: colors.error[200],
+    backgroundColor: colors.error[50],
   },
-  recordDateRow: {
-    marginTop: 8,
+  meetingCompleted: {
+    borderColor: colors.neutral[200],
+    backgroundColor: colors.white,
   },
-  recordDate: {
+  meetingTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.neutral[900],
+    marginBottom: 4,
+  },
+  meetingClub: {
+    fontSize: 12,
+    color: colors.neutral[600],
+    marginBottom: 8,
+  },
+  meetingDatesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 6,
+  },
+  meetingDateText: {
     fontSize: 11,
     color: colors.neutral[500],
-    marginTop: 2,
   },
+  meetingDot: {
+    fontSize: 11,
+    color: colors.neutral[400],
+  },
+
   scoreRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 12,
     marginTop: 12,
   },
   scoreLabel: {
     fontSize: 11,
     color: colors.neutral[500],
+    fontWeight: '700',
+    marginBottom: 3,
   },
   scoreValue: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '900',
     color: colors.neutral[900],
-    marginTop: 4,
   },
-  missingNotice: {
+  handicapGreen: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#059669',
+  },
+
+  cardBtnRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    gap: 8,
     marginTop: 12,
-    gap: 6,
   },
-  missingNoticeText: {
+  primaryBtn: {
+    flex: 1,
+    borderRadius: 12,
+    backgroundColor: colors.primary[600],
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryBtnText: {
+    color: colors.white,
     fontSize: 12,
-    color: colors.error[700],
+    fontWeight: '800',
   },
-  actionRow: {
-    flexDirection: 'row',
-    marginTop: 16,
+  outlineBtn: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.neutral[300],
+    backgroundColor: colors.white,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  outlineBtnText: {
+    color: colors.neutral[700],
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  softPrimaryBtn: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.primary[200],
+    backgroundColor: colors.primary[50],
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  softPrimaryBtnText: {
+    color: colors.primary[700],
+    fontSize: 12,
+    fontWeight: '800',
+  },
+
+  /* Empty */
+  emptyCard: {
+    marginTop: 14,
+    alignItems: 'center',
+    paddingVertical: 26,
     gap: 10,
   },
-  actionButton: {
-    flex: 1,
+  emptyText: {
+    fontSize: 13,
+    color: colors.neutral[600],
+    fontWeight: '700',
+    textAlign: 'center',
   },
+
+  /* Pagination */
   paginationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
-    marginTop: 8,
+    gap: 10,
+    marginTop: 14,
+  },
+  pageBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+    backgroundColor: colors.white,
+  },
+  pageBtnDisabled: {
+    opacity: 0.5,
+  },
+  pageBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.neutral[700],
   },
   paginationText: {
     fontSize: 12,
     color: colors.neutral[600],
+    fontWeight: '700',
   },
-  modalText: {
-    fontSize: 13,
-    color: colors.neutral[700],
+
+  stateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+  },
+  stateText: {
+    fontSize: 12,
+    color: colors.neutral[600],
+  },
+
+  /* Error */
+  errorCard: {
+    margin: 16,
+    borderWidth: 1,
+    borderColor: colors.error[200],
+    backgroundColor: colors.white,
+    paddingVertical: 22,
+  },
+  errorTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: colors.error[700],
     textAlign: 'center',
+  },
+  errorSub: {
+    fontSize: 12,
+    color: colors.neutral[600],
+    textAlign: 'center',
+  },
+
+  /* Modal common */
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    padding: 14,
+    justifyContent: 'center',
+  },
+  modalSheet: {
+    backgroundColor: colors.white,
+    borderRadius: 18,
+    overflow: 'hidden',
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.neutral[200],
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: colors.neutral[900],
+  },
+  iconBtn: {
+    padding: 8,
+    borderRadius: 10,
+  },
+  modalBody: {
+    padding: 16,
+  },
+
+  handicapBox: {
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    backgroundColor: colors.neutral[50],
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  handicapLabel: {
+    fontSize: 12,
+    color: colors.neutral[600],
+    fontWeight: '700',
+  },
+  handicapValue: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: colors.neutral[900],
+  },
+
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.neutral[700],
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+  },
+  inputNormal: {
+    borderColor: colors.neutral[300],
+    backgroundColor: colors.white,
+  },
+  inputError: {
+    borderColor: colors.error[300],
+    backgroundColor: colors.error[50],
+  },
+  errorText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: colors.error[700],
+    fontWeight: '700',
+  },
+
+  previewBox: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: colors.primary[200],
+    backgroundColor: colors.primary[50],
+    borderRadius: 14,
+    padding: 12,
+  },
+  previewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  previewLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.primary[700],
+  },
+  previewValue: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: colors.primary[900] ?? colors.primary[700],
+  },
+  previewHint: {
+    marginTop: 8,
+    fontSize: 11,
+    color: colors.primary[700],
+    lineHeight: 16,
+    fontWeight: '600',
+  },
+
+  submitErrorBox: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: colors.error[300],
+    backgroundColor: colors.error[50],
+    borderRadius: 12,
+    padding: 10,
+  },
+  submitErrorText: {
+    fontSize: 12,
+    color: colors.error[700],
+    fontWeight: '700',
+  },
+
+  modalBtnRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
+  modalBtn: {
+    flex: 1,
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBtnOutline: {
+    borderWidth: 2,
+    borderColor: colors.neutral[300],
+    backgroundColor: colors.white,
+  },
+  modalBtnOutlineText: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: colors.neutral[700],
+  },
+  modalBtnPrimary: {
+    backgroundColor: colors.primary[600],
+  },
+  modalBtnPrimaryText: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: colors.white,
+  },
+  inlineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+
+  comingSoonTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: colors.neutral[800],
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  comingSoonSub: {
+    fontSize: 12,
+    color: colors.neutral[600],
+    textAlign: 'center',
+    marginBottom: 14,
+    fontWeight: '600',
+  },
+  fullPrimaryBtn: {
+    marginTop: 6,
+    backgroundColor: colors.primary[600],
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  fullPrimaryBtnText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '900',
   },
 });

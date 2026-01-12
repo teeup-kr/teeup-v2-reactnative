@@ -1,329 +1,750 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-import AppFooter from '@/components/layout/AppFooter';
-import AppHeader from '@/components/layout/AppHeader';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import Input from '@/components/ui/Input';
-import { genderOptions } from '@/constants/mypageConstants';
-import { usersApi } from '@/lib/api';
-import { formatBirthdate, normalizeGender } from '@/lib/mypageUtils';
-import { extractData } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
+/* ===========================
+   유틸
+=========================== */
+function formatDateYYYYMMDD(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
-export default function EditProfileScreen() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [form, setForm] = useState({
-    nickname: '',
-    realname: '',
-    phone_number: '',
-    birthdate: '',
-    gender: 'none',
-    email: '',
-    average_score: '',
-  });
+function parseYYYYMMDD(s) {
+  if (!s) return null;
+  const [y, m, d] = s.split('-').map(Number);
+  if (!y || !m || !d) return null;
+  const dt = new Date(y, m - 1, d);
+  return isNaN(dt.getTime()) ? null : dt;
+}
 
-  const fetchProfile = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await usersApi.getMyProfile();
-      const user = extractData(response) || {};
-      setForm({
-        nickname: user.nickname || '',
-        realname: user.realname || '',
-        phone_number: user.phone_number || '',
-        birthdate: formatBirthdate(user.birthdate),
-        gender: normalizeGender(user.gender),
-        email: user.email || '',
-        average_score: user.average_score !== null && user.average_score !== undefined ? String(user.average_score) : '',
-      });
-    } catch (fetchError) {
-      console.error('프로필 조회 실패:', fetchError);
-      setError('회원정보를 불러오는데 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+/* ===========================
+   Component
+=========================== */
+export default function UserProfileEditForm({
+  userData = {},
+  formData = {},
+  errors = {},
+  isSocialLogin,
 
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+  nicknameMessage,
+  isCheckingNickname,
+  checkNicknameDuplicate,
+  handleInputChange,
 
-  const handleChange = (field) => (value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+  handicapLoading,
+  handicapInfo,
+
+  updateProfilePending,
+  handleSave,
+
+  showPasswordModal,
+  setShowPasswordModal,
+  ChangePasswordModal,
+
+  toast,
+}) {
+  const [isNameComposing, setIsNameComposing] = useState(false);
+  const [showBirthPicker, setShowBirthPicker] = useState(false);
+
+  const maxBirthDate = useMemo(() => new Date(), []);
+  const birthDateValue =
+    parseYYYYMMDD(formData.birthdate) ?? new Date(1990, 0, 1);
+
+  const isNicknameSame =
+    (formData.nickname || '') === (userData.nickname || '');
+
+  const calcHandicapFromAvg = (avgStr) => {
+    const n = Number(avgStr);
+    if (!avgStr || isNaN(n)) return null;
+    if (n < 55 || n > 144) return null;
+    return Math.max(0, Math.min(72, Math.round(n - 72)));
   };
-
-  const handleSave = async () => {
-    if (!form.nickname || !form.realname) {
-      Alert.alert('안내', '닉네임과 실명은 필수입니다.');
-      return;
-    }
-
-    const payload = {
-      nickname: form.nickname,
-      realname: form.realname,
-      phone_number: form.phone_number || null,
-      birthdate: form.birthdate || null,
-      gender: genderOptions.find((option) => option.id === form.gender)?.value || '',
-      average_score: form.average_score ? Number(form.average_score) : null,
-    };
-
-    try {
-      setSaving(true);
-      await usersApi.updateMyProfile(payload);
-      Alert.alert('완료', '회원정보가 수정되었습니다.');
-      router.back();
-    } catch (saveError) {
-      console.error('프로필 저장 실패:', saveError);
-      Alert.alert('오류', saveError?.message || '프로필 업데이트에 실패했습니다.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.container}>
-          <AppHeader />
-          <View style={styles.stateContainer}>
-            <ActivityIndicator size="large" color={colors.primary[600]} />
-          </View>
-          <AppFooter />
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.container}>
-          <AppHeader />
-          <View style={styles.stateContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-          <AppFooter />
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <AppHeader />
-        <Card style={styles.card}>
-          <Text style={styles.cardTitle}>기본 정보</Text>
-          <Input
-            label="닉네임"
-            value={form.nickname}
-            onChangeText={handleChange('nickname')}
-            placeholder="닉네임 입력"
-            required
-          />
-          <Input
-            label="실명"
-            value={form.realname}
-            onChangeText={handleChange('realname')}
-            placeholder="실명 입력"
-            required
-          />
-          <Input
-            label="연락처"
-            value={form.phone_number}
-            onChangeText={handleChange('phone_number')}
-            placeholder="01012345678"
-            keyboardType="number-pad"
-          />
-          <Input
-            label="생년월일"
-            value={form.birthdate}
-            onChangeText={handleChange('birthdate')}
-            placeholder="YYYY-MM-DD"
-          />
+    <View style={styles.root}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* 카드 */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>회원정보 수정</Text>
 
-          <Text style={styles.fieldLabel}>성별</Text>
-          <View style={styles.genderRow}>
-            {genderOptions.map((option) => {
-              const selected = form.gender === option.id;
-              return (
+          <View style={styles.stackLg}>
+            {/* 이메일 */}
+            <View>
+              <Text style={styles.label}>
+                <FontAwesome5 name="envelope" size={14} style={styles.labelIcon} />
+                아이디(이메일)
+              </Text>
+
+              <View style={styles.readonlyBox}>
+                <Text style={styles.readonlyText}>
+                  {userData.email || '-'}
+                </Text>
+              </View>
+
+              <Text style={styles.helperText}>
+                이메일은 수정할 수 없습니다.
+              </Text>
+            </View>
+
+            {/* 닉네임 */}
+            <View>
+              <Text style={styles.label}>
+                <FontAwesome5 name="user" size={14} style={styles.labelIcon} />
+                닉네임 <Text style={styles.required}>*</Text>
+              </Text>
+
+              <View style={styles.rowGap}>
+                <TextInput
+                  value={formData.nickname}
+                  onChangeText={(t) =>
+                    handleInputChange('nickname', t)
+                  }
+                  placeholder="닉네임을 입력하세요"
+                  placeholderTextColor="#9CA3AF"
+                  style={[
+                    styles.input,
+                    errors.nickname
+                      ? styles.inputError
+                      : styles.inputNormal,
+                  ]}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+
                 <Pressable
-                  key={option.id}
-                  onPress={() => handleChange('gender')(option.id)}
+                  onPress={checkNicknameDuplicate}
+                  disabled={
+                    isCheckingNickname ||
+                    !formData.nickname ||
+                    isNicknameSame
+                  }
                   style={({ pressed }) => [
-                    styles.genderChip,
-                    selected && styles.genderChipActive,
-                    pressed && styles.genderChipPressed,
+                    styles.primaryBtn,
+                    (isCheckingNickname ||
+                      !formData.nickname ||
+                      isNicknameSame) &&
+                      styles.btnDisabled,
+                    pressed &&
+                      !(isCheckingNickname ||
+                        !formData.nickname ||
+                        isNicknameSame) &&
+                      styles.btnPressed,
                   ]}
                 >
-                  <Text style={[styles.genderText, selected && styles.genderTextActive]}>
-                    {option.label}
+                  <Text style={styles.primaryBtnText}>
+                    {isCheckingNickname ? '확인 중...' : '중복확인'}
                   </Text>
                 </Pressable>
-              );
-            })}
-          </View>
+              </View>
 
-          <View style={styles.infoRow}>
-            <FontAwesome5 name="envelope" size={12} color={colors.neutral[500]} />
-            <Text style={styles.infoText}>이메일</Text>
-            <Text style={styles.infoValue}>{form.email}</Text>
-          </View>
-        </Card>
-
-        <Card style={styles.card}>
-          <Text style={styles.cardTitle}>골프 정보</Text>
-          <Input
-            label="평균 스코어"
-            value={form.average_score}
-            onChangeText={handleChange('average_score')}
-            placeholder="예: 88"
-            keyboardType="number-pad"
-          />
-          <View style={styles.infoRow}>
-            <FontAwesome5 name="golf-ball" size={12} color={colors.neutral[500]} />
-            <Text style={styles.infoText}>핸디캡 자동 계산</Text>
-            <Text style={styles.infoValue}>최근 5회 기록 반영</Text>
-          </View>
-        </Card>
-
-        <Card style={styles.card}>
-          <Text style={styles.cardTitle}>보안 설정</Text>
-          <Pressable
-            onPress={() => router.push('/mypage/change-password')}
-            style={({ pressed }) => [styles.securityRow, pressed && styles.securityRowPressed]}
-          >
-            <View>
-              <Text style={styles.securityTitle}>비밀번호 변경</Text>
-              <Text style={styles.securitySubtitle}>정기적으로 비밀번호를 변경하세요.</Text>
+              {!!errors.nickname && (
+                <Text style={styles.errorText}>
+                  {errors.nickname}
+                </Text>
+              )}
+              {!!nicknameMessage && !errors.nickname && (
+                <Text style={styles.successText}>
+                  {nicknameMessage}
+                </Text>
+              )}
             </View>
-            <FontAwesome5 name="chevron-right" size={12} color={colors.neutral[400]} />
-          </Pressable>
-        </Card>
 
-        <Button style={styles.saveButton} onPress={handleSave} loading={saving}>
-          저장하기
-        </Button>
-        <AppFooter />
+            {/* 비밀번호 변경 */}
+            {!isSocialLogin && (
+              <View>
+                <Text style={styles.label}>
+                  <FontAwesome5 name="lock" size={14} style={styles.labelIcon} />
+                  비밀번호
+                </Text>
+
+                <Pressable
+                  onPress={() => setShowPasswordModal(true)}
+                  style={({ pressed }) => [
+                    styles.grayBtn,
+                    pressed && styles.btnPressed,
+                  ]}
+                >
+                  <Text style={styles.grayBtnText}>
+                    비밀번호 변경
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+
+            {/* 실명 */}
+            <View>
+              <Text style={styles.label}>
+                <FontAwesome5 name="user" size={14} style={styles.labelIcon} />
+                실명 <Text style={styles.required}>*</Text>
+              </Text>
+
+              <TextInput
+                value={formData.realname}
+                onChangeText={(t) => {
+                  if (!isNameComposing)
+                    handleInputChange('realname', t);
+                }}
+                onCompositionStart={() =>
+                  setIsNameComposing(true)
+                }
+                onCompositionEnd={(e) => {
+                  setIsNameComposing(false);
+                  handleInputChange(
+                    'realname',
+                    e?.nativeEvent?.text ?? formData.realname
+                  );
+                }}
+                placeholder="실명을 입력하세요"
+                placeholderTextColor="#9CA3AF"
+                style={[
+                  styles.input,
+                  errors.realname
+                    ? styles.inputError
+                    : styles.inputNormal,
+                ]}
+              />
+
+              {!!errors.realname && (
+                <Text style={styles.errorText}>
+                  {errors.realname}
+                </Text>
+              )}
+            </View>
+
+            {/* 전화번호 */}
+            <View>
+              <Text style={styles.label}>
+                <FontAwesome5 name="phone" size={14} style={styles.labelIcon} />
+                전화번호 <Text style={styles.required}>*</Text>
+              </Text>
+
+              <TextInput
+                value={formData.phone_number}
+                onChangeText={(t) =>
+                  handleInputChange('phone_number', t)
+                }
+                placeholder="전화번호를 입력하세요"
+                placeholderTextColor="#9CA3AF"
+                style={[
+                  styles.input,
+                  errors.phone_number
+                    ? styles.inputError
+                    : styles.inputNormal,
+                ]}
+                keyboardType={
+                  Platform.OS === 'ios' ? 'number-pad' : 'numeric'
+                }
+                inputMode="numeric"
+              />
+
+              {!!errors.phone_number && (
+                <Text style={styles.errorText}>
+                  {errors.phone_number}
+                </Text>
+              )}
+            </View>
+
+            {/* 생년월일 */}
+            <View>
+              <Text style={styles.label}>
+                <FontAwesome5
+                  name="calendar-alt"
+                  size={14}
+                  style={styles.labelIcon}
+                />
+                생년월일 <Text style={styles.required}>*</Text>
+              </Text>
+
+              <Pressable
+                onPress={() => setShowBirthPicker(true)}
+                style={({ pressed }) => [
+                  styles.inputLike,
+                  errors.birthdate
+                    ? styles.inputError
+                    : styles.inputNormal,
+                  pressed && styles.inputPressed,
+                ]}
+              >
+                <Text style={styles.inputLikeText}>
+                  {formData.birthdate || '날짜를 선택하세요'}
+                </Text>
+              </Pressable>
+
+              {showBirthPicker && (
+                <DateTimePicker
+                  value={birthDateValue}
+                  mode="date"
+                  maximumDate={maxBirthDate}
+                  display={
+                    Platform.OS === 'ios'
+                      ? 'spinner'
+                      : 'default'
+                  }
+                  onChange={(event, selected) => {
+                    if (Platform.OS !== 'ios')
+                      setShowBirthPicker(false);
+                    if (event.type === 'dismissed') return;
+                    if (selected) {
+                      handleInputChange(
+                        'birthdate',
+                        formatDateYYYYMMDD(selected)
+                      );
+                    }
+                  }}
+                />
+              )}
+
+              {!!errors.birthdate && (
+                <Text style={styles.errorText}>
+                  {errors.birthdate}
+                </Text>
+              )}
+            </View>
+
+            {/* 성별 */}
+            <View>
+              <Text style={styles.label}>
+                <FontAwesome5
+                  name="venus-mars"
+                  size={14}
+                  style={styles.labelIcon}
+                />
+                성별 <Text style={styles.required}>*</Text>
+              </Text>
+
+              <View style={styles.readonlyBox}>
+                <Text style={styles.readonlyText}>
+                  {formData.gender === 'MALE'
+                    ? '남성'
+                    : formData.gender === 'FEMALE'
+                    ? '여성'
+                    : '-'}
+                </Text>
+              </View>
+
+              <Text style={styles.helperText}>
+                성별은 수정할 수 없습니다.
+              </Text>
+            </View>
+
+            {/* 평균타수 / 핸디캡 */}
+            {isSocialLogin ? (
+              <>
+                <View>
+                  <Text style={styles.label}>
+                    <FontAwesome5
+                      name="chart-line"
+                      size={14}
+                      style={styles.labelIcon}
+                    />
+                    평균 타수 <Text style={styles.required}>*</Text>
+                  </Text>
+
+                  <TextInput
+                    value={formData.average_score || ''}
+                    onChangeText={(t) =>
+                      handleInputChange('average_score', t)
+                    }
+                    placeholder="평균 타수를 입력하세요 (55-144)"
+                    placeholderTextColor="#9CA3AF"
+                    style={[
+                      styles.input,
+                      errors.average_score
+                        ? styles.inputError
+                        : styles.inputNormal,
+                    ]}
+                    keyboardType="numeric"
+                    inputMode="numeric"
+                  />
+
+                  {!!formData.calculatedHandicap && (
+                    <View style={styles.infoBox}>
+                      <Text style={styles.infoTitle}>
+                        계산된 핸디캡: {formData.calculatedHandicap}
+                      </Text>
+                      <Text style={styles.infoSub}>
+                        평균 타수 {formData.average_score}타 → 핸디캡{' '}
+                        {formData.calculatedHandicap}
+                      </Text>
+                    </View>
+                  )}
+
+                  {!!errors.average_score && (
+                    <Text style={styles.errorText}>
+                      {errors.average_score}
+                    </Text>
+                  )}
+                </View>
+
+                <View>
+                  <Text style={styles.label}>
+                    <FontAwesome5
+                      name="golf-ball"
+                      size={14}
+                      style={styles.labelIcon}
+                    />
+                    핸디캡
+                  </Text>
+
+                  <View style={styles.readonlyBox}>
+                    <Text style={styles.readonlyText}>
+                      {formData.calculatedHandicap
+                        ? Math.round(
+                            Number(formData.calculatedHandicap)
+                          )
+                        : calcHandicapFromAvg(
+                            formData.average_score
+                          ) ?? '-'}
+                    </Text>
+                  </View>
+
+                  <Text style={styles.helperText}>
+                    평균 타수로부터 자동 계산됩니다.
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <>
+                {/* 일반 사용자 */}
+                <View>
+                  <Text style={styles.label}>
+                    <FontAwesome5
+                      name="chart-line"
+                      size={14}
+                      style={styles.labelIcon}
+                    />
+                    평균 타수
+                  </Text>
+
+                  <View style={styles.readonlyBox}>
+                    <Text style={styles.readonlyText}>
+                      {userData.average_score ?? '-'}
+                    </Text>
+                  </View>
+
+                  <Text style={styles.helperText}>
+                    일반 사용자는 평균 타수를 수정할 수 없습니다.
+                  </Text>
+                </View>
+
+                <View>
+                  <Text style={styles.label}>
+                    <FontAwesome5
+                      name="golf-ball"
+                      size={14}
+                      style={styles.labelIcon}
+                    />
+                    핸디캡
+                  </Text>
+
+                  {handicapLoading ? (
+                    <View style={styles.readonlyBox}>
+                      <Text style={styles.loadingText}>
+                        불러오는 중...
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={styles.stackSm}>
+                      {handicapInfo?.calculated_handicap != null && (
+                        <View style={styles.autoBox}>
+                          <View style={styles.autoTopRow}>
+                            <Text style={styles.autoTitle}>
+                              자동 계산:{' '}
+                              {handicapInfo.calculated_handicap}
+                            </Text>
+
+                            {handicapInfo.handicap_update_method ===
+                              'AUTO' && (
+                              <View style={styles.badge}>
+                                <Text style={styles.badgeText}>
+                                  자동
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+
+                          <Text style={styles.autoSub}>
+                            (
+                            {handicapInfo.handicap_calculation_count ??
+                              0}
+                            경기 기준)
+                          </Text>
+
+                          {handicapInfo.handicap_update_method ===
+                            'AUTO' && (
+                            <Text style={styles.autoHint}>
+                              경기 기록 기반으로 자동 업데이트됩니다
+                            </Text>
+                          )}
+                        </View>
+                      )}
+
+                      <View style={styles.readonlyBox}>
+                        <Text style={styles.readonlyText}>
+                          {handicapInfo?.initial_handicap != null
+                            ? `수동 입력: ${handicapInfo.initial_handicap}`
+                            : userData.handicap
+                            ? `수동 입력: ${userData.handicap}`
+                            : '미등록'}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </>
+            )}
+          </View>
+
+          {/* 저장 */}
+          <View style={styles.footer}>
+            <Pressable
+              onPress={handleSave}
+              disabled={updateProfilePending}
+              style={({ pressed }) => [
+                styles.saveBtn,
+                updateProfilePending && styles.btnDisabled,
+                pressed &&
+                  !updateProfilePending &&
+                  styles.btnPressed,
+              ]}
+            >
+              <FontAwesome5 name="save" size={14} color="#fff" />
+              <Text style={styles.saveBtnText}>
+                {updateProfilePending ? '저장 중...' : '저장'}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* 비밀번호 모달 */}
+        {!isSocialLogin && ChangePasswordModal && (
+          <ChangePasswordModal
+            isOpen={showPasswordModal}
+            onClose={() => setShowPasswordModal(false)}
+          />
+        )}
       </ScrollView>
-    </SafeAreaView>
+
+      {/* Toast */}
+      {toast?.open && (
+        <View
+          style={[
+            styles.toast,
+            toast.tone === 'error'
+              ? styles.toastError
+              : toast.tone === 'info'
+              ? styles.toastInfo
+              : styles.toastSuccess,
+          ]}
+        >
+          <FontAwesome5
+            name={
+              toast.tone === 'error'
+                ? 'times-circle'
+                : 'check-circle'
+            }
+            size={16}
+            color="#fff"
+          />
+          <Text style={styles.toastText}>
+            {toast.message}
+          </Text>
+        </View>
+      )}
+    </View>
   );
 }
 
+/* ===========================
+   Styles (디자인 1:1 유지)
+=========================== */
+const PRIMARY_600 = '#16a34a';
+
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  stateContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorText: {
-    fontSize: 12,
-    color: colors.error[600],
-  },
+  root: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { padding: 16, paddingBottom: 24 },
+
   card: {
-    marginBottom: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.neutral[900],
-    marginBottom: 12,
+    color: '#111827',
+    marginBottom: 16,
   },
-  fieldLabel: {
-    fontSize: 12,
+
+  stackLg: { gap: 18 },
+  stackSm: { gap: 8 },
+  rowGap: { flexDirection: 'row', gap: 8 },
+
+  label: {
+    fontSize: 13,
     fontWeight: '600',
-    color: colors.neutral[700],
+    color: '#374151',
     marginBottom: 8,
   },
-  genderRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-  },
-  genderChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    backgroundColor: colors.neutral[100],
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  genderChipActive: {
-    backgroundColor: colors.primary[600],
-  },
-  genderChipPressed: {
-    opacity: 0.9,
-  },
-  genderText: {
-    fontSize: 12,
-    color: colors.neutral[600],
-    fontWeight: '600',
-  },
-  genderTextActive: {
-    color: colors.white,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  infoText: {
-    fontSize: 12,
-    color: colors.neutral[500],
-    marginLeft: 8,
-  },
-  infoValue: {
-    fontSize: 12,
-    color: colors.neutral[700],
-    marginLeft: 8,
-  },
-  securityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  labelIcon: { marginRight: 8, color: '#374151' },
+  required: { color: '#EF4444' },
+
+  input: {
+    flex: 1,
+    paddingHorizontal: 14,
     paddingVertical: 12,
-  },
-  securityRowPressed: {
-    backgroundColor: colors.neutral[100],
+    fontSize: 15,
+    borderWidth: 1,
     borderRadius: 12,
-    paddingHorizontal: 8,
+    backgroundColor: '#fff',
   },
-  securityTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.neutral[800],
+  inputLike: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderRadius: 12,
+    backgroundColor: '#fff',
   },
-  securitySubtitle: {
+  inputLikeText: { fontSize: 15, color: '#111827' },
+  inputPressed: { opacity: 0.9 },
+
+  inputNormal: { borderColor: '#D1D5DB' },
+  inputError: {
+    borderColor: '#FCA5A5',
+    backgroundColor: '#FEF2F2',
+  },
+
+  readonlyBox: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 12,
+  },
+  readonlyText: { color: '#374151', fontSize: 15 },
+
+  helperText: { marginTop: 6, fontSize: 12, color: '#6B7280' },
+  loadingText: { color: '#6B7280' },
+
+  errorText: { marginTop: 6, color: '#DC2626', fontSize: 13 },
+  successText: { marginTop: 6, color: '#16A34A', fontSize: 13 },
+
+  primaryBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: PRIMARY_600,
+    justifyContent: 'center',
+  },
+  primaryBtnText: {
+    color: '#fff',
     fontSize: 12,
-    color: colors.neutral[500],
-    marginTop: 4,
+    fontWeight: '700',
   },
-  saveButton: {
-    marginTop: 8,
+
+  grayBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    alignSelf: 'flex-start',
   },
+  grayBtnText: {
+    color: '#374151',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+
+  btnDisabled: { opacity: 0.5 },
+  btnPressed: { transform: [{ scale: 0.98 }] },
+
+  infoBox: {
+    marginTop: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    backgroundColor: '#F0FDF4',
+    padding: 12,
+  },
+  infoTitle: { fontWeight: '800', color: '#166534' },
+  infoSub: { fontSize: 11, color: '#16A34A', marginTop: 4 },
+
+  autoBox: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    backgroundColor: '#F0FDF4',
+    padding: 12,
+  },
+  autoTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  autoTitle: { fontWeight: '800', color: '#14532D' },
+  autoSub: { fontSize: 11, color: '#15803D' },
+  autoHint: { fontSize: 11, color: '#16A34A', marginTop: 4 },
+
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: PRIMARY_600,
+  },
+  badgeText: { color: '#fff', fontSize: 11, fontWeight: '800' },
+
+  footer: {
+    marginTop: 18,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    alignItems: 'flex-end',
+  },
+  saveBtn: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: PRIMARY_600,
+    alignItems: 'center',
+  },
+  saveBtnText: { color: '#fff', fontWeight: '800', fontSize: 12 },
+
+  toast: {
+    position: 'absolute',
+    top: 24,
+    right: 16,
+    flexDirection: 'row',
+    gap: 10,
+    padding: 14,
+    borderRadius: 14,
+    elevation: 8,
+  },
+  toastError: { backgroundColor: '#DC2626' },
+  toastInfo: { backgroundColor: '#2563EB' },
+  toastSuccess: { backgroundColor: '#16A34A' },
+  toastText: { color: '#fff', fontWeight: '800' },
 });

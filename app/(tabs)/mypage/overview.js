@@ -12,7 +12,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppFooter from '@/components/layout/AppFooter';
-import AppHeader from '@/components/layout/AppHeader';
 import Card from '@/components/ui/Card';
 import { usersApi } from '@/lib/api';
 import { clubsApi } from '@/lib/clubsApi';
@@ -69,44 +68,47 @@ export default function OverviewScreen() {
 
   const handicapDisplay = useMemo(() => {
     if (!profile) {
-      return { value: '-', badge: null, description: null };
+      return { value: '-', badge: null, description: null, type: 'none' };
     }
 
-    if (handicapInfo?.calculated_handicap !== null && handicapInfo?.calculated_handicap !== undefined) {
-      const isAutoCalculated = handicapInfo?.handicap_calculation_count >= 1;
+    const hasCalculated =
+      handicapInfo?.calculated_handicap != null &&
+      handicapInfo?.handicap_calculation_count >= 1;
+
+    if (hasCalculated) {
       return {
         value: handicapInfo.calculated_handicap.toFixed(1),
-        badge: isAutoCalculated ? '자동 계산됨' : null,
-        description: isAutoCalculated
-          ? `누적 평균으로 자동 계산됨 (${handicapInfo.handicap_calculation_count}회 기록)`
-          : null,
+        badge: '자동 계산됨',
+        description: `누적 평균으로 자동 계산됨 (${handicapInfo.handicap_calculation_count}회 기록)`,
+        type: 'calculated',
       };
     }
 
-    if (handicapInfo?.initial_handicap !== null && handicapInfo?.initial_handicap !== undefined) {
+    if (handicapInfo?.initial_handicap != null) {
       return {
         value: handicapInfo.initial_handicap.toFixed(1),
         badge: null,
         description: '초기 핸디캡',
+        type: 'initial', // ✅ 핵심
       };
     }
 
-    if (profile?.handicap !== null && profile?.handicap !== undefined) {
+    if (profile?.handicap != null) {
       return {
         value: Number(profile.handicap).toFixed(1),
         badge: null,
         description: '기본 핸디캡',
+        type: 'base',
       };
     }
 
-    return { value: '-', badge: null, description: null };
+    return { value: '-', badge: null, description: null, type: 'none' };
   }, [profile, handicapInfo]);
 
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.container}>
-          <AppHeader />
           <View style={styles.stateContainer}>
             <ActivityIndicator size="large" color={colors.primary[600]} />
             <Text style={styles.stateText}>로딩 중...</Text>
@@ -121,7 +123,6 @@ export default function OverviewScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.container}>
-          <AppHeader />
           <View style={styles.stateContainer}>
             <FontAwesome5 name="info-circle" size={32} color={colors.error[500]} />
             <Text style={styles.errorText}>{error}</Text>
@@ -142,105 +143,114 @@ export default function OverviewScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <AppHeader />
-        <Card style={styles.card}>
-          <Text style={styles.cardTitle}>기본 정보</Text>
-          <View style={styles.infoGrid}>
-            {infoItems.map((item) => (
-              <View key={item.label} style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{item.label}</Text>
-                <Text style={styles.infoValue}>{item.value}</Text>
-              </View>
-            ))}
-          </View>
-        </Card>
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* 기본 정보 */}
+      <Card style={styles.card}>
+        <Text style={styles.cardTitle}>기본 정보</Text>
 
-        <Card style={styles.card}>
-          <Text style={styles.cardTitle}>골프 정보</Text>
-          <View style={styles.infoRow}>
+        {infoItems.map(item => (
+          <View key={item.label} style={[styles.row]}>
+            <FontAwesome5
+              name={
+                item.label === '이메일' ? 'envelope' :
+                  item.label === '성별' ? 'venus-mars' :
+                    item.label === '생년월일' ? 'calendar-alt' :
+                      item.label === '가입일' ? 'calendar-check' :
+                        'user-alt'
+              }
+              size={14}
+              color={colors.neutral[500]}
+              style={styles.icon}
+            />
+            <View style={styles.rowContent}>
+              <Text style={styles.infoLabel}>{item.label}</Text>
+              <Text style={styles.infoValue}>{item.value}</Text>
+            </View>
+          </View>
+        ))}
+      </Card>
+
+      {/* 골프 정보 */}
+      <Card style={styles.card}>
+        <Text style={styles.cardTitle}>골프 정보</Text>
+
+        {/* 평균 타수 */}
+        <View style={styles.row}>
+          <FontAwesome5 name="golf-ball" size={14} color={colors.neutral[500]} style={styles.icon} />
+          <View style={styles.rowContent}>
             <Text style={styles.infoLabel}>평균 타수</Text>
             <Text style={styles.infoValue}>
-              {profile?.average_score !== null && profile?.average_score !== undefined
-                ? `${profile.average_score}타`
-                : '-'}
+              {profile?.average_score != null ? `${profile.average_score}타` : '-'}
             </Text>
           </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>핸디캡</Text>
-            <View>
-              <View style={styles.handicapRow}>
-                <Text style={styles.infoValue}>{handicapDisplay.value}</Text>
-                {handicapDisplay.badge ? (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{handicapDisplay.badge}</Text>
-                  </View>
-                ) : null}
-              </View>
-              {handicapDisplay.description ? (
-                <Text style={styles.infoSubtext}>{handicapDisplay.description}</Text>
-              ) : null}
-            </View>
-          </View>
-        </Card>
+        </View>
 
-        <Card style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>소속 클럽</Text>
-            <Pressable onPress={() => router.push('/clubs')}>
-              <Text style={styles.linkText}>내 클럽 전체보기</Text>
-            </Pressable>
+        {/* 핸디캡 */}
+        <View style={styles.row}>
+          <FontAwesome5
+            name="chart-line"
+            size={14}
+            color={colors.neutral[500]}
+            style={styles.icon}
+          />
+          <View style={styles.rowContent}>
+            <Text style={styles.infoLabel}>
+              {handicapDisplay.type === 'initial' ? '초기 핸디캡' : '핸디캡'}
+            </Text>
+            <Text style={styles.infoValue}>
+              {handicapDisplay.value}
+            </Text>
           </View>
-          {clubsLoading ? (
-            <View style={styles.loadingRow}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
+        </View>
+
+      </Card>
+
+      {/* 소속 클럽 */}
+      <Card style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>소속 클럽</Text>
+          <Pressable onPress={() => router.push('/clubs')}>
+            <Text style={styles.linkText}>내 클럽 전체보기</Text>
+          </Pressable>
+        </View>
+
+        {clubs.map(club => (
+          <Pressable
+            key={club.id}
+            onPress={() => router.push(`/clubs/${club.id}`)}
+            style={({ pressed }) => [
+              styles.clubRow,
+              pressed && styles.clubRowPressed,
+            ]}
+          >
+            <View style={styles.clubIcon}>
+              <FontAwesome5 name="users" size={16} color={colors.primary[600]} />
             </View>
-          ) : clubs.length === 0 ? (
-            <View style={styles.emptyClub}>
-              <FontAwesome5 name="users" size={28} color={colors.neutral[300]} />
-              <Text style={styles.emptyText}>소속된 클럽이 없습니다.</Text>
-              <Pressable onPress={() => router.push('/clubs')}>
-                <Text style={styles.linkText}>클럽 찾아보기</Text>
-              </Pressable>
-            </View>
-          ) : (
-            clubs.map((club) => (
-              <Pressable
-                key={club.id}
-                onPress={() => router.push(`/clubs/${club.id}`)}
-                style={({ pressed }) => [styles.clubRow, pressed && styles.clubRowPressed]}
-              >
-                <View style={styles.clubIcon}>
-                  <FontAwesome5 name="users" size={16} color={colors.primary[600]} />
-                </View>
-                <View style={styles.clubInfo}>
-                  <Text style={styles.clubName}>{club.name}</Text>
-                  <Text style={styles.clubMeta}>
-                    {club.location || '-'} · 멤버 {club.member_count ?? '-'}명
+
+            <View style={styles.clubInfo}>
+              <Text style={styles.clubName}>{club.name}</Text>
+              <Text style={styles.clubMeta}>
+                {club.location || '-'} · 멤버 {club.member_count ?? '-'}명
+              </Text>
+
+              {club.my_role && (
+                <View style={styles.roleBadge}>
+                  <Text style={styles.roleBadgeText}>
+                    {club.my_role === 'LEADER' ? '리더' :
+                      club.my_role === 'MANAGER' ? '매니저' :
+                        '멤버'}
                   </Text>
-                  {club.my_role ? (
-                    <View style={styles.roleBadge}>
-                      <Text style={styles.roleBadgeText}>
-                        {club.my_role === 'LEADER'
-                          ? '리더'
-                          : club.my_role === 'MANAGER'
-                            ? '매니저'
-                            : club.my_role === 'MEMBER'
-                              ? '멤버'
-                              : club.my_role}
-                      </Text>
-                    </View>
-                  ) : null}
                 </View>
-                <FontAwesome5 name="chevron-right" size={12} color={colors.neutral[400]} />
-              </Pressable>
-            ))
-          )}
-        </Card>
-        <AppFooter />
-      </ScrollView>
-    </SafeAreaView>
+              )}
+            </View>
+
+            <FontAwesome5 name="chevron-right" size={12} color={colors.neutral[400]} />
+          </Pressable>
+        ))}
+      </Card>
+
+      <AppFooter />
+    </ScrollView >
   );
 }
 
@@ -253,22 +263,6 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 32,
   },
-  stateContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-  },
-  stateText: {
-    fontSize: 12,
-    color: colors.neutral[600],
-  },
-  errorText: {
-    fontSize: 12,
-    color: colors.error[600],
-    textAlign: 'center',
-    marginTop: 8,
-  },
   card: {
     marginBottom: 16,
   },
@@ -278,20 +272,22 @@ const styles = StyleSheet.create({
     color: colors.neutral[900],
     marginBottom: 12,
   },
-  infoGrid: {
-    gap: 10,
-  },
-  infoRow: {
+  row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  rowContent: {
+    flex: 1,
   },
   infoLabel: {
     fontSize: 12,
     color: colors.neutral[500],
+    marginBottom: 2,
   },
   infoValue: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: colors.neutral[900],
   },
@@ -326,19 +322,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.primary[600],
     fontWeight: '600',
-  },
-  loadingRow: {
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  emptyClub: {
-    alignItems: 'center',
-    paddingVertical: 16,
-    gap: 8,
-  },
-  emptyText: {
-    fontSize: 12,
-    color: colors.neutral[600],
   },
   clubRow: {
     flexDirection: 'row',
