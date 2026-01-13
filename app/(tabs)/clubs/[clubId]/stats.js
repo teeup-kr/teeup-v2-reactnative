@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams } from 'expo-router';
@@ -107,14 +107,8 @@ export default function ClubStatsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -168,8 +162,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: tokens.colors.neutral[500],
   },
-  errorText: {
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
+  errorText: base.textSmError,
 });

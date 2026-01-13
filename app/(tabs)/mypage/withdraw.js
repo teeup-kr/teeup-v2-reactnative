@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -133,14 +133,8 @@ export default function WithdrawScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   warningCard: {
     borderRadius: 16,
     padding: 16,
@@ -209,17 +203,8 @@ const styles = StyleSheet.create({
   inputError: {
     borderColor: tokens.colors.error[500],
   },
-  errorText: {
-    marginTop: 6,
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
-  successText: {
-    marginTop: 8,
-    fontSize: 12,
-    color: tokens.colors.success[600],
-    textAlign: 'center',
-  },
+  errorText: { ...base.textSmError, marginTop: 6 },
+  successText: { ...base.textSmSuccess, marginTop: 8, textAlign: 'center' },
   withdrawButton: {
     marginTop: 8,
   },

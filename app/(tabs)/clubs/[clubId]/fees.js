@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams } from 'expo-router';
@@ -118,14 +118,8 @@ export default function ClubFeesScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   summaryCard: {
     marginBottom: 16,
   },
@@ -148,20 +142,9 @@ const styles = StyleSheet.create({
   list: {
     marginBottom: 16,
   },
-  stateRow: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stateText: {
-    marginTop: 6,
-    fontSize: 12,
-    color: tokens.colors.neutral[500],
-  },
-  errorText: {
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
+  stateRow: base.stateRow,
+  stateText: base.stateText,
+  errorText: base.textSmError,
   feeCard: {
     marginBottom: 12,
   },

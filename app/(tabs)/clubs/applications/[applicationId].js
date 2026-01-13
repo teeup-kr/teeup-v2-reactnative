@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams } from 'expo-router';
@@ -98,14 +98,8 @@ export default function ClubApplicationDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   card: {
     marginBottom: 16,
   },
@@ -115,11 +109,7 @@ const styles = StyleSheet.create({
     color: tokens.colors.neutral[900],
     marginBottom: 4,
   },
-  subtitle: {
-    fontSize: 12,
-    color: tokens.colors.neutral[500],
-    marginBottom: 12,
-  },
+  subtitle: { ...base.textSmSubtle, marginBottom: 12 },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -134,12 +124,7 @@ const styles = StyleSheet.create({
     color: tokens.colors.neutral[800],
     fontWeight: '600',
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: tokens.colors.neutral[900],
-    marginBottom: 8,
-  },
+  sectionTitle: { ...base.sectionTitleMd, marginBottom: 8 },
   sectionText: {
     fontSize: 12,
     color: tokens.colors.neutral[600],
@@ -154,8 +139,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: tokens.colors.neutral[500],
   },
-  errorText: {
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
+  errorText: base.textSmError,
 });

@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 LinearGradient } from 'expo-linear-gradient';
@@ -543,10 +543,7 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.primary[50],
-  },
+  safeArea: base.safeAreaPrimary,
   gradient: {
     flex: 1,
   },
@@ -591,12 +588,7 @@ const styles = StyleSheet.create({
   fieldGroup: {
     marginBottom: 16,
   },
-  label: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: tokens.colors.neutral[700],
-    marginBottom: 6,
-  },
+  label: base.labelSm,
   required: {
     color: tokens.colors.error[500],
   },
@@ -633,16 +625,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  errorText: {
-    marginTop: 6,
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
-  successText: {
-    marginTop: 6,
-    fontSize: 12,
-    color: tokens.colors.success[600],
-  },
+  errorText: { ...base.textSmError, marginTop: 6 },
+  successText: { ...base.textSmSuccess, marginTop: 6 },
   passwordChecks: {
     marginTop: 8,
   },

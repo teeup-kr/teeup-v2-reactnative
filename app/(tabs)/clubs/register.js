@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -346,33 +346,14 @@ export default function ClubRegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   card: {
     marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: tokens.colors.neutral[900],
-  },
-  sectionSubtitle: {
-    fontSize: 12,
-    color: tokens.colors.neutral[500],
-    marginTop: 4,
-    marginBottom: 12,
-  },
-  sectionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
+  sectionTitle: base.sectionTitle,
+  sectionSubtitle: { ...base.sectionSubtitle, marginTop: 4, marginBottom: 12 },
+  sectionRow: base.rowBetween,
   fieldGroup: {
     marginBottom: 12,
   },
@@ -387,12 +368,7 @@ const styles = StyleSheet.create({
   halfFieldLast: {
     marginRight: 0,
   },
-  label: {
-    fontSize: 12,
-    color: tokens.colors.neutral[700],
-    marginBottom: 6,
-    fontWeight: '600',
-  },
+  label: base.labelSm,
   input: {
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],

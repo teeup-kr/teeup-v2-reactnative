@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams } from 'expo-router';
@@ -116,22 +116,12 @@ export default function ScoreInputScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   card: {
     marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: tokens.colors.neutral[900],
-  },
+  sectionTitle: base.sectionTitleMd,
   sectionSubtitle: {
     fontSize: 11,
     color: tokens.colors.neutral[500],
@@ -163,13 +153,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stateText: {
-    marginTop: 6,
-    fontSize: 12,
-    color: tokens.colors.neutral[500],
-  },
-  errorText: {
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
+  stateText: base.stateText,
+  errorText: base.textSmError,
 });

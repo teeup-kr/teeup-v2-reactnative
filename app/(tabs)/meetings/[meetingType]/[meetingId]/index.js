@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -606,14 +606,8 @@ export default function MeetingDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   card: {
     marginBottom: 16,
   },
@@ -623,11 +617,7 @@ const styles = StyleSheet.create({
     color: tokens.colors.neutral[900],
     marginBottom: 4,
   },
-  subtitle: {
-    fontSize: 12,
-    color: tokens.colors.neutral[500],
-    marginBottom: 12,
-  },
+  subtitle: { ...base.textSmSubtle, marginBottom: 12 },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -719,8 +709,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: tokens.colors.neutral[600],
   },
-  errorText: {
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
+  errorText: base.textSmError,
 });

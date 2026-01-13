@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams } from 'expo-router';
@@ -117,14 +117,8 @@ export default function TermsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   tabRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -155,12 +149,7 @@ const styles = StyleSheet.create({
   card: {
     padding: 20,
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: tokens.colors.neutral[900],
-    marginBottom: 12,
-  },
+  cardTitle: { ...base.cardTitle, marginBottom: 12 },
   contentBox: {
     backgroundColor: tokens.colors.neutral[50],
     borderRadius: 12,
@@ -172,12 +161,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginBottom: 8,
   },
-  loadingText: {
-    fontSize: 12,
-    color: tokens.colors.neutral[500],
-  },
-  errorText: {
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
+  loadingText: base.textSmSubtle,
+  errorText: base.textSmError,
 });

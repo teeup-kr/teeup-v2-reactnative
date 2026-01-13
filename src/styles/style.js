@@ -150,6 +150,7 @@ export const tokens = {
     },
     radius: {
         sm: 8,
+        base: 10,
         md: 12,
         lg: 16,
         xl: 20,
@@ -160,6 +161,8 @@ export const tokens = {
         sm: 10,
         md: 16,
         lg: 24,
+        xl: 32,
+        xxl: 48,
     },
     font: {
         xs: 11,
@@ -167,6 +170,8 @@ export const tokens = {
         md: 13,
         lg: 15,
         xl: 18,
+        title: 16,
+        xxl: 22,
     },
     fontWeight: {
         regular: '400',
@@ -183,9 +188,25 @@ export const base = {
         flex: 1,
         backgroundColor: tokens.colors.bg,
     },
+    safeAreaNeutral: {
+        flex: 1,
+        backgroundColor: tokens.colors.neutral[50],
+    },
+    safeAreaPrimary: {
+        flex: 1,
+        backgroundColor: tokens.colors.primary[50],
+    },
+    safeAreaWhite: {
+        flex: 1,
+        backgroundColor: tokens.colors.white,
+    },
     container: {
         padding: tokens.spacing.md,
         paddingBottom: tokens.spacing.lg,
+    },
+    containerLg: {
+        padding: tokens.spacing.md,
+        paddingBottom: tokens.spacing.xl,
     },
     modalSheet: {
         backgroundColor: tokens.colors.white,
@@ -238,6 +259,57 @@ export const base = {
         fontSize: tokens.font.xs,
         color: tokens.colors.textSubtle,
     },
+    sectionTitle: {
+        fontSize: tokens.font.title,
+        fontWeight: tokens.fontWeight.bold,
+        color: tokens.colors.neutral[900],
+    },
+    sectionTitleMd: {
+        fontSize: 14,
+        fontWeight: tokens.fontWeight.bold,
+        color: tokens.colors.neutral[900],
+    },
+    sectionTitleSm: {
+        fontSize: tokens.font.md,
+        fontWeight: tokens.fontWeight.bold,
+        color: tokens.colors.neutral[800],
+    },
+    sectionSubtitle: {
+        fontSize: tokens.font.sm,
+        color: tokens.colors.neutral[500],
+    },
+    cardTitleSm: {
+        fontSize: tokens.font.lg,
+        fontWeight: tokens.fontWeight.bold,
+        color: tokens.colors.neutral[900],
+    },
+    textSmMuted: {
+        fontSize: tokens.font.sm,
+        color: tokens.colors.neutral[600],
+    },
+    textSmSubtle: {
+        fontSize: tokens.font.sm,
+        color: tokens.colors.neutral[500],
+    },
+    textSmError: {
+        fontSize: tokens.font.sm,
+        color: tokens.colors.error[600],
+    },
+    textSmSuccess: {
+        fontSize: tokens.font.sm,
+        color: tokens.colors.success[600],
+    },
+    labelSm: {
+        fontSize: tokens.font.sm,
+        fontWeight: tokens.fontWeight.semibold,
+        color: tokens.colors.neutral[700],
+        marginBottom: tokens.spacing.xs,
+    },
+    cardTitle: {
+        fontSize: tokens.font.title,
+        fontWeight: tokens.fontWeight.bold,
+        color: tokens.colors.neutral[900],
+    },
 
     /* Inputs */
     input: {
@@ -281,16 +353,31 @@ export const base = {
         fontSize: tokens.font.sm,
         fontWeight: tokens.fontWeight.bold,
     },
+    btnOutline: {
+        backgroundColor: tokens.colors.white,
+        borderRadius: tokens.radius.md,
+        borderWidth: 1,
+        borderColor: tokens.colors.neutral[200],
+        paddingVertical: tokens.padding.sm,
+        paddingHorizontal: tokens.padding.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    btnOutlineText: {
+        color: tokens.colors.neutral[700],
+        fontSize: tokens.font.sm,
+        fontWeight: tokens.fontWeight.semibold,
+    },
 
     /* Feedback */
     errorText: {
         fontSize: tokens.font.sm,
-        color: tokens.colors.red[500],
+        color: tokens.colors.error[600],
         marginTop: tokens.spacing.xs,
     },
     successText: {
         fontSize: tokens.font.sm,
-        color: tokens.colors.emerald[500],
+        color: tokens.colors.success[600],
         marginTop: tokens.spacing.xs,
     },
 
@@ -300,6 +387,16 @@ export const base = {
         alignItems: 'center',
         justifyContent: 'center',
         padding: tokens.padding.md,
+    },
+    stateRow: {
+        paddingVertical: tokens.spacing.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    stateText: {
+        marginTop: tokens.spacing.xs,
+        fontSize: tokens.font.sm,
+        color: tokens.colors.neutral[500],
     },
 
     /* Components */

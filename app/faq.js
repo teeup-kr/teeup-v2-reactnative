@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -88,19 +88,9 @@ export default function FaqScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: tokens.colors.neutral[600],
-    marginBottom: 12,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
+  subtitle: { ...base.textSmMuted, marginBottom: 12 },
   card: {
     marginBottom: 12,
   },
@@ -122,12 +112,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     lineHeight: 18,
   },
-  loadingText: {
-    fontSize: 12,
-    color: tokens.colors.neutral[500],
-  },
-  errorText: {
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
+  loadingText: base.textSmSubtle,
+  errorText: base.textSmError,
 });

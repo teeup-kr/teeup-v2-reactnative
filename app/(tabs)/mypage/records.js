@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -950,10 +950,7 @@ export default function RecordsTab() {
 ========================= */
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
+  safeArea: base.safeAreaNeutral,
   container: {
     padding: 16,
     paddingBottom: 28,
@@ -1086,9 +1083,8 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   sectionTitle: {
-    fontSize: 14,
+    ...base.sectionTitleMd,
     fontWeight: '800',
-    color: tokens.colors.neutral[900],
     marginLeft: 6,
   },
   badgeRed: {
@@ -1185,20 +1181,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   outlineBtn: {
+    ...base.btnOutline,
     flex: 1,
-    borderRadius: 12,
     borderWidth: 2,
     borderColor: tokens.colors.neutral[300],
-    backgroundColor: tokens.colors.white,
     paddingVertical: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  outlineBtnText: {
-    color: tokens.colors.neutral[700],
-    fontSize: 12,
-    fontWeight: '800',
-  },
+  outlineBtnText: { ...base.btnOutlineText, fontWeight: '800' },
   softPrimaryBtn: {
     flex: 1,
     borderRadius: 12,
@@ -1370,8 +1359,8 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.error[50],
   },
   errorText: {
+    ...base.textSmError,
     marginTop: 6,
-    fontSize: 12,
     color: tokens.colors.error[700],
     fontWeight: '700',
   },

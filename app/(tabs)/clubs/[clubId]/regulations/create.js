@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 useState } from 'react';
@@ -51,23 +51,12 @@ export default function ClubRegulationCreateScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   card: {
     marginBottom: 16,
   },
-  label: {
-    fontSize: 12,
-    color: tokens.colors.neutral[700],
-    fontWeight: '600',
-    marginBottom: 6,
-  },
+  label: base.labelSm,
   input: {
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],

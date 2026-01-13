@@ -576,7 +576,7 @@ const PRIMARY_600 = tokens.colors.green[600];
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: tokens.colors.bg },
-  container: { padding: 16, paddingBottom: 24 },
+  container: base.container,
 
   card: {
     backgroundColor: tokens.colors.white,
@@ -590,12 +590,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: tokens.colors.text,
-    marginBottom: 16,
-  },
+  cardTitle: { ...base.cardTitle, color: tokens.colors.text, marginBottom: 16 },
 
   stackLg: { gap: 18 },
   stackSm: { gap: 8 },
@@ -646,10 +641,20 @@ const styles = StyleSheet.create({
   readonlyText: { color: tokens.colors.textMuted, fontSize: 15 },
 
   helperText: { marginTop: 6, fontSize: 12, color: tokens.colors.textSubtle },
-  loadingText: { color: tokens.colors.textSubtle },
+  loadingText: base.textSmSubtle,
 
-  errorText: { marginTop: 6, color: tokens.colors.red[600], fontSize: 13 },
-  successText: { marginTop: 6, color: tokens.colors.green[600], fontSize: 13 },
+  errorText: {
+    ...base.textSmError,
+    marginTop: 6,
+    color: tokens.colors.red[600],
+    fontSize: 13,
+  },
+  successText: {
+    ...base.textSmSuccess,
+    marginTop: 6,
+    color: tokens.colors.green[600],
+    fontSize: 13,
+  },
 
   primaryBtn: {
     paddingHorizontal: 12,

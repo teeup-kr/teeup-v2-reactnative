@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -112,41 +112,21 @@ export default function ClubRegulationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  subtitle: {
-    fontSize: 12,
-    color: tokens.colors.neutral[600],
-  },
+  subtitle: base.textSmMuted,
   listCard: {
     paddingVertical: 4,
   },
-  stateRow: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stateText: {
-    marginTop: 6,
-    fontSize: 12,
-    color: tokens.colors.neutral[500],
-  },
-  errorText: {
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
+  stateRow: base.stateRow,
+  stateText: base.stateText,
+  errorText: base.textSmError,
   listRow: {
     flexDirection: 'row',
     alignItems: 'center',

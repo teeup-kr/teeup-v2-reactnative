@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 useState } from 'react';
@@ -128,38 +128,15 @@ export default function ChangePasswordScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   card: {
     marginBottom: 16,
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: tokens.colors.neutral[900],
-    marginBottom: 6,
-  },
-  cardSubtitle: {
-    fontSize: 12,
-    color: tokens.colors.neutral[500],
-    marginBottom: 12,
-  },
-  errorText: {
-    fontSize: 12,
-    color: tokens.colors.error[600],
-    marginTop: 4,
-  },
-  successText: {
-    fontSize: 12,
-    color: tokens.colors.success[600],
-    marginTop: 4,
-  },
+  cardTitle: { ...base.cardTitle, marginBottom: 6 },
+  cardSubtitle: { ...base.textSmSubtle, marginBottom: 12 },
+  errorText: { ...base.textSmError, marginTop: 4 },
+  successText: { ...base.textSmSuccess, marginTop: 4 },
   saveButton: {
     marginTop: 8,
   },

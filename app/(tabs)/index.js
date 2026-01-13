@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 LinearGradient } from 'expo-linear-gradient';
@@ -123,10 +123,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.white,
-  },
+  safeArea: base.safeAreaWhite,
   container: {
     backgroundColor: tokens.colors.neutral[50],
   },

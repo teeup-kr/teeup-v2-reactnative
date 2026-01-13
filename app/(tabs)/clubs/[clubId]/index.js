@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -152,14 +152,8 @@ export default function ClubDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   heroCard: {
     marginBottom: 16,
   },
@@ -218,12 +212,7 @@ const styles = StyleSheet.create({
   sectionCard: {
     marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: tokens.colors.neutral[900],
-    marginBottom: 8,
-  },
+  sectionTitle: { ...base.sectionTitleMd, marginBottom: 8 },
   sectionText: {
     fontSize: 12,
     color: tokens.colors.neutral[600],
@@ -247,20 +236,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   secondaryButton: {
+    ...base.btnOutline,
     marginTop: 12,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: tokens.colors.neutral[200],
-    alignItems: 'center',
   },
-  secondaryButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: tokens.colors.neutral[700],
-  },
-  errorText: {
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
+  secondaryButtonText: { ...base.btnOutlineText, fontSize: 14 },
+  errorText: base.textSmError,
 });

@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -260,23 +260,12 @@ export default function OverviewScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   card: {
     marginBottom: 16,
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: tokens.colors.neutral[900],
-    marginBottom: 12,
-  },
+  cardTitle: { ...base.cardTitle, marginBottom: 12 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -317,12 +306,7 @@ const styles = StyleSheet.create({
     color: tokens.colors.primary[700],
     fontWeight: '600',
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
+  cardHeader: { ...base.rowBetween, marginBottom: 8 },
   linkText: {
     fontSize: 12,
     color: tokens.colors.primary[600],

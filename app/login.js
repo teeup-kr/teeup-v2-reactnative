@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome } from '@expo/vector-icons';
@@ -230,10 +230,7 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.primary[50],
-  },
+  safeArea: base.safeAreaPrimary,
   gradient: {
     flex: 1,
   },

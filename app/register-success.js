@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 useRouter } from 'expo-router';
@@ -27,10 +27,7 @@ export default function RegisterSuccessScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
+  safeArea: base.safeAreaNeutral,
   container: {
     flex: 1,
     alignItems: 'center',
@@ -44,19 +41,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   subtitle: {
+    ...base.textSmMuted,
     fontSize: 14,
-    color: tokens.colors.neutral[600],
     textAlign: 'center',
     marginBottom: 18,
   },
   button: {
+    ...base.btnPrimary,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 10,
-    backgroundColor: tokens.colors.primary[600],
   },
-  buttonText: {
-    color: tokens.colors.white,
-    fontWeight: '600',
-  },
+  buttonText: base.btnPrimaryText,
 });

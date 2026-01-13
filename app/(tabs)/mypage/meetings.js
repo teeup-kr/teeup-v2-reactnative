@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -409,23 +409,12 @@ export default function MyMeetingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   filterCard: {
     marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: tokens.colors.neutral[800],
-    marginBottom: 10,
-  },
+  sectionTitle: { ...base.sectionTitleSm, marginBottom: 10 },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -498,10 +487,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: tokens.colors.neutral[600],
   },
-  errorText: {
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
+  errorText: base.textSmError,
 
   emptyCard: {
     alignItems: 'center',
@@ -522,16 +508,10 @@ const styles = StyleSheet.create({
   meetingCard: {
     marginBottom: 16,
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
+  cardHeader: base.rowBetween,
   cardTitle: {
+    ...base.cardTitle,
     flex: 1,
-    fontSize: 16,
-    fontWeight: '700',
-    color: tokens.colors.neutral[900],
     marginRight: 8,
   },
   badgeRow: {

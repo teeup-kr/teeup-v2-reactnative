@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams,
@@ -577,14 +577,8 @@ export default function RoundingCreateScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   card: {
     marginBottom: 16,
   },
@@ -593,32 +587,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 60,
   },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: tokens.colors.neutral[600],
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: tokens.colors.neutral[900],
-  },
-  sectionSubtitle: {
-    fontSize: 12,
-    color: tokens.colors.neutral[500],
-    marginTop: 4,
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 12,
-    color: tokens.colors.neutral[700],
-    marginBottom: 6,
-    fontWeight: '600',
-  },
-  helperText: {
-    fontSize: 12,
-    color: tokens.colors.neutral[500],
-  },
+  loadingText: { ...base.textSmMuted, marginTop: 12, fontSize: 14 },
+  sectionTitle: base.sectionTitle,
+  sectionSubtitle: { ...base.sectionSubtitle, marginTop: 4, marginBottom: 12 },
+  label: base.labelSm,
+  helperText: base.textSmSubtle,
   input: {
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
@@ -679,9 +652,5 @@ const styles = StyleSheet.create({
     color: tokens.colors.primary[700],
     fontWeight: '600',
   },
-  errorText: {
-    marginTop: 4,
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
+  errorText: { ...base.textSmError, marginTop: 4 },
 });

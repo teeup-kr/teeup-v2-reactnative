@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 LinearGradient } from 'expo-linear-gradient';
@@ -101,14 +101,8 @@ export default function ProfileCompleteScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
   hero: {
     borderRadius: 18,
     padding: 20,
@@ -128,12 +122,7 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: 16,
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: tokens.colors.neutral[900],
-    marginBottom: 12,
-  },
+  cardTitle: { ...base.cardTitle, marginBottom: 12 },
   tipBox: {
     padding: 12,
     borderRadius: 12,

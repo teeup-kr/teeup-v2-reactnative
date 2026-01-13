@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -96,19 +96,9 @@ export default function NoticeListScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: tokens.colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: tokens.colors.neutral[600],
-    marginBottom: 12,
-  },
+  safeArea: base.safeAreaNeutral,
+  container: base.containerLg,
+  subtitle: { ...base.textSmMuted, marginBottom: 12 },
   noticeCard: {
     backgroundColor: tokens.colors.white,
     borderRadius: 16,
@@ -118,11 +108,7 @@ const styles = StyleSheet.create({
   noticeCardPressed: {
     backgroundColor: tokens.colors.neutral[100],
   },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
+  cardHeader: { ...base.row, marginBottom: 8 },
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -180,12 +166,6 @@ const styles = StyleSheet.create({
   loadingCard: {
     marginBottom: 12,
   },
-  loadingText: {
-    fontSize: 12,
-    color: tokens.colors.neutral[500],
-  },
-  errorText: {
-    fontSize: 12,
-    color: tokens.colors.error[600],
-  },
+  loadingText: base.textSmSubtle,
+  errorText: base.textSmError,
 });
