@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 useLocalSearchParams,
 useRouter } from 'expo-router';
@@ -29,8 +32,6 @@ import {
   normalizeNumber,
   toDateTimeLocalValue,
 } from '@/lib/meetingUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/meetings/social/create';
 
 const ChipOption = ({ label, selected, onPress }) => (
   <Pressable
@@ -226,7 +227,7 @@ export function SocialForm({ mode = 'create' }) {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary[600]} />
+            <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
             <Text style={styles.loadingText}>모임 정보를 불러오는 중...</Text>
           </View>
         ) : (
@@ -242,7 +243,7 @@ export function SocialForm({ mode = 'create' }) {
                   onChangeText={(value) => handleChange('name', value)}
                   placeholder="예: 봄맞이 저녁 모임"
                   style={[styles.input, fieldErrors.name && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
                 {fieldErrors.name && <Text style={styles.errorText}>{fieldErrors.name}</Text>}
               </View>
@@ -255,7 +256,7 @@ export function SocialForm({ mode = 'create' }) {
                   placeholder="모임 소개를 입력하세요"
                   style={[styles.input, styles.textArea]}
                   multiline
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
               </View>
 
@@ -299,7 +300,7 @@ export function SocialForm({ mode = 'create' }) {
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>클럽</Text>
                 {clubsLoading ? (
-                  <ActivityIndicator size="small" color={colors.primary[600]} />
+                  <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
                 ) : clubs.length === 0 ? (
                   <Text style={styles.helperText}>가입된 클럽이 없습니다.</Text>
                 ) : (
@@ -331,7 +332,7 @@ export function SocialForm({ mode = 'create' }) {
                   onChangeText={(value) => handleChange('venue_name', value)}
                   placeholder="예: 판교 라운지"
                   style={[styles.input, fieldErrors.venue_name && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
                 {fieldErrors.venue_name && (
                   <Text style={styles.errorText}>{fieldErrors.venue_name}</Text>
@@ -346,7 +347,7 @@ export function SocialForm({ mode = 'create' }) {
                   placeholder="예: 30000"
                   keyboardType="numeric"
                   style={[styles.input, fieldErrors.social_cost && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
                 {fieldErrors.social_cost && (
                   <Text style={styles.errorText}>{fieldErrors.social_cost}</Text>
@@ -399,7 +400,7 @@ export function SocialForm({ mode = 'create' }) {
                     placeholder="예: 20"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.max_participants && styles.inputError]}
-                    placeholderTextColor={colors.neutral[400]}
+                    placeholderTextColor={tokens.colors.neutral[400]}
                   />
                   {fieldErrors.max_participants && (
                     <Text style={styles.errorText}>{fieldErrors.max_participants}</Text>
@@ -422,3 +423,102 @@ export default function SocialCreateScreen() {
   return <SocialForm mode="create" />;
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: tokens.colors.neutral[600],
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+  },
+  sectionSubtitle: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 12,
+    color: tokens.colors.neutral[700],
+    marginBottom: 6,
+    fontWeight: '600',
+  },
+  helperText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: tokens.colors.neutral[900],
+    backgroundColor: tokens.colors.white,
+    marginBottom: 12,
+  },
+  inputError: {
+    borderColor: tokens.colors.error[500],
+  },
+  textArea: {
+    minHeight: 96,
+    textAlignVertical: 'top',
+  },
+  fieldGroup: {
+    marginBottom: 12,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    backgroundColor: tokens.colors.white,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  chipActive: {
+    backgroundColor: tokens.colors.primary[50],
+    borderColor: tokens.colors.primary[500],
+  },
+  chipPressed: {
+    opacity: 0.85,
+  },
+  chipText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+  chipTextActive: {
+    color: tokens.colors.primary[700],
+    fontWeight: '600',
+  },
+  errorText: {
+    marginTop: 4,
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+});

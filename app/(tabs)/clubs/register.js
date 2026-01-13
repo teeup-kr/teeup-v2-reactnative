@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -16,8 +19,6 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubFeeCycles, clubRegisterTypes } from '@/constants/clubConstants';
 import { clubsApi } from '@/lib/clubsApi';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/clubs/register';
 
 export default function ClubRegisterScreen() {
   const router = useRouter();
@@ -130,7 +131,7 @@ export default function ClubRegisterScreen() {
               onChangeText={handleChange('name')}
               placeholder="클럽명을 입력하세요"
               style={styles.input}
-              placeholderTextColor={colors.neutral[400]}
+              placeholderTextColor={tokens.colors.neutral[400]}
               error={errors.name}
             />
           </View>
@@ -160,7 +161,7 @@ export default function ClubRegisterScreen() {
               placeholder="클럽 소개글을 입력하세요"
               style={[styles.input, styles.textArea]}
               multiline
-              placeholderTextColor={colors.neutral[400]}
+              placeholderTextColor={tokens.colors.neutral[400]}
             />
           </View>
 
@@ -173,7 +174,7 @@ export default function ClubRegisterScreen() {
                 placeholder="예: 20"
                 keyboardType="numeric"
                 style={styles.input}
-                placeholderTextColor={colors.neutral[400]}
+                placeholderTextColor={tokens.colors.neutral[400]}
                 error={errors.memberCount}
               />
             </View>
@@ -184,7 +185,7 @@ export default function ClubRegisterScreen() {
                 onChangeText={handleChange('location')}
                 placeholder="예: 서울/경기"
                 style={styles.input}
-                placeholderTextColor={colors.neutral[400]}
+                placeholderTextColor={tokens.colors.neutral[400]}
               />
             </View>
           </View>
@@ -197,7 +198,7 @@ export default function ClubRegisterScreen() {
               placeholder="01012345678"
               keyboardType="numeric"
               style={styles.input}
-              placeholderTextColor={colors.neutral[400]}
+              placeholderTextColor={tokens.colors.neutral[400]}
             />
           </View>
 
@@ -209,7 +210,7 @@ export default function ClubRegisterScreen() {
               placeholder="가입 안내, 회비 안내 등을 적어주세요"
               style={[styles.input, styles.textArea]}
               multiline
-              placeholderTextColor={colors.neutral[400]}
+              placeholderTextColor={tokens.colors.neutral[400]}
             />
           </View>
         </Card>
@@ -260,7 +261,7 @@ export default function ClubRegisterScreen() {
                   placeholder="예: 50000"
                   keyboardType="numeric"
                   style={styles.input}
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
               </View>
 
@@ -311,7 +312,7 @@ export default function ClubRegisterScreen() {
                   placeholder="회비 사용처 또는 납부 안내"
                   style={[styles.input, styles.textArea]}
                   multiline
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
               </View>
             </View>
@@ -322,7 +323,7 @@ export default function ClubRegisterScreen() {
           <Text style={styles.sectionTitle}>첨부 파일</Text>
           <Text style={styles.sectionSubtitle}>클럽 소개서, 규정 등을 첨부하세요.</Text>
           <Pressable style={styles.uploadBox}>
-            <FontAwesome5 name="file-alt" size={18} color={colors.neutral[500]} />
+            <FontAwesome5 name="file-alt" size={18} color={tokens.colors.neutral[500]} />
             <View style={styles.uploadTextWrap}>
               <Text style={styles.uploadTitle}>파일 선택</Text>
               <Text style={styles.uploadSubtitle}>{formData.attachment}</Text>
@@ -344,3 +345,135 @@ export default function ClubRegisterScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+  },
+  sectionSubtitle: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  sectionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  fieldGroup: {
+    marginBottom: 12,
+  },
+  fieldGroupRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  halfField: {
+    flex: 1,
+    marginRight: 12,
+  },
+  halfFieldLast: {
+    marginRight: 0,
+  },
+  label: {
+    fontSize: 12,
+    color: tokens.colors.neutral[700],
+    marginBottom: 6,
+    fontWeight: '600',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: tokens.colors.neutral[900],
+    backgroundColor: tokens.colors.white,
+  },
+  textArea: {
+    minHeight: 88,
+    textAlignVertical: 'top',
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 4,
+  },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[200],
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  chipActive: {
+    backgroundColor: tokens.colors.primary[600],
+    borderColor: tokens.colors.primary[600],
+  },
+  chipText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    fontWeight: '600',
+  },
+  chipTextActive: {
+    color: tokens.colors.white,
+  },
+  toggle: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: tokens.colors.neutral[200],
+  },
+  toggleActive: {
+    backgroundColor: tokens.colors.primary[600],
+  },
+  toggleText: {
+    color: tokens.colors.white,
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  uploadBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: tokens.colors.neutral[300],
+    borderRadius: 12,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  uploadTextWrap: {
+    marginLeft: 12,
+  },
+  uploadTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: tokens.colors.neutral[800],
+  },
+  uploadSubtitle: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+    marginTop: 2,
+  },
+  noticeText: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+    marginTop: 8,
+  },
+});

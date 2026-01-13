@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 useLocalSearchParams } from 'expo-router';
 import { useEffect,
@@ -16,8 +19,6 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api';
 import { extractList } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/meetings/meetingId/score';
 
 export default function ScoreInputScreen() {
   const { meetingId } = useLocalSearchParams();
@@ -79,7 +80,7 @@ export default function ScoreInputScreen() {
 
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
+              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
               <Text style={styles.stateText}>참가자를 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -99,7 +100,7 @@ export default function ScoreInputScreen() {
                   style={styles.input}
                   defaultValue={player.score ? String(player.score) : ''}
                   keyboardType="numeric"
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
               </View>
             ))
@@ -114,3 +115,61 @@ export default function ScoreInputScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+  },
+  sectionSubtitle: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  name: {
+    flex: 1,
+    fontSize: 13,
+    color: tokens.colors.neutral[700],
+  },
+  input: {
+    width: 80,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    textAlign: 'center',
+    color: tokens.colors.neutral[900],
+  },
+  stateRow: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stateText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+});

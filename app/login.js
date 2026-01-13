@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,8 +25,6 @@ import { useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/authApi';
 import { buildGoogleAuthConfig, generateOauthState } from '@/lib/authUtils';
 import { tokenStorage } from '@/lib/tokenStorage';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/login';
 
 const logoImage = require('../public/icons/icon-512-transparent.png');
 
@@ -136,7 +137,7 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient colors={['#E8F5E8', '#C8E6C9']} style={styles.gradient}>
+      <LinearGradient colors={[tokens.colors.primary[50], tokens.colors.primary[100]]} style={styles.gradient}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.flex}
@@ -210,7 +211,7 @@ export default function LoginScreen() {
                 loading={isGoogleSigningIn}
                 disabled={isSubmitting || isGoogleSigningIn}
               >
-                <FontAwesome name="google" size={16} color={colors.neutral[700]} style={styles.iconGap} />
+                <FontAwesome name="google" size={16} color={tokens.colors.neutral[700]} style={styles.iconGap} />
                 <Text style={styles.outlineText}>Google로 로그인</Text>
               </Button>
 
@@ -228,3 +229,118 @@ export default function LoginScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.primary[50],
+  },
+  gradient: {
+    flex: 1,
+  },
+  flex: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  card: {
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+  },
+  brandSection: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoWrap: {
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  logo: {
+    width: 48,
+    height: 48,
+  },
+  brandTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 6,
+  },
+  brandSubtitle: {
+    fontSize: 13,
+    color: tokens.colors.neutral[600],
+  },
+  pageTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  generalError: {
+    textAlign: 'center',
+    color: tokens.colors.error[600],
+    fontSize: 12,
+    marginBottom: 12,
+  },
+  buttonSpacing: {
+    marginTop: 4,
+  },
+  helperRow: {
+    marginTop: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  helperText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+  helperLink: {
+    fontSize: 12,
+    color: tokens.colors.primary[600],
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  dividerRow: {
+    marginVertical: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: tokens.colors.neutral[200],
+  },
+  dividerText: {
+    marginHorizontal: 12,
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  iconGap: {
+    marginRight: 8,
+  },
+  outlineText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: tokens.colors.neutral[700],
+  },
+  registerRow: {
+    marginTop: 18,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  registerText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+  registerLink: {
+    fontSize: 12,
+    color: tokens.colors.primary[600],
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+});

@@ -1,3 +1,5 @@
+import { StyleSheet } from 'react-native';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useEffect,
@@ -12,7 +14,7 @@ View,
 } from 'react-native';
 
 import { authApi } from '@/lib/authApi';
-import styles from '@/styles/screens/tabs/mypage/change-password-modal';
+import { tokens } from '@/styles/style';
 
 const ChangePasswordModal = ({ isOpen, onClose, onLogout }) => {
     /* =========================
@@ -130,7 +132,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onLogout }) => {
                     {success ? (
                         <View style={styles.center}>
                             <View style={styles.successIcon}>
-                                <FontAwesome5 name="check" size={28} color="#16a34a" />
+                                <FontAwesome5 name="check" size={28} color={tokens.colors.green[600]} />
                             </View>
                             <Text style={styles.successTitle}>비밀번호 변경 완료</Text>
                             <Text style={styles.successText}>
@@ -235,3 +237,69 @@ const Field = ({ label, children }) => (
     </View>
 );
 
+const styles = StyleSheet.create({
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        padding: 16,
+    },
+    card: {
+        backgroundColor: tokens.colors.white,
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 16,
+        borderBottomWidth: 1,
+        borderColor: tokens.colors.border,
+    },
+    title: { fontSize: 18, fontWeight: '700' },
+    body: { padding: 16 },
+    label: { marginBottom: 6, fontWeight: '600' },
+    input: {
+        borderWidth: 1,
+        borderColor: tokens.colors.inputBorder,
+        borderRadius: 8,
+        padding: 12,
+    },
+    error: { color: tokens.colors.red[600], fontSize: 12, marginTop: 4 },
+    errorBox: {
+        backgroundColor: tokens.colors.red[100],
+        padding: 10,
+        borderRadius: 8,
+        color: tokens.colors.red[800],
+        marginBottom: 8,
+    },
+    buttonRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
+    cancelBtn: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 8,
+        borderWidth: 1,
+        alignItems: 'center',
+    },
+    submitBtn: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 8,
+        backgroundColor: tokens.colors.blue[600],
+        alignItems: 'center',
+    },
+    submitText: { color: tokens.colors.white, fontWeight: '600' },
+
+    center: { alignItems: 'center', padding: 32 },
+    successIcon: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: tokens.colors.green[100],
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    successTitle: { fontSize: 18, fontWeight: '700' },
+    successText: { fontSize: 13, color: tokens.colors.textSubtle, marginVertical: 8 },
+});

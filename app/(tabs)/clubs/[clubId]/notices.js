@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
@@ -15,8 +18,6 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/clubs/clubId/notices';
 
 export default function ClubNoticesScreen() {
   const { clubId } = useLocalSearchParams();
@@ -62,7 +63,7 @@ export default function ClubNoticesScreen() {
         <Card style={styles.noticeCard}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
+              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
               <Text style={styles.stateText}>공지사항을 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -77,7 +78,7 @@ export default function ClubNoticesScreen() {
             notices.map((notice) => (
               <Pressable key={notice.id} style={styles.noticeRow}>
                 <View style={styles.noticeIcon}>
-                  <FontAwesome5 name="bullhorn" size={14} color={colors.primary[600]} />
+                  <FontAwesome5 name="bullhorn" size={14} color={tokens.colors.primary[600]} />
                 </View>
                 <View style={styles.noticeInfo}>
                   <Text style={styles.noticeTitle}>{notice.title}</Text>
@@ -97,3 +98,69 @@ export default function ClubNoticesScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  noticeCard: {
+    paddingVertical: 4,
+  },
+  noticeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  noticeIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: tokens.colors.primary[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  noticeInfo: {
+    flex: 1,
+  },
+  noticeTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: tokens.colors.neutral[800],
+  },
+  noticeDate: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+    marginTop: 2,
+  },
+  noticeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    backgroundColor: tokens.colors.secondary[500],
+  },
+  noticeBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: tokens.colors.white,
+  },
+  stateRow: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stateText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+});

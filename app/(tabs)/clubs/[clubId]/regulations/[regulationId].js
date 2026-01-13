@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 useLocalSearchParams,
 useRouter } from 'expo-router';
@@ -15,8 +18,6 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractData } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/clubs/clubId/regulations/regulationId';
 
 export default function ClubRegulationDetailScreen() {
   const router = useRouter();
@@ -57,7 +58,7 @@ export default function ClubRegulationDetailScreen() {
         <Card style={styles.card}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
+              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
               <Text style={styles.stateText}>규정을 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -91,3 +92,63 @@ export default function ClubRegulationDetailScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 6,
+  },
+  meta: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+    marginBottom: 12,
+  },
+  body: {
+    fontSize: 12,
+    color: tokens.colors.neutral[700],
+    lineHeight: 18,
+  },
+  stateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  stateText: {
+    marginLeft: 8,
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+  editButton: {
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[200],
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  editButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: tokens.colors.neutral[700],
+  },
+  helperText: {
+    marginTop: 8,
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+    textAlign: 'center',
+  },
+});

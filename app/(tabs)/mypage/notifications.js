@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -17,8 +20,6 @@ View,
 
 import Card from '@/components/ui/Card';
 import { notificationsApi } from '@/lib/api';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/mypage/notifications';
 
 /* ------------------ Utils ------------------ */
 
@@ -59,19 +60,19 @@ const getIcon = (type) => {
     case 'CLUB_MEMBERSHIP_REJECTED':
     case 'CLUB_MEMBERSHIP_REQUEST':
     case 'CLUB_INVITATION':
-      return { name: 'users', color: '#2563eb' };
+      return { name: 'users', color: tokens.colors.blue[600] };
     case 'MEETING_REMINDER':
     case 'MEETING_CANCELLATION':
     case 'MEETING_COMPLETED':
     case 'TEAM_FORMATION_COMPLETED':
-      return { name: 'calendar-alt', color: '#059669' };
+      return { name: 'calendar-alt', color: tokens.colors.emerald[600] };
     case 'NEW_NOTICE':
-      return { name: 'file-alt', color: '#ca8a04' };
+      return { name: 'file-alt', color: tokens.colors.yellow[600] };
     case 'MEETING_SETTLEMENT_COMPLETED':
     case 'SOCIAL_SETTLEMENT_COMPLETED':
-      return { name: 'money-bill-wave', color: '#7c3aed' };
+      return { name: 'money-bill-wave', color: tokens.colors.violet[600] };
     default:
-      return { name: 'bell', color: colors.neutral[600] };
+      return { name: 'bell', color: tokens.colors.neutral[600] };
   }
 };
 
@@ -200,7 +201,7 @@ export default function NotificationsTab() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primary[600]} />
+        <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
         <Text style={styles.centerText}>알림을 불러오는 중...</Text>
       </View>
     );
@@ -209,7 +210,7 @@ export default function NotificationsTab() {
   if (error) {
     return (
       <Card style={styles.errorCard}>
-        <FontAwesome5 name="times" size={36} color={colors.error[600]} />
+        <FontAwesome5 name="times" size={36} color={tokens.colors.error[600]} />
         <Text style={styles.errorTitle}>알림을 불러올 수 없습니다</Text>
       </Card>
     );
@@ -256,8 +257,8 @@ export default function NotificationsTab() {
                 style={[
                   styles.filterBtn,
                   filter === f && styles.filterBtnActive,
-                  f === 'unread' && filter === f && { backgroundColor: '#dc2626' },
-                  f === 'read' && filter === f && { backgroundColor: '#059669' },
+                  f === 'unread' && filter === f && { backgroundColor: tokens.colors.red[600] },
+                  f === 'read' && filter === f && { backgroundColor: tokens.colors.emerald[600] },
                 ]}
               >
                 <Text
@@ -296,7 +297,7 @@ export default function NotificationsTab() {
               <FontAwesome5
                 name={selected.length === notifications.length ? 'check-square' : 'square'}
                 size={18}
-                color={colors.primary[600]}
+                color={tokens.colors.primary[600]}
               />
               <Text style={styles.selectAllText}>전체 선택</Text>
             </Pressable>
@@ -318,7 +319,7 @@ export default function NotificationsTab() {
         {/* List */}
         {notifications.length === 0 ? (
           <Card style={styles.emptyCard}>
-            <FontAwesome5 name="bell" size={32} color={colors.neutral[400]} />
+            <FontAwesome5 name="bell" size={32} color={tokens.colors.neutral[400]} />
             <Text style={styles.emptyText}>알림이 없습니다</Text>
             <Text style={styles.emptyText2}>새로운 알림이 오면 여기에 표시됩니다.</Text>
           </Card>
@@ -340,7 +341,7 @@ export default function NotificationsTab() {
                   <FontAwesome5
                     name={selected.includes(n.id) ? 'check-square' : 'square'}
                     size={18}
-                    color={colors.primary[600]}
+                    color={tokens.colors.primary[600]}
                   />
                 </Pressable>
 
@@ -353,7 +354,7 @@ export default function NotificationsTab() {
                 </View>
 
                 <Pressable onPress={() => setDeleteTarget(n.id)}>
-                  <FontAwesome5 name="trash" size={16} color={colors.error[600]} />
+                  <FontAwesome5 name="trash" size={16} color={tokens.colors.error[600]} />
                 </Pressable>
               </Pressable>
             );
@@ -372,7 +373,7 @@ export default function NotificationsTab() {
                 <Text>취소</Text>
               </Pressable>
               <Pressable
-                style={[styles.modalBtn, { backgroundColor: colors.error[600] }]}
+                style={[styles.modalBtn, { backgroundColor: tokens.colors.error[600] }]}
                 onPress={() => {
                   deleteOne(deleteTarget);
                   setDeleteTarget(null);
@@ -397,3 +398,202 @@ export default function NotificationsTab() {
 
 /* ------------------ Styles ------------------ */
 
+const styles = StyleSheet.create({
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  centerText: { marginTop: 8, color: tokens.colors.neutral[600] },
+
+  filterBtnActive: {
+    backgroundColor: tokens.colors.primary[600],
+    borderColor: tokens.colors.primary[600],
+  },
+  filterText: { fontWeight: '700', color: tokens.colors.neutral[700] },
+
+  notiCard: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[200],
+    backgroundColor: 'white',
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  unreadBorder: { borderLeftWidth: 4, borderLeftColor: tokens.colors.emerald[500] },
+
+  title: { fontSize: 14, fontWeight: '700', color: tokens.colors.neutral[800] },
+  unreadTitle: { color: tokens.colors.neutral[900], fontWeight: '900' },
+  content: { fontSize: 12, color: tokens.colors.neutral[600], marginTop: 4 },
+  time: { fontSize: 11, color: tokens.colors.neutral[400], marginTop: 4 },
+
+  bulkRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  bulkBtnBlue: { backgroundColor: tokens.colors.blue[100], padding: 10, borderRadius: 10 },
+  bulkBtnRed: { backgroundColor: tokens.colors.red[100], padding: 10, borderRadius: 10 },
+  bulkText: { fontWeight: '800' },
+
+  emptyCard: { alignItems: 'center', padding: 32 },
+  emptyText: { marginTop: 8, fontWeight: '700', color: tokens.colors.neutral[600] },
+  emptyText2: { marginTop: 8, fontWeight: '400', color: tokens.colors.neutral[600] },
+
+  modalBg: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBox: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 14,
+    width: '80%',
+  },
+  modalTitle: { fontSize: 16, fontWeight: '900', marginBottom: 10 },
+
+  modalBtn: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: tokens.colors.neutral[200],
+    alignItems: 'center',
+  },
+
+  toast: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    padding: 12,
+    borderRadius: 12,
+  },
+  toastSuccess: { backgroundColor: tokens.colors.emerald[600] },
+  toastError: { backgroundColor: tokens.colors.red[600] },
+
+  errorCard: { alignItems: 'center', padding: 32 },
+  errorTitle: { marginTop: 8, fontWeight: '800', color: tokens.colors.error[600] },
+  filterCard: {
+    marginBottom: 12,
+  },
+
+  select: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    backgroundColor: tokens.colors.white,
+    marginRight: 8,
+  },
+  selectText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: tokens.colors.neutral[700],
+  },
+
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+
+  bulkRead: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: tokens.colors.blue[100],
+    borderWidth: 1,
+    borderColor: tokens.colors.blue[300],
+  },
+  bulkDelete: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: tokens.colors.red[100],
+    borderWidth: 1,
+    borderColor: tokens.colors.red[200],
+  },
+  bulkTextBlue: {
+    color: tokens.colors.blue[700],
+    fontWeight: '800',
+    fontSize: 12,
+  },
+  bulkTextRed: {
+    color: tokens.colors.red[700],
+    fontWeight: '800',
+    fontSize: 12,
+  },
+
+  markAllBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: tokens.colors.white,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+  },
+  markAllText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: tokens.colors.neutral[700],
+  },
+
+  selectAllRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: tokens.colors.neutral[200],
+  },
+  selectAllText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    fontWeight: '600',
+  },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    borderRadius: 10,
+    backgroundColor: tokens.colors.white,
+    marginRight: 8,
+    overflow: 'hidden',
+    minWidth: 160,
+    height: 42,
+    justifyContent: 'center',
+  },
+  selectBox: {
+    borderWidth: 1,
+    borderColor: tokens.colors.zinc[300],
+    borderRadius: 12,
+    backgroundColor: tokens.colors.white,
+    paddingHorizontal: 14,
+    paddingVertical: 2,
+    minWidth: 160,
+    justifyContent: 'center',
+  },
+  filterBtn: {
+    paddingHorizontal: 14,
+    marginRight: 8,
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: tokens.colors.zinc[300],
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  hiddenPicker: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0,
+  },
+  arrow: {
+    marginLeft: 6,
+    fontSize: 12,
+    color: tokens.colors.green[600],
+  },
+});

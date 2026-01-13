@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -18,8 +21,6 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { useAuth } from '@/context/AuthContext';
 import { usersApi } from '@/lib/api';
 import { extractList, formatMeetingListDate } from '@/lib/meetingUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/meetings/my';
 
 export default function MyMeetingsScreen() {
   const router = useRouter();
@@ -68,7 +69,7 @@ export default function MyMeetingsScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.stateContainer}>
-          <ActivityIndicator size="large" color={colors.primary[600]} />
+          <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
         </View>
       </SafeAreaView>
     );
@@ -95,7 +96,7 @@ export default function MyMeetingsScreen() {
         <View style={styles.list}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
+              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
               <Text style={styles.stateText}>모임을 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -114,7 +115,7 @@ export default function MyMeetingsScreen() {
                 onPress={() => router.push(`/meetings/${meeting.type}/${meeting.id}`)}
               >
                 <View style={styles.iconWrap}>
-                  <FontAwesome5 name="calendar-check" size={14} color={colors.primary[600]} />
+                  <FontAwesome5 name="calendar-check" size={14} color={tokens.colors.primary[600]} />
                 </View>
                 <View style={styles.info}>
                   <Text style={styles.name}>{meeting.name}</Text>
@@ -130,3 +131,83 @@ export default function MyMeetingsScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  summaryCard: {
+    marginBottom: 16,
+  },
+  summaryTitle: {
+    fontSize: 14,
+    color: tokens.colors.neutral[600],
+  },
+  summaryValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginTop: 6,
+  },
+  list: {
+    backgroundColor: tokens.colors.white,
+    borderRadius: 16,
+    paddingVertical: 4,
+  },
+  stateContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stateRow: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stateText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  iconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: tokens.colors.primary[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  info: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: tokens.colors.neutral[800],
+  },
+  date: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+    marginTop: 2,
+  },
+  status: {
+    fontSize: 11,
+    color: tokens.colors.neutral[600],
+    fontWeight: '600',
+  },
+});

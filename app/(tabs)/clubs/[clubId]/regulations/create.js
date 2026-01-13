@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 useState } from 'react';
 import { ScrollView,
@@ -9,8 +12,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/clubs/clubId/regulations/create';
 
 export default function ClubRegulationCreateScreen() {
   const [title, setTitle] = useState('');
@@ -27,7 +28,7 @@ export default function ClubRegulationCreateScreen() {
             onChangeText={setTitle}
             placeholder="규정 제목을 입력하세요"
             style={styles.input}
-            placeholderTextColor={colors.neutral[400]}
+            placeholderTextColor={tokens.colors.neutral[400]}
           />
 
           <Text style={styles.label}>내용</Text>
@@ -37,7 +38,7 @@ export default function ClubRegulationCreateScreen() {
             placeholder="규정 내용을 입력하세요"
             style={[styles.input, styles.textArea]}
             multiline
-            placeholderTextColor={colors.neutral[400]}
+            placeholderTextColor={tokens.colors.neutral[400]}
           />
         </Card>
 
@@ -49,3 +50,37 @@ export default function ClubRegulationCreateScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 12,
+    color: tokens.colors.neutral[700],
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: tokens.colors.neutral[900],
+    backgroundColor: tokens.colors.white,
+    marginBottom: 12,
+  },
+  textArea: {
+    minHeight: 160,
+    textAlignVertical: 'top',
+  },
+});

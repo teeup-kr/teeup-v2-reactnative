@@ -11,6 +11,7 @@ import NotificationsScreen from './notifications';
 import OverviewScreen from './overview';
 import RecordsScreen from './records';
 import WithdrawScreen from './withdraw';
+import { tokens } from '@/styles/style';
 
 export default function MyPageScreen() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -47,9 +48,9 @@ export default function MyPageScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fafafa' }}>
+    <View style={{ flex: 1, backgroundColor: tokens.colors.neutral[50] }}>
       {/* 상단 SafeArea */}
-      <SafeAreaView edges={['top']} style={{ backgroundColor: '#fafafa' }}>
+      <SafeAreaView edges={['top']} style={{ backgroundColor: tokens.colors.neutral[50] }}>
         <AppHeader />
 
         {/* 탭 영역 */}
@@ -57,7 +58,7 @@ export default function MyPageScreen() {
           style={{
             height: 56,
             justifyContent: 'center',
-            backgroundColor: '#fafafa',
+            backgroundColor: tokens.colors.neutral[50],
           }}
         >
           <ScrollView
@@ -80,14 +81,14 @@ export default function MyPageScreen() {
                     paddingHorizontal: 16,
                     marginRight: 8,
                     borderRadius: 12,
-                    backgroundColor: active ? '#059669' : '#ffffff',
+                    backgroundColor: active ? tokens.colors.emerald[600] : tokens.colors.white,
                   }}
                 >
                   <Text
                     style={{
                       fontSize: 14,
                       fontWeight: '600',
-                      color: active ? '#ffffff' : '#404040',
+                      color: active ? tokens.colors.white : tokens.colors.textStrong,
                     }}
                   >
                     {tab.label}

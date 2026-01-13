@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 useLocalSearchParams,
 useRouter } from 'expo-router';
@@ -35,8 +38,6 @@ import {
   toDateTimeLocalValue,
   validateMeetingTimeWithTeeTimes,
 } from '@/lib/meetingUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/meetings/rounding/create';
 
 const ChipOption = ({ label, selected, onPress }) => (
   <Pressable
@@ -275,7 +276,7 @@ export function RoundingForm({ mode = 'create' }) {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary[600]} />
+            <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
             <Text style={styles.loadingText}>모임 정보를 불러오는 중...</Text>
           </View>
         ) : (
@@ -291,7 +292,7 @@ export function RoundingForm({ mode = 'create' }) {
                   onChangeText={(value) => handleChange('name', value)}
                   placeholder="예: 봄맞이 라운딩"
                   style={[styles.input, fieldErrors.name && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
                 {fieldErrors.name && <Text style={styles.errorText}>{fieldErrors.name}</Text>}
               </View>
@@ -304,7 +305,7 @@ export function RoundingForm({ mode = 'create' }) {
                   placeholder="모임 소개를 입력하세요"
                   style={[styles.input, styles.textArea]}
                   multiline
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
               </View>
 
@@ -315,7 +316,7 @@ export function RoundingForm({ mode = 'create' }) {
                   onChangeText={(value) => handleChange('location', value)}
                   placeholder="예: 서울 강동구"
                   style={[styles.input, fieldErrors.location && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
                 {fieldErrors.location && (
                   <Text style={styles.errorText}>{fieldErrors.location}</Text>
@@ -348,7 +349,7 @@ export function RoundingForm({ mode = 'create' }) {
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>클럽</Text>
                 {clubsLoading ? (
-                  <ActivityIndicator size="small" color={colors.primary[600]} />
+                  <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
                 ) : clubs.length === 0 ? (
                   <Text style={styles.helperText}>가입된 클럽이 없습니다.</Text>
                 ) : (
@@ -380,7 +381,7 @@ export function RoundingForm({ mode = 'create' }) {
                   onChangeText={(value) => handleChange('course_name', value)}
                   placeholder="예: 한강 GC"
                   style={[styles.input, fieldErrors.course_name && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
                 {fieldErrors.course_name && (
                   <Text style={styles.errorText}>{fieldErrors.course_name}</Text>
@@ -394,7 +395,7 @@ export function RoundingForm({ mode = 'create' }) {
                   onChangeText={(value) => handleChange('reservation_name', value)}
                   placeholder="예약자명을 입력하세요"
                   style={[styles.input, fieldErrors.reservation_name && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
                 {fieldErrors.reservation_name && (
                   <Text style={styles.errorText}>{fieldErrors.reservation_name}</Text>
@@ -410,7 +411,7 @@ export function RoundingForm({ mode = 'create' }) {
                     placeholder="18"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.hole_count && styles.inputError]}
-                    placeholderTextColor={colors.neutral[400]}
+                    placeholderTextColor={tokens.colors.neutral[400]}
                   />
                   {fieldErrors.hole_count && (
                     <Text style={styles.errorText}>{fieldErrors.hole_count}</Text>
@@ -423,7 +424,7 @@ export function RoundingForm({ mode = 'create' }) {
                     onChangeText={(value) => handleChange('tee_times', value)}
                     placeholder="예: 09:00, 09:10"
                     style={[styles.input, fieldErrors.tee_times && styles.inputError]}
-                    placeholderTextColor={colors.neutral[400]}
+                    placeholderTextColor={tokens.colors.neutral[400]}
                   />
                   {fieldErrors.tee_times && (
                     <Text style={styles.errorText}>{fieldErrors.tee_times}</Text>
@@ -445,7 +446,7 @@ export function RoundingForm({ mode = 'create' }) {
                     placeholder="예: 16"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.max_participants && styles.inputError]}
-                    placeholderTextColor={colors.neutral[400]}
+                    placeholderTextColor={tokens.colors.neutral[400]}
                   />
                   {fieldErrors.max_participants && (
                     <Text style={styles.errorText}>{fieldErrors.max_participants}</Text>
@@ -459,7 +460,7 @@ export function RoundingForm({ mode = 'create' }) {
                     placeholder="4"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.team_size && styles.inputError]}
-                    placeholderTextColor={colors.neutral[400]}
+                    placeholderTextColor={tokens.colors.neutral[400]}
                   />
                   {fieldErrors.team_size && (
                     <Text style={styles.errorText}>{fieldErrors.team_size}</Text>
@@ -508,7 +509,7 @@ export function RoundingForm({ mode = 'create' }) {
                   placeholder="예: 120000"
                   keyboardType="numeric"
                   style={[styles.input, fieldErrors.green_fee && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
                 {fieldErrors.green_fee && (
                   <Text style={styles.errorText}>{fieldErrors.green_fee}</Text>
@@ -524,7 +525,7 @@ export function RoundingForm({ mode = 'create' }) {
                     placeholder="예: 150000"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.caddy_fee && styles.inputError]}
-                    placeholderTextColor={colors.neutral[400]}
+                    placeholderTextColor={tokens.colors.neutral[400]}
                   />
                   {fieldErrors.caddy_fee && (
                     <Text style={styles.errorText}>{fieldErrors.caddy_fee}</Text>
@@ -538,7 +539,7 @@ export function RoundingForm({ mode = 'create' }) {
                     placeholder="예: 100000"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.cart_fee && styles.inputError]}
-                    placeholderTextColor={colors.neutral[400]}
+                    placeholderTextColor={tokens.colors.neutral[400]}
                   />
                   {fieldErrors.cart_fee && (
                     <Text style={styles.errorText}>{fieldErrors.cart_fee}</Text>
@@ -575,3 +576,112 @@ export default function RoundingCreateScreen() {
   return <RoundingForm mode="create" />;
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: tokens.colors.neutral[600],
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+  },
+  sectionSubtitle: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 12,
+    color: tokens.colors.neutral[700],
+    marginBottom: 6,
+    fontWeight: '600',
+  },
+  helperText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: tokens.colors.neutral[900],
+    backgroundColor: tokens.colors.white,
+    marginBottom: 12,
+  },
+  inputError: {
+    borderColor: tokens.colors.error[500],
+  },
+  textArea: {
+    minHeight: 96,
+    textAlignVertical: 'top',
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  fieldGroup: {
+    marginBottom: 12,
+  },
+  halfField: {
+    flex: 1,
+    marginRight: 12,
+  },
+  halfFieldLast: {
+    marginRight: 0,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    backgroundColor: tokens.colors.white,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  chipActive: {
+    backgroundColor: tokens.colors.primary[50],
+    borderColor: tokens.colors.primary[500],
+  },
+  chipPressed: {
+    opacity: 0.85,
+  },
+  chipText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+  chipTextActive: {
+    color: tokens.colors.primary[700],
+    fontWeight: '600',
+  },
+  errorText: {
+    marginTop: 4,
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+});

@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -13,8 +16,6 @@ import AppFooter from '@/components/layout/AppFooter';
 import AppHeader from '@/components/layout/AppHeader';
 import { homeFeatures } from '@/constants/homeConstants';
 import { useAuth } from '@/context/AuthContext';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/index';
 
 const FeatureCard = ({ title, description, emoji, background, accent }) => {
   return (
@@ -33,7 +34,7 @@ const FeatureCard = ({ title, description, emoji, background, accent }) => {
 export default function HomeScreen() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  const heroGradient = ['#059669', '#0F766E'];
+  const heroGradient = [tokens.colors.emerald[600], tokens.colors.teal[700]];
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -121,3 +122,144 @@ export default function HomeScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.white,
+  },
+  container: {
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  heroSection: {
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+  },
+  heroInner: {
+    alignItems: 'center',
+  },
+  heroLogoWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  heroLogo: {
+    width: 36,
+    height: 36,
+  },
+  heroBrand: {
+    color: tokens.colors.white,
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  heroHeadline: {
+    color: tokens.colors.white,
+    fontSize: 22,
+    fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 28,
+    marginBottom: 12,
+  },
+  heroSubcopy: {
+    color: tokens.colors.emerald[100],
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  heroChecklist: {
+    alignItems: 'center',
+  },
+  heroChecklistText: {
+    color: tokens.colors.emerald[100],
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  contentSection: {
+    backgroundColor: tokens.colors.white,
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+  },
+  pageTitle: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  pageHeadline: {
+    color: tokens.colors.neutral[900],
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  pageSubcopy: {
+    color: tokens.colors.neutral[600],
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  featureList: {
+    marginBottom: 12,
+  },
+  featureCard: {
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  featureIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  featureEmoji: {
+    fontSize: 18,
+  },
+  featureText: {
+    flex: 1,
+  },
+  featureTitle: {
+    color: tokens.colors.neutral[900],
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  featureDescription: {
+    color: tokens.colors.neutral[600],
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  primaryButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  primaryButtonPressed: {
+    opacity: 0.9,
+  },
+  primaryButtonGradient: {
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  primaryButtonText: {
+    color: tokens.colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loginHint: {
+    marginTop: 18,
+    textAlign: 'center',
+    color: tokens.colors.neutral[500],
+    fontSize: 12,
+  },
+  loginHintAccent: {
+    color: tokens.colors.emerald[600],
+    fontWeight: '600',
+  },
+});

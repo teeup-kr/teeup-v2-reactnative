@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
@@ -16,8 +19,6 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubMemberStatusColors } from '@/constants/clubConstants';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/clubs/clubId/members';
 
 export default function ClubMemberManageScreen() {
   const { clubId } = useLocalSearchParams();
@@ -88,7 +89,7 @@ export default function ClubMemberManageScreen() {
         <View style={styles.listCard}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
+              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
               <Text style={styles.stateText}>멤버를 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -103,7 +104,7 @@ export default function ClubMemberManageScreen() {
             normalizedMembers.map((member) => (
               <View key={member.id} style={styles.memberRow}>
                 <View style={styles.avatar}>
-                  <FontAwesome5 name="user" size={14} color={colors.neutral[500]} />
+                  <FontAwesome5 name="user" size={14} color={tokens.colors.neutral[500]} />
                 </View>
                 <View style={styles.memberInfo}>
                   <Text style={styles.memberName}>{member.name}</Text>
@@ -112,7 +113,7 @@ export default function ClubMemberManageScreen() {
                 <View
                   style={[
                     styles.statusBadge,
-                    { backgroundColor: clubMemberStatusColors[member.status] || colors.neutral[400] },
+                    { backgroundColor: clubMemberStatusColors[member.status] || tokens.colors.neutral[400] },
                   ]}
                 >
                   <Text style={styles.statusText}>{member.status}</Text>
@@ -129,3 +130,95 @@ export default function ClubMemberManageScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  summaryCard: {
+    marginBottom: 16,
+  },
+  summaryTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 6,
+  },
+  summaryText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+  listCard: {
+    backgroundColor: tokens.colors.white,
+    borderRadius: 16,
+    paddingVertical: 4,
+  },
+  stateRow: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stateText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+  memberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: tokens.colors.neutral[100],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  memberInfo: {
+    flex: 1,
+  },
+  memberName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: tokens.colors.neutral[800],
+  },
+  memberRole: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+    marginTop: 2,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    marginRight: 8,
+  },
+  statusText: {
+    fontSize: 10,
+    color: tokens.colors.white,
+    fontWeight: '600',
+  },
+  actionButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[200],
+  },
+  actionButtonText: {
+    fontSize: 11,
+    color: tokens.colors.neutral[700],
+  },
+});

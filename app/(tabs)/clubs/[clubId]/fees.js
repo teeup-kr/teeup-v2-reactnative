@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 useLocalSearchParams } from 'expo-router';
 import { useEffect,
@@ -15,8 +18,6 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/clubs/clubId/fees';
 
 export default function ClubFeesScreen() {
   const { clubId } = useLocalSearchParams();
@@ -78,7 +79,7 @@ export default function ClubFeesScreen() {
         <View style={styles.list}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
+              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
               <Text style={styles.stateText}>회비 내역을 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -116,3 +117,68 @@ export default function ClubFeesScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  summaryCard: {
+    marginBottom: 16,
+  },
+  summaryTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: tokens.colors.neutral[700],
+    marginBottom: 6,
+  },
+  summaryValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 4,
+  },
+  summaryHint: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+  },
+  list: {
+    marginBottom: 16,
+  },
+  stateRow: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stateText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+  feeCard: {
+    marginBottom: 12,
+  },
+  feeTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: tokens.colors.neutral[800],
+  },
+  feeAmount: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginTop: 6,
+  },
+  feeStatus: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+    marginTop: 4,
+  },
+});

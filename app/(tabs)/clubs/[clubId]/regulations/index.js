@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams,
@@ -17,8 +20,6 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/clubs/clubId/regulations/index';
 
 export default function ClubRegulationsScreen() {
   const router = useRouter();
@@ -75,7 +76,7 @@ export default function ClubRegulationsScreen() {
         <Card style={styles.listCard}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
+              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
               <Text style={styles.stateText}>규정을 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -94,13 +95,13 @@ export default function ClubRegulationsScreen() {
                 onPress={() => router.push(`/clubs/${resolvedId || clubId}/regulations/${item.id}`)}
               >
                 <View style={styles.listIcon}>
-                  <FontAwesome5 name="file-alt" size={14} color={colors.primary[600]} />
+                  <FontAwesome5 name="file-alt" size={14} color={tokens.colors.primary[600]} />
                 </View>
                 <View style={styles.listInfo}>
                   <Text style={styles.listTitle}>{item.title}</Text>
                   <Text style={styles.listDate}>업데이트: {item.updated}</Text>
                 </View>
-                <FontAwesome5 name="chevron-right" size={12} color={colors.neutral[400]} />
+                <FontAwesome5 name="chevron-right" size={12} color={tokens.colors.neutral[400]} />
               </Pressable>
             ))
           )}
@@ -110,3 +111,68 @@ export default function ClubRegulationsScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+  listCard: {
+    paddingVertical: 4,
+  },
+  stateRow: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stateText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+  listRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  listIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: tokens.colors.primary[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  listInfo: {
+    flex: 1,
+  },
+  listTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: tokens.colors.neutral[800],
+  },
+  listDate: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+    marginTop: 2,
+  },
+});

@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
@@ -12,8 +15,6 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/profile/complete';
 
 export default function ProfileCompleteScreen() {
   const [form, setForm] = useState({
@@ -34,7 +35,7 @@ export default function ProfileCompleteScreen() {
       <ScreenHeader title="프로필 완성" />
       <ScrollView contentContainerStyle={styles.container}>
         <LinearGradient
-          colors={['#059669', '#0F766E']}
+          colors={[tokens.colors.emerald[600], tokens.colors.teal[700]]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.hero}
@@ -99,3 +100,50 @@ export default function ProfileCompleteScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  hero: {
+    borderRadius: 18,
+    padding: 20,
+    marginBottom: 16,
+  },
+  heroTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.white,
+    marginBottom: 8,
+  },
+  heroSubtitle: {
+    fontSize: 12,
+    color: tokens.colors.emerald[100],
+    lineHeight: 18,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 12,
+  },
+  tipBox: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: tokens.colors.primary[50],
+  },
+  tipText: {
+    fontSize: 12,
+    color: tokens.colors.primary[700],
+  },
+  saveButton: {
+    marginTop: 8,
+  },
+});

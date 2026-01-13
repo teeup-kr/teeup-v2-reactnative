@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -18,8 +21,6 @@ View,
 
 import Card from '@/components/ui/Card';
 import { roundsApi, usersApi } from '@/lib/api';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/mypage/records';
 
 /**
  * RecordsTab (React Native)
@@ -93,9 +94,9 @@ const RoundingStatsCard = ({ stats, isLoading, error }) => {
       value: `${asNumber(stats?.total_games, 0)}`,
       unit: '경기',
       icon: 'history',
-      color: colors.primary?.[700] ?? colors.primary[600],
-      bg: colors.primary?.[50] ?? colors.neutral[50],
-      border: colors.primary?.[200] ?? colors.neutral[200],
+      color: tokens.colors.primary?.[700] ?? tokens.colors.primary[600],
+      bg: tokens.colors.primary?.[50] ?? tokens.colors.neutral[50],
+      border: tokens.colors.primary?.[200] ?? tokens.colors.neutral[200],
     },
     {
       id: 'average',
@@ -106,9 +107,9 @@ const RoundingStatsCard = ({ stats, isLoading, error }) => {
           : '-',
       unit: '',
       icon: 'chart-line',
-      color: colors.neutral[800],
-      bg: colors.neutral[50],
-      border: colors.neutral[200],
+      color: tokens.colors.neutral[800],
+      bg: tokens.colors.neutral[50],
+      border: tokens.colors.neutral[200],
     },
     {
       id: 'recent5',
@@ -119,9 +120,9 @@ const RoundingStatsCard = ({ stats, isLoading, error }) => {
           : '-',
       unit: '',
       icon: 'trophy',
-      color: colors.neutral[800],
-      bg: colors.neutral[50],
-      border: colors.neutral[200],
+      color: tokens.colors.neutral[800],
+      bg: tokens.colors.neutral[50],
+      border: tokens.colors.neutral[200],
     },
     {
       id: 'best-worst',
@@ -135,9 +136,9 @@ const RoundingStatsCard = ({ stats, isLoading, error }) => {
           : '-',
       unit: '',
       icon: 'medal',
-      color: colors.neutral[800],
-      bg: colors.neutral[50],
-      border: colors.neutral[200],
+      color: tokens.colors.neutral[800],
+      bg: tokens.colors.neutral[50],
+      border: tokens.colors.neutral[200],
     },
   ];
 
@@ -274,7 +275,7 @@ const SimpleScoreInputModal = ({
               ]}
               disabled={isSubmitting}
             >
-              <FontAwesome5 name="times" size={18} color={colors.neutral[500]} />
+              <FontAwesome5 name="times" size={18} color={tokens.colors.neutral[500]} />
             </Pressable>
           </View>
 
@@ -293,7 +294,7 @@ const SimpleScoreInputModal = ({
 
             {/* Score input */}
             <Text style={styles.fieldLabel}>
-              라운딩 스코어 <Text style={{ color: colors.error[600] }}>*</Text>
+              라운딩 스코어 <Text style={{ color: tokens.colors.error[600] }}>*</Text>
             </Text>
             <TextInput
               value={grossScore}
@@ -378,7 +379,7 @@ const SimpleScoreInputModal = ({
               >
                 {isSubmitting ? (
                   <View style={styles.inlineRow}>
-                    <ActivityIndicator size="small" color={colors.white} />
+                    <ActivityIndicator size="small" color={tokens.colors.white} />
                     <Text style={styles.modalBtnPrimaryText}>저장 중...</Text>
                   </View>
                 ) : (
@@ -409,13 +410,13 @@ const ComingSoonModal = ({ visible, onClose }) => {
               onPress={onClose}
               style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}
             >
-              <FontAwesome5 name="times" size={18} color={colors.neutral[500]} />
+              <FontAwesome5 name="times" size={18} color={tokens.colors.neutral[500]} />
             </Pressable>
           </View>
 
           <View style={[styles.modalBody, { paddingBottom: 18 }]}>
             <View style={{ alignItems: 'center', marginBottom: 12 }}>
-              <FontAwesome5 name="golf-ball" size={40} color={colors.neutral[400]} />
+              <FontAwesome5 name="golf-ball" size={40} color={tokens.colors.neutral[400]} />
             </View>
             <Text style={styles.comingSoonTitle}>이 기능은 현재 준비중입니다</Text>
             <Text style={styles.comingSoonSub}>상세 점수 입력 기능은 곧 제공될 예정입니다.</Text>
@@ -657,7 +658,7 @@ export default function RecordsTab() {
                 ]}
               >
                 <View style={styles.inlineRow}>
-                  <FontAwesome5 name="golf-ball" size={14} color={colors.white} />
+                  <FontAwesome5 name="golf-ball" size={14} color={tokens.colors.white} />
                   <Text style={styles.primaryBtnText}>점수 입력</Text>
                 </View>
               </Pressable>
@@ -685,7 +686,7 @@ export default function RecordsTab() {
                   <FontAwesome5
                     name="edit"
                     size={14}
-                    color={colors.neutral[700]}
+                    color={tokens.colors.neutral[700]}
                   />
                   <Text style={styles.outlineBtnText}>수정</Text>
                 </View>
@@ -711,7 +712,7 @@ export default function RecordsTab() {
     return (
       <View style={styles.safeArea}>
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color={colors.primary[600]} />
+          <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
           <Text style={styles.centerText}>로딩 중...</Text>
         </View>
       </View>
@@ -727,7 +728,7 @@ export default function RecordsTab() {
       <View style={styles.safeArea}>
         <Card style={styles.errorCard}>
           <View style={{ alignItems: 'center', gap: 10 }}>
-            <FontAwesome5 name="times" size={36} color={colors.error[600]} />
+            <FontAwesome5 name="times" size={36} color={tokens.colors.error[600]} />
             <Text style={styles.errorTitle}>기록 정보를 불러오는데 실패했습니다.</Text>
             <Text style={styles.errorSub}>{message}</Text>
           </View>
@@ -835,7 +836,7 @@ export default function RecordsTab() {
           <View style={{ marginTop: 6 }}>
             <View style={styles.sectionHeaderRow}>
               <View style={styles.inlineRow}>
-                <FontAwesome5 name="exclamation-circle" size={16} color={colors.error[600]} />
+                <FontAwesome5 name="exclamation-circle" size={16} color={tokens.colors.error[600]} />
                 <Text style={styles.sectionTitle}>점수 입력 대기</Text>
               </View>
               <View style={styles.badgeRed}>
@@ -854,7 +855,7 @@ export default function RecordsTab() {
           <View style={{ marginTop: 10 }}>
             <View style={styles.sectionHeaderRow}>
               <View style={styles.inlineRow}>
-                <FontAwesome5 name="check-circle" size={16} color={colors.success?.[600] ?? '#059669'} />
+                <FontAwesome5 name="check-circle" size={16} color={tokens.colors.success?.[600] ?? tokens.colors.emerald[600]} />
                 <Text style={styles.sectionTitle}>기록 내역</Text>
               </View>
             </View>
@@ -868,7 +869,7 @@ export default function RecordsTab() {
         {/* Empty */}
         {showEmpty && (
           <Card style={styles.emptyCard}>
-            <FontAwesome5 name="golf-ball" size={32} color={colors.neutral[400]} />
+            <FontAwesome5 name="golf-ball" size={32} color={tokens.colors.neutral[400]} />
             <Text style={styles.emptyText}>
               {scoreStatus === 'missing'
                 ? '점수 입력이 필요한 모임이 없습니다.'
@@ -914,7 +915,7 @@ export default function RecordsTab() {
 
         {loading && meetings.length > 0 && (
           <View style={styles.stateRow}>
-            <ActivityIndicator size="small" color={colors.primary[600]} />
+            <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
             <Text style={styles.stateText}>불러오는 중...</Text>
           </View>
         )}
@@ -948,3 +949,538 @@ export default function RecordsTab() {
    Styles
 ========================= */
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 28,
+  },
+
+  /* Center states */
+  centerBox: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    padding: 16,
+  },
+  centerText: {
+    fontSize: 13,
+    color: tokens.colors.neutral[600],
+  },
+
+  /* Stats */
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 14,
+  },
+  statCard: {
+    width: '48%',
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 12,
+  },
+  statCardSkeleton: {
+    backgroundColor: tokens.colors.neutral[100],
+    borderColor: tokens.colors.neutral[200],
+    height: 88,
+  },
+  statHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 10,
+  },
+  statLabel: {
+    fontSize: 11,
+    color: tokens.colors.neutral[600],
+    fontWeight: '600',
+  },
+  statValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  statUnit: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  statsErrorCard: {
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: tokens.colors.error[200],
+    backgroundColor: tokens.colors.error[50],
+  },
+  statsErrorText: {
+    fontSize: 12,
+    color: tokens.colors.error[700],
+  },
+  statsEmptyCard: {
+    marginBottom: 12,
+    backgroundColor: tokens.colors.neutral[50],
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[200],
+    alignItems: 'center',
+    paddingVertical: 18,
+  },
+  statsEmptyText: {
+    fontSize: 13,
+    color: tokens.colors.neutral[600],
+    fontWeight: '600',
+  },
+
+  /* Filter row */
+  filterRow: {
+    gap: 8,
+    paddingBottom: 6,
+    marginBottom: 6,
+  },
+  filterBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  filterBtnNormal: {
+    backgroundColor: tokens.colors.white,
+    borderColor: tokens.colors.neutral[300],
+  },
+  filterBtnActive: {
+    backgroundColor: tokens.colors.primary[600],
+    borderColor: tokens.colors.primary[600],
+  },
+  filterBtnDangerActive: {
+    backgroundColor: tokens.colors.error[600],
+    borderColor: tokens.colors.error[600],
+  },
+  filterBtnSuccessActive: {
+    backgroundColor: tokens.colors.emerald[600],
+    borderColor: tokens.colors.emerald[600],
+  },
+  filterBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  filterBtnTextNormal: {
+    color: tokens.colors.neutral[700],
+  },
+  filterBtnTextActive: {
+    color: tokens.colors.white,
+  },
+
+  /* Section headers */
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    marginTop: 6,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: tokens.colors.neutral[900],
+    marginLeft: 6,
+  },
+  badgeRed: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: tokens.colors.error[100],
+  },
+  badgeRedText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: tokens.colors.error[700],
+  },
+
+  /* Meeting card */
+  meetingBox: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 14,
+    backgroundColor: tokens.colors.white,
+  },
+  meetingMissing: {
+    borderColor: tokens.colors.error[200],
+    backgroundColor: tokens.colors.error[50],
+  },
+  meetingCompleted: {
+    borderColor: tokens.colors.neutral[200],
+    backgroundColor: tokens.colors.white,
+  },
+  meetingTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: tokens.colors.neutral[900],
+    marginBottom: 4,
+  },
+  meetingClub: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    marginBottom: 8,
+  },
+  meetingDatesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 6,
+  },
+  meetingDateText: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+  },
+  meetingDot: {
+    fontSize: 11,
+    color: tokens.colors.neutral[400],
+  },
+
+  scoreRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+  },
+  scoreLabel: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+    fontWeight: '700',
+    marginBottom: 3,
+  },
+  scoreValue: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: tokens.colors.neutral[900],
+  },
+  handicapGreen: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: tokens.colors.emerald[600],
+  },
+
+  cardBtnRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  primaryBtn: {
+    flex: 1,
+    borderRadius: 12,
+    backgroundColor: tokens.colors.primary[600],
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryBtnText: {
+    color: tokens.colors.white,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  outlineBtn: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: tokens.colors.neutral[300],
+    backgroundColor: tokens.colors.white,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  outlineBtnText: {
+    color: tokens.colors.neutral[700],
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  softPrimaryBtn: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: tokens.colors.primary[200],
+    backgroundColor: tokens.colors.primary[50],
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  softPrimaryBtnText: {
+    color: tokens.colors.primary[700],
+    fontSize: 12,
+    fontWeight: '800',
+  },
+
+  /* Empty */
+  emptyCard: {
+    marginTop: 14,
+    alignItems: 'center',
+    paddingVertical: 26,
+    gap: 10,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: tokens.colors.neutral[600],
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+
+  /* Pagination */
+  paginationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 14,
+  },
+  pageBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    backgroundColor: tokens.colors.white,
+  },
+  pageBtnDisabled: {
+    opacity: 0.5,
+  },
+  pageBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: tokens.colors.neutral[700],
+  },
+  paginationText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    fontWeight: '700',
+  },
+
+  stateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+  },
+  stateText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+
+  /* Error */
+  errorCard: {
+    margin: 16,
+    borderWidth: 1,
+    borderColor: tokens.colors.error[200],
+    backgroundColor: tokens.colors.white,
+    paddingVertical: 22,
+  },
+  errorTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: tokens.colors.error[700],
+    textAlign: 'center',
+  },
+  errorSub: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    textAlign: 'center',
+  },
+
+  /* Modal common */
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    padding: 14,
+    justifyContent: 'center',
+  },
+  modalSheet: {
+    backgroundColor: tokens.colors.white,
+    borderRadius: 18,
+    overflow: 'hidden',
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: tokens.colors.neutral[200],
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: tokens.colors.neutral[900],
+  },
+  iconBtn: {
+    padding: 8,
+    borderRadius: 10,
+  },
+  modalBody: {
+    padding: 16,
+  },
+
+  handicapBox: {
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[200],
+    backgroundColor: tokens.colors.neutral[50],
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  handicapLabel: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    fontWeight: '700',
+  },
+  handicapValue: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: tokens.colors.neutral[900],
+  },
+
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: tokens.colors.neutral[700],
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+  },
+  inputNormal: {
+    borderColor: tokens.colors.neutral[300],
+    backgroundColor: tokens.colors.white,
+  },
+  inputError: {
+    borderColor: tokens.colors.error[300],
+    backgroundColor: tokens.colors.error[50],
+  },
+  errorText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: tokens.colors.error[700],
+    fontWeight: '700',
+  },
+
+  previewBox: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: tokens.colors.primary[200],
+    backgroundColor: tokens.colors.primary[50],
+    borderRadius: 14,
+    padding: 12,
+  },
+  previewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  previewLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: tokens.colors.primary[700],
+  },
+  previewValue: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: tokens.colors.primary[900] ?? tokens.colors.primary[700],
+  },
+  previewHint: {
+    marginTop: 8,
+    fontSize: 11,
+    color: tokens.colors.primary[700],
+    lineHeight: 16,
+    fontWeight: '600',
+  },
+
+  submitErrorBox: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: tokens.colors.error[300],
+    backgroundColor: tokens.colors.error[50],
+    borderRadius: 12,
+    padding: 10,
+  },
+  submitErrorText: {
+    fontSize: 12,
+    color: tokens.colors.error[700],
+    fontWeight: '700',
+  },
+
+  modalBtnRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
+  modalBtn: {
+    flex: 1,
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBtnOutline: {
+    borderWidth: 2,
+    borderColor: tokens.colors.neutral[300],
+    backgroundColor: tokens.colors.white,
+  },
+  modalBtnOutlineText: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: tokens.colors.neutral[700],
+  },
+  modalBtnPrimary: {
+    backgroundColor: tokens.colors.primary[600],
+  },
+  modalBtnPrimaryText: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: tokens.colors.white,
+  },
+  inlineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+
+  comingSoonTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: tokens.colors.neutral[800],
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  comingSoonSub: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    textAlign: 'center',
+    marginBottom: 14,
+    fontWeight: '600',
+  },
+  fullPrimaryBtn: {
+    marginTop: 6,
+    backgroundColor: tokens.colors.primary[600],
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  fullPrimaryBtnText: {
+    color: tokens.colors.white,
+    fontSize: 14,
+    fontWeight: '900',
+  },
+});

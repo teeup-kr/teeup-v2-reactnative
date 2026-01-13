@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -16,8 +19,6 @@ import { noticeCategoryLabel } from '@/constants/noticesConstants';
 import { noticesApi } from '@/lib/api';
 import { normalizeNotice } from '@/lib/noticeUtils';
 import { extractList } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/notices/index';
 
 export default function NoticeListScreen() {
   const router = useRouter();
@@ -74,7 +75,7 @@ export default function NoticeListScreen() {
                 </View>
                 {notice.important ? (
                   <View style={styles.importantBadge}>
-                    <FontAwesome5 name="exclamation-circle" size={10} color={colors.error[600]} />
+                    <FontAwesome5 name="exclamation-circle" size={10} color={tokens.colors.error[600]} />
                     <Text style={styles.importantText}>중요</Text>
                   </View>
                 ) : null}
@@ -94,3 +95,97 @@ export default function NoticeListScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    marginBottom: 12,
+  },
+  noticeCard: {
+    backgroundColor: tokens.colors.white,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+  },
+  noticeCardPressed: {
+    backgroundColor: tokens.colors.neutral[100],
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: tokens.colors.primary[50],
+  },
+  badgeText: {
+    fontSize: 11,
+    color: tokens.colors.primary[700],
+    fontWeight: '600',
+  },
+  importantBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: tokens.colors.error[50],
+  },
+  importantText: {
+    fontSize: 11,
+    color: tokens.colors.error[600],
+    marginLeft: 4,
+    fontWeight: '600',
+  },
+  noticeTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 6,
+  },
+  noticeSummary: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    marginBottom: 8,
+  },
+  noticeDate: {
+    fontSize: 11,
+    color: tokens.colors.neutral[400],
+  },
+  infoCard: {
+    marginTop: 8,
+  },
+  infoTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 6,
+  },
+  infoText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+  loadingCard: {
+    marginBottom: 12,
+  },
+  loadingText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+});

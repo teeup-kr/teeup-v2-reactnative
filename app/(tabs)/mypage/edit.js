@@ -1,6 +1,9 @@
+import { StyleSheet } from 'react-native';
+
 import { FontAwesome5 } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useMemo, useState } from 'react';
+import { tokens } from '@/styles/style';
 import {
   Platform,
   Pressable,
@@ -9,7 +12,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import styles from '@/styles/screens/tabs/mypage/edit';
 
 /* ===========================
    유틸
@@ -115,7 +117,7 @@ export default function UserProfileEditForm({
                     handleInputChange('nickname', t)
                   }
                   placeholder="닉네임을 입력하세요"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={tokens.colors.gray[400]}
                   style={[
                     styles.input,
                     errors.nickname
@@ -210,7 +212,7 @@ export default function UserProfileEditForm({
                   );
                 }}
                 placeholder="실명을 입력하세요"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={tokens.colors.gray[400]}
                 style={[
                   styles.input,
                   errors.realname
@@ -239,7 +241,7 @@ export default function UserProfileEditForm({
                   handleInputChange('phone_number', t)
                 }
                 placeholder="전화번호를 입력하세요"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={tokens.colors.gray[400]}
                 style={[
                   styles.input,
                   errors.phone_number
@@ -361,7 +363,7 @@ export default function UserProfileEditForm({
                       handleInputChange('average_score', t)
                     }
                     placeholder="평균 타수를 입력하세요 (55-144)"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={tokens.colors.gray[400]}
                     style={[
                       styles.input,
                       errors.average_score
@@ -523,7 +525,7 @@ export default function UserProfileEditForm({
                   styles.btnPressed,
               ]}
             >
-              <FontAwesome5 name="save" size={14} color="#fff" />
+              <FontAwesome5 name="save" size={14} color={tokens.colors.white} />
               <Text style={styles.saveBtnText}>
                 {updateProfilePending ? '저장 중...' : '저장'}
               </Text>
@@ -559,7 +561,7 @@ export default function UserProfileEditForm({
                 : 'check-circle'
             }
             size={16}
-            color="#fff"
+            color={tokens.colors.white}
           />
           <Text style={styles.toastText}>
             {toast.message}
@@ -569,3 +571,179 @@ export default function UserProfileEditForm({
     </View>
   );
 }
+
+const PRIMARY_600 = tokens.colors.green[600];
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: tokens.colors.bg },
+  container: { padding: 16, paddingBottom: 24 },
+
+  card: {
+    backgroundColor: tokens.colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
+    padding: 16,
+    shadowColor: tokens.colors.black,
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.text,
+    marginBottom: 16,
+  },
+
+  stackLg: { gap: 18 },
+  stackSm: { gap: 8 },
+  rowGap: { flexDirection: 'row', gap: 8 },
+
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: tokens.colors.textMuted,
+    marginBottom: 8,
+  },
+  labelIcon: { marginRight: 8, color: tokens.colors.textMuted },
+  required: { color: tokens.colors.red[500] },
+
+  input: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    borderWidth: 1,
+    borderRadius: 12,
+    backgroundColor: tokens.colors.white,
+  },
+  inputLike: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderRadius: 12,
+    backgroundColor: tokens.colors.white,
+  },
+  inputLikeText: { fontSize: 15, color: tokens.colors.text },
+  inputPressed: { opacity: 0.9 },
+
+  inputNormal: { borderColor: tokens.colors.inputBorder },
+  inputError: {
+    borderColor: tokens.colors.red[300],
+    backgroundColor: tokens.colors.red[50],
+  },
+
+  readonlyBox: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: tokens.colors.bg,
+    borderWidth: 1,
+    borderColor: tokens.colors.inputBorder,
+    borderRadius: 12,
+  },
+  readonlyText: { color: tokens.colors.textMuted, fontSize: 15 },
+
+  helperText: { marginTop: 6, fontSize: 12, color: tokens.colors.textSubtle },
+  loadingText: { color: tokens.colors.textSubtle },
+
+  errorText: { marginTop: 6, color: tokens.colors.red[600], fontSize: 13 },
+  successText: { marginTop: 6, color: tokens.colors.green[600], fontSize: 13 },
+
+  primaryBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: PRIMARY_600,
+    justifyContent: 'center',
+  },
+  primaryBtnText: {
+    color: tokens.colors.white,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  grayBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: tokens.colors.gray[100],
+    alignSelf: 'flex-start',
+  },
+  grayBtnText: {
+    color: tokens.colors.textMuted,
+    fontWeight: '700',
+    fontSize: 12,
+  },
+
+  btnDisabled: { opacity: 0.5 },
+  btnPressed: { transform: [{ scale: 0.98 }] },
+
+  infoBox: {
+    marginTop: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: tokens.colors.green[200],
+    backgroundColor: tokens.colors.green[50],
+    padding: 12,
+  },
+  infoTitle: { fontWeight: '800', color: tokens.colors.green[800] },
+  infoSub: { fontSize: 11, color: tokens.colors.green[600], marginTop: 4 },
+
+  autoBox: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: tokens.colors.green[200],
+    backgroundColor: tokens.colors.green[50],
+    padding: 12,
+  },
+  autoTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  autoTitle: { fontWeight: '800', color: tokens.colors.green[900] },
+  autoSub: { fontSize: 11, color: tokens.colors.green[700] },
+  autoHint: { fontSize: 11, color: tokens.colors.green[600], marginTop: 4 },
+
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: PRIMARY_600,
+  },
+  badgeText: { color: tokens.colors.white, fontSize: 11, fontWeight: '800' },
+
+  footer: {
+    marginTop: 18,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: tokens.colors.border,
+    alignItems: 'flex-end',
+  },
+  saveBtn: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: PRIMARY_600,
+    alignItems: 'center',
+  },
+  saveBtnText: { color: tokens.colors.white, fontWeight: '800', fontSize: 12 },
+
+  toast: {
+    position: 'absolute',
+    top: 24,
+    right: 16,
+    flexDirection: 'row',
+    gap: 10,
+    padding: 14,
+    borderRadius: 14,
+    elevation: 8,
+  },
+  toastError: { backgroundColor: tokens.colors.red[600] },
+  toastInfo: { backgroundColor: tokens.colors.blue[600] },
+  toastSuccess: { backgroundColor: tokens.colors.green[600] },
+  toastText: { color: tokens.colors.white, fontWeight: '800' },
+});

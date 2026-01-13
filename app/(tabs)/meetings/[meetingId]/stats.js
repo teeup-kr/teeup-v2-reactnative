@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 useLocalSearchParams } from 'expo-router';
 import { useEffect,
@@ -13,8 +16,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/meetings/meetingId/stats';
 
 export default function MeetingStatsScreen() {
   const { meetingId } = useLocalSearchParams();
@@ -90,7 +91,7 @@ export default function MeetingStatsScreen() {
         {isLoading ? (
           <Card style={styles.stateCard}>
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
+              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
               <Text style={styles.stateText}>통계를 불러오는 중...</Text>
             </View>
           </Card>
@@ -120,3 +121,83 @@ export default function MeetingStatsScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  summaryCard: {
+    marginBottom: 16,
+  },
+  summaryTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: tokens.colors.neutral[700],
+    marginBottom: 6,
+  },
+  summaryHint: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  statCard: {
+    width: '48%',
+    marginBottom: 12,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    marginBottom: 6,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+  },
+  chartCard: {
+    marginTop: 4,
+  },
+  chartTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 12,
+  },
+  chartPlaceholder: {
+    height: 160,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[200],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chartText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  stateCard: {
+    marginBottom: 12,
+  },
+  stateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stateText: {
+    marginLeft: 8,
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+});

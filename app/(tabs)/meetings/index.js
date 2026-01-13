@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -36,8 +39,6 @@ import {
   getMeetingTypeBadgeConfig,
   parseYmd,
 } from '@/lib/meetingUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/meetings/index';
 
 const Badge = ({ text, backgroundColor, textColor }) => (
   <View style={[styles.badge, { backgroundColor }]}>
@@ -120,21 +121,21 @@ const MeetingCard = ({ meeting, onPress }) => {
 
         <View style={styles.metaList}>
           <View style={styles.metaItem}>
-            <FontAwesome5 name="calendar-alt" size={12} color={colors.neutral[500]} />
+            <FontAwesome5 name="calendar-alt" size={12} color={tokens.colors.neutral[500]} />
             <Text style={styles.metaText} numberOfLines={1}>
               {formatMeetingTime(meeting?.meeting_time)}
             </Text>
           </View>
           {meeting?.location ? (
             <View style={styles.metaItem}>
-              <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
+              <FontAwesome5 name="map-marker-alt" size={12} color={tokens.colors.neutral[500]} />
               <Text style={styles.metaText} numberOfLines={1}>
                 {meeting.location}
               </Text>
             </View>
           ) : null}
           <View style={styles.metaItem}>
-            <FontAwesome5 name="users" size={12} color={colors.neutral[500]} />
+            <FontAwesome5 name="users" size={12} color={tokens.colors.neutral[500]} />
             <Text style={styles.metaText}>
               {meeting?.participant_count ?? 0}
               {maxParticipants ? `/${maxParticipants}` : ''}명
@@ -142,7 +143,7 @@ const MeetingCard = ({ meeting, onPress }) => {
           </View>
           {meeting?.application_deadline ? (
             <View style={styles.metaItem}>
-              <FontAwesome5 name="clock" size={12} color={colors.neutral[500]} />
+              <FontAwesome5 name="clock" size={12} color={tokens.colors.neutral[500]} />
               <Text style={styles.metaText} numberOfLines={1}>
                 참가 신청 마감: {formatMeetingTime(meeting.application_deadline)}
               </Text>
@@ -162,7 +163,7 @@ const MeetingCard = ({ meeting, onPress }) => {
             ) : null}
             {meeting?.total_cost ? (
               <View style={styles.metaItem}>
-                <FontAwesome5 name="dollar-sign" size={12} color={colors.neutral[500]} />
+                <FontAwesome5 name="dollar-sign" size={12} color={tokens.colors.neutral[500]} />
                 <Text style={styles.metaText}>총 비용: {formatCost(meeting.total_cost)}</Text>
               </View>
             ) : null}
@@ -172,7 +173,7 @@ const MeetingCard = ({ meeting, onPress }) => {
         {meetingType === 'SOCIAL' && meeting?.social_cost ? (
           <View style={styles.extraList}>
             <View style={styles.metaItem}>
-              <FontAwesome5 name="dollar-sign" size={12} color={colors.neutral[500]} />
+              <FontAwesome5 name="dollar-sign" size={12} color={tokens.colors.neutral[500]} />
               <Text style={styles.metaText}>참가 비용(원): {formatCost(meeting.social_cost)}</Text>
             </View>
           </View>
@@ -458,7 +459,7 @@ export default function MeetingsScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.stateContainer}>
-          <ActivityIndicator size="large" color={colors.primary[600]} />
+          <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
         </View>
       </SafeAreaView>
     );
@@ -489,11 +490,11 @@ export default function MeetingsScreen() {
 
         {loading ? (
           <View style={styles.loadingBlock}>
-            <ActivityIndicator size="large" color={colors.primary[600]} />
+            <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
           </View>
         ) : !hasClubs ? (
           <View style={styles.noClubState}>
-            <FontAwesome5 name="users" size={52} color={colors.neutral[300]} />
+            <FontAwesome5 name="users" size={52} color={tokens.colors.neutral[300]} />
             <Text style={styles.noClubTitle}>소속된 클럽이 없습니다.</Text>
             <Text style={styles.noClubSubtitle}>
               모임을 개설하거나 참여하려면,{'\n'}먼저 클럽을 개설하거나, 클럽에 가입해 주세요.
@@ -515,7 +516,7 @@ export default function MeetingsScreen() {
                     pressed && styles.createButtonPressed,
                   ]}
                 >
-                  <FontAwesome5 name="plus" size={12} color={colors.white} />
+                  <FontAwesome5 name="plus" size={12} color={tokens.colors.white} />
                   <Text style={styles.createButtonText}>라운딩 생성</Text>
                 </Pressable>
                 <Pressable
@@ -526,7 +527,7 @@ export default function MeetingsScreen() {
                     pressed && styles.createButtonPressed,
                   ]}
                 >
-                  <FontAwesome5 name="plus" size={12} color={colors.white} />
+                  <FontAwesome5 name="plus" size={12} color={tokens.colors.white} />
                   <Text style={styles.createButtonText}>소셜 생성</Text>
                 </Pressable>
               </View>
@@ -598,7 +599,7 @@ export default function MeetingsScreen() {
 
               <View style={styles.searchRow}>
                 <View style={styles.searchInputWrap}>
-                  <FontAwesome5 name="search" size={14} color={colors.neutral[400]} />
+                  <FontAwesome5 name="search" size={14} color={tokens.colors.neutral[400]} />
                   <TextInput
                     value={searchInput}
                     onChangeText={(value) => {
@@ -609,7 +610,7 @@ export default function MeetingsScreen() {
                       }
                     }}
                     placeholder="모임명으로 검색..."
-                    placeholderTextColor={colors.neutral[400]}
+                    placeholderTextColor={tokens.colors.neutral[400]}
                     style={styles.searchInput}
                     returnKeyType="search"
                     onSubmitEditing={handleSearch}
@@ -665,7 +666,7 @@ export default function MeetingsScreen() {
 
             {currentMeetings.length === 0 ? (
               <View style={styles.emptyState}>
-                <FontAwesome5 name="calendar-alt" size={44} color={colors.neutral[300]} />
+                <FontAwesome5 name="calendar-alt" size={44} color={tokens.colors.neutral[300]} />
                 {hasActiveFilters() ? (
                   <>
                     <Text style={styles.emptyTitle}>
@@ -791,3 +792,384 @@ export default function MeetingsScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.white,
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 24,
+  },
+  stateContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingBlock: {
+    paddingVertical: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noClubState: {
+    paddingVertical: 48,
+    alignItems: 'center',
+  },
+  noClubTitle: {
+    marginTop: 16,
+    fontSize: 18,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+  },
+  noClubSubtitle: {
+    marginTop: 10,
+    marginBottom: 16,
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 12,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+  },
+  createRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+  },
+  createButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  createButtonPressed: {
+    opacity: 0.9,
+  },
+  createButtonRounding: {
+    backgroundColor: tokens.colors.primary[600],
+  },
+  createButtonSocial: {
+    backgroundColor: tokens.colors.accent[600],
+  },
+  createButtonText: {
+    color: tokens.colors.white,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  tabBar: {
+    borderBottomWidth: 1,
+    borderBottomColor: tokens.colors.neutral[200],
+    marginBottom: 16,
+  },
+  tabBarRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  tabButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    marginRight: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabButtonActive: {
+    borderBottomColor: tokens.colors.primary[500],
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: tokens.colors.neutral[500],
+  },
+  tabTextActive: {
+    color: tokens.colors.primary[600],
+  },
+  filtersBlock: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dateField: {
+    flex: 1,
+  },
+  dateInput: {
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    backgroundColor: tokens.colors.white,
+  },
+  dateInputText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[900],
+    fontWeight: '600',
+  },
+  dateInputPlaceholder: {
+    color: tokens.colors.neutral[400],
+    fontWeight: '500',
+  },
+  dateDivider: {
+    color: tokens.colors.neutral[500],
+    fontSize: 12,
+  },
+  resetButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  resetButtonText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    fontWeight: '600',
+  },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  searchInputWrap: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 12,
+    color: tokens.colors.neutral[900],
+  },
+  searchButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: tokens.colors.primary[600],
+  },
+  searchButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: tokens.colors.white,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  statusButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  statusButtonActive: {
+    backgroundColor: tokens.colors.primary[600],
+  },
+  statusButtonInactive: {
+    backgroundColor: tokens.colors.neutral[100],
+  },
+  statusButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: tokens.colors.neutral[700],
+  },
+  statusButtonTextActive: {
+    color: tokens.colors.white,
+  },
+  statusDivider: {
+    fontSize: 12,
+    color: tokens.colors.neutral[400],
+  },
+  emptyState: {
+    paddingVertical: 48,
+    alignItems: 'center',
+  },
+  emptyTitle: {
+    marginTop: 16,
+    fontSize: 15,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  emptySubtitle: {
+    marginTop: 8,
+    marginBottom: 16,
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    lineHeight: 18,
+  },
+  emptyCreateButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  emptyCreateButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: tokens.colors.white,
+  },
+  cardList: {
+    marginTop: 4,
+  },
+  cardPressable: {
+    marginBottom: 12,
+  },
+  cardPressed: {
+    opacity: 0.96,
+  },
+  card: {
+    padding: 16,
+    borderRadius: 12,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 10,
+  },
+  cardTitleArea: {
+    flex: 1,
+    minWidth: 0,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+  },
+  cardSubtitle: {
+    marginTop: 2,
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  cardBadgeRow: {
+    alignItems: 'flex-end',
+    gap: 6,
+  },
+  statusBadgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+    gap: 6,
+  },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  cardDescription: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  metaList: {
+    gap: 6,
+    marginBottom: 12,
+  },
+  extraList: {
+    gap: 6,
+    marginBottom: 12,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  golfEmoji: {
+    fontSize: 12,
+  },
+  metaText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    flex: 1,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  cardDate: {
+    fontSize: 11,
+    color: tokens.colors.neutral[400],
+  },
+  cardLink: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: tokens.colors.primary[600],
+  },
+  paginationRow: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  pageNavButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: tokens.colors.neutral[100],
+  },
+  pageNavButtonDisabled: {
+    opacity: 0.5,
+  },
+  pageNavText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: tokens.colors.neutral[700],
+  },
+  pageNumbersRow: {
+    flexDirection: 'row',
+    gap: 6,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  pageNumber: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  pageNumberActive: {
+    backgroundColor: tokens.colors.primary[600],
+  },
+  pageNumberInactive: {
+    backgroundColor: tokens.colors.neutral[100],
+  },
+  pageNumberText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: tokens.colors.neutral[700],
+  },
+  pageNumberTextActive: {
+    color: tokens.colors.white,
+  },
+});

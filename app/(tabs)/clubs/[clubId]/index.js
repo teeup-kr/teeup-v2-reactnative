@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams,
@@ -18,8 +21,6 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubDetailStatusLabel, clubDetailTypeLabel } from '@/constants/clubConstants';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractData } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/clubs/clubId/index';
 
 export default function ClubDetailScreen() {
   const router = useRouter();
@@ -81,7 +82,7 @@ export default function ClubDetailScreen() {
         {isLoading ? (
           <Card style={styles.heroCard}>
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
+              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
               <Text style={styles.stateText}>클럽 정보를 불러오는 중...</Text>
             </View>
           </Card>
@@ -96,11 +97,11 @@ export default function ClubDetailScreen() {
               <Text style={styles.clubSubtitle}>{clubSubtitle}</Text>
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
-                  <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
+                  <FontAwesome5 name="map-marker-alt" size={12} color={tokens.colors.neutral[500]} />
                   <Text style={styles.metaText}>{location}</Text>
                 </View>
                 <View style={styles.metaItem}>
-                  <FontAwesome5 name="users" size={12} color={colors.neutral[500]} />
+                  <FontAwesome5 name="users" size={12} color={tokens.colors.neutral[500]} />
                   <Text style={styles.metaText}>멤버 {memberCount}명</Text>
                 </View>
               </View>
@@ -150,3 +151,116 @@ export default function ClubDetailScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  heroCard: {
+    marginBottom: 16,
+  },
+  clubName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 6,
+  },
+  clubSubtitle: {
+    fontSize: 13,
+    color: tokens.colors.neutral[600],
+    marginBottom: 12,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  metaText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    marginLeft: 4,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+  },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: tokens.colors.primary[50],
+    marginRight: 8,
+  },
+  badgeAccent: {
+    backgroundColor: tokens.colors.success[50],
+  },
+  badgeText: {
+    fontSize: 11,
+    color: tokens.colors.primary[700],
+    fontWeight: '600',
+  },
+  stateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  stateText: {
+    marginLeft: 8,
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  sectionCard: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 8,
+  },
+  sectionText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    lineHeight: 18,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  infoValue: {
+    fontSize: 12,
+    color: tokens.colors.neutral[800],
+    fontWeight: '600',
+  },
+  actionRow: {
+    marginTop: 8,
+  },
+  secondaryButton: {
+    marginTop: 12,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[200],
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: tokens.colors.neutral[700],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+});

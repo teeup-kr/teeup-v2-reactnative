@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import * as NavigationBar from 'expo-navigation-bar';
 import {
 Slot } from 'expo-router';
@@ -13,8 +16,6 @@ import BottomNavigationBar, { bottomNavHeight } from '@/components/layout/Bottom
 import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
 import { AuthProvider } from '@/context/AuthContext';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/_layout';
 
 function AppShell() {
   const insets = useSafeAreaInsets();
@@ -36,7 +37,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (Platform.OS === 'android') {
       NavigationBar.setPositionAsync('relative');
-      NavigationBar.setBackgroundColorAsync(colors.white);
+      NavigationBar.setBackgroundColorAsync(tokens.colors.white);
       NavigationBar.setButtonStyleAsync('dark');
     }
   }, []);
@@ -55,7 +56,7 @@ export default function RootLayout() {
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </Head>
 
-      <StatusBar style="dark" backgroundColor={colors.white} />
+      <StatusBar style="dark" backgroundColor={tokens.colors.white} />
       <AuthProvider>
         <AppLayoutProvider>
           <AppShell />
@@ -65,3 +66,16 @@ export default function RootLayout() {
   );
 }
 
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  shell: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  main: {
+    flex: 1,
+  },
+});

@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import DateTimePicker,
@@ -29,8 +32,6 @@ import {
   formatMeetingTimeShort,
   getMeetingStatusKey,
 } from '@/lib/meetingUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/mypage/meetings';
 
 /* =========================
    Filter Chip
@@ -223,7 +224,7 @@ export default function MyMeetingsScreen() {
           <Text style={styles.dateText}>시작일</Text>
           <Pressable style={styles.dateInput} onPress={openStartPicker}>
 
-            <Text style={{ fontSize: 12, color: startDate ? colors.neutral[800] : colors.neutral[400] }}>
+            <Text style={{ fontSize: 12, color: startDate ? tokens.colors.neutral[800] : tokens.colors.neutral[400] }}>
               {startDate || 'YYYY-MM-DD'}
             </Text>
           </Pressable>
@@ -231,7 +232,7 @@ export default function MyMeetingsScreen() {
           {/* 종료일 */}
           <Text style={styles.dateText}>종료일</Text>
           <Pressable style={styles.dateInput} onPress={openEndPicker}>
-            <Text style={{ fontSize: 12, color: endDate ? colors.neutral[800] : colors.neutral[400] }}>
+            <Text style={{ fontSize: 12, color: endDate ? tokens.colors.neutral[800] : tokens.colors.neutral[400] }}>
               {endDate || 'YYYY-MM-DD'}
             </Text>
           </Pressable>
@@ -274,7 +275,7 @@ export default function MyMeetingsScreen() {
         ========================= */}
         {loading && (
           <View style={styles.stateRow}>
-            <ActivityIndicator size="small" color={colors.primary[600]} />
+            <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
             <Text style={styles.stateText}>모임을 불러오는 중...</Text>
           </View>
         )}
@@ -290,7 +291,7 @@ export default function MyMeetingsScreen() {
             <FontAwesome5
               name="golf-ball"
               size={28}
-              color={colors.neutral[400]}
+              color={tokens.colors.neutral[400]}
             />
             <Text style={styles.emptyTitle}>참가한 모임이 없습니다.</Text>
             <Text style={styles.emptySubtitle}>
@@ -337,13 +338,13 @@ export default function MyMeetingsScreen() {
 
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
-                  <FontAwesome5 name="calendar-alt" size={12} color={colors.neutral[500]} />
+                  <FontAwesome5 name="calendar-alt" size={12} color={tokens.colors.neutral[500]} />
                   <Text style={styles.metaText}>
                     {formatMeetingTimeShort(meeting?.meeting_time)}
                   </Text>
                 </View>
                 <View style={styles.metaItem}>
-                  <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
+                  <FontAwesome5 name="map-marker-alt" size={12} color={tokens.colors.neutral[500]} />
                   <Text style={styles.metaText}>
                     {meeting?.location || '-'}
                   </Text>
@@ -352,7 +353,7 @@ export default function MyMeetingsScreen() {
 
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
-                  <FontAwesome5 name="users" size={12} color={colors.neutral[500]} />
+                  <FontAwesome5 name="users" size={12} color={tokens.colors.neutral[500]} />
                   <Text style={styles.metaText}>
                     {meeting?.participant_count ?? 0}명 참여
                   </Text>
@@ -407,3 +408,204 @@ export default function MyMeetingsScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  filterCard: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: tokens.colors.neutral[800],
+    marginBottom: 10,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 12,
+  },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: tokens.colors.neutral[100],
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  chipActive: {
+    backgroundColor: tokens.colors.primary[600],
+  },
+  chipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: tokens.colors.neutral[600],
+  },
+  chipTextActive: {
+    color: tokens.colors.white,
+  },
+
+  dateRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  dateInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: tokens.colors.white,
+    justifyContent: 'center',
+  },
+  dateText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[700],
+  },
+
+  resetButton: {
+    marginTop: 4,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    backgroundColor: tokens.colors.white,
+  },
+  resetButtonText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[700],
+    fontWeight: '600',
+  },
+
+  stateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+  },
+  stateText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+
+  emptyCard: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    gap: 8,
+  },
+  emptyTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: tokens.colors.neutral[800],
+    marginTop: 6,
+  },
+  emptySubtitle: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+
+  meetingCard: {
+    marginBottom: 16,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginRight: 8,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+
+  cardSubtitle: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+    marginTop: 6,
+  },
+
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  metaText: {
+    fontSize: 11,
+    color: tokens.colors.neutral[600],
+  },
+
+  detailButton: {
+    marginTop: 12,
+    backgroundColor: tokens.colors.primary[600],
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  detailButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: tokens.colors.white,
+  },
+
+  paginationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 8,
+  },
+  pageButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: tokens.colors.white,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[200],
+  },
+  pageButtonDisabled: {
+    opacity: 0.5,
+  },
+  pageButtonText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[700],
+  },
+  paginationText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+});

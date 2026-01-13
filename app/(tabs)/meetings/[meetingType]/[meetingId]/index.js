@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
@@ -33,8 +36,6 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { meetingDetailTabs } from '@/constants/meetingConstants';
 import { roundsApi, socialsApi, usersApi } from '@/lib/api';
 import { extractData, extractList, formatDateTime } from '@/lib/meetingUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/meetings/meetingType/meetingId/index';
 
 export default function MeetingDetailScreen() {
   const { meetingType, meetingId } = useLocalSearchParams();
@@ -340,7 +341,7 @@ export default function MeetingDetailScreen() {
       <SafeAreaView style={styles.safeArea}>
         <ScreenHeader title="모임 상세" />
         <View style={styles.stateRow}>
-          <ActivityIndicator size="large" color={colors.primary[600]} />
+          <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
           <Text style={styles.stateText}>모임을 불러오는 중...</Text>
         </View>
       </SafeAreaView>
@@ -370,17 +371,17 @@ export default function MeetingDetailScreen() {
           <Text style={styles.subtitle}>{meeting?.club_name || '-'}</Text>
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
-              <FontAwesome5 name="calendar-alt" size={12} color={colors.neutral[500]} />
+              <FontAwesome5 name="calendar-alt" size={12} color={tokens.colors.neutral[500]} />
               <Text style={styles.metaText}>{formatDateTime(meeting?.meeting_time)}</Text>
             </View>
             <View style={styles.metaItem}>
-              <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
+              <FontAwesome5 name="map-marker-alt" size={12} color={tokens.colors.neutral[500]} />
               <Text style={styles.metaText}>{meeting?.location || meeting?.venue_name || '-'}</Text>
             </View>
           </View>
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
-              <FontAwesome5 name="users" size={12} color={colors.neutral[500]} />
+              <FontAwesome5 name="users" size={12} color={tokens.colors.neutral[500]} />
               <Text style={styles.metaText}>{meeting?.participant_count || participants.length || 0}명 참여</Text>
             </View>
           </View>
@@ -604,3 +605,122 @@ export default function MeetingDetailScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+    marginBottom: 12,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 8,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  metaText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+  },
+  tabRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  tabButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: tokens.colors.neutral[100],
+  },
+  tabButtonActive: {
+    backgroundColor: tokens.colors.primary[600],
+  },
+  tabText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    fontWeight: '600',
+  },
+  tabTextActive: {
+    color: tokens.colors.white,
+  },
+  participantRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: tokens.colors.neutral[100],
+  },
+  participantName: {
+    fontSize: 12,
+    color: tokens.colors.neutral[800],
+  },
+  participantRole: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+  },
+  emptyText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+    textAlign: 'center',
+  },
+  teamCard: {
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[200],
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 10,
+  },
+  teamTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 6,
+  },
+  teamMember: {
+    fontSize: 12,
+    color: tokens.colors.neutral[700],
+    marginBottom: 4,
+  },
+  stateRow: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  stateText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+});

@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 useLocalSearchParams } from 'expo-router';
 import { useEffect,
@@ -14,8 +17,6 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractData } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/clubs/applications/applicationId';
 
 export default function ClubApplicationDetailScreen() {
   const { applicationId } = useLocalSearchParams();
@@ -54,7 +55,7 @@ export default function ClubApplicationDetailScreen() {
         <Card style={styles.card}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
+              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
               <Text style={styles.stateText}>신청 정보를 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -96,3 +97,65 @@ export default function ClubApplicationDetailScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+    marginBottom: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  infoValue: {
+    fontSize: 12,
+    color: tokens.colors.neutral[800],
+    fontWeight: '600',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 8,
+  },
+  sectionText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    lineHeight: 18,
+  },
+  stateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  stateText: {
+    marginLeft: 8,
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+});

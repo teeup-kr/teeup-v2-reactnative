@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -19,8 +22,6 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { registerInitialErrors, registerInitialForm } from '@/constants/authConstants';
 import { authApi } from '@/lib/authApi';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/register';
 
 const logoImage = require('../public/icons/icon-512-transparent.png');
 
@@ -295,7 +296,7 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient colors={['#E8F5E8', '#FFF8E1']} style={styles.gradient}>
+      <LinearGradient colors={[tokens.colors.primary[50], tokens.colors.secondary[50]]} style={styles.gradient}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.flex}
@@ -322,7 +323,7 @@ export default function RegisterScreen() {
                     keyboardType="email-address"
                     autoCapitalize="none"
                     style={[styles.input, validationErrors.email && styles.inputError]}
-                    placeholderTextColor={colors.neutral[400]}
+                    placeholderTextColor={tokens.colors.neutral[400]}
                   />
                   <Pressable
                     onPress={checkEmailDuplicate}
@@ -354,7 +355,7 @@ export default function RegisterScreen() {
                   placeholder="비밀번호를 입력하세요"
                   secureTextEntry
                   style={[styles.input, validationErrors.password && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
                 {formData.password ? (
                   <View style={styles.passwordChecks}>
@@ -387,7 +388,7 @@ export default function RegisterScreen() {
                   placeholder="비밀번호를 다시 입력하세요"
                   secureTextEntry
                   style={[styles.input, validationErrors.confirmPassword && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
                 {validationErrors.confirmPassword ? (
                   <Text style={styles.errorText}>{validationErrors.confirmPassword}</Text>
@@ -406,7 +407,7 @@ export default function RegisterScreen() {
                     onChangeText={handleInputChange('nickname')}
                     placeholder="닉네임을 입력하세요"
                     style={[styles.input, validationErrors.nickname && styles.inputError]}
-                    placeholderTextColor={colors.neutral[400]}
+                    placeholderTextColor={tokens.colors.neutral[400]}
                   />
                   <Pressable
                     onPress={checkNicknameDuplicate}
@@ -436,7 +437,7 @@ export default function RegisterScreen() {
                   placeholder="예: 90 (55-144타)"
                   keyboardType="numeric"
                   style={[styles.input, validationErrors.average_score && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
+                  placeholderTextColor={tokens.colors.neutral[400]}
                 />
                 {validationErrors.average_score ? (
                   <Text style={styles.errorText}>{validationErrors.average_score}</Text>
@@ -541,3 +542,185 @@ export default function RegisterScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.primary[50],
+  },
+  gradient: {
+    flex: 1,
+  },
+  flex: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  card: {
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+  },
+  brandSection: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoWrap: {
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  logo: {
+    width: 48,
+    height: 48,
+  },
+  pageTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 6,
+  },
+  pageSubtitle: {
+    fontSize: 13,
+    color: tokens.colors.neutral[600],
+    textAlign: 'center',
+  },
+  fieldGroup: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: tokens.colors.neutral[700],
+    marginBottom: 6,
+  },
+  required: {
+    color: tokens.colors.error[500],
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[300],
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: tokens.colors.neutral[900],
+    backgroundColor: tokens.colors.white,
+  },
+  inputError: {
+    borderColor: tokens.colors.error[500],
+  },
+  inlineField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  inlineButton: {
+    marginLeft: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: tokens.colors.primary[600],
+    borderRadius: 10,
+  },
+  inlineButtonDisabled: {
+    opacity: 0.5,
+  },
+  inlineButtonText: {
+    color: tokens.colors.white,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  errorText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+  successText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: tokens.colors.success[600],
+  },
+  passwordChecks: {
+    marginTop: 8,
+  },
+  checkItem: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+    marginBottom: 4,
+  },
+  checkItemSuccess: {
+    color: tokens.colors.success[600],
+  },
+  termsSection: {
+    borderTopWidth: 1,
+    borderTopColor: tokens.colors.neutral[200],
+    paddingTop: 16,
+    marginTop: 8,
+  },
+  termsTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: tokens.colors.neutral[700],
+    marginBottom: 10,
+  },
+  termsList: {
+    marginTop: 8,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    flexWrap: 'wrap',
+  },
+  checkboxBox: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[400],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+    backgroundColor: tokens.colors.white,
+  },
+  checkboxChecked: {
+    backgroundColor: tokens.colors.primary[600],
+    borderColor: tokens.colors.primary[600],
+  },
+  checkboxMark: {
+    color: tokens.colors.white,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  checkboxLabel: {
+    fontSize: 12,
+    color: tokens.colors.neutral[700],
+    marginRight: 6,
+  },
+  termsLink: {
+    fontSize: 12,
+    color: tokens.colors.primary[600],
+    fontWeight: '600',
+  },
+  submitButton: {
+    marginTop: 12,
+  },
+  loginRow: {
+    marginTop: 18,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  loginText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+  loginLink: {
+    fontSize: 12,
+    color: tokens.colors.primary[600],
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+});

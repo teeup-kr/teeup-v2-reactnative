@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useEffect,
@@ -12,8 +15,6 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { faqApi } from '@/lib/api';
 import { normalizeFaqList } from '@/lib/faqUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/faq';
 
 export default function FaqScreen() {
   const [items, setItems] = useState([]);
@@ -73,7 +74,7 @@ export default function FaqScreen() {
                   <FontAwesome5
                     name={isOpen ? 'chevron-up' : 'chevron-down'}
                     size={12}
-                    color={colors.neutral[500]}
+                    color={tokens.colors.neutral[500]}
                   />
                 </Pressable>
                 {isOpen ? <Text style={styles.answerText}>{item.answer}</Text> : null}
@@ -86,3 +87,47 @@ export default function FaqScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    marginBottom: 12,
+  },
+  card: {
+    marginBottom: 12,
+  },
+  questionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  questionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: tokens.colors.neutral[900],
+    flex: 1,
+    marginRight: 8,
+  },
+  answerText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+    marginTop: 12,
+    lineHeight: 18,
+  },
+  loadingText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+});

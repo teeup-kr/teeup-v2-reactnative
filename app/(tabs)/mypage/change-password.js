@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 useState } from 'react';
 import { ScrollView,
@@ -9,8 +12,6 @@ import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { authApi } from '@/lib/authApi';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/mypage/change-password';
 
 export default function ChangePasswordScreen() {
   const [form, setForm] = useState({
@@ -126,3 +127,40 @@ export default function ChangePasswordScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 6,
+  },
+  cardSubtitle: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+    marginBottom: 12,
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+    marginTop: 4,
+  },
+  successText: {
+    fontSize: 12,
+    color: tokens.colors.success[600],
+    marginTop: 4,
+  },
+  saveButton: {
+    marginTop: 8,
+  },
+});

@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -20,8 +23,6 @@ import { usersApi } from '@/lib/api';
 import { clubsApi } from '@/lib/clubsApi';
 import { formatProfileDate, getGenderLabel } from '@/lib/mypageUtils';
 import { extractData, extractList } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/mypage/overview';
 
 export default function OverviewScreen() {
   const router = useRouter();
@@ -114,7 +115,7 @@ export default function OverviewScreen() {
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.stateContainer}>
-            <ActivityIndicator size="large" color={colors.primary[600]} />
+            <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
             <Text style={styles.stateText}>로딩 중...</Text>
           </View>
           <AppFooter />
@@ -128,7 +129,7 @@ export default function OverviewScreen() {
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.stateContainer}>
-            <FontAwesome5 name="info-circle" size={32} color={colors.error[500]} />
+            <FontAwesome5 name="info-circle" size={32} color={tokens.colors.error[500]} />
             <Text style={styles.errorText}>{error}</Text>
           </View>
           <AppFooter />
@@ -163,7 +164,7 @@ export default function OverviewScreen() {
                         'user-alt'
               }
               size={14}
-              color={colors.neutral[500]}
+              color={tokens.colors.neutral[500]}
               style={styles.icon}
             />
             <View style={styles.rowContent}>
@@ -180,7 +181,7 @@ export default function OverviewScreen() {
 
         {/* 평균 타수 */}
         <View style={styles.row}>
-          <FontAwesome5 name="golf-ball" size={14} color={colors.neutral[500]} style={styles.icon} />
+          <FontAwesome5 name="golf-ball" size={14} color={tokens.colors.neutral[500]} style={styles.icon} />
           <View style={styles.rowContent}>
             <Text style={styles.infoLabel}>평균 타수</Text>
             <Text style={styles.infoValue}>
@@ -194,7 +195,7 @@ export default function OverviewScreen() {
           <FontAwesome5
             name="chart-line"
             size={14}
-            color={colors.neutral[500]}
+            color={tokens.colors.neutral[500]}
             style={styles.icon}
           />
           <View style={styles.rowContent}>
@@ -228,7 +229,7 @@ export default function OverviewScreen() {
             ]}
           >
             <View style={styles.clubIcon}>
-              <FontAwesome5 name="users" size={16} color={colors.primary[600]} />
+              <FontAwesome5 name="users" size={16} color={tokens.colors.primary[600]} />
             </View>
 
             <View style={styles.clubInfo}>
@@ -248,7 +249,7 @@ export default function OverviewScreen() {
               )}
             </View>
 
-            <FontAwesome5 name="chevron-right" size={12} color={colors.neutral[400]} />
+            <FontAwesome5 name="chevron-right" size={12} color={tokens.colors.neutral[400]} />
           </Pressable>
         ))}
       </Card>
@@ -257,3 +258,121 @@ export default function OverviewScreen() {
     </ScrollView >
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  rowContent: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+    marginBottom: 2,
+  },
+  infoValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: tokens.colors.neutral[900],
+  },
+  infoSubtext: {
+    marginTop: 4,
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+  },
+  handicapRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  badge: {
+    backgroundColor: tokens.colors.primary[50],
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  badgeText: {
+    fontSize: 10,
+    color: tokens.colors.primary[700],
+    fontWeight: '600',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  linkText: {
+    fontSize: 12,
+    color: tokens.colors.primary[600],
+    fontWeight: '600',
+  },
+  clubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: tokens.colors.neutral[200],
+    borderRadius: 14,
+    padding: 12,
+    marginTop: 10,
+  },
+  clubRowPressed: {
+    backgroundColor: tokens.colors.primary[50],
+  },
+  clubIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: tokens.colors.primary[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  clubInfo: {
+    flex: 1,
+  },
+  clubName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+  },
+  clubMeta: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+    marginTop: 4,
+  },
+  roleBadge: {
+    alignSelf: 'flex-start',
+    marginTop: 6,
+    backgroundColor: tokens.colors.primary[50],
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  roleBadgeText: {
+    fontSize: 10,
+    color: tokens.colors.primary[700],
+    fontWeight: '600',
+  },
+});

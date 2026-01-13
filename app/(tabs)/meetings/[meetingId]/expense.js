@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 useLocalSearchParams } from 'expo-router';
 import { useEffect,
@@ -15,8 +18,6 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api';
 import { extractList } from '@/lib/responseUtils';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/meetings/meetingId/expense';
 
 export default function ExpenseScreen() {
   const { meetingId } = useLocalSearchParams();
@@ -74,7 +75,7 @@ export default function ExpenseScreen() {
         <View style={styles.list}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
+              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
               <Text style={styles.stateText}>경비를 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -109,3 +110,61 @@ export default function ExpenseScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  summaryCard: {
+    marginBottom: 16,
+  },
+  summaryTitle: {
+    fontSize: 14,
+    color: tokens.colors.neutral[600],
+  },
+  summaryValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginTop: 6,
+  },
+  summaryHint: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+    marginTop: 6,
+  },
+  list: {
+    marginBottom: 16,
+  },
+  expenseCard: {
+    marginBottom: 12,
+  },
+  expenseLabel: {
+    fontSize: 13,
+    color: tokens.colors.neutral[600],
+  },
+  expenseAmount: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginTop: 6,
+  },
+  stateRow: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stateText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: tokens.colors.neutral[500],
+  },
+  errorText: {
+    fontSize: 12,
+    color: tokens.colors.error[600],
+  },
+});

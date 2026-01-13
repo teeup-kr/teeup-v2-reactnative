@@ -1,3 +1,6 @@
+import { StyleSheet } from 'react-native';
+import { tokens } from '@/styles/style';
+
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams,
@@ -12,8 +15,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubManageSections } from '@/constants/clubConstants';
-import { colors } from '@/theme/colors';
-import styles from '@/styles/screens/tabs/clubs/clubId/manage';
 
 export default function ClubManageScreen() {
   const { clubId } = useLocalSearchParams();
@@ -36,13 +37,13 @@ export default function ClubManageScreen() {
               onPress={() => router.push(`/clubs/${clubId}/${section.route}`)}
             >
               <View style={styles.sectionIcon}>
-                <FontAwesome5 name={section.icon} size={16} color={colors.primary[600]} />
+                <FontAwesome5 name={section.icon} size={16} color={tokens.colors.primary[600]} />
               </View>
               <View style={styles.sectionTextWrap}>
                 <Text style={styles.sectionLabel}>{section.label}</Text>
                 <Text style={styles.sectionHint}>관리 페이지로 이동</Text>
               </View>
-              <FontAwesome5 name="chevron-right" size={12} color={colors.neutral[400]} />
+              <FontAwesome5 name="chevron-right" size={12} color={tokens.colors.neutral[400]} />
             </Pressable>
           ))}
         </View>
@@ -51,3 +52,59 @@ export default function ClubManageScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: tokens.colors.neutral[50],
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  summaryCard: {
+    marginBottom: 16,
+  },
+  summaryTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.neutral[900],
+    marginBottom: 6,
+  },
+  summaryText: {
+    fontSize: 12,
+    color: tokens.colors.neutral[600],
+  },
+  sectionList: {
+    backgroundColor: tokens.colors.white,
+    borderRadius: 16,
+    paddingVertical: 6,
+  },
+  sectionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  sectionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: tokens.colors.primary[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  sectionTextWrap: {
+    flex: 1,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: tokens.colors.neutral[800],
+  },
+  sectionHint: {
+    fontSize: 11,
+    color: tokens.colors.neutral[500],
+    marginTop: 2,
+  },
+});
