@@ -66,6 +66,12 @@ export const base = {
         padding: tokens.spacing.md,
         paddingBottom: tokens.spacing.lg,
     },
+    modalSheet: {
+        backgroundColor: tokens.colors.white,
+        borderTopLeftRadius: tokens.radius.xl,
+        borderTopRightRadius: tokens.radius.xl,
+        padding: tokens.padding.md,
+    },
     card: {
         backgroundColor: tokens.colors.white,
         borderRadius: tokens.radius.md,
@@ -164,27 +170,8 @@ export const base = {
         justifyContent: 'center',
         padding: tokens.padding.md,
     },
-};
 
-export const layouts = {
-    safeArea: {
-        flex: 1,
-        backgroundColor: tokens.colors.bg,
-    },
-
-    container: {
-        padding: tokens.padding.md,
-    },
-
-    modalSheet: {
-        backgroundColor: tokens.colors.white,
-        borderTopLeftRadius: tokens.radius.xl,
-        borderTopRightRadius: tokens.radius.xl,
-        padding: tokens.padding.md,
-    },
-};
-
-export const components = {
+    /* Components */
     badge: {
         paddingHorizontal: tokens.padding.xs,
         paddingVertical: tokens.padding.xxs,

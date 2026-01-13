@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
 
-import { base, layouts } from '../style';
+import { base } from '../style';
 
 export const recordsStyles = StyleSheet.create({
-    safeArea: layouts.safeArea,
-    container: layouts.container,
+    safeArea: base.safeArea,
+    container: base.container,
     statCard: base.card,
 });

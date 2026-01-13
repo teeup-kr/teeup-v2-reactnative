@@ -1,7 +1,15 @@
-import { FontAwesome5 } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+FontAwesome5 } from '@expo/vector-icons';
+import { useLocalSearchParams,
+useRouter } from 'expo-router';
+import { useEffect,
+useState } from 'react';
+import { ActivityIndicator,
+Pressable,
+ScrollView,
+Text,
+View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
@@ -10,6 +18,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
 import { colors } from '@/theme/colors';
+import styles from '@/styles/screens/tabs/clubs/clubId/regulations/index';
 
 export default function ClubRegulationsScreen() {
   const router = useRouter();
@@ -101,68 +110,3 @@ export default function ClubRegulationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: colors.neutral[600],
-  },
-  listCard: {
-    paddingVertical: 4,
-  },
-  stateRow: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stateText: {
-    marginTop: 6,
-    fontSize: 12,
-    color: colors.neutral[500],
-  },
-  errorText: {
-    fontSize: 12,
-    color: colors.error[600],
-  },
-  listRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  listIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.primary[50],
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  listInfo: {
-    flex: 1,
-  },
-  listTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.neutral[800],
-  },
-  listDate: {
-    fontSize: 11,
-    color: colors.neutral[500],
-    marginTop: 2,
-  },
-});

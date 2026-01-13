@@ -1,11 +1,16 @@
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput } from 'react-native';
+import {
+useState } from 'react';
+import { ScrollView,
+Text,
+TextInput,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { colors } from '@/theme/colors';
+import styles from '@/styles/screens/tabs/clubs/clubId/regulations/create';
 
 export default function ClubRegulationCreateScreen() {
   const [title, setTitle] = useState('');
@@ -44,37 +49,3 @@ export default function ClubRegulationCreateScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  card: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 12,
-    color: colors.neutral[700],
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: colors.neutral[900],
-    backgroundColor: colors.white,
-    marginBottom: 12,
-  },
-  textArea: {
-    minHeight: 160,
-    textAlignVertical: 'top',
-  },
-});

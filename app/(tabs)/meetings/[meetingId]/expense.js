@@ -1,6 +1,13 @@
-import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+useLocalSearchParams } from 'expo-router';
+import { useEffect,
+useMemo,
+useState } from 'react';
+import { ActivityIndicator,
+ScrollView,
+Text,
+View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
@@ -9,6 +16,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api';
 import { extractList } from '@/lib/responseUtils';
 import { colors } from '@/theme/colors';
+import styles from '@/styles/screens/tabs/meetings/meetingId/expense';
 
 export default function ExpenseScreen() {
   const { meetingId } = useLocalSearchParams();
@@ -101,61 +109,3 @@ export default function ExpenseScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  summaryCard: {
-    marginBottom: 16,
-  },
-  summaryTitle: {
-    fontSize: 14,
-    color: colors.neutral[600],
-  },
-  summaryValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.neutral[900],
-    marginTop: 6,
-  },
-  summaryHint: {
-    fontSize: 11,
-    color: colors.neutral[500],
-    marginTop: 6,
-  },
-  list: {
-    marginBottom: 16,
-  },
-  expenseCard: {
-    marginBottom: 12,
-  },
-  expenseLabel: {
-    fontSize: 13,
-    color: colors.neutral[600],
-  },
-  expenseAmount: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.neutral[900],
-    marginTop: 6,
-  },
-  stateRow: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stateText: {
-    marginTop: 6,
-    fontSize: 12,
-    color: colors.neutral[500],
-  },
-  errorText: {
-    fontSize: 12,
-    color: colors.error[600],
-  },
-});

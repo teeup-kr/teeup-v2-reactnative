@@ -1,10 +1,10 @@
 import { StyleSheet } from 'react-native';
 
-import { base, components, layouts } from '../style';
+import { base } from '../style';
 
 export const meetingsStyles = StyleSheet.create({
-    safeArea: layouts.safeArea,
-    container: layouts.container,
+    safeArea: base.safeArea,
+    container: base.container,
     card: base.card,
-    chip: components.chip,
+    chip: base.chip,
 });

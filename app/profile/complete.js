@@ -1,10 +1,10 @@
-import { LinearGradient } from 'expo-linear-gradient';
+import {
+LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
   ScrollView,
-  StyleSheet,
-  Text,
-  View,
+Text,
+View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -13,6 +13,7 @@ import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { colors } from '@/theme/colors';
+import styles from '@/styles/screens/profile/complete';
 
 export default function ProfileCompleteScreen() {
   const [form, setForm] = useState({
@@ -98,50 +99,3 @@ export default function ProfileCompleteScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  hero: {
-    borderRadius: 18,
-    padding: 20,
-    marginBottom: 16,
-  },
-  heroTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.white,
-    marginBottom: 8,
-  },
-  heroSubtitle: {
-    fontSize: 12,
-    color: '#D1FAE5',
-    lineHeight: 18,
-  },
-  card: {
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.neutral[900],
-    marginBottom: 12,
-  },
-  tipBox: {
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: colors.primary[50],
-  },
-  tipText: {
-    fontSize: 12,
-    color: colors.primary[700],
-  },
-  saveButton: {
-    marginTop: 8,
-  },
-});

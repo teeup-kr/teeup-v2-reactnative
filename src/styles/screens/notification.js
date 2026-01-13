@@ -1,10 +1,10 @@
 import { StyleSheet } from 'react-native';
 
-import { base, components, layouts } from '../style';
+import { base } from '../style';
 
 export const notificationStyles = StyleSheet.create({
-    safeArea: layouts.safeArea,
-    container: layouts.container,
+    safeArea: base.safeArea,
+    container: base.container,
 
     notiCard: {
         ...base.card,
@@ -12,6 +12,6 @@ export const notificationStyles = StyleSheet.create({
         gap: 12,
     },
 
-    badge: components.badge,
+    badge: base.badge,
     title: base.label,
 });

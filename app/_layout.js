@@ -1,9 +1,12 @@
 import * as NavigationBar from 'expo-navigation-bar';
-import { Slot } from 'expo-router';
+import {
+Slot } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform,
+View,
+} from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BottomNavigationBar, { bottomNavHeight } from '@/components/layout/BottomNavigationBar';
@@ -11,6 +14,7 @@ import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { colors } from '@/theme/colors';
+import styles from '@/styles/screens/_layout';
 
 function AppShell() {
   const insets = useSafeAreaInsets();
@@ -61,16 +65,3 @@ export default function RootLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.neutral[50],
-  },
-  shell: {
-    flex: 1,
-    backgroundColor: colors.neutral[50],
-  },
-  main: {
-    flex: 1,
-  },
-});

@@ -1,6 +1,13 @@
-import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+useLocalSearchParams } from 'expo-router';
+import { useEffect,
+useMemo,
+useState } from 'react';
+import { ActivityIndicator,
+ScrollView,
+Text,
+View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
@@ -9,6 +16,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
 import { colors } from '@/theme/colors';
+import styles from '@/styles/screens/tabs/clubs/clubId/fees';
 
 export default function ClubFeesScreen() {
   const { clubId } = useLocalSearchParams();
@@ -108,68 +116,3 @@ export default function ClubFeesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.neutral[50],
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  summaryCard: {
-    marginBottom: 16,
-  },
-  summaryTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.neutral[700],
-    marginBottom: 6,
-  },
-  summaryValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.neutral[900],
-    marginBottom: 4,
-  },
-  summaryHint: {
-    fontSize: 11,
-    color: colors.neutral[500],
-  },
-  list: {
-    marginBottom: 16,
-  },
-  stateRow: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stateText: {
-    marginTop: 6,
-    fontSize: 12,
-    color: colors.neutral[500],
-  },
-  errorText: {
-    fontSize: 12,
-    color: colors.error[600],
-  },
-  feeCard: {
-    marginBottom: 12,
-  },
-  feeTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.neutral[800],
-  },
-  feeAmount: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.neutral[900],
-    marginTop: 6,
-  },
-  feeStatus: {
-    fontSize: 11,
-    color: colors.neutral[500],
-    marginTop: 4,
-  },
-});

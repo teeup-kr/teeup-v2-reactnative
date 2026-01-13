@@ -1,13 +1,13 @@
 import { StyleSheet } from 'react-native';
 
-import { base, layouts } from '../style';
+import { base } from '../style';
 
 export const mypageStyles = StyleSheet.create({
-    safeArea: layouts.safeArea,
-    container: layouts.container,
+    safeArea: base.safeArea,
+    container: base.container,
     card: base.card,
     label: base.label,
     input: base.input,
-    saveBtn: base.buttonPrimary,
-    saveText: base.buttonPrimaryText,
+    saveBtn: base.btnPrimary,
+    saveText: base.btnPrimaryText,
 });
