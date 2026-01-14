@@ -1,26 +1,29 @@
 
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import {
-FontAwesome5 } from '@expo/vector-icons';
-import { useLocalSearchParams,
-useRouter } from 'expo-router';
-import { useEffect,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { ActivityIndicator,
-Pressable,
-ScrollView,
-Text,
-View,
+  ActivityIndicator,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { clubsApi } from '@/lib/clubsApi';
+import { fetchClubRegulations } from '@/lib/api/clubs';
+import {
+  createFetchRegulationsHandler,
+  createRegulationEditHandler,
+  createRegulationPressHandler,
+} from '@/lib/render/clubs/regulations';
 import { extractList } from '@/lib/responseUtils';
+import { normalizeClubRegulations } from '@/lib/value/clubRegulations';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
+
 export default function ClubRegulationsScreen() {
   const router = useRouter();
   const { clubId } = useLocalSearchParams();
@@ -29,38 +32,50 @@ export default function ClubRegulationsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const loadRegulations = async () => {
-      if (!resolvedId) {
-        setIsLoading(false);
-        return;
-      }
-      try {
-        setIsLoading(true);
-        setError('');
-        const response = await clubsApi.getClubRegulations(resolvedId, { page: 1, limit: 50 });
-        const list = extractList(response);
-        const normalized = list.map((item) => ({
-          id: item?.id || item?.regulation_id || item?.title,
-          title: item?.title || '규정',
-          updated: item?.updated_at
-            ? item.updated_at.slice(0, 10)
-            : item?.created_at
-              ? item.created_at.slice(0, 10)
-              : '-',
-        }));
-        setRegulations(normalized);
-      } catch (fetchError) {
-        console.error('클럽 규정 조회 실패:', fetchError);
-        setError(fetchError?.message || '규정을 불러오는데 실패했습니다.');
-        setRegulations([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const loadRegulations = useMemo(
+    () =>
+      createFetchRegulationsHandler({
+        clubId: resolvedId,
+        fetchClubRegulations,
+        extractList,
+        setRegulations,
+        setIsLoading,
+        setError,
+      }),
+    [resolvedId, setRegulations, setIsLoading, setError]
+  );
 
+  useEffect(() => {
     loadRegulations();
-  }, [resolvedId]);
+  }, [loadRegulations]);
+
+  const normalizedRegulations = useMemo(
+    () => normalizeClubRegulations(regulations),
+    [regulations]
+  );
+
+  const handleRegulationPress = useMemo(
+    () =>
+      createRegulationPressHandler({
+        router,
+        clubId: resolvedId || clubId,
+      }),
+    [router, resolvedId, clubId]
+  );
+
+  const regulationItems = useMemo(
+    () =>
+      normalizedRegulations.map((item) => ({
+        ...item,
+        onPress: () => handleRegulationPress(item.id),
+      })),
+    [normalizedRegulations, handleRegulationPress]
+  );
+
+  const handleCreatePress = useMemo(
+    () => createRegulationEditHandler({ router, clubId: resolvedId || clubId }),
+    [router, resolvedId, clubId]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -68,7 +83,7 @@ export default function ClubRegulationsScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.headerRow}>
           <Text style={styles.subtitle}>클럽 운영 규정을 확인하세요.</Text>
-          <Button variant="primary" size="sm" onPress={() => router.push(`/clubs/${clubId}/regulations/create`)}>
+          <Button variant="primary" size="sm" onPress={handleCreatePress}>
             규정 작성
           </Button>
         </View>
@@ -83,16 +98,16 @@ export default function ClubRegulationsScreen() {
             <View style={styles.stateRow}>
               <Text style={styles.errorText}>{error}</Text>
             </View>
-          ) : regulations.length === 0 ? (
+          ) : regulationItems.length === 0 ? (
             <View style={styles.stateRow}>
               <Text style={styles.stateText}>등록된 규정이 없습니다.</Text>
             </View>
           ) : (
-            regulations.map((item) => (
+            regulationItems.map((item) => (
               <Pressable
                 key={item.id}
                 style={styles.listRow}
-                onPress={() => router.push(`/clubs/${resolvedId || clubId}/regulations/${item.id}`)}
+                onPress={item.onPress}
               >
                 <View style={styles.listIcon}>
                   <FontAwesome5 name="file-alt" size={14} color={colors.primary[600]} />

@@ -1,22 +1,26 @@
 
-import {
-    FontAwesome5
-} from '@expo/vector-icons';
-import {
-    useEffect,
-    useState
-} from 'react';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Modal,
-    Pressable, StyleSheet, Text,
+    Pressable,
+    StyleSheet,
+    Text,
     TextInput,
-    View
+    View,
 } from 'react-native';
 
-import { authApi } from '@/lib/authApi';
+import FormField from '@/components/mypage/FormField';
+import { changePassword } from '@/lib/api/mypage';
+import {
+    createPasswordFieldChangeHandler,
+    createResetPasswordModalHandler,
+    createSubmitPasswordModalHandler,
+    createValidatePasswordModalHandler,
+} from '@/lib/render/mypage/changePasswordModal';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 export default function ChangePasswordModal({ isOpen, onClose, onLogout }) {
     /* =========================
        State
@@ -35,93 +39,63 @@ export default function ChangePasswordModal({ isOpen, onClose, onLogout }) {
     /* =========================
        Reset on close
     ========================= */
+    const resetForm = useMemo(
+        () =>
+            createResetPasswordModalHandler({
+                setFormData,
+                setValidationErrors,
+                setError,
+                setSuccess,
+            }),
+        [setFormData, setValidationErrors, setError, setSuccess],
+    );
+
     useEffect(() => {
         if (!isOpen) {
-            setFormData({
-                currentPassword: '',
-                newPassword: '',
-                confirmPassword: '',
-            });
-            setValidationErrors({});
-            setError(null);
-            setSuccess(false);
+            resetForm();
         }
-    }, [isOpen]);
+    }, [isOpen, resetForm]);
 
     /* =========================
        Validation
     ========================= */
-    const validateForm = () => {
-        const errors = {};
-
-        if (!formData.currentPassword) {
-            errors.currentPassword = '현재 비밀번호를 입력해주세요.';
-        }
-
-        if (!formData.newPassword) {
-            errors.newPassword = '새 비밀번호를 입력해주세요.';
-        } else if (
-            formData.newPassword.length < 6 ||
-            formData.newPassword.length > 32
-        ) {
-            errors.newPassword = '비밀번호는 6~32자여야 합니다.';
-        } else {
-            const rules = [
-                /[A-Z]/.test(formData.newPassword),
-                /[a-z]/.test(formData.newPassword),
-                /[0-9]/.test(formData.newPassword),
-                /[!@#$%^&*(),.?":{}|<>]/.test(formData.newPassword),
-            ];
-            if (rules.filter(Boolean).length < 2) {
-                errors.newPassword =
-                    '영문 대/소문자, 숫자, 특수문자 중 2개 이상 포함해야 합니다.';
-            }
-            if (formData.newPassword === formData.currentPassword) {
-                errors.newPassword = '현재 비밀번호와 달라야 합니다.';
-            }
-        }
-
-        if (!formData.confirmPassword) {
-            errors.confirmPassword = '비밀번호 확인을 입력해주세요.';
-        } else if (formData.newPassword !== formData.confirmPassword) {
-            errors.confirmPassword = '비밀번호가 일치하지 않습니다.';
-        }
-
-        setValidationErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
+    const validateForm = useMemo(
+        () => createValidatePasswordModalHandler({ formData, setValidationErrors }),
+        [formData, setValidationErrors],
+    );
 
     /* =========================
        Submit
     ========================= */
-    const handleSubmit = async () => {
-        if (!validateForm()) return;
+    const handleSubmit = useMemo(
+        () =>
+            createSubmitPasswordModalHandler({
+                formData,
+                validateForm,
+                changePassword,
+                setLoading,
+                setError,
+                setSuccess,
+                onClose,
+                onLogout,
+            }),
+        [formData, onClose, onLogout, setError, setLoading, setSuccess, validateForm],
+    );
 
-        try {
-            setLoading(true);
-            setError(null);
+    const handleCurrentPasswordChange = useMemo(
+        () => createPasswordFieldChangeHandler(setFormData, 'currentPassword'),
+        [setFormData],
+    );
 
-            await authApi.changePassword({
-                current_password: formData.currentPassword,
-                new_password: formData.newPassword,
-                confirm_password: formData.confirmPassword,
-            });
+    const handleNewPasswordChange = useMemo(
+        () => createPasswordFieldChangeHandler(setFormData, 'newPassword'),
+        [setFormData],
+    );
 
-            setSuccess(true);
-
-            // 3초 후 로그아웃 요청
-            setTimeout(() => {
-                onClose();
-                onLogout?.();
-            }, 3000);
-        } catch (e) {
-            setError(
-                e?.response?.data?.message || '비밀번호 변경에 실패했습니다.'
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
+    const handleConfirmPasswordChange = useMemo(
+        () => createPasswordFieldChangeHandler(setFormData, 'confirmPassword'),
+        [setFormData],
+    );
 
     /* =========================
        Render
@@ -153,53 +127,47 @@ export default function ChangePasswordModal({ isOpen, onClose, onLogout }) {
 
                             {/* Form */}
                             <View style={styles.body}>
-                                <Field label="현재 비밀번호 *">
+                                <FormField label="현재 비밀번호 *">
                                     <TextInput
                                         secureTextEntry
                                         style={styles.input}
                                         value={formData.currentPassword}
-                                        onChangeText={(v) =>
-                                            setFormData({ ...formData, currentPassword: v })
-                                        }
+                                        onChangeText={handleCurrentPasswordChange}
                                     />
                                     {validationErrors.currentPassword && (
                                         <Text style={styles.error}>
                                             {validationErrors.currentPassword}
                                         </Text>
                                     )}
-                                </Field>
+                                </FormField>
 
-                                <Field label="새 비밀번호 *">
+                                <FormField label="새 비밀번호 *">
                                     <TextInput
                                         secureTextEntry
                                         style={styles.input}
                                         value={formData.newPassword}
-                                        onChangeText={(v) =>
-                                            setFormData({ ...formData, newPassword: v })
-                                        }
+                                        onChangeText={handleNewPasswordChange}
                                     />
                                     {validationErrors.newPassword && (
                                         <Text style={styles.error}>
                                             {validationErrors.newPassword}
                                         </Text>
                                     )}
-                                </Field>
+                                </FormField>
 
-                                <Field label="새 비밀번호 확인 *">
+                                <FormField label="새 비밀번호 확인 *">
                                     <TextInput
                                         secureTextEntry
                                         style={styles.input}
                                         value={formData.confirmPassword}
-                                        onChangeText={(v) =>
-                                            setFormData({ ...formData, confirmPassword: v })
-                                        }
+                                        onChangeText={handleConfirmPasswordChange}
                                     />
                                     {validationErrors.confirmPassword && (
                                         <Text style={styles.error}>
                                             {validationErrors.confirmPassword}
                                         </Text>
                                     )}
-                                </Field>
+                                </FormField>
 
                                 {error && <Text style={styles.errorBox}>{error}</Text>}
 
@@ -229,13 +197,6 @@ export default function ChangePasswordModal({ isOpen, onClose, onLogout }) {
 /* =========================
    UI Helpers
 ========================= */
-const Field = ({ label, children }) => (
-    <View style={{ marginBottom: tokens.spacing.sm2 }}>
-        <Text style={styles.label}>{label}</Text>
-        {children}
-    </View>
-);
-
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,

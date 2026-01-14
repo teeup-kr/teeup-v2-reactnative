@@ -1,22 +1,30 @@
-
-import {
-  FontAwesome5
-} from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Pressable,
-  ScrollView, StyleSheet, Text,
+  ScrollView,
+  StyleSheet,
+  Text,
   TextInput,
-  View
+  View,
 } from 'react-native';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Modal from '@/components/ui/Modal';
 import { authApi } from '@/lib/authApi';
+import {
+  createCloseWithdrawModalHandler,
+  createConfirmTextChangeHandler,
+  createConfirmWithdrawHandler,
+  createSubmitWithdrawHandler,
+  createToggleAgreedHandler,
+} from '@/lib/render/mypage/withdraw';
+import { getWithdrawValidationError } from '@/lib/value/mypageWithdraw';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
+
 export default function WithdrawScreen() {
   const router = useRouter();
   const [agreed, setAgreed] = useState(false);
@@ -26,32 +34,41 @@ export default function WithdrawScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resultMessage, setResultMessage] = useState('');
 
-  const handleSubmit = () => {
-    if (!agreed) {
-      setError('안내사항에 동의해주세요.');
-      return;
-    }
-    if (confirmText !== '회원탈퇴') {
-      setError('정확히 "회원탈퇴"를 입력해주세요.');
-      return;
-    }
-    setError('');
-    setModalOpen(true);
-  };
-
-  const handleWithdrawConfirm = async () => {
-    try {
-      setIsSubmitting(true);
-      await authApi.deleteAccount();
-      setResultMessage('회원 탈퇴가 완료되었습니다.');
-      setModalOpen(false);
-      router.replace('/login');
-    } catch (apiError) {
-      setError(apiError?.message || '회원 탈퇴에 실패했습니다.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const handleToggleAgreed = useMemo(
+    () => createToggleAgreedHandler({ setAgreed }),
+    [setAgreed]
+  );
+  const handleConfirmTextChange = useMemo(
+    () => createConfirmTextChangeHandler({ setConfirmText }),
+    [setConfirmText]
+  );
+  const handleSubmit = useMemo(
+    () =>
+      createSubmitWithdrawHandler({
+        agreed,
+        confirmText,
+        setError,
+        setModalOpen,
+        getWithdrawValidationError,
+      }),
+    [agreed, confirmText, setError, setModalOpen]
+  );
+  const handleCloseModal = useMemo(
+    () => createCloseWithdrawModalHandler({ setModalOpen }),
+    [setModalOpen]
+  );
+  const handleWithdrawConfirm = useMemo(
+    () =>
+      createConfirmWithdrawHandler({
+        deleteAccount: authApi.deleteAccount,
+        setIsSubmitting,
+        setResultMessage,
+        setModalOpen,
+        setError,
+        router,
+      }),
+    [setIsSubmitting, setResultMessage, setModalOpen, setError, router]
+  );
 
   return (
     <View style={styles.safeArea}>
@@ -67,10 +84,7 @@ export default function WithdrawScreen() {
         </View>
 
         <Card style={styles.card}>
-          <Pressable
-            onPress={() => setAgreed((prev) => !prev)}
-            style={styles.agreeRow}
-          >
+          <Pressable onPress={handleToggleAgreed} style={styles.agreeRow}>
             <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
               {agreed ? (
                 <FontAwesome5 name="check" size={12} color={colors.white} />
@@ -81,10 +95,12 @@ export default function WithdrawScreen() {
         </Card>
 
         <Card style={styles.card}>
-          <Text style={styles.inputLabel}>확인을 위해 '회원탈퇴'를 입력하세요.<Text style={styles.required}>*</Text></Text>
+          <Text style={styles.inputLabel}>
+            확인을 위해 '회원탈퇴'를 입력하세요.<Text style={styles.required}>*</Text>
+          </Text>
           <TextInput
             value={confirmText}
-            onChangeText={setConfirmText}
+            onChangeText={handleConfirmTextChange}
             placeholder="회원탈퇴"
             style={[styles.input, error && styles.inputError]}
             placeholderTextColor={colors.neutral[400]}
@@ -101,14 +117,14 @@ export default function WithdrawScreen() {
       <Modal
         visible={modalOpen}
         title="회원 탈퇴 확인"
-        onClose={() => setModalOpen(false)}
+        onClose={handleCloseModal}
         footer={(
           <View style={styles.modalFooter}>
             <Button
               variant="outline"
               size="sm"
               style={[styles.modalButton, styles.modalButtonSpacing]}
-              onPress={() => setModalOpen(false)}
+              onPress={handleCloseModal}
             >
               취소
             </Button>
@@ -223,5 +239,4 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing.xs2,
   },
   required: { color: colors.red[500] },
-
 });

@@ -1,19 +1,12 @@
-
-import {
-FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
-import { useCallback,
-useEffect,
-useMemo,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-Alert,
-Pressable,
-ScrollView,
-Text,
-View,
+  Alert,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -33,15 +26,62 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { meetingDetailTabs } from '@/constants/meetingConstants';
-import { roundsApi, socialsApi, usersApi } from '@/lib/api';
+import {
+  autoFormTeams,
+  closeApplicationEarly,
+  completeRounding,
+  confirmSettlement,
+  confirmTeamFormation,
+  fetchApplicationStatus,
+  fetchRound,
+  fetchRoundParticipants,
+  fetchRoundTeams,
+  fetchSocial,
+  joinRound,
+  joinSocial,
+  leaveRound,
+  leaveSocial,
+  startRounding,
+} from '@/lib/api/meetings';
+import { fetchMyProfile, fetchUserHandicap, updateMyProfile } from '@/lib/api/mypage';
 import { extractData, extractList, formatDateTime } from '@/lib/meetingUtils';
+import {
+  createAutoFormTeamsHandler,
+  createCompleteRoundingHandler,
+  createConfirmSettlementHandler,
+  createConfirmTeamsHandler,
+  createFetchApplicationStatusHandler,
+  createFetchMeetingHandler,
+  createFetchParticipantsHandler,
+  createFetchTeamsHandler,
+  createFetchUserInfoHandler,
+  createJoinHandler,
+  createLeaveHandler,
+  createRestoreHistoryHandler,
+  createSaveHistoryHandler,
+  createScoreSuccessHandler,
+  createStartRoundingHandler,
+  createTabPressHandler,
+  createUpdateUserInfoHandler,
+} from '@/lib/render/meetings/detail';
+import {
+  buildUserInfoFromProfile,
+  getCurrentHandicap,
+  getIsJoined,
+  getMeetingDomainType,
+  getMyParticipantId,
+  getTypeSlug,
+  getUserRole,
+} from '@/lib/value/meetingDetail';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
+
 export default function MeetingDetailScreen() {
   const { meetingType, meetingId } = useLocalSearchParams();
+  const meetingTypeValue = Array.isArray(meetingType) ? meetingType[0] : meetingType;
   const meetingIdValue = Array.isArray(meetingId) ? meetingId[0] : meetingId;
-  const typeSlug = meetingType === 'social' ? 'social' : 'rounding';
-  const meetingDomainType = typeSlug === 'social' ? 'SOCIAL' : 'ROUND';
+  const typeSlug = getTypeSlug(meetingTypeValue);
+  const meetingDomainType = getMeetingDomainType(typeSlug);
   const isRoundingMeeting = meetingDomainType === 'ROUND';
 
   const [loading, setLoading] = useState(true);
@@ -71,102 +111,90 @@ export default function MeetingDetailScreen() {
   const [previewTeams, setPreviewTeams] = useState([]);
   const [formationHistory, setFormationHistory] = useState([]);
 
-  const myParticipantId = useMemo(() => {
-    if (!user?.id) return null;
-    const match = participants.find((participant) => participant.user_id === user.id);
-    return match?.id || null;
-  }, [participants, user]);
+  const myParticipantId = useMemo(
+    () => getMyParticipantId({ user, participants }),
+    [participants, user]
+  );
 
-  const currentHandicap = useMemo(() => {
-    return handicapInfo?.calculated_handicap ?? handicapInfo?.initial_handicap ?? null;
-  }, [handicapInfo]);
+  const currentHandicap = useMemo(
+    () => getCurrentHandicap(handicapInfo),
+    [handicapInfo]
+  );
 
-  const fetchUserInfo = useCallback(async () => {
-    try {
-      setUserInfoLoading(true);
-      const response = await usersApi.getMyProfile();
-      const profile = extractData(response);
-      setUser(profile);
-      setUserInfo({
-        realname: profile?.realname || '',
-        average_score: profile?.average_score || '',
-        phone_number: profile?.phone_number || '',
-        birthdate: profile?.birthdate ? profile.birthdate.split('T')[0] : '',
-        gender: profile?.gender || '',
-        handicap: '',
-      });
+  const fetchUserInfo = useMemo(
+    () =>
+      createFetchUserInfoHandler({
+        fetchMyProfile,
+        fetchUserHandicap,
+        extractData,
+        setUser,
+        setUserInfo,
+        setUserInfoLoading,
+        setHandicapInfo,
+        setHandicapLoading,
+        buildUserInfoFromProfile,
+      }),
+    [
+      setUser,
+      setUserInfo,
+      setUserInfoLoading,
+      setHandicapInfo,
+      setHandicapLoading,
+    ]
+  );
 
-      if (profile?.id) {
-        setHandicapLoading(true);
-        const handicapResponse = await usersApi.getUserHandicap(profile.id);
-        setHandicapInfo(extractData(handicapResponse));
-      }
-    } catch (fetchError) {
-      console.error('사용자 정보 조회 실패:', fetchError);
-    } finally {
-      setUserInfoLoading(false);
-      setHandicapLoading(false);
-    }
-  }, []);
+  const fetchMeeting = useMemo(
+    () =>
+      createFetchMeetingHandler({
+        meetingIdValue,
+        typeSlug,
+        fetchSocial,
+        fetchRound,
+        extractData,
+        setMeeting,
+        setLoading,
+        setError,
+      }),
+    [meetingIdValue, typeSlug, setMeeting, setLoading, setError]
+  );
 
-  const fetchMeeting = useCallback(async () => {
-    if (!meetingIdValue) return;
+  const fetchParticipants = useMemo(
+    () =>
+      createFetchParticipantsHandler({
+        meetingIdValue,
+        typeSlug,
+        meeting,
+        fetchRoundParticipants,
+        extractList,
+        setParticipants,
+        setConfirmedParticipants,
+      }),
+    [meetingIdValue, typeSlug, meeting, setParticipants, setConfirmedParticipants]
+  );
 
-    try {
-      setLoading(true);
-      setError(null);
-      const response =
-        typeSlug === 'social'
-          ? await socialsApi.getSocial(meetingIdValue)
-          : await roundsApi.getRound(meetingIdValue);
-      const data = extractData(response);
-      setMeeting(data);
-    } catch (fetchError) {
-      console.error('모임 조회 실패:', fetchError);
-      setError('모임 정보를 불러오는데 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  }, [meetingIdValue, typeSlug]);
+  const fetchTeams = useMemo(
+    () =>
+      createFetchTeamsHandler({
+        meetingIdValue,
+        isRoundingMeeting,
+        fetchRoundTeams,
+        extractList,
+        setTeams,
+      }),
+    [meetingIdValue, isRoundingMeeting, setTeams]
+  );
 
-  const fetchParticipants = useCallback(async () => {
-    if (!meetingIdValue) return;
-
-    try {
-      if (typeSlug === 'social') {
-        setParticipants(extractList(meeting?.participants));
-        return;
-      }
-
-      const response = await roundsApi.getRoundParticipants(meetingIdValue);
-      const list = extractList(response);
-      setParticipants(list);
-      setConfirmedParticipants(list.filter((participant) => participant.status === 'CONFIRMED'));
-    } catch (fetchError) {
-      console.error('참가자 조회 실패:', fetchError);
-    }
-  }, [meetingIdValue, meeting, typeSlug]);
-
-  const fetchTeams = useCallback(async () => {
-    if (!meetingIdValue || !isRoundingMeeting) return;
-
-    try {
-      const response = await roundsApi.getRoundTeams(meetingIdValue);
-      setTeams(extractList(response));
-    } catch (fetchError) {
-      console.error('팀 조회 실패:', fetchError);
-    }
-  }, [meetingIdValue, isRoundingMeeting]);
-
-  const fetchApplicationStatus = useCallback(async () => {
-    if (!meetingIdValue || !isRoundingMeeting) return;
-    try {
-      const response = await roundsApi.getApplicationStatus(meetingIdValue);
-      setApplicationStatus(extractData(response));
-    } catch (fetchError) {
-      console.error('신청 상태 조회 실패:', fetchError);
-    }
-  }, [meetingIdValue, isRoundingMeeting]);
+  const fetchStatus = useMemo(
+    () =>
+      createFetchApplicationStatusHandler({
+        meetingIdValue,
+        isRoundingMeeting,
+        fetchApplicationStatus,
+        extractData,
+        setApplicationStatus,
+      }),
+    [meetingIdValue, isRoundingMeeting, setApplicationStatus]
+  );
 
   useEffect(() => {
     fetchUserInfo();
@@ -176,165 +204,207 @@ export default function MeetingDetailScreen() {
   useEffect(() => {
     fetchParticipants();
     fetchTeams();
-    fetchApplicationStatus();
-  }, [fetchParticipants, fetchTeams, fetchApplicationStatus]);
+    fetchStatus();
+  }, [fetchParticipants, fetchTeams, fetchStatus]);
 
-  const handleUpdateUserInfo = async () => {
-    try {
-      setProcessingAction(true);
-      await usersApi.updateMyProfile({
-        realname: userInfo.realname,
-        average_score: userInfo.average_score ? Number(userInfo.average_score) : null,
-        phone_number: userInfo.phone_number || null,
-        birthdate: userInfo.birthdate || null,
-        gender: userInfo.gender || null,
-      });
-      setIsEditingUserInfo(false);
-      fetchUserInfo();
-    } catch (updateError) {
-      Alert.alert('오류', updateError?.message || '회원정보 수정에 실패했습니다.');
-    } finally {
-      setProcessingAction(false);
-    }
-  };
+  const handleUpdateUserInfo = useMemo(
+    () =>
+      createUpdateUserInfoHandler({
+        userInfo,
+        updateMyProfile,
+        setProcessingAction,
+        setIsEditingUserInfo,
+        fetchUserInfo,
+        alert: Alert.alert,
+      }),
+    [userInfo, setProcessingAction, setIsEditingUserInfo, fetchUserInfo]
+  );
 
-  const handleJoin = async () => {
-    try {
-      setProcessingAction(true);
-      if (typeSlug === 'social') {
-        await socialsApi.joinSocial(meetingIdValue);
-      } else {
-        await roundsApi.joinRound(meetingIdValue);
-      }
-      setJoinModalOpen(false);
-      fetchParticipants();
-      fetchMeeting();
-    } catch (joinError) {
-      Alert.alert('오류', joinError?.message || '참가 신청에 실패했습니다.');
-    } finally {
-      setProcessingAction(false);
-    }
-  };
+  const handleJoin = useMemo(
+    () =>
+      createJoinHandler({
+        typeSlug,
+        meetingIdValue,
+        joinSocial,
+        joinRound,
+        setJoinModalOpen,
+        setProcessingAction,
+        fetchParticipants,
+        fetchMeeting,
+        alert: Alert.alert,
+      }),
+    [typeSlug, meetingIdValue, setJoinModalOpen, setProcessingAction, fetchParticipants, fetchMeeting]
+  );
 
-  const handleLeave = async () => {
-    Alert.alert('참가 취소', '참가를 취소하시겠습니까?', [
-      { text: '취소', style: 'cancel' },
-      {
-        text: '확인',
-        onPress: async () => {
-          try {
-            setProcessingAction(true);
-            if (typeSlug === 'social') {
-              await socialsApi.leaveSocial(meetingIdValue);
-            } else {
-              await roundsApi.leaveRound(meetingIdValue);
-            }
-            fetchParticipants();
-            fetchMeeting();
-          } catch (leaveError) {
-            Alert.alert('오류', leaveError?.message || '참가 취소에 실패했습니다.');
-          } finally {
-            setProcessingAction(false);
-          }
-        },
-      },
-    ]);
-  };
+  const handleLeave = useMemo(
+    () =>
+      createLeaveHandler({
+        typeSlug,
+        meetingIdValue,
+        leaveSocial,
+        leaveRound,
+        setProcessingAction,
+        fetchParticipants,
+        fetchMeeting,
+        alert: Alert.alert,
+      }),
+    [typeSlug, meetingIdValue, setProcessingAction, fetchParticipants, fetchMeeting]
+  );
 
-  const handleAutoFormTeams = async (payload = {}) => {
-    if (!meetingIdValue) return null;
-    try {
-      setProcessingAction(true);
-      const response = await roundsApi.autoFormTeams(meetingIdValue, payload);
-      const teamsData = extractList(response?.teams || response?.data?.teams || response);
-      if (payload.preview || payload.batchMode) {
-        setPreviewTeams(teamsData);
+  const handleAutoFormTeams = useMemo(
+    () =>
+      createAutoFormTeamsHandler({
+        meetingIdValue,
+        autoFormTeams,
+        extractList,
+        setProcessingAction,
+        setPreviewTeams,
+        setTeamPreviewOpen,
+        setTeams,
+        alert: Alert.alert,
+      }),
+    [meetingIdValue, setProcessingAction, setPreviewTeams, setTeamPreviewOpen, setTeams]
+  );
+
+  const handleConfirmTeams = useMemo(
+    () =>
+      createConfirmTeamsHandler({
+        meetingIdValue,
+        confirmTeamFormation,
+        setProcessingAction,
+        setTeamPreviewOpen,
+        fetchTeams,
+        fetchMeeting,
+        alert: Alert.alert,
+      }),
+    [meetingIdValue, setProcessingAction, setTeamPreviewOpen, fetchTeams, fetchMeeting]
+  );
+
+  const handleStartRounding = useMemo(
+    () =>
+      createStartRoundingHandler({
+        meetingIdValue,
+        startRounding,
+        setProcessingAction,
+        fetchMeeting,
+        alert: Alert.alert,
+      }),
+    [meetingIdValue, setProcessingAction, fetchMeeting]
+  );
+
+  const handleCompleteRounding = useMemo(
+    () =>
+      createCompleteRoundingHandler({
+        meetingIdValue,
+        completeRounding,
+        setProcessingAction,
+        setRoundingCompleteOpen,
+        fetchMeeting,
+        alert: Alert.alert,
+      }),
+    [meetingIdValue, setProcessingAction, setRoundingCompleteOpen, fetchMeeting]
+  );
+
+  const handleConfirmSettlement = useMemo(
+    () =>
+      createConfirmSettlementHandler({
+        meetingIdValue,
+        confirmSettlement,
+        setProcessingAction,
+        fetchMeeting,
+        alert: Alert.alert,
+      }),
+    [meetingIdValue, setProcessingAction, fetchMeeting]
+  );
+
+  const handleSaveHistory = useMemo(
+    () => createSaveHistoryHandler({ previewTeams, setFormationHistory }),
+    [previewTeams, setFormationHistory]
+  );
+
+  const handleRestoreHistory = useMemo(
+    () => createRestoreHistoryHandler({ setTeams }),
+    [setTeams]
+  );
+
+  const handleScoreSuccess = useMemo(
+    () => createScoreSuccessHandler({ setScoreModalOpen, fetchMeeting, fetchParticipants }),
+    [setScoreModalOpen, fetchMeeting, fetchParticipants]
+  );
+
+  const handleTabPress = useMemo(
+    () => createTabPressHandler({ setActiveTab }),
+    [setActiveTab]
+  );
+
+  const handleReformTeams = useMemo(
+    () => () => handleAutoFormTeams({ preview: true }),
+    [handleAutoFormTeams]
+  );
+
+  const handleCloseApplicationEarly = useMemo(
+    () => () => closeApplicationEarly(meetingIdValue),
+    [meetingIdValue]
+  );
+
+  const openJoinModal = useMemo(() => () => setJoinModalOpen(true), []);
+  const closeJoinModal = useMemo(() => () => setJoinModalOpen(false), []);
+  const openTeamFormation = useMemo(() => () => setTeamFormationOpen(true), []);
+  const closeTeamFormation = useMemo(() => () => setTeamFormationOpen(false), []);
+  const openTeamEditor = useMemo(() => () => setTeamEditorOpen(true), []);
+  const closeTeamEditor = useMemo(() => () => setTeamEditorOpen(false), []);
+  const openHistory = useMemo(() => () => setHistoryOpen(true), []);
+  const closeHistory = useMemo(() => () => setHistoryOpen(false), []);
+  const openBatchFormation = useMemo(() => () => setBatchFormationOpen(true), []);
+  const closeBatchFormation = useMemo(() => () => setBatchFormationOpen(false), []);
+  const closeTeamPreview = useMemo(() => () => setTeamPreviewOpen(false), []);
+  const closeRoundingComplete = useMemo(() => () => setRoundingCompleteOpen(false), []);
+  const openScoreModal = useMemo(() => () => setScoreModalOpen(true), []);
+  const closeScoreModal = useMemo(() => () => setScoreModalOpen(false), []);
+  const handleInputLater = useMemo(() => () => setScoreModalOpen(false), []);
+  const handleTeamsSave = useMemo(() => (updatedTeams) => setTeams(updatedTeams), [setTeams]);
+
+  const handleBatchViewDetail = useMemo(
+    () =>
+      (result) => {
+        setPreviewTeams(result.teams || []);
         setTeamPreviewOpen(true);
-      } else {
-        setTeams(teamsData);
-      }
-      return response;
-    } catch (formationError) {
-      Alert.alert('오류', formationError?.message || '팀 편성에 실패했습니다.');
-      return null;
-    } finally {
-      setProcessingAction(false);
-    }
-  };
-
-  const handleConfirmTeams = async () => {
-    if (!meetingIdValue) return;
-    try {
-      setProcessingAction(true);
-      await roundsApi.confirmTeamFormation(meetingIdValue);
-      setTeamPreviewOpen(false);
-      fetchTeams();
-      fetchMeeting();
-    } catch (confirmError) {
-      Alert.alert('오류', confirmError?.message || '팀 편성 확정에 실패했습니다.');
-    } finally {
-      setProcessingAction(false);
-    }
-  };
-
-  const handleStartRounding = async () => {
-    if (!meetingIdValue) return;
-    try {
-      setProcessingAction(true);
-      await roundsApi.startRounding(meetingIdValue);
-      fetchMeeting();
-    } catch (startError) {
-      Alert.alert('오류', startError?.message || '모임 진행 시작에 실패했습니다.');
-    } finally {
-      setProcessingAction(false);
-    }
-  };
-
-  const handleCompleteRounding = async () => {
-    if (!meetingIdValue) return;
-    try {
-      setProcessingAction(true);
-      await roundsApi.completeRounding(meetingIdValue);
-      setRoundingCompleteOpen(true);
-      fetchMeeting();
-    } catch (completeError) {
-      Alert.alert('오류', completeError?.message || '라운딩 종료에 실패했습니다.');
-    } finally {
-      setProcessingAction(false);
-    }
-  };
-
-  const handleConfirmSettlement = async () => {
-    if (!meetingIdValue) return;
-    try {
-      setProcessingAction(true);
-      await roundsApi.confirmSettlement(meetingIdValue);
-      fetchMeeting();
-    } catch (settlementError) {
-      Alert.alert('오류', settlementError?.message || '정산 확정에 실패했습니다.');
-    } finally {
-      setProcessingAction(false);
-    }
-  };
-
-  const handleSaveHistory = () => {
-    if (!previewTeams.length) return;
-    setFormationHistory((prev) => [
-      {
-        id: Date.now(),
-        title: `편성 ${prev.length + 1}`,
-        created_at: new Date().toLocaleString('ko-KR'),
-        teams: previewTeams,
       },
-      ...prev,
-    ]);
-  };
+    []
+  );
 
-  const handleRestoreHistory = (item) => {
-    if (item?.teams) {
-      setTeams(item.teams);
-    }
-  };
+  const handleHistoryViewDetail = useMemo(
+    () =>
+      (item) => {
+        setPreviewTeams(item.teams || []);
+        setTeamPreviewOpen(true);
+      },
+    []
+  );
+
+  const renderParticipantRow = useCallback(function renderParticipantRow(participant, index) {
+    return (
+      <View key={participant.id || index} style={styles.participantRow}>
+        <Text style={styles.participantName}>
+          {participant.user_name || participant.name || '참가자'}
+        </Text>
+        <Text style={styles.participantRole}>{participant.status || '-'}</Text>
+      </View>
+    );
+  }, []);
+
+  const renderTeamCard = useCallback(function renderTeamCard(team, index) {
+    return (
+      <View key={team.id || index} style={styles.teamCard}>
+        <Text style={styles.teamTitle}>{team.name || `팀 ${index + 1}`}</Text>
+        {(team.members || team.team_members || []).map((member, memberIndex) => (
+          <Text key={member.id || memberIndex} style={styles.teamMember}>
+            {member.user_name || member.name || member.guest_name || '멤버'}
+          </Text>
+        ))}
+      </View>
+    );
+  }, []);
 
   if (loading) {
     return (
@@ -359,8 +429,8 @@ export default function MeetingDetailScreen() {
     );
   }
 
-  const isJoined = participants.some((participant) => participant.user_id === user?.id);
-  const userRole = meeting?.user_role || meeting?.role || user?.role;
+  const isJoined = getIsJoined({ participants, user });
+  const userRole = getUserRole({ meeting, user });
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -382,12 +452,14 @@ export default function MeetingDetailScreen() {
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
               <FontAwesome5 name="users" size={12} color={colors.neutral[500]} />
-              <Text style={styles.metaText}>{meeting?.participant_count || participants.length || 0}명 참여</Text>
+              <Text style={styles.metaText}>
+                {meeting?.participant_count || participants.length || 0}명 참여
+              </Text>
             </View>
           </View>
           <View style={styles.actionRow}>
             {!isJoined ? (
-              <Button size="sm" onPress={() => setJoinModalOpen(true)}>
+              <Button size="sm" onPress={openJoinModal}>
                 참가 신청
               </Button>
             ) : (
@@ -396,7 +468,7 @@ export default function MeetingDetailScreen() {
               </Button>
             )}
             {isRoundingMeeting && meeting?.rounding_completed_at && (
-              <Button size="sm" variant="outline" onPress={() => setScoreModalOpen(true)}>
+              <Button size="sm" variant="outline" onPress={openScoreModal}>
                 점수 입력
               </Button>
             )}
@@ -411,8 +483,8 @@ export default function MeetingDetailScreen() {
             userRole={userRole}
             applicationStatus={applicationStatus}
             confirmedParticipants={confirmedParticipants}
-            onCloseApplicationEarly={() => roundsApi.closeApplicationEarly(meetingIdValue)}
-            onAutoFormTeams={() => setTeamFormationOpen(true)}
+            onCloseApplicationEarly={handleCloseApplicationEarly}
+            onAutoFormTeams={openTeamFormation}
             onConfirmTeamFormation={handleConfirmTeams}
             onStartRounding={handleStartRounding}
             onCompleteRounding={handleCompleteRounding}
@@ -426,10 +498,12 @@ export default function MeetingDetailScreen() {
             .map((tab) => (
               <Pressable
                 key={tab.key}
-                onPress={() => setActiveTab(tab.key)}
+                onPress={handleTabPress(tab.key)}
                 style={[styles.tabButton, activeTab === tab.key && styles.tabButtonActive]}
               >
-                <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>{tab.label}</Text>
+                <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
+                  {tab.label}
+                </Text>
               </Pressable>
             ))}
         </View>
@@ -439,12 +513,7 @@ export default function MeetingDetailScreen() {
             {participants.length === 0 ? (
               <Text style={styles.emptyText}>참가자가 없습니다.</Text>
             ) : (
-              participants.map((participant, index) => (
-                <View key={participant.id || index} style={styles.participantRow}>
-                  <Text style={styles.participantName}>{participant.user_name || participant.name || '참가자'}</Text>
-                  <Text style={styles.participantRole}>{participant.status || '-'}</Text>
-                </View>
-              ))
+              participants.map(renderParticipantRow)
             )}
           </Card>
         )}
@@ -452,29 +521,20 @@ export default function MeetingDetailScreen() {
         {activeTab === 'teams' && isRoundingMeeting && (
           <Card style={styles.card}>
             <View style={styles.actionRow}>
-              <Button size="sm" variant="outline" onPress={() => setTeamFormationOpen(true)}>
+              <Button size="sm" variant="outline" onPress={openTeamFormation}>
                 팀 편성
               </Button>
-              <Button size="sm" variant="outline" onPress={() => setTeamEditorOpen(true)}>
+              <Button size="sm" variant="outline" onPress={openTeamEditor}>
                 팀 편집
               </Button>
-              <Button size="sm" variant="outline" onPress={() => setHistoryOpen(true)}>
+              <Button size="sm" variant="outline" onPress={openHistory}>
                 히스토리
               </Button>
             </View>
             {teams.length === 0 ? (
               <Text style={styles.emptyText}>편성된 팀이 없습니다.</Text>
             ) : (
-              teams.map((team, index) => (
-                <View key={team.id || index} style={styles.teamCard}>
-                  <Text style={styles.teamTitle}>{team.name || `팀 ${index + 1}`}</Text>
-                  {(team.members || team.team_members || []).map((member, memberIndex) => (
-                    <Text key={member.id || memberIndex} style={styles.teamMember}>
-                      {member.user_name || member.name || member.guest_name || '멤버'}
-                    </Text>
-                  ))}
-                </View>
-              ))
+              teams.map(renderTeamCard)
             )}
           </Card>
         )}
@@ -486,7 +546,7 @@ export default function MeetingDetailScreen() {
             canSettle
             canManageSettlement
             participants={confirmedParticipants}
-            onSettlementCreated={() => fetchMeeting()}
+            onSettlementCreated={fetchMeeting}
             onConfirmSettlement={handleConfirmSettlement}
             meeting={meeting}
           />
@@ -499,7 +559,7 @@ export default function MeetingDetailScreen() {
 
       <RoundingJoinModal
         visible={joinModalOpen && isRoundingMeeting}
-        onClose={() => setJoinModalOpen(false)}
+        onClose={closeJoinModal}
         meeting={meeting}
         userInfo={userInfo}
         setUserInfo={setUserInfo}
@@ -515,7 +575,7 @@ export default function MeetingDetailScreen() {
 
       <SocialJoinModal
         visible={joinModalOpen && !isRoundingMeeting}
-        onClose={() => setJoinModalOpen(false)}
+        onClose={closeJoinModal}
         meeting={meeting}
         userInfo={userInfo}
         setUserInfo={setUserInfo}
@@ -529,77 +589,67 @@ export default function MeetingDetailScreen() {
 
       <TeamFormationModal
         visible={teamFormationOpen}
-        onClose={() => setTeamFormationOpen(false)}
+        onClose={closeTeamFormation}
         onFormTeams={handleAutoFormTeams}
         meeting={meeting}
         processing={processingAction}
-        onOpenBatch={() => setBatchFormationOpen(true)}
+        onOpenBatch={openBatchFormation}
       />
 
       <TeamFormationPreviewModal
         visible={teamPreviewOpen}
-        onClose={() => setTeamPreviewOpen(false)}
+        onClose={closeTeamPreview}
         teams={previewTeams}
         formationMode={meeting?.team_formation_mode}
         teamSize={meeting?.team_size || 4}
         onConfirm={handleConfirmTeams}
-        onReform={() => handleAutoFormTeams({ preview: true })}
+        onReform={handleReformTeams}
         onSaveHistory={handleSaveHistory}
         processing={processingAction}
       />
 
       <TeamEditorModal
         visible={teamEditorOpen}
-        onClose={() => setTeamEditorOpen(false)}
+        onClose={closeTeamEditor}
         teams={teams}
         participants={participants}
         meetingId={meetingIdValue}
-        onSave={(updatedTeams) => setTeams(updatedTeams)}
+        onSave={handleTeamsSave}
         processing={processingAction}
       />
 
       <BatchFormationModal
         visible={batchFormationOpen}
-        onClose={() => setBatchFormationOpen(false)}
+        onClose={closeBatchFormation}
         meeting={meeting}
         onFormTeams={handleAutoFormTeams}
-        onViewDetail={(result) => {
-          setPreviewTeams(result.teams || []);
-          setTeamPreviewOpen(true);
-        }}
+        onViewDetail={handleBatchViewDetail}
         processing={processingAction}
       />
 
       <FormationHistoryModal
         visible={historyOpen}
-        onClose={() => setHistoryOpen(false)}
+        onClose={closeHistory}
         history={formationHistory}
         onRestore={handleRestoreHistory}
-        onViewDetail={(item) => {
-          setPreviewTeams(item.teams || []);
-          setTeamPreviewOpen(true);
-        }}
+        onViewDetail={handleHistoryViewDetail}
         processing={processingAction}
       />
 
       <RoundingCompleteModal
         visible={roundingCompleteOpen}
-        onClose={() => setRoundingCompleteOpen(false)}
-        onInputNow={() => setScoreModalOpen(true)}
-        onInputLater={() => setScoreModalOpen(false)}
+        onClose={closeRoundingComplete}
+        onInputNow={openScoreModal}
+        onInputLater={handleInputLater}
       />
 
       <SimpleScoreInputModal
         visible={scoreModalOpen}
-        onClose={() => setScoreModalOpen(false)}
+        onClose={closeScoreModal}
         meetingId={meetingIdValue}
         participantId={myParticipantId}
         currentHandicap={currentHandicap}
-        onSuccess={() => {
-          setScoreModalOpen(false);
-          fetchMeeting();
-          fetchParticipants();
-        }}
+        onSuccess={handleScoreSuccess}
       />
     </SafeAreaView>
   );

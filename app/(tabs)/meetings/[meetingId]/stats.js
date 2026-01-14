@@ -1,22 +1,16 @@
-
-import {
-useLocalSearchParams } from 'expo-router';
-import { useEffect,
-useMemo,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { ActivityIndicator,
-ScrollView,
-Text,
-View,
-} from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { roundsApi } from '@/lib/api';
+import { fetchRound, fetchRoundParticipants } from '@/lib/api/meetings';
+import { createFetchMeetingStatsHandler } from '@/lib/render/meetings/stats';
+import { buildMeetingStats, getParticipantsFromResponse } from '@/lib/value/meetingsStats';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
+
 export default function MeetingStatsScreen() {
   const { meetingId } = useLocalSearchParams();
   const resolvedId = Array.isArray(meetingId) ? meetingId[0] : meetingId;
@@ -25,59 +19,38 @@ export default function MeetingStatsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const loadStats = useMemo(
+    () =>
+      createFetchMeetingStatsHandler({
+        meetingId: resolvedId,
+        fetchRound,
+        fetchRoundParticipants,
+        getParticipantsFromResponse,
+        setMeeting,
+        setParticipants,
+        setIsLoading,
+        setError,
+      }),
+    [resolvedId, setMeeting, setParticipants, setIsLoading, setError]
+  );
+
   useEffect(() => {
-    const loadStats = async () => {
-      if (!resolvedId) {
-        setIsLoading(false);
-        return;
-      }
-      try {
-        setIsLoading(true);
-        setError('');
-        const [meetingResponse, participantsResponse] = await Promise.all([
-          roundsApi.getRound(resolvedId),
-          roundsApi.getRoundParticipants(resolvedId),
-        ]);
-        const meetingData = meetingResponse?.data || meetingResponse || null;
-        const participantList = Array.isArray(participantsResponse?.data)
-          ? participantsResponse.data
-          : Array.isArray(participantsResponse)
-            ? participantsResponse
-            : participantsResponse?.items || [];
-        setMeeting(meetingData);
-        setParticipants(Array.isArray(participantList) ? participantList : []);
-      } catch (fetchError) {
-        console.error('모임 통계 조회 실패:', fetchError);
-        setError(fetchError?.message || '모임 통계를 불러오는데 실패했습니다.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadStats();
-  }, [resolvedId]);
+  }, [loadStats]);
 
-  const stats = useMemo(() => {
-    const participantCount = participants.length;
-    const scoreValues = participants
-      .map((participant) => {
-        const score = participant?.score ?? participant?.total_score ?? participant?.average_score;
-        return score !== undefined && score !== null ? Number(score) : null;
-      })
-      .filter((value) => Number.isFinite(value));
-    const average = scoreValues.length
-      ? (scoreValues.reduce((sum, value) => sum + value, 0) / scoreValues.length).toFixed(1)
-      : meeting?.average_score ?? '-';
-    const best = scoreValues.length
-      ? Math.min(...scoreValues)
-      : meeting?.best_score ?? '-';
+  const stats = useMemo(
+    () => buildMeetingStats({ participants, meeting }),
+    [participants, meeting]
+  );
 
-    return [
-      { id: 'participants', label: '참가자', value: `${participantCount}명` },
-      { id: 'average', label: '평균 타수', value: average },
-      { id: 'best', label: '베스트 스코어', value: best },
-    ];
-  }, [meeting, participants]);
+  const renderStatCard = useCallback(function renderStatCard(item) {
+    return (
+      <Card key={item.id} style={styles.statCard}>
+        <Text style={styles.statLabel}>{item.label}</Text>
+        <Text style={styles.statValue}>{item.value}</Text>
+      </Card>
+    );
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -100,14 +73,7 @@ export default function MeetingStatsScreen() {
             <Text style={styles.errorText}>{error}</Text>
           </Card>
         ) : (
-          <View style={styles.grid}>
-            {stats.map((item) => (
-              <Card key={item.id} style={styles.statCard}>
-                <Text style={styles.statLabel}>{item.label}</Text>
-                <Text style={styles.statValue}>{item.value}</Text>
-              </Card>
-            ))}
-          </View>
+          <View style={styles.grid}>{stats.map(renderStatCard)}</View>
         )}
 
         <Card style={styles.chartCard}>

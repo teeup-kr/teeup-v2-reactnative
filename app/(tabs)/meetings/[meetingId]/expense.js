@@ -1,24 +1,22 @@
-
-import {
-useLocalSearchParams } from 'expo-router';
-import { useEffect,
-useMemo,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { ActivityIndicator,
-ScrollView,
-Text,
-View,
-} from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { roundsApi } from '@/lib/api';
+import { fetchRoundExpenses } from '@/lib/api/meetings';
+import { createFetchExpensesHandler } from '@/lib/render/meetings/expense';
 import { extractList } from '@/lib/responseUtils';
+import {
+  formatExpenseAmount,
+  getExpenseLabel,
+  getTotalExpenseAmount,
+} from '@/lib/value/meetingsExpense';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
+
 export default function ExpenseScreen() {
   const { meetingId } = useLocalSearchParams();
   const resolvedId = Array.isArray(meetingId) ? meetingId[0] : meetingId;
@@ -26,41 +24,33 @@ export default function ExpenseScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const loadExpenses = useMemo(
+    () =>
+      createFetchExpensesHandler({
+        meetingId: resolvedId,
+        fetchRoundExpenses,
+        extractList,
+        setExpenses,
+        setIsLoading,
+        setError,
+      }),
+    [resolvedId, setExpenses, setIsLoading, setError]
+  );
+
   useEffect(() => {
-    const loadExpenses = async () => {
-      if (!resolvedId) {
-        setIsLoading(false);
-        return;
-      }
-      try {
-        setIsLoading(true);
-        setError('');
-        const response = await roundsApi.getRoundExpenses(resolvedId);
-        const list = extractList(response);
-        setExpenses(list);
-      } catch (fetchError) {
-        console.error('경비 조회 실패:', fetchError);
-        setError(fetchError?.message || '경비 정보를 불러오는데 실패했습니다.');
-        setExpenses([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadExpenses();
-  }, [resolvedId]);
+  }, [loadExpenses]);
 
-  const totalAmount = useMemo(() => {
-    const amounts = expenses
-      .map((expense) => {
-        const value = expense?.amount ?? expense?.price ?? expense?.cost;
-        return value !== undefined && value !== null ? Number(value) : null;
-      })
-      .filter((value) => Number.isFinite(value));
-    if (amounts.length === 0) return '-';
-    const total = amounts.reduce((sum, value) => sum + value, 0);
-    return `${total.toLocaleString('ko-KR')}원`;
-  }, [expenses]);
+  const totalAmount = useMemo(() => getTotalExpenseAmount(expenses), [expenses]);
+
+  const renderExpenseItem = useCallback(function renderExpenseItem(item) {
+    return (
+      <Card key={item?.id || item?.expense_id || item?.label} style={styles.expenseCard}>
+        <Text style={styles.expenseLabel}>{getExpenseLabel(item)}</Text>
+        <Text style={styles.expenseAmount}>{formatExpenseAmount(item)}</Text>
+      </Card>
+    );
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -87,18 +77,7 @@ export default function ExpenseScreen() {
               <Text style={styles.stateText}>등록된 경비가 없습니다.</Text>
             </View>
           ) : (
-            expenses.map((item) => {
-              const amountValue = item?.amount ?? item?.price ?? item?.cost;
-              const amount = amountValue !== undefined && amountValue !== null
-                ? `${Number(amountValue).toLocaleString('ko-KR')}원`
-                : '-';
-              return (
-                <Card key={item?.id || item?.expense_id || item?.label} style={styles.expenseCard}>
-                  <Text style={styles.expenseLabel}>{item?.label || item?.title || '경비'}</Text>
-                  <Text style={styles.expenseAmount}>{amount}</Text>
-                </Card>
-              );
-            })
+            expenses.map(renderExpenseItem)
           )}
         </View>
 

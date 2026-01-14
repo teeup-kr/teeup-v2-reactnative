@@ -1,23 +1,17 @@
 
-import {
-FontAwesome5 } from '@expo/vector-icons';
-import DateTimePicker,
-{ DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import { FontAwesome5 } from '@expo/vector-icons';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
-import { useCallback,
-useEffect,
-useMemo,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-Platform,
-Pressable,
-ScrollView,
-Text,
-View,
+  Platform,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 
+import FilterChip from '@/components/mypage/FilterChip';
 import Card from '@/components/ui/Card';
 import {
   myMeetingsRoleConfig,
@@ -25,31 +19,26 @@ import {
   myMeetingsTypeConfig,
   myMeetingsTypeTabs
 } from '@/constants/mypageConstants';
-import { usersApi } from '@/lib/api';
+import { fetchMyMeetings } from '@/lib/api/mypage';
 import {
   extractList,
   formatMeetingTimeShort,
   getMeetingStatusKey,
 } from '@/lib/meetingUtils';
+import {
+  createDatePickerChangeHandler,
+  createFetchMeetingsHandler,
+  createMeetingDetailHandler,
+  createNextPageHandler,
+  createOpenDatePickerHandler,
+  createPrevPageHandler,
+  createResetFiltersHandler,
+  createTypeFilterHandler,
+  createTypeTabPressHandler,
+} from '@/lib/render/mypage/meetings';
+import { fromYmd, hasMeetingFilters, toYmd } from '@/lib/value/mypageMeetings';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
-/* =========================
-   Filter Chip
-========================= */
-const FilterChip = ({ label, selected, onPress }) => (
-  <Pressable
-    onPress={onPress}
-    style={({ pressed }) => [
-      styles.chip,
-      selected && styles.chipActive,
-      pressed && { opacity: 0.9 },
-    ]}
-  >
-    <Text style={[styles.chipText, selected && styles.chipTextActive]}>
-      {label}
-    </Text>
-  </Pressable>
-);
 
 export default function MyMeetingsScreen() {
   const router = useRouter();
@@ -70,121 +59,70 @@ export default function MyMeetingsScreen() {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
-  /* =========================
-     Date helpers (MUST be inside component)
-  ========================= */
-  const toYmd = (d) => {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  };
-
-  const fromYmd = (s) => (s ? new Date(`${s}T00:00:00`) : new Date());
-
-  const openWebDateInput = ({ value, onChange }) => {
-    const doc = globalThis?.document;
-    if (!doc || typeof doc.createElement !== 'function') return false;
-
-    const input = doc.createElement('input');
-    input.type = 'date';
-    input.value = value;
-    input.onchange = (event) => {
-      onChange(event?.target?.value || '');
-    };
-    input.click();
-    return true;
-  };
-
-  const openStartPicker = () => {
-    if (Platform.OS === 'web') {
-      const didOpen = openWebDateInput({
+  const handleTypeFilterSelect = useMemo(
+    () => createTypeFilterHandler({ setTypeFilter, setPage }),
+    [setTypeFilter, setPage]
+  );
+  const handleTypeTabPress = useMemo(
+    () => createTypeTabPressHandler({ onSelect: handleTypeFilterSelect }),
+    [handleTypeFilterSelect]
+  );
+  const handleStartPickerChange = useMemo(
+    () => createDatePickerChangeHandler({ setValue: setStartDate, setPage, toYmd }),
+    [setStartDate, setPage]
+  );
+  const handleEndPickerChange = useMemo(
+    () => createDatePickerChangeHandler({ setValue: setEndDate, setPage, toYmd }),
+    [setEndDate, setPage]
+  );
+  const openStartPicker = useMemo(
+    () =>
+      createOpenDatePickerHandler({
+        platform: Platform.OS,
         value: startDate,
-        onChange: (nextValue) => {
-          setStartDate(nextValue);
-          setPage(1);
-        },
-      });
-      if (didOpen) return;
-      return;
-    }
-
-    if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({
-        value: fromYmd(startDate),
-        mode: 'date',
-        onChange: (event, date) => {
-          if (event.type === 'dismissed') return;
-          if (date) {
-            setStartDate(toYmd(date));
-            setPage(1);
-          }
-        },
-      });
-      return;
-    }
-
-    // iOS
-    setShowStartPicker(true);
-  };
-
-  const openEndPicker = () => {
-    if (Platform.OS === 'web') {
-      const didOpen = openWebDateInput({
+        setValue: setStartDate,
+        setPage,
+        setShowPicker: setShowStartPicker,
+        DateTimePickerAndroid,
+        fromYmd,
+        toYmd,
+      }),
+    [startDate, setStartDate, setPage, setShowStartPicker]
+  );
+  const openEndPicker = useMemo(
+    () =>
+      createOpenDatePickerHandler({
+        platform: Platform.OS,
         value: endDate,
-        onChange: (nextValue) => {
-          setEndDate(nextValue);
-          setPage(1);
-        },
-      });
-      if (didOpen) return;
-      return;
-    }
-
-    if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({
-        value: fromYmd(endDate),
-        mode: 'date',
-        onChange: (event, date) => {
-          if (event.type === 'dismissed') return;
-          if (date) {
-            setEndDate(toYmd(date));
-            setPage(1);
-          }
-        },
-      });
-      return;
-    }
-
-    setShowEndPicker(true);
-  };
+        setValue: setEndDate,
+        setPage,
+        setShowPicker: setShowEndPicker,
+        DateTimePickerAndroid,
+        fromYmd,
+        toYmd,
+      }),
+    [endDate, setEndDate, setPage, setShowEndPicker]
+  );
 
   /* =========================
      Fetch
   ========================= */
-  const fetchMeetings = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const params = {
+  const fetchMeetings = useMemo(
+    () =>
+      createFetchMeetingsHandler({
+        fetchMyMeetings,
+        extractList,
         page,
-        limit: 5,
-        ...(typeFilter !== 'all' && { meeting_type_filter: typeFilter }),
-        ...(startDate && { start_date: startDate }),
-        ...(endDate && { end_date: endDate }),
-      };
-
-      const response = await usersApi.getMyMeetings(params);
-      setMeetings(extractList(response));
-      setTotalPages(response?.total_pages || 1);
-    } catch (e) {
-      console.error(e);
-      setError('모임 목록을 불러오는데 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  }, [page, typeFilter, startDate, endDate]);
+        typeFilter,
+        startDate,
+        endDate,
+        setMeetings,
+        setTotalPages,
+        setLoading,
+        setError,
+      }),
+    [page, typeFilter, startDate, endDate, setMeetings, setTotalPages, setLoading, setError]
+  );
 
   useEffect(() => {
     fetchMeetings();
@@ -200,16 +138,31 @@ export default function MyMeetingsScreen() {
     });
   }, [meetings, statusFilter]);
 
-  const hasActiveFilters =
-    typeFilter !== 'all' || startDate !== '' || endDate !== '';
+  const hasActiveFilters = hasMeetingFilters({ typeFilter, startDate, endDate });
 
-  const resetFilters = () => {
-    setTypeFilter('all');
-    setStatusFilter('all');
-    setStartDate('');
-    setEndDate('');
-    setPage(1);
-  };
+  const resetFilters = useMemo(
+    () =>
+      createResetFiltersHandler({
+        setTypeFilter,
+        setStatusFilter,
+        setStartDate,
+        setEndDate,
+        setPage,
+      }),
+    [setTypeFilter, setStatusFilter, setStartDate, setEndDate, setPage]
+  );
+  const handleMeetingDetail = useMemo(
+    () => createMeetingDetailHandler({ router }),
+    [router]
+  );
+  const handlePrevPage = useMemo(
+    () => createPrevPageHandler({ setPage }),
+    [setPage]
+  );
+  const handleNextPage = useMemo(
+    () => createNextPageHandler({ setPage, totalPages }),
+    [setPage, totalPages]
+  );
 
   return (
     <View style={styles.safeArea}>
@@ -225,10 +178,7 @@ export default function MyMeetingsScreen() {
                 key={tab.id}
                 label={tab.label}
                 selected={typeFilter === tab.id}
-                onPress={() => {
-                  setTypeFilter(tab.id);
-                  setPage(1);
-                }}
+                onPress={handleTypeTabPress(tab.id)}
               />
             ))}
           </View>
@@ -255,12 +205,7 @@ export default function MyMeetingsScreen() {
             <DateTimePicker
               value={fromYmd(startDate)}
               mode="date"
-              onChange={(e, d) => {
-                if (d) {
-                  setStartDate(toYmd(d));
-                  setPage(1);
-                }
-              }}
+              onChange={handleStartPickerChange}
             />
           )}
 
@@ -268,12 +213,7 @@ export default function MyMeetingsScreen() {
             <DateTimePicker
               value={fromYmd(endDate)}
               mode="date"
-              onChange={(e, d) => {
-                if (d) {
-                  setEndDate(toYmd(d));
-                  setPage(1);
-                }
-              }}
+              onChange={handleEndPickerChange}
             />
           )}
 
@@ -381,9 +321,7 @@ export default function MyMeetingsScreen() {
 
               <Pressable
                 style={styles.detailButton}
-                onPress={() =>
-                  router.push(`/meetings/${slug}/${meetingId}`)
-                }
+                onPress={handleMeetingDetail(meetingId, slug)}
               >
                 <Text style={styles.detailButtonText}>상세 보기</Text>
               </Pressable>
@@ -397,7 +335,7 @@ export default function MyMeetingsScreen() {
         {totalPages > 1 && (
           <View style={styles.paginationRow}>
             <Pressable
-              onPress={() => setPage(p => Math.max(1, p - 1))}
+              onPress={handlePrevPage}
               disabled={page === 1}
               style={[styles.pageButton, page === 1 && styles.pageButtonDisabled]}
             >
@@ -409,7 +347,7 @@ export default function MyMeetingsScreen() {
             </Text>
 
             <Pressable
-              onPress={() => setPage(p => Math.min(totalPages, p + 1))}
+              onPress={handleNextPage}
               disabled={page === totalPages}
               style={[styles.pageButton, page === totalPages && styles.pageButtonDisabled]}
             >
@@ -433,25 +371,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginBottom: tokens.spacing.sm2,
-  },
-  chip: {
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs,
-    borderRadius: tokens.radius.lg,
-    backgroundColor: colors.neutral[100],
-    marginRight: tokens.spacing.xs2,
-    marginBottom: tokens.spacing.xs2,
-  },
-  chipActive: {
-    backgroundColor: colors.primary[600],
-  },
-  chipText: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.semibold,
-    color: colors.neutral[600],
-  },
-  chipTextActive: {
-    color: colors.white,
   },
 
   dateRow: {

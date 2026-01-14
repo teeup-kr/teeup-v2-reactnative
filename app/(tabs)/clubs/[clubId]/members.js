@@ -1,25 +1,24 @@
-
-import {
-FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
-import { useEffect,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { ActivityIndicator,
-Pressable,
-ScrollView,
-Text,
-View,
+import { useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubMemberStatusColors } from '@/constants/clubConstants';
-import { clubsApi } from '@/lib/clubsApi';
+import { fetchClubMembers } from '@/lib/api/clubs';
+import { createFetchMembersHandler } from '@/lib/render/clubs/members';
 import { extractList } from '@/lib/responseUtils';
+import { buildMemberSummary, normalizeClubMembers } from '@/lib/value/clubMembers';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
+
 export default function ClubMemberManageScreen() {
   const { clubId } = useLocalSearchParams();
   const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
@@ -27,55 +26,32 @@ export default function ClubMemberManageScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const loadMembers = useMemo(
+    () =>
+      createFetchMembersHandler({
+        clubId: resolvedId,
+        fetchClubMembers,
+        extractList,
+        setMembers,
+        setIsLoading,
+        setError,
+      }),
+    [resolvedId, setMembers, setIsLoading, setError]
+  );
+
   useEffect(() => {
-    const loadMembers = async () => {
-      setError('');
-      if (!resolvedId) {
-        setMembers([]);
-        setIsLoading(false);
-        return;
-      }
-      try {
-        setIsLoading(true);
-        const response = await clubsApi.getClubMembers(resolvedId, { page: 1, limit: 50 });
-        const list = extractList(response);
-        setMembers(list);
-      } catch (fetchError) {
-        console.error('클럽 멤버 조회 실패:', fetchError);
-        setError(fetchError?.message || '멤버 정보를 불러오는데 실패했습니다.');
-        setMembers([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadMembers();
-  }, [resolvedId]);
+  }, [loadMembers]);
 
-  const normalizedMembers = [];
-  let pendingCount = 0;
+  const { normalizedMembers, pendingCount } = useMemo(
+    () => normalizeClubMembers(members),
+    [members]
+  );
 
-  for (const member of members) {
-    const status = member?.status || member?.membership_status || 'ACTIVE';
-    if (status === 'PENDING' || status === 'WAITING') {
-      pendingCount += 1;
-    }
-
-    normalizedMembers.push({
-      id: member?.id || member?.member_id || member?.user_id,
-      name:
-        member?.user?.name ||
-        member?.user?.realname ||
-        member?.user?.nickname ||
-        member?.name ||
-        member?.nickname ||
-        '-',
-      role: member?.role || member?.membership_role || '-',
-      status,
-    });
-  }
-
-  const summaryText = `총 ${normalizedMembers.length}명 · 승인 대기 ${pendingCount}명`;
+  const summaryText = useMemo(
+    () => buildMemberSummary({ total: normalizedMembers.length, pending: pendingCount }),
+    [normalizedMembers.length, pendingCount]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>

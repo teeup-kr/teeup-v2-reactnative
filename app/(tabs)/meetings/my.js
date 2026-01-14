@@ -1,27 +1,20 @@
 
-import {
-FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useEffect,
-useMemo,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { ActivityIndicator,
-Pressable,
-ScrollView,
-Text,
-View,
-} from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import LoginRequired from '@/components/auth/LoginRequired';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { useAuth } from '@/context/AuthContext';
-import { usersApi } from '@/lib/api';
-import { extractList, formatMeetingListDate } from '@/lib/meetingUtils';
+import { fetchMyMeetings } from '@/lib/api/mypage';
+import { extractList } from '@/lib/meetingUtils';
+import { createFetchMyMeetingsHandler, createOpenMeetingHandler } from '@/lib/render/meetings/my';
+import { normalizeMyMeetings } from '@/lib/value/meetingsMy';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 export default function MyMeetingsScreen() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -29,41 +22,31 @@ export default function MyMeetingsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const loadMeetings = useMemo(
+    () =>
+      createFetchMyMeetingsHandler({
+        fetchMyMeetings,
+        extractList,
+        setMeetings,
+        setIsLoading,
+        setError,
+      }),
+    [setMeetings, setIsLoading, setError]
+  );
+
   useEffect(() => {
     if (!isAuthenticated) return;
-
-    const loadMeetings = async () => {
-      try {
-        setIsLoading(true);
-        setError('');
-        const response = await usersApi.getMyMeetings({ page: 1, limit: 20 });
-        const list = extractList(response);
-        setMeetings(list);
-      } catch (fetchError) {
-        console.error('내 모임 조회 실패:', fetchError);
-        setError(fetchError?.message || '모임을 불러오는데 실패했습니다.');
-        setMeetings([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadMeetings();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, loadMeetings]);
 
-  const normalizedMeetings = useMemo(() => (
-    meetings.map((meeting) => {
-      const meetingType = meeting?.meeting_type || meeting?.type || 'ROUND';
-      const typeSlug = meetingType === 'ROUND' || meetingType === 'ROUNDING' ? 'rounding' : 'social';
-      return {
-        id: meeting?.id || meeting?.meeting_id,
-        name: meeting?.meeting_name || meeting?.title || '모임',
-        type: typeSlug,
-        date: formatMeetingListDate(meeting?.meeting_time || meeting?.date),
-        status: meeting?.status || meeting?.application_status || '-',
-      };
-    })
-  ), [meetings]);
+  const normalizedMeetings = useMemo(
+    () => normalizeMyMeetings(meetings),
+    [meetings]
+  );
+  const handleMeetingPress = useMemo(
+    () => createOpenMeetingHandler({ router }),
+    [router]
+  );
 
   if (authLoading) {
     return (
@@ -112,7 +95,7 @@ export default function MyMeetingsScreen() {
               <Pressable
                 key={meeting.id}
                 style={styles.row}
-                onPress={() => router.push(`/meetings/${meeting.type}/${meeting.id}`)}
+                onPress={handleMeetingPress(meeting)}
               >
                 <View style={styles.iconWrap}>
                   <FontAwesome5 name="calendar-check" size={14} color={colors.primary[600]} />

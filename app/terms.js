@@ -1,14 +1,16 @@
 
 import {
-useLocalSearchParams } from 'expo-router';
-import { useEffect,
-useMemo,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { Pressable,
-ScrollView,
-Text,
-View,
+  useLocalSearchParams
+} from 'expo-router';
+import {
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
+import {
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,8 +18,8 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { termsTabs } from '@/constants/termsConstants';
 import { termsApi } from '@/lib/termsApi';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 const TabButton = ({ label, selected, onPress }) => (
   <Pressable
     onPress={onPress}

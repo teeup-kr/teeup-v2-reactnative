@@ -1,19 +1,20 @@
 
 import {
-LinearGradient } from 'expo-linear-gradient';
+  LinearGradient
+} from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useEffect,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
+import {
+  useEffect,
+  useState
+} from 'react';
 import {
   Image,
-KeyboardAvoidingView,
-Platform,
-Pressable,
-ScrollView,
-Text,
-TextInput,
-View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  TextInput,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -21,8 +22,8 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { registerInitialErrors, registerInitialForm } from '@/constants/authConstants';
 import { authApi } from '@/lib/authApi';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 
 const logoImage = require('../public/icons/icon-512-transparent.png');
 

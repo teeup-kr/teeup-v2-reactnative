@@ -1,15 +1,15 @@
 
 import {
-useRouter } from 'expo-router';
-import { StyleSheet } from 'react-native';
-import { Pressable,
-Text,
-View,
+  useRouter
+} from 'expo-router';
+import {
+  Pressable, StyleSheet, Text,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 export default function RegisterSuccessScreen() {
   const router = useRouter();
 

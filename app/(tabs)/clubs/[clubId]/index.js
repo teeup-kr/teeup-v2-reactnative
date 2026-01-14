@@ -1,27 +1,24 @@
-
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import {
-FontAwesome5 } from '@expo/vector-icons';
-import { useLocalSearchParams,
-useRouter } from 'expo-router';
-import { useEffect,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { ActivityIndicator,
-Pressable,
-ScrollView,
-Text,
-View,
+  ActivityIndicator,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { clubDetailStatusLabel, clubDetailTypeLabel } from '@/constants/clubConstants';
-import { clubsApi } from '@/lib/clubsApi';
+import { fetchClubDetail } from '@/lib/api/clubs';
+import { createFetchClubDetailHandler, createJoinRequestHandler, createOpenManageHandler } from '@/lib/render/clubs/detail';
 import { extractData } from '@/lib/responseUtils';
+import { buildClubDetailDisplay } from '@/lib/value/clubDetail';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
+
 export default function ClubDetailScreen() {
   const router = useRouter();
   const { clubId } = useLocalSearchParams();
@@ -30,50 +27,32 @@ export default function ClubDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const loadClub = useMemo(
+    () =>
+      createFetchClubDetailHandler({
+        clubId: resolvedId,
+        fetchClubDetail,
+        extractData,
+        setClub,
+        setIsLoading,
+        setError,
+      }),
+    [resolvedId, setClub, setIsLoading, setError]
+  );
+
   useEffect(() => {
-    const loadClub = async () => {
-      setError('');
-      if (!resolvedId) {
-        setClub(null);
-        setIsLoading(false);
-        return;
-      }
-      try {
-        setIsLoading(true);
-        const response = await clubsApi.getClub(resolvedId);
-        const data = extractData(response);
-        setClub(data);
-      } catch (fetchError) {
-        console.error('클럽 상세 조회 실패:', fetchError);
-        setError(fetchError?.message || '클럽 정보를 불러오는데 실패했습니다.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadClub();
-  }, [resolvedId]);
+  }, [loadClub]);
 
-  const clubStatus = club?.status || club?.membership_status;
-  const clubStatusLabel = clubDetailStatusLabel[clubStatus] || clubStatus || '-';
-  const clubType = club?.type;
-  const clubTypeLabel = clubDetailTypeLabel[clubType] || clubType || '모임';
-  const clubName = club?.name || '클럽명 없음';
-  const clubDescription = club?.description || club?.additional_info;
-  const clubSubtitle = clubDescription || '-';
-  const clubIntro = clubDescription || '등록된 소개가 없습니다.';
-  const location = club?.location || '-';
-  const memberCount = club?.member_count ?? '-';
-  const representativeName = club?.representative_name || '-';
-  const contactInfo = club?.contact_info || '-';
-  const additionalInfo = club?.additional_info || '-';
-
-  const handleManagePress = () => {
-    if (!resolvedId) {
-      return;
-    }
-    router.push(`/clubs/${resolvedId}/manage`);
-  };
+  const display = useMemo(() => buildClubDetailDisplay(club), [club]);
+  const handleManagePress = useMemo(
+    () => createOpenManageHandler({ clubId: resolvedId, router }),
+    [resolvedId, router]
+  );
+  const handleJoinPress = useMemo(
+    () => createJoinRequestHandler({ clubId: resolvedId, router }),
+    [resolvedId, router]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -93,46 +72,46 @@ export default function ClubDetailScreen() {
         ) : (
           <>
             <Card style={styles.heroCard}>
-              <Text style={styles.clubName}>{clubName}</Text>
-              <Text style={styles.clubSubtitle}>{clubSubtitle}</Text>
+              <Text style={styles.clubName}>{display.clubName}</Text>
+              <Text style={styles.clubSubtitle}>{display.clubSubtitle}</Text>
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
                   <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
-                  <Text style={styles.metaText}>{location}</Text>
+                  <Text style={styles.metaText}>{display.location}</Text>
                 </View>
                 <View style={styles.metaItem}>
                   <FontAwesome5 name="users" size={12} color={colors.neutral[500]} />
-                  <Text style={styles.metaText}>멤버 {memberCount}명</Text>
+                  <Text style={styles.metaText}>멤버 {display.memberCount}명</Text>
                 </View>
               </View>
               <View style={styles.badgeRow}>
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{clubTypeLabel}</Text>
+                  <Text style={styles.badgeText}>{display.clubTypeLabel}</Text>
                 </View>
                 <View style={[styles.badge, styles.badgeAccent]}>
-                  <Text style={styles.badgeText}>{clubStatusLabel}</Text>
+                  <Text style={styles.badgeText}>{display.clubStatusLabel}</Text>
                 </View>
               </View>
             </Card>
 
             <Card style={styles.sectionCard}>
               <Text style={styles.sectionTitle}>클럽 소개</Text>
-              <Text style={styles.sectionText}>{clubIntro}</Text>
+              <Text style={styles.sectionText}>{display.clubIntro}</Text>
             </Card>
 
             <Card style={styles.sectionCard}>
               <Text style={styles.sectionTitle}>운영 정보</Text>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>대표자</Text>
-                <Text style={styles.infoValue}>{representativeName}</Text>
+                <Text style={styles.infoValue}>{display.representativeName}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>연락처</Text>
-                <Text style={styles.infoValue}>{contactInfo}</Text>
+                <Text style={styles.infoValue}>{display.contactInfo}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>추가 정보</Text>
-                <Text style={styles.infoValue}>{additionalInfo}</Text>
+                <Text style={styles.infoValue}>{display.additionalInfo}</Text>
               </View>
             </Card>
           </>
@@ -142,7 +121,7 @@ export default function ClubDetailScreen() {
           <Button variant="primary" size="lg" onPress={handleManagePress}>
             클럽 관리
           </Button>
-          <Pressable style={styles.secondaryButton}>
+          <Pressable style={styles.secondaryButton} onPress={handleJoinPress}>
             <Text style={styles.secondaryButtonText}>가입 신청</Text>
           </Pressable>
         </View>

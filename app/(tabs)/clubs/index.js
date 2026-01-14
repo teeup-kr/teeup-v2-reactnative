@@ -1,21 +1,9 @@
-
-import {
-  FontAwesome5
-} from '@expo/vector-icons';
-import {
-  useLocalSearchParams,
-  useRouter
-} from 'expo-router';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState
-} from 'react';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Pressable,
   ScrollView, StyleSheet, Text,
   TextInput,
@@ -24,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import LoginRequired from '@/components/auth/LoginRequired';
+import ClubCard from '@/components/clubs/ClubCard';
 import AppFooter from '@/components/layout/AppFooter';
 import AppHeader from '@/components/layout/AppHeader';
 import Button from '@/components/ui/Button';
@@ -35,101 +24,29 @@ import {
   clubValidTabs,
 } from '@/constants/clubConstants';
 import { useAuth } from '@/context/AuthContext';
-import { clubsApi } from '@/lib/clubsApi';
+import { fetchClubs, fetchMyClubApplications, fetchMyClubs } from '@/lib/api/clubs';
+import { normalizePaginatedResponse } from '@/lib/clubUtils';
 import {
-  formatClubDate,
-  getClubMembershipStatusBadgeConfig,
-  getClubRoleBadgeConfig,
-  getClubStatusBadgeConfig,
-  getClubTypeBadgeConfig,
-  normalizePaginatedResponse,
-} from '@/lib/clubUtils';
+  createBrowseClubsHandler,
+  createCardPressHandler,
+  createClubPressHandler,
+  createCreateClubHandler,
+  createDebouncedSearchHandler,
+  createFetchClubsHandler,
+  createMyStatusFilterHandler,
+  createNextPageHandler,
+  createPageChangeHandler,
+  createPrevPageHandler,
+  createSearchTermChangeHandler,
+  createStatusFilterSelectHandler,
+  createTabChangeHandler,
+  createToggleStatusFilterHandler,
+} from '@/lib/render/clubs/index';
+import { getClubCardVariant, getClubPageNumbers } from '@/lib/value/clubs';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 
 const logoImage = require('../../../public/icons/icon-512-transparent.png');
-
-const Badge = ({ text, backgroundColor, textColor, style }) => (
-  <View style={[styles.badge, { backgroundColor }, style]}>
-    <Text style={[styles.badgeText, { color: textColor }]}>{text}</Text>
-  </View>
-);
-
-const ClubCard = ({ club, variant, onPress }) => {
-  const showStatus = variant === 'all' || variant === 'my' || variant === 'applications';
-  const showMembershipStatus = variant === 'my' || variant === 'join-applications';
-  const showMembershipRole = variant === 'my' || variant === 'join-applications';
-
-  const statusConfig = showStatus ? getClubStatusBadgeConfig(club?.status, club?.club_deleted_at) : null;
-  const membershipConfig = showMembershipStatus
-    ? getClubMembershipStatusBadgeConfig(club?.membership_status)
-    : null;
-  const typeConfig = getClubTypeBadgeConfig(club?.type);
-  const roleConfig = showMembershipRole ? getClubRoleBadgeConfig(club?.membership_role) : null;
-
-  return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.cardPressable, pressed && styles.cardPressed]}>
-      <Card style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardTitleRow}>
-            <View style={styles.logoCircle}>
-              <Image source={logoImage} style={styles.logoImage} resizeMode="contain" />
-            </View>
-            <Text style={styles.cardTitle} numberOfLines={1}>
-              {club?.name || '클럽명 없음'}
-            </Text>
-          </View>
-          <View style={styles.badgeStack}>
-            {statusConfig ? (
-              <Badge text={statusConfig.text} backgroundColor={statusConfig.bg} textColor={statusConfig.fg} />
-            ) : null}
-            {membershipConfig ? (
-              <Badge text={membershipConfig.text} backgroundColor={membershipConfig.bg} textColor={membershipConfig.fg} />
-            ) : null}
-          </View>
-        </View>
-
-        <View style={styles.badgeRow}>
-          {typeConfig ? (
-            <Badge text={typeConfig.text} backgroundColor={typeConfig.bg} textColor={typeConfig.fg} />
-          ) : null}
-          {roleConfig ? (
-            <Badge
-              text={roleConfig.text}
-              backgroundColor={roleConfig.bg}
-              textColor={roleConfig.fg}
-              style={styles.roleBadge}
-            />
-          ) : null}
-        </View>
-
-        <Text style={styles.cardDescription} numberOfLines={2}>
-          {club?.description || ''}
-        </Text>
-
-        <View style={styles.metaList}>
-          <View style={styles.metaItem}>
-            <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
-            <Text style={styles.metaText} numberOfLines={1}>
-              {club?.location || '-'}
-            </Text>
-          </View>
-          <View style={styles.metaItem}>
-            <FontAwesome5 name="user-friends" size={12} color={colors.neutral[500]} />
-            <Text style={styles.metaText}>멤버 {club?.member_count ?? 0}명</Text>
-          </View>
-        </View>
-
-        <View style={styles.cardFooter}>
-          <Text style={styles.cardDate}>
-            {variant === 'applications' ? `신청일: ${formatClubDate(club?.created_at)}` : formatClubDate(club?.created_at || club?.joined_at)}
-          </Text>
-          <Text style={styles.cardLink}>자세히 보기 →</Text>
-        </View>
-      </Card>
-    </Pressable>
-  );
-};
 
 export default function ClubsScreen() {
   const router = useRouter();
@@ -160,131 +77,139 @@ export default function ClubsScreen() {
     setActiveTab(tabParam);
   }, [tabParam]);
 
+  const handleDebouncedSearch = useMemo(
+    () =>
+      createDebouncedSearchHandler({
+        searchTerm,
+        setDebouncedSearchTerm,
+        setCurrentPage,
+      }),
+    [searchTerm, setDebouncedSearchTerm, setCurrentPage]
+  );
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-      setCurrentPage(1);
-    }, 500);
+    const timer = setTimeout(handleDebouncedSearch, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [handleDebouncedSearch]);
+
+  const loadClubs = useMemo(
+    () =>
+      createFetchClubsHandler({
+        activeTab,
+        currentPage,
+        debouncedSearchTerm,
+        myClubStatusFilter,
+        statusFilter,
+        userId: user?.id,
+        fetchMyClubs,
+        fetchMyClubApplications,
+        fetchClubs,
+        normalizePaginatedResponse,
+        setClubs,
+        setTotalPages,
+        setError,
+        setIsLoading,
+      }),
+    [
+      activeTab,
+      currentPage,
+      debouncedSearchTerm,
+      myClubStatusFilter,
+      statusFilter,
+      user?.id,
+      setClubs,
+      setTotalPages,
+      setError,
+      setIsLoading,
+    ]
+  );
 
   useEffect(() => {
-    const loadClubs = async () => {
-      try {
-        setIsLoading(true);
-        setError('');
-        let response;
-
-        if (activeTab === 'my') {
-          response = await clubsApi.getMyClubs({ page: currentPage, limit: 6 });
-        } else if (activeTab === 'applications') {
-          response = await clubsApi.getMyClubApplications({ page: currentPage, limit: 6 });
-        } else if (activeTab === 'join-applications') {
-          response = await clubsApi.getMyClubs({ page: currentPage, limit: 6, status_filter: 'PENDING' });
-        } else {
-          response = await clubsApi.getClubs({
-            page: currentPage,
-            limit: 6,
-            ...(debouncedSearchTerm ? { search: debouncedSearchTerm } : {}),
-          });
-        }
-
-        const payload = normalizePaginatedResponse(response);
-        let list = Array.isArray(payload?.data) ? payload.data : [];
-
-        if (activeTab === 'my') {
-          list = list.filter((club) => {
-            const membershipStatus = club?.membership_status;
-            const hasValidMembership =
-              membershipStatus &&
-              membershipStatus !== 'null' &&
-              membershipStatus !== '' &&
-              ['APPROVED', 'ACTIVE', 'PENDING'].includes(String(membershipStatus).toUpperCase().trim());
-            return hasValidMembership;
-          });
-
-          if (myClubStatusFilter && myClubStatusFilter !== 'ALL') {
-            if (myClubStatusFilter === 'ACTIVE') {
-              list = list.filter((club) => club.status === 'ACTIVE' || club.status === 'APPROVED');
-            } else {
-              list = list.filter((club) => club.status === myClubStatusFilter);
-            }
-          }
-
-          list = [...list].sort((a, b) => {
-            const dateA = new Date(a.created_at || a.joined_at || 0);
-            const dateB = new Date(b.created_at || b.joined_at || 0);
-            return dateB - dateA;
-          });
-        }
-
-        if (activeTab === 'join-applications') {
-          const currentUserId = user?.id;
-          list = list.filter((club) => club?.created_by !== currentUserId);
-        }
-
-        if (activeTab === 'all') {
-          list = list.filter((club) => club?.status !== 'INACTIVE');
-        }
-
-        setClubs(list);
-        setTotalPages(payload?.total_pages || 1);
-      } catch (fetchError) {
-        console.error('클럽 목록 조회 실패:', fetchError);
-        setError(fetchError?.message || '클럽 목록을 불러올 수 없습니다');
-        setClubs([]);
-        setTotalPages(1);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     if (isAuthenticated) {
       loadClubs();
     }
-  }, [
-    activeTab,
-    currentPage,
-    debouncedSearchTerm,
-    isAuthenticated,
-    myClubStatusFilter,
-    statusFilter,
-    user?.id,
-  ]);
+  }, [isAuthenticated, loadClubs]);
 
-  const handleTabChange = useCallback(
-    (tabId) => {
-      setActiveTab(tabId);
-      setIsStatusFilterOpen(false);
-      setCurrentPage(1);
-      router.setParams({ tab: tabId });
-    },
-    [router],
+  const handleTabChange = useMemo(
+    () =>
+      createTabChangeHandler({
+        router,
+        setActiveTab,
+        setIsStatusFilterOpen,
+        setCurrentPage,
+      }),
+    [router, setActiveTab, setIsStatusFilterOpen, setCurrentPage]
   );
 
-  const handleClubPress = useCallback(
-    (club) => {
-      if (club?.status === 'INACTIVE') {
-        Alert.alert('비공개 클럽', '해당 클럽은 비공개 상태입니다.');
-        return;
-      }
-      router.push(`/clubs/${club?.display_id || club?.id}`);
-    },
-    [router],
+  const handleClubPress = useMemo(
+    () => createClubPressHandler({ router, alert: Alert.alert }),
+    [router]
   );
 
-  const pageNumbers = useMemo(() => {
-    if (totalPages <= 5) {
-      return Array.from({ length: totalPages }, (_, index) => index + 1);
-    }
-    const groupStart = Math.floor((currentPage - 1) / 5) * 5 + 1;
-    const groupEnd = Math.min(groupStart + 4, totalPages);
-    const numbers = [];
-    for (let page = groupStart; page <= groupEnd; page += 1) {
-      numbers.push(page);
-    }
-    return numbers;
-  }, [currentPage, totalPages]);
+  const handleCardPress = useMemo(
+    () =>
+      createCardPressHandler({
+        activeTab,
+        router,
+        onClubPress: handleClubPress,
+      }),
+    [activeTab, router, handleClubPress]
+  );
+
+  const handleSearchTermChange = useMemo(
+    () => createSearchTermChangeHandler({ setSearchTerm }),
+    [setSearchTerm]
+  );
+
+  const toggleStatusFilter = useMemo(
+    () => createToggleStatusFilterHandler({ setIsStatusFilterOpen }),
+    [setIsStatusFilterOpen]
+  );
+
+  const handleStatusFilterSelect = useMemo(
+    () =>
+      createStatusFilterSelectHandler({
+        setStatusFilter,
+        setIsStatusFilterOpen,
+        setCurrentPage,
+      }),
+    [setStatusFilter, setIsStatusFilterOpen, setCurrentPage]
+  );
+
+  const handleMyStatusFilter = useMemo(
+    () => createMyStatusFilterHandler({ setMyClubStatusFilter, setCurrentPage }),
+    [setMyClubStatusFilter, setCurrentPage]
+  );
+
+  const handleCreateClub = useMemo(
+    () => createCreateClubHandler({ router }),
+    [router]
+  );
+
+  const handleBrowseClubs = useMemo(
+    () => createBrowseClubsHandler({ onTabChange: handleTabChange }),
+    [handleTabChange]
+  );
+
+  const handlePageChange = useMemo(
+    () => createPageChangeHandler({ setCurrentPage }),
+    [setCurrentPage]
+  );
+
+  const handlePrevPage = useMemo(
+    () => createPrevPageHandler({ setCurrentPage }),
+    [setCurrentPage]
+  );
+
+  const handleNextPage = useMemo(
+    () => createNextPageHandler({ setCurrentPage, totalPages }),
+    [setCurrentPage, totalPages]
+  );
+
+  const pageNumbers = useMemo(
+    () => getClubPageNumbers({ currentPage, totalPages }),
+    [currentPage, totalPages]
+  );
 
   if (authLoading) {
     return (
@@ -312,7 +237,7 @@ export default function ClubsScreen() {
 
         <View style={styles.headerRow}>
           <Text style={styles.title}>클럽 목록</Text>
-          <Button variant="primary" size="sm" onPress={() => router.push('/clubs/register')}>
+          <Button variant="primary" size="sm" onPress={handleCreateClub}>
             클럽 등록
           </Button>
         </View>
@@ -324,10 +249,12 @@ export default function ClubsScreen() {
               return (
                 <Pressable
                   key={tab.id}
-                  onPress={() => handleTabChange(tab.id)}
+                  onPress={handleTabChange(tab.id)}
                   style={[styles.tabButton, isActive && styles.tabButtonActive]}
                 >
-                  <Text style={[styles.tabText, isActive && styles.tabTextActive]}>{tab.label}</Text>
+                  <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                    {tab.label}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -339,7 +266,7 @@ export default function ClubsScreen() {
             <FontAwesome5 name="search" size={14} color={colors.neutral[400]} />
             <TextInput
               value={searchTerm}
-              onChangeText={setSearchTerm}
+              onChangeText={handleSearchTermChange}
               placeholder="클럽명, 설명, 위치로 검색..."
               style={styles.searchInput}
               placeholderTextColor={colors.neutral[400]}
@@ -348,12 +275,10 @@ export default function ClubsScreen() {
 
           {activeTab === 'all' && (
             <View style={styles.statusFilterWrap}>
-              <Pressable
-                onPress={() => setIsStatusFilterOpen((prev) => !prev)}
-                style={styles.statusFilterButton}
-              >
+              <Pressable onPress={toggleStatusFilter} style={styles.statusFilterButton}>
                 <Text style={styles.statusFilterText}>
-                  {clubStatusFilterOptions.find((option) => option.value === statusFilter)?.label || '전체 상태'}
+                  {clubStatusFilterOptions.find((option) => option.value === statusFilter)?.label ||
+                    '전체 상태'}
                 </Text>
                 <FontAwesome5
                   name={isStatusFilterOpen ? 'chevron-up' : 'chevron-down'}
@@ -366,11 +291,7 @@ export default function ClubsScreen() {
                   {clubStatusFilterOptions.map((option) => (
                     <Pressable
                       key={option.value}
-                      onPress={() => {
-                        setStatusFilter(option.value);
-                        setIsStatusFilterOpen(false);
-                        setCurrentPage(1);
-                      }}
+                      onPress={handleStatusFilterSelect(option.value)}
                       style={styles.statusFilterMenuItem}
                     >
                       <Text style={styles.statusFilterMenuText}>{option.label}</Text>
@@ -389,13 +310,12 @@ export default function ClubsScreen() {
               return (
                 <Pressable
                   key={option.value}
-                  onPress={() => {
-                    setMyClubStatusFilter(option.value);
-                    setCurrentPage(1);
-                  }}
+                  onPress={handleMyStatusFilter(option.value)}
                   style={[styles.myStatusButton, selected && styles.myStatusButtonActive]}
                 >
-                  <Text style={[styles.myStatusText, selected && styles.myStatusTextActive]}>{option.label}</Text>
+                  <Text style={[styles.myStatusText, selected && styles.myStatusTextActive]}>
+                    {option.label}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -438,15 +358,15 @@ export default function ClubsScreen() {
                     : '가입한 클럽이 없습니다. 클럽에 가입해보세요!'}
             </Text>
             {activeTab === 'all' && !searchTerm && statusFilter === 'ALL' ? (
-              <Button variant="primary" size="sm" onPress={() => router.push('/clubs/register')}>
+              <Button variant="primary" size="sm" onPress={handleCreateClub}>
                 첫 번째 클럽 등록하기
               </Button>
             ) : activeTab === 'applications' ? (
-              <Button variant="primary" size="sm" onPress={() => router.push('/clubs/register')}>
+              <Button variant="primary" size="sm" onPress={handleCreateClub}>
                 클럽 등록하기
               </Button>
             ) : activeTab === 'my' || activeTab === 'join-applications' ? (
-              <Button variant="primary" size="sm" onPress={() => handleTabChange('all')}>
+              <Button variant="primary" size="sm" onPress={handleBrowseClubs}>
                 클럽 둘러보기
               </Button>
             ) : null}
@@ -455,24 +375,26 @@ export default function ClubsScreen() {
           <>
             <View style={styles.cardList}>
               {clubs.map((club) => {
-                const variant = activeTab === 'applications' ? 'applications' : activeTab;
+                const variant = getClubCardVariant(activeTab);
                 const key = club?.id || club?.display_id || `${activeTab}-${club?.name}`;
-                const onPress = () => {
-                  if (activeTab === 'applications') {
-                    router.push(`/clubs/applications/${club.id}`);
-                    return;
-                  }
-                  handleClubPress(club);
-                };
 
-                return <ClubCard key={key} club={club} variant={variant} onPress={onPress} />;
+                return (
+                  <ClubCard
+                    key={key}
+                    club={club}
+                    variant={variant}
+                    onPress={handleCardPress(club)}
+                    styles={styles}
+                    logoImage={logoImage}
+                  />
+                );
               })}
             </View>
 
             {totalPages > 1 && (
               <View style={styles.paginationRow}>
                 <Pressable
-                  onPress={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  onPress={handlePrevPage}
                   disabled={currentPage === 1}
                   style={[styles.pageNavButton, currentPage === 1 && styles.pageNavButtonDisabled]}
                 >
@@ -484,10 +406,12 @@ export default function ClubsScreen() {
                   return (
                     <Pressable
                       key={`page-${pageNum}`}
-                      onPress={() => setCurrentPage(pageNum)}
+                      onPress={handlePageChange(pageNum)}
                       style={[styles.pageNumber, selected && styles.pageNumberActive]}
                     >
-                      <Text style={[styles.pageNumberText, selected && styles.pageNumberTextActive]}>
+                      <Text
+                        style={[styles.pageNumberText, selected && styles.pageNumberTextActive]}
+                      >
                         {pageNum}
                       </Text>
                     </Pressable>
@@ -495,7 +419,7 @@ export default function ClubsScreen() {
                 })}
 
                 <Pressable
-                  onPress={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  onPress={handleNextPage}
                   disabled={currentPage === totalPages}
                   style={[styles.pageNavButton, currentPage === totalPages && styles.pageNavButtonDisabled]}
                 >

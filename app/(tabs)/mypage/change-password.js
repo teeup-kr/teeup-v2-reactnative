@@ -1,14 +1,16 @@
 
-import {
-  useState
-} from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { authApi } from '@/lib/authApi';
+import { changePassword } from '@/lib/api/mypage';
+import {
+  createPasswordFieldChangeHandler,
+  createSubmitChangePasswordHandler,
+} from '@/lib/render/mypage/changePassword';
 import { base, tokens } from '@/styles/style';
 
 export default function ChangePasswordScreen() {
@@ -23,63 +25,51 @@ export default function ChangePasswordScreen() {
 
   const { currentPassword, newPassword, confirmPassword } = form;
 
-  const handleCurrentPasswordChange = (value) => {
-    setForm((prev) => ({ ...prev, currentPassword: value }));
-    if (error || success) {
-      setError('');
-      setSuccess('');
-    }
-  };
+  const handleCurrentPasswordChange = useMemo(
+    () =>
+      createPasswordFieldChangeHandler({
+        setForm,
+        setError,
+        setSuccess,
+        field: 'currentPassword',
+      }),
+    [setForm, setError, setSuccess],
+  );
 
-  const handleNewPasswordChange = (value) => {
-    setForm((prev) => ({ ...prev, newPassword: value }));
-    if (error || success) {
-      setError('');
-      setSuccess('');
-    }
-  };
+  const handleNewPasswordChange = useMemo(
+    () =>
+      createPasswordFieldChangeHandler({
+        setForm,
+        setError,
+        setSuccess,
+        field: 'newPassword',
+      }),
+    [setForm, setError, setSuccess],
+  );
 
-  const handleConfirmPasswordChange = (value) => {
-    setForm((prev) => ({ ...prev, confirmPassword: value }));
-    if (error || success) {
-      setError('');
-      setSuccess('');
-    }
-  };
+  const handleConfirmPasswordChange = useMemo(
+    () =>
+      createPasswordFieldChangeHandler({
+        setForm,
+        setError,
+        setSuccess,
+        field: 'confirmPassword',
+      }),
+    [setForm, setError, setSuccess],
+  );
 
-  const handleSubmit = async () => {
-    if (isSubmitting) {
-      return;
-    }
-
-    setError('');
-    setSuccess('');
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      setError('모든 항목을 입력해주세요.');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setError('새 비밀번호가 일치하지 않습니다.');
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      const payload = {
-        current_password: currentPassword,
-        new_password: newPassword,
-        confirm_password: confirmPassword,
-      };
-      await authApi.changePassword(payload);
-      setSuccess('비밀번호가 변경되었습니다.');
-    } catch (apiError) {
-      setError(apiError?.message || '비밀번호 변경에 실패했습니다.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const handleSubmit = useMemo(
+    () =>
+      createSubmitChangePasswordHandler({
+        form,
+        isSubmitting,
+        setError,
+        setSuccess,
+        setIsSubmitting,
+        changePassword,
+      }),
+    [form, isSubmitting, setError, setIsSubmitting, setSuccess],
+  );
 
   return (
     <View style={styles.safeArea}>

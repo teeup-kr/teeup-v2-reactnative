@@ -1,22 +1,17 @@
-
-import {
-useLocalSearchParams } from 'expo-router';
-import { useEffect,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { ActivityIndicator,
-ScrollView,
-Text,
-View,
-} from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { clubsApi } from '@/lib/clubsApi';
+import { fetchClubStats } from '@/lib/api/clubs';
+import { createFetchStatsHandler } from '@/lib/render/clubs/stats';
 import { extractData } from '@/lib/responseUtils';
+import { buildClubStats } from '@/lib/value/clubStats';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
+
 export default function ClubStatsScreen() {
   const { clubId } = useLocalSearchParams();
   const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
@@ -24,51 +19,24 @@ export default function ClubStatsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const loadStats = useMemo(
+    () =>
+      createFetchStatsHandler({
+        clubId: resolvedId,
+        fetchClubStats,
+        extractData,
+        setStatsData,
+        setIsLoading,
+        setError,
+      }),
+    [resolvedId, setStatsData, setIsLoading, setError]
+  );
+
   useEffect(() => {
-    const loadStats = async () => {
-      setError('');
-      if (!resolvedId) {
-        setStatsData(null);
-        setIsLoading(false);
-        return;
-      }
-      try {
-        setIsLoading(true);
-        const response = await clubsApi.getClubStats(resolvedId);
-        const data = extractData(response);
-        setStatsData(data);
-      } catch (fetchError) {
-        console.error('클럽 통계 조회 실패:', fetchError);
-        setError(fetchError?.message || '통계를 불러오는데 실패했습니다.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadStats();
-  }, [resolvedId]);
+  }, [loadStats]);
 
-  const activeMembers = statsData?.active_members ?? statsData?.activeMembers ?? '-';
-  const totalMeetings = statsData?.total_meetings ?? statsData?.totalMeetings ?? '-';
-  const settlementCompleted = statsData?.settlement_completed ?? statsData?.settlementCompleted ?? '-';
-
-  const stats = [
-    {
-      id: 'members',
-      label: '활성 멤버',
-      value: activeMembers,
-    },
-    {
-      id: 'meetings',
-      label: '총 모임',
-      value: totalMeetings,
-    },
-    {
-      id: 'settlement',
-      label: '정산 완료',
-      value: settlementCompleted,
-    },
-  ];
+  const stats = useMemo(() => buildClubStats(statsData), [statsData]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

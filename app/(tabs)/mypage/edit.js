@@ -10,11 +10,37 @@ import {
   View
 } from 'react-native';
 
-import { usersApi } from '@/lib/api';
-import { authApi } from '@/lib/authApi';
+import {
+  checkNicknameAvailability,
+  fetchMyProfile,
+  fetchUserHandicap,
+  updateMyProfile,
+} from '@/lib/api/mypage';
+import {
+  createBirthPickerChangeHandler,
+  createBirthPickerOpenHandler,
+  createCheckNicknameDuplicateHandler,
+  createCompositionEndHandler,
+  createCompositionStartHandler,
+  createConditionalFieldChangeHandler,
+  createFieldChangeHandler,
+  createInputChangeHandler,
+  createPasswordModalCloseHandler,
+  createPasswordModalOpenHandler,
+  createSaveProfileHandler,
+  createShowToastHandler,
+  createValidateProfileFormHandler,
+} from '@/lib/render/mypage/edit';
 import { extractData } from '@/lib/responseUtils';
+import {
+  buildProfileFormData,
+  calcHandicapFromAvg,
+  getBirthDateValue,
+  isNicknameSame as isNicknameSameValue,
+  isSocialLoginUser,
+} from '@/lib/value/mypage';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 
 import ChangePasswordModal from './change-password-modal';
 /* ===========================
@@ -45,7 +71,6 @@ export default function UserProfileEditForm() {
   });
   const [errors, setErrors] = useState({});
   const [, setLoading] = useState(true);
-  const [, setError] = useState(null);
   const [handicapInfo, setHandicapInfo] = useState(null);
   const [handicapLoading, setHandicapLoading] = useState(false);
   const [isCheckingNickname, setIsCheckingNickname] = useState(false);
@@ -56,62 +81,15 @@ export default function UserProfileEditForm() {
   const [toast, setToast] = useState({ open: false, tone: 'success', message: '' });
 
   const isSocialLogin = useMemo(() => {
-    if (profile?.is_social_login != null) return profile.is_social_login;
-    if (profile?.is_social != null) return profile.is_social;
-    const provider =
-      profile?.provider ||
-      profile?.auth_provider ||
-      profile?.login_provider ||
-      profile?.social_provider;
-    return Boolean(provider && provider !== 'LOCAL' && provider !== 'local');
+    return isSocialLoginUser(profile);
   }, [profile]);
 
-  const calcHandicapFromAvg = useCallback((avgStr) => {
-    const n = Number(avgStr);
-    if (!avgStr || Number.isNaN(n)) return null;
-    if (n < 55 || n > 144) return null;
-    return Math.max(0, Math.min(72, Math.round(n - 72)));
-  }, []);
-
-  const formatDateYYYYMMDD = useCallback((date) => {
-    if (!date) return '';
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }, []);
-
-  const parseBirthdate = useCallback((value) => {
-    if (!value) return null;
-    if (value instanceof Date) return value;
-    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      const [year, month, day] = value.split('-').map(Number);
-      return new Date(year, month - 1, day);
-    }
-    const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  }, []);
-
-  const normalizeBirthdate = useCallback(
-    (value) => {
-      if (!value) return '';
-      if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
-        return value.slice(0, 10);
-      }
-      const parsed = parseBirthdate(value);
-      return parsed ? formatDateYYYYMMDD(parsed) : '';
-    },
-    [formatDateYYYYMMDD, parseBirthdate],
-  );
-
   const birthDateValue = useMemo(() => {
-    const parsed = parseBirthdate(formData.birthdate);
-    return parsed || maxBirthDate;
-  }, [formData.birthdate, maxBirthDate, parseBirthdate]);
+    return getBirthDateValue(formData.birthdate, maxBirthDate);
+  }, [formData.birthdate, maxBirthDate]);
 
   const isNicknameSame = useMemo(() => {
-    if (!profile?.nickname) return false;
-    return profile.nickname === (formData.nickname || '').trim();
+    return isNicknameSameValue(profile?.nickname, formData.nickname);
   }, [formData.nickname, profile?.nickname]);
 
   useEffect(() => {
@@ -121,9 +99,7 @@ export default function UserProfileEditForm() {
     }
   }, [isNicknameSame]);
 
-  const showToast = useCallback((tone, message) => {
-    setToast({ open: true, tone, message });
-  }, []);
+  const showToast = useMemo(() => createShowToastHandler(setToast), []);
 
   useEffect(() => {
     if (!toast.open) return;
@@ -133,134 +109,119 @@ export default function UserProfileEditForm() {
     return () => clearTimeout(timer);
   }, [toast.open]);
 
-  const handleInputChange = useCallback(
-    (field, value) => {
-      setFormData((prev) => {
-        const next = { ...prev, [field]: value };
-        if (field === 'average_score') {
-          next.calculatedHandicap = calcHandicapFromAvg(value);
-        }
-        return next;
-      });
-      setErrors((prev) => ({ ...prev, [field]: '' }));
-      if (field === 'nickname') {
-        setNicknameChecked(false);
-        setNicknameMessage('');
-      }
-    },
-    [calcHandicapFromAvg],
+  const openPasswordModal = useMemo(
+    () => createPasswordModalOpenHandler(setShowPasswordModal),
+    [setShowPasswordModal],
   );
 
-  const checkNicknameDuplicate = useCallback(async () => {
-    if (!formData.nickname) {
-      setErrors((prev) => ({ ...prev, nickname: '닉네임을 입력해주세요.' }));
-      return;
-    }
+  const closePasswordModal = useMemo(
+    () => createPasswordModalCloseHandler(setShowPasswordModal),
+    [setShowPasswordModal],
+  );
 
-    if (formData.nickname.length < 2 || formData.nickname.length > 20) {
-      setErrors((prev) => ({ ...prev, nickname: '닉네임은 2-20자여야 합니다.' }));
-      setNicknameChecked(false);
-      setNicknameMessage('');
-      return;
-    }
+  const openBirthPicker = useMemo(
+    () => createBirthPickerOpenHandler(setShowBirthPicker),
+    [setShowBirthPicker],
+  );
 
-    if (!/^[a-zA-Z가-힣0-9]+$/.test(formData.nickname)) {
-      setErrors((prev) => ({ ...prev, nickname: '닉네임은 영문, 한글, 숫자만 사용 가능합니다.' }));
-      setNicknameChecked(false);
-      setNicknameMessage('');
-      return;
-    }
+  const handleBirthPickerChange = useMemo(
+    () => createBirthPickerChangeHandler({ setShowBirthPicker, handleInputChange }),
+    [handleInputChange, setShowBirthPicker],
+  );
 
-    try {
-      setIsCheckingNickname(true);
-      setErrors((prev) => ({ ...prev, nickname: '' }));
-      const result = await authApi.checkNickname(formData.nickname.trim());
-      if (result?.is_available && result?.is_valid) {
-        setNicknameChecked(true);
-        setNicknameMessage('사용 가능한 닉네임입니다.');
-      } else {
-        setNicknameChecked(false);
-        setNicknameMessage('');
-        setErrors((prev) => ({
-          ...prev,
-          nickname: result?.message || '이미 사용 중인 닉네임입니다.',
-        }));
-      }
-    } catch (checkError) {
-      setNicknameChecked(false);
-      setNicknameMessage('');
-      setErrors((prev) => ({
-        ...prev,
-        nickname: checkError?.message || '닉네임 확인에 실패했습니다.',
-      }));
-    } finally {
-      setIsCheckingNickname(false);
-    }
-  }, [formData.nickname]);
+  const handleCompositionStart = useMemo(
+    () => createCompositionStartHandler(setIsNameComposing),
+    [setIsNameComposing],
+  );
 
-  const validateForm = useCallback(() => {
-    const nextErrors = {};
-    const nickname = formData.nickname?.trim();
+  const handleCompositionEnd = useMemo(
+    () => createCompositionEndHandler({
+      setIsNameComposing,
+      handleInputChange,
+      fallbackValue: formData.realname,
+    }),
+    [formData.realname, handleInputChange, setIsNameComposing],
+  );
 
-    if (!nickname) {
-      nextErrors.nickname = '닉네임을 입력해주세요.';
-    } else if (nickname.length < 2 || nickname.length > 20) {
-      nextErrors.nickname = '닉네임은 2-20자여야 합니다.';
-    } else if (!/^[a-zA-Z가-힣0-9]+$/.test(nickname)) {
-      nextErrors.nickname = '닉네임은 영문, 한글, 숫자만 사용 가능합니다.';
-    } else if (!isNicknameSame && !nicknameChecked) {
-      nextErrors.nickname = '닉네임 중복확인을 해주세요.';
-    }
+  const handleInputChange = useMemo(
+    () => createInputChangeHandler({
+      setFormData,
+      setErrors,
+      setNicknameChecked,
+      setNicknameMessage,
+      calcHandicapFromAvg,
+    }),
+    [setFormData, setErrors, setNicknameChecked, setNicknameMessage],
+  );
 
-    if (!formData.realname?.trim()) {
-      nextErrors.realname = '실명을 입력해주세요.';
-    }
+  const handleNicknameChange = useMemo(
+    () => createFieldChangeHandler(handleInputChange, 'nickname'),
+    [handleInputChange],
+  );
 
-    if (!formData.phone_number?.trim()) {
-      nextErrors.phone_number = '전화번호를 입력해주세요.';
-    }
+  const handleRealnameChange = useMemo(
+    () => createConditionalFieldChangeHandler({
+      handleInputChange,
+      field: 'realname',
+      shouldBlock: () => isNameComposing,
+    }),
+    [handleInputChange, isNameComposing],
+  );
 
-    if (!formData.birthdate) {
-      nextErrors.birthdate = '생년월일을 선택해주세요.';
-    }
+  const handlePhoneChange = useMemo(
+    () => createFieldChangeHandler(handleInputChange, 'phone_number'),
+    [handleInputChange],
+  );
 
-    if (isSocialLogin) {
-      const avg = Number(formData.average_score);
-      if (!formData.average_score) {
-        nextErrors.average_score = '평균 타수를 입력해주세요.';
-      } else if (Number.isNaN(avg) || avg < 55 || avg > 144) {
-        nextErrors.average_score = '평균 타수는 55~144 사이여야 합니다.';
-      }
-    }
+  const handleAverageScoreChange = useMemo(
+    () => createFieldChangeHandler(handleInputChange, 'average_score'),
+    [handleInputChange],
+  );
 
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  }, [formData, isNicknameSame, isSocialLogin, nicknameChecked]);
+  const checkNicknameDuplicate = useMemo(
+    () => createCheckNicknameDuplicateHandler({
+      nickname: formData.nickname,
+      isNicknameSame,
+      setErrors,
+      setIsCheckingNickname,
+      setNicknameChecked,
+      setNicknameMessage,
+      checkNicknameAvailability,
+    }),
+    [
+      formData.nickname,
+      isNicknameSame,
+      setErrors,
+      setIsCheckingNickname,
+      setNicknameChecked,
+      setNicknameMessage,
+    ],
+  );
+
+  const validateForm = useMemo(
+    () => createValidateProfileFormHandler({
+      formData,
+      isSocialLogin,
+      isNicknameSame,
+      nicknameChecked,
+      setErrors,
+    }),
+    [formData, isSocialLogin, isNicknameSame, nicknameChecked, setErrors],
+  );
 
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
-      setError(null);
-      const response = await usersApi.getMyProfile();
+      const response = await fetchMyProfile();
       const user = extractData(response);
       setProfile(user || {});
-      const averageScore = user?.average_score != null ? String(user.average_score) : '';
-      setFormData((prev) => ({
-        ...prev,
-        nickname: user?.nickname || '',
-        realname: user?.realname || '',
-        phone_number: user?.phone_number || '',
-        birthdate: normalizeBirthdate(user?.birthdate),
-        gender: user?.gender || '',
-        average_score: averageScore,
-        calculatedHandicap: calcHandicapFromAvg(averageScore),
-      }));
+      setFormData((prev) => buildProfileFormData(user, prev));
       setNicknameChecked(Boolean(user?.nickname));
       setNicknameMessage('');
       if (user?.id) {
         setHandicapLoading(true);
         try {
-          const handicapResponse = await usersApi.getUserHandicap(user.id);
+          const handicapResponse = await fetchUserHandicap(user.id);
           setHandicapInfo(extractData(handicapResponse));
         } catch (handicapError) {
           console.error('핸디캡 조회 실패:', handicapError);
@@ -274,44 +235,38 @@ export default function UserProfileEditForm() {
       }
     } catch (fetchError) {
       console.error('프로필 조회 실패:', fetchError);
-      setError('사용자 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
-  }, [calcHandicapFromAvg, normalizeBirthdate]);
+  }, []);
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
-  const handleSave = useCallback(async () => {
-    if (!validateForm()) return;
-
-    const payload = {
-      nickname: formData.nickname.trim(),
-      realname: formData.realname.trim(),
-      phone_number: formData.phone_number.trim(),
-      birthdate: formData.birthdate || null,
-      gender: formData.gender || profile?.gender || null,
-    };
-
-    if (isSocialLogin) {
-      payload.average_score = formData.average_score ? Number(formData.average_score) : null;
-    }
-
-    try {
-      setUpdateProfilePending(true);
-      await usersApi.updateMyProfile(payload);
-      showToast('success', '저장되었습니다.');
-      setNicknameChecked(true);
-      fetchProfile();
-    } catch (updateError) {
-      console.error('회원정보 수정 실패:', updateError);
-      showToast('error', updateError?.message || '회원정보 수정에 실패했습니다.');
-    } finally {
-      setUpdateProfilePending(false);
-    }
-  }, [fetchProfile, formData, isSocialLogin, profile?.gender, showToast, validateForm]);
+  const handleSave = useMemo(
+    () => createSaveProfileHandler({
+      formData,
+      profile,
+      isSocialLogin,
+      validateForm,
+      updateMyProfile,
+      showToast,
+      setNicknameChecked,
+      fetchProfile,
+      setUpdateProfilePending,
+    }),
+    [
+      fetchProfile,
+      formData,
+      isSocialLogin,
+      profile,
+      setNicknameChecked,
+      setUpdateProfilePending,
+      showToast,
+      validateForm,
+    ],
+  );
 
   return (
     <View style={styles.root}>
@@ -352,9 +307,7 @@ export default function UserProfileEditForm() {
               <View style={styles.rowGap}>
                 <TextInput
                   value={formData.nickname}
-                  onChangeText={(t) =>
-                    handleInputChange('nickname', t)
-                  }
+                  onChangeText={handleNicknameChange}
                   placeholder="닉네임을 입력하세요"
                   placeholderTextColor={colors.gray[400]}
                   style={[
@@ -414,7 +367,7 @@ export default function UserProfileEditForm() {
                 </Text>
 
                 <Pressable
-                  onPress={() => setShowPasswordModal(true)}
+                  onPress={openPasswordModal}
                   style={({ pressed }) => [
                     styles.grayBtn,
                     pressed && styles.btnPressed,
@@ -436,20 +389,9 @@ export default function UserProfileEditForm() {
 
               <TextInput
                 value={formData.realname}
-                onChangeText={(t) => {
-                  if (!isNameComposing)
-                    handleInputChange('realname', t);
-                }}
-                onCompositionStart={() =>
-                  setIsNameComposing(true)
-                }
-                onCompositionEnd={(e) => {
-                  setIsNameComposing(false);
-                  handleInputChange(
-                    'realname',
-                    e?.nativeEvent?.text ?? formData.realname
-                  );
-                }}
+                onChangeText={handleRealnameChange}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={handleCompositionEnd}
                 placeholder="실명을 입력하세요"
                 placeholderTextColor={colors.gray[400]}
                 style={[
@@ -476,9 +418,7 @@ export default function UserProfileEditForm() {
 
               <TextInput
                 value={formData.phone_number}
-                onChangeText={(t) =>
-                  handleInputChange('phone_number', t)
-                }
+                onChangeText={handlePhoneChange}
                 placeholder="전화번호를 입력하세요"
                 placeholderTextColor={colors.gray[400]}
                 style={[
@@ -512,7 +452,7 @@ export default function UserProfileEditForm() {
               </Text>
 
               <Pressable
-                onPress={() => setShowBirthPicker(true)}
+                onPress={openBirthPicker}
                 style={({ pressed }) => [
                   styles.inputLike,
                   errors.birthdate
@@ -536,17 +476,7 @@ export default function UserProfileEditForm() {
                       ? 'spinner'
                       : 'default'
                   }
-                  onChange={(event, selected) => {
-                    if (Platform.OS !== 'ios')
-                      setShowBirthPicker(false);
-                    if (event.type === 'dismissed') return;
-                    if (selected) {
-                      handleInputChange(
-                        'birthdate',
-                        formatDateYYYYMMDD(selected)
-                      );
-                    }
-                  }}
+                  onChange={handleBirthPickerChange}
                 />
               )}
 
@@ -598,9 +528,7 @@ export default function UserProfileEditForm() {
 
                   <TextInput
                     value={formData.average_score || ''}
-                    onChangeText={(t) =>
-                      handleInputChange('average_score', t)
-                    }
+                    onChangeText={handleAverageScoreChange}
                     placeholder="평균 타수를 입력하세요 (55-144)"
                     placeholderTextColor={colors.gray[400]}
                     style={[
@@ -776,7 +704,7 @@ export default function UserProfileEditForm() {
         {!isSocialLogin && ChangePasswordModal && (
           <ChangePasswordModal
             isOpen={showPasswordModal}
-            onClose={() => setShowPasswordModal(false)}
+            onClose={closePasswordModal}
           />
         )}
       </ScrollView>

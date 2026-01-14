@@ -1,18 +1,17 @@
 
 import {
-FontAwesome } from '@expo/vector-icons';
+  FontAwesome
+} from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet } from 'react-native';
 import {
   Image,
-KeyboardAvoidingView,
-Platform,
-Pressable,
-ScrollView,
-Text,
-View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 import { authorize } from 'react-native-app-auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,8 +23,8 @@ import { useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/authApi';
 import { buildGoogleAuthConfig, generateOauthState } from '@/lib/authUtils';
 import { tokenStorage } from '@/lib/tokenStorage';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 
 const logoImage = require('../public/icons/icon-512-transparent.png');
 

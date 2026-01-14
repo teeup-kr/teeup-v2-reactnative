@@ -1,87 +1,49 @@
-
-import {
-FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
-import { useCallback,
-useEffect,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-Alert,
-Modal,
-Pressable,
-ScrollView,
-Text,
-View,
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 
 import Card from '@/components/ui/Card';
 import { notificationsApi } from '@/lib/api';
+import {
+  createBulkDeleteHandler,
+  createBulkReadHandler,
+  createClearDeleteTargetHandler,
+  createConfirmDeleteHandler,
+  createDeleteNotificationHandler,
+  createDeleteTargetHandler,
+  createFilterPressHandler,
+  createLoadNotificationsHandler,
+  createMarkAllAsReadHandler,
+  createMarkAsReadHandler,
+  createOpenNotificationHandler,
+  createOpenNotificationPressHandler,
+  createSelectAllHandler,
+  createToggleSelectHandler,
+  createToggleSelectPressHandler,
+} from '@/lib/render/mypage/notifications';
+import {
+  formatNotificationDate,
+  getNotificationIcon,
+  isUnreadNotification,
+  notificationTypeLabels,
+  pickData,
+} from '@/lib/value/mypageNotifications';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
-/* ------------------ Utils ------------------ */
-
-const pickData = (resp) => (resp?.data !== undefined ? resp.data : resp);
-
-const formatDate = (dateString) => {
-  try {
-    if (!dateString) return '날짜 정보 없음';
-    const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return '날짜 정보 없음';
-
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return '방금 전';
-    if (diffMins < 60) return `${diffMins}분 전`;
-    if (diffHours < 24) return `${diffHours}시간 전`;
-    if (diffDays < 7) return `${diffDays}일 전`;
-
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  } catch {
-    return '날짜 정보 없음';
-  }
-};
-
-const isUnread = (n) => n.status === 'UNREAD' || !n.read_at;
-
-const getIcon = (type) => {
-  switch (type) {
-    case 'CLUB_MEMBERSHIP_APPROVED':
-    case 'CLUB_MEMBERSHIP_REJECTED':
-    case 'CLUB_MEMBERSHIP_REQUEST':
-    case 'CLUB_INVITATION':
-      return { name: 'users', color: colors.blue[600] };
-    case 'MEETING_REMINDER':
-    case 'MEETING_CANCELLATION':
-    case 'MEETING_COMPLETED':
-    case 'TEAM_FORMATION_COMPLETED':
-      return { name: 'calendar-alt', color: colors.emerald[600] };
-    case 'NEW_NOTICE':
-      return { name: 'file-alt', color: colors.yellow[600] };
-    case 'MEETING_SETTLEMENT_COMPLETED':
-    case 'SOCIAL_SETTLEMENT_COMPLETED':
-      return { name: 'money-bill-wave', color: colors.violet[600] };
-    default:
-      return { name: 'bell', color: colors.neutral[600] };
-  }
-};
-
-/* ------------------ Screen ------------------ */
 
 export default function NotificationsTab() {
   const router = useRouter();
 
-  const [filter, setFilter] = useState('all'); // all | unread | read
+  const [filter, setFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
 
   const [notifications, setNotifications] = useState([]);
@@ -93,110 +55,115 @@ export default function NotificationsTab() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [toast, setToast] = useState(null);
 
-  /* ---------- Load ---------- */
-
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const params = { filter };
-      if (typeFilter !== 'all') params.type_filter = typeFilter;
-
-      const resp = await notificationsApi.getNotifications(params);
-      setNotifications(pickData(resp) || []);
-    } catch (e) {
-      setError(e);
-    } finally {
-      setLoading(false);
-    }
-  }, [filter, typeFilter]);
+  const load = useMemo(
+    () =>
+      createLoadNotificationsHandler({
+        notificationsApi,
+        filter,
+        typeFilter,
+        pickData,
+        setNotifications,
+        setLoading,
+        setError,
+      }),
+    [filter, typeFilter, setNotifications, setLoading, setError]
+  );
 
   useEffect(() => {
     load();
   }, [load]);
 
-  /* ---------- Actions ---------- */
+  const markAsRead = useMemo(
+    () =>
+      createMarkAsReadHandler({
+        notificationsApi,
+        setNotifications,
+        alert: Alert.alert,
+      }),
+    [setNotifications]
+  );
 
-  const markAsRead = async (id) => {
-    try {
-      await notificationsApi.markAsRead(id);
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === id ? { ...n, status: 'READ', read_at: new Date().toISOString() } : n
-        )
-      );
-    } catch {
-      Alert.alert('오류', '읽음 처리에 실패했습니다.');
-    }
-  };
+  const markAllAsRead = useMemo(
+    () =>
+      createMarkAllAsReadHandler({
+        notificationsApi,
+        setNotifications,
+        setToast,
+        alert: Alert.alert,
+      }),
+    [setNotifications, setToast]
+  );
 
-  const markAllAsRead = async () => {
-    try {
-      await notificationsApi.markAllAsRead();
-      const now = new Date().toISOString();
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, status: 'READ', read_at: n.read_at || now }))
-      );
-      setToast({ tone: 'success', msg: '모든 알림이 읽음 처리되었습니다.' });
-    } catch {
-      Alert.alert('오류', '처리에 실패했습니다.');
-    }
-  };
-  const typeFilterLabelMap = {
-    all: '전체 타입',
-    CLUB_MEMBERSHIP_APPROVED: '클럽 가입 승인',
-    CLUB_MEMBERSHIP_REJECTED: '클럽 가입 거절',
-    CLUB_MEMBERSHIP_REQUEST: '가입 신청',
-    MEETING_REMINDER: '모임 알림',
-    TEAM_FORMATION_COMPLETED: '팀 편성 완료',
-    NEW_NOTICE: '공지사항',
-    MEETING_SETTLEMENT_COMPLETED: '정산 완료',
-    SOCIAL_SETTLEMENT_COMPLETED: '소셜 정산 완료',
-  };
-  const deleteOne = async (id) => {
-    try {
-      await notificationsApi.deleteNotification(id);
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-      setToast({ tone: 'success', msg: '알림이 삭제되었습니다.' });
-    } catch {
-      Alert.alert('오류', '삭제에 실패했습니다.');
-    }
-  };
+  const deleteOne = useMemo(
+    () =>
+      createDeleteNotificationHandler({
+        notificationsApi,
+        setNotifications,
+        setToast,
+        alert: Alert.alert,
+      }),
+    [setNotifications, setToast]
+  );
 
-  const toggleSelect = (id) => {
-    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  };
+  const toggleSelect = useMemo(
+    () => createToggleSelectHandler({ setSelected }),
+    [setSelected]
+  );
 
-  const selectAll = () => {
-    if (selected.length === notifications.length) setSelected([]);
-    else setSelected(notifications.map((n) => n.id));
-  };
+  const handleToggleSelect = useMemo(
+    () => createToggleSelectPressHandler({ onToggle: toggleSelect }),
+    [toggleSelect]
+  );
 
-  const bulkRead = async () => {
-    for (const id of selected) await markAsRead(id);
-    setSelected([]);
-  };
+  const selectAll = useMemo(
+    () => createSelectAllHandler({ notifications, selected, setSelected }),
+    [notifications, selected, setSelected]
+  );
 
-  const bulkDelete = async () => {
-    for (const id of selected) await deleteOne(id);
-    setSelected([]);
-  };
+  const bulkRead = useMemo(
+    () => createBulkReadHandler({ selected, markAsRead, setSelected }),
+    [selected, markAsRead, setSelected]
+  );
 
-  const openNotification = async (n) => {
-    if (isUnread(n)) await markAsRead(n.id);
+  const bulkDelete = useMemo(
+    () => createBulkDeleteHandler({ selected, deleteOne, setSelected }),
+    [selected, deleteOne, setSelected]
+  );
 
-    if (!n.related_entity_type || !n.related_entity_id) return;
+  const openNotification = useMemo(
+    () =>
+      createOpenNotificationHandler({
+        isUnreadNotification,
+        markAsRead,
+        router,
+      }),
+    [markAsRead, router]
+  );
 
-    if (n.related_entity_type === 'CLUB' || n.related_entity_type === 'CLUB_MEMBERSHIP') {
-      router.push(`/clubs/${n.related_entity_id}`);
-    }
-    if (n.related_entity_type === 'CLUB_NOTICE' && n.extra_data?.club_id) {
-      router.push(`/clubs/${n.extra_data.club_id}/notices`);
-    }
-  };
+  const handleOpenNotification = useMemo(
+    () => createOpenNotificationPressHandler({ onOpen: openNotification }),
+    [openNotification]
+  );
 
-  /* ---------- Render ---------- */
+  const handleFilterPress = useMemo(
+    () => createFilterPressHandler({ setFilter }),
+    [setFilter]
+  );
+
+  const handleDeleteTarget = useMemo(
+    () => createDeleteTargetHandler({ setDeleteTarget }),
+    [setDeleteTarget]
+  );
+
+  const clearDeleteTarget = useMemo(
+    () => createClearDeleteTargetHandler({ setDeleteTarget }),
+    [setDeleteTarget]
+  );
+
+  const confirmDelete = useMemo(
+    () => createConfirmDeleteHandler({ deleteTarget, deleteOne, setDeleteTarget }),
+    [deleteTarget, deleteOne, setDeleteTarget]
+  );
 
   if (loading) {
     return (
@@ -219,15 +186,14 @@ export default function NotificationsTab() {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: tokens.padding.md }}>
-        {/*Filter & Actions Card*/}
         <Card style={styles.filterCard}>
-          {/* 필터 영역 */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: tokens.spacing.xs2 }}>
-            {/* 타입 필터 */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ marginBottom: tokens.spacing.xs2 }}
+          >
             <View style={styles.filterBtn}>
-              <Text style={styles.filterText}>
-                {typeFilterLabelMap[typeFilter]}
-              </Text>
+              <Text style={styles.filterText}>{notificationTypeLabels[typeFilter]}</Text>
               <Text style={styles.arrow}>▼</Text>
 
               <Picker
@@ -249,31 +215,29 @@ export default function NotificationsTab() {
               </Picker>
             </View>
 
-            {/* 상태 필터 */}
-            {['all', 'unread', 'read'].map((f) => (
+            {['all', 'unread', 'read'].map((value) => (
               <Pressable
-                key={f}
-                onPress={() => setFilter(f)}
+                key={value}
+                onPress={handleFilterPress(value)}
                 style={[
                   styles.filterBtn,
-                  filter === f && styles.filterBtnActive,
-                  f === 'unread' && filter === f && { backgroundColor: colors.red[600] },
-                  f === 'read' && filter === f && { backgroundColor: colors.emerald[600] },
+                  filter === value && styles.filterBtnActive,
+                  value === 'unread' && filter === value && { backgroundColor: colors.red[600] },
+                  value === 'read' && filter === value && { backgroundColor: colors.emerald[600] },
                 ]}
               >
                 <Text
                   style={[
                     styles.filterText,
-                    filter === f && { color: 'white' },
+                    filter === value && { color: 'white' },
                   ]}
                 >
-                  {f === 'all' ? '전체' : f === 'unread' ? '읽지 않음' : '읽음'}
+                  {value === 'all' ? '전체' : value === 'unread' ? '읽지 않음' : '읽음'}
                 </Text>
               </Pressable>
             ))}
           </ScrollView>
 
-          {/* 액션 버튼 */}
           <View style={styles.actionRow}>
             {selected.length > 0 && (
               <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -291,7 +255,6 @@ export default function NotificationsTab() {
             </Pressable>
           </View>
 
-          {/* 전체 선택 */}
           {notifications.length > 0 && (
             <Pressable style={styles.selectAllRow} onPress={selectAll}>
               <FontAwesome5
@@ -304,7 +267,6 @@ export default function NotificationsTab() {
           )}
         </Card>
 
-        {/* Bulk */}
         {selected.length > 0 && (
           <View style={styles.bulkRow}>
             <Pressable style={styles.bulkBtnBlue} onPress={bulkRead}>
@@ -316,7 +278,6 @@ export default function NotificationsTab() {
           </View>
         )}
 
-        {/* List */}
         {notifications.length === 0 ? (
           <Card style={styles.emptyCard}>
             <FontAwesome5 name="bell" size={32} color={colors.neutral[400]} />
@@ -324,22 +285,19 @@ export default function NotificationsTab() {
             <Text style={styles.emptyText2}>새로운 알림이 오면 여기에 표시됩니다.</Text>
           </Card>
         ) : (
-          notifications.map((n) => {
-            const icon = getIcon(n.type);
-            const unread = isUnread(n);
+          notifications.map((notification) => {
+            const icon = getNotificationIcon(notification.type);
+            const unread = isUnreadNotification(notification);
 
             return (
               <Pressable
-                key={n.id}
-                onPress={() => openNotification(n)}
-                style={[
-                  styles.notiCard,
-                  unread && styles.unreadBorder,
-                ]}
+                key={notification.id}
+                onPress={handleOpenNotification(notification)}
+                style={[styles.notiCard, unread && styles.unreadBorder]}
               >
-                <Pressable onPress={() => toggleSelect(n.id)}>
+                <Pressable onPress={handleToggleSelect(notification.id)}>
                   <FontAwesome5
-                    name={selected.includes(n.id) ? 'check-square' : 'square'}
+                    name={selected.includes(notification.id) ? 'check-square' : 'square'}
                     size={18}
                     color={colors.primary[600]}
                   />
@@ -348,12 +306,16 @@ export default function NotificationsTab() {
                 <FontAwesome5 name={icon.name} size={20} color={icon.color} />
 
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.title, unread && styles.unreadTitle]}>{n.title}</Text>
-                  <Text style={styles.content}>{n.content}</Text>
-                  <Text style={styles.time}>{formatDate(n.created_at)}</Text>
+                  <Text style={[styles.title, unread && styles.unreadTitle]}>
+                    {notification.title}
+                  </Text>
+                  <Text style={styles.content}>{notification.content}</Text>
+                  <Text style={styles.time}>
+                    {formatNotificationDate(notification.created_at)}
+                  </Text>
                 </View>
 
-                <Pressable onPress={() => setDeleteTarget(n.id)}>
+                <Pressable onPress={handleDeleteTarget(notification.id)}>
                   <FontAwesome5 name="trash" size={16} color={colors.error[600]} />
                 </Pressable>
               </Pressable>
@@ -362,22 +324,18 @@ export default function NotificationsTab() {
         )}
       </ScrollView>
 
-      {/* Delete Modal */}
       <Modal visible={!!deleteTarget} transparent>
         <View style={styles.modalBg}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>알림 삭제</Text>
             <Text style={{ marginBottom: tokens.spacing.md }}>이 알림을 삭제하시겠습니까?</Text>
             <View style={{ flexDirection: 'row', gap: 12 }}>
-              <Pressable style={styles.modalBtn} onPress={() => setDeleteTarget(null)}>
+              <Pressable style={styles.modalBtn} onPress={clearDeleteTarget}>
                 <Text>취소</Text>
               </Pressable>
               <Pressable
                 style={[styles.modalBtn, { backgroundColor: colors.error[600] }]}
-                onPress={() => {
-                  deleteOne(deleteTarget);
-                  setDeleteTarget(null);
-                }}
+                onPress={confirmDelete}
               >
                 <Text style={{ color: 'white' }}>삭제</Text>
               </Pressable>
@@ -386,17 +344,18 @@ export default function NotificationsTab() {
         </View>
       </Modal>
 
-      {/* Toast */}
       {toast && (
-        <View style={[styles.toast, toast.tone === 'success' ? styles.toastSuccess : styles.toastError]}>
-          <Text style={{ color: 'white', fontWeight: tokens.fontWeight.extrabold }}>{toast.msg}</Text>
+        <View
+          style={[styles.toast, toast.tone === 'success' ? styles.toastSuccess : styles.toastError]}
+        >
+          <Text style={{ color: 'white', fontWeight: tokens.fontWeight.extrabold }}>
+            {toast.msg}
+          </Text>
         </View>
       )}
     </View>
   );
 }
-
-/* ------------------ Styles ------------------ */
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -418,19 +377,31 @@ const styles = StyleSheet.create({
   },
   unreadBorder: { borderLeftWidth: 4, borderLeftColor: colors.emerald[500] },
 
-  title: { fontSize: tokens.font.base, fontWeight: tokens.fontWeight.bold, color: colors.neutral[800] },
+  title: {
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.bold,
+    color: colors.neutral[800],
+  },
   unreadTitle: { color: colors.neutral[900], fontWeight: tokens.fontWeight.black },
   content: { fontSize: tokens.font.sm, color: colors.neutral[600], marginTop: tokens.spacing.xxs },
   time: { fontSize: tokens.font.xs, color: colors.neutral[400], marginTop: tokens.spacing.xxs },
 
   bulkRow: { ...base.row, gap: tokens.spacing.xs2, marginBottom: tokens.spacing.sm2 },
-  bulkBtnBlue: { backgroundColor: colors.blue[100], padding: tokens.padding.base, borderRadius: tokens.radius.base },
+  bulkBtnBlue: {
+    backgroundColor: colors.blue[100],
+    padding: tokens.padding.base,
+    borderRadius: tokens.radius.base,
+  },
   bulkBtnRed: { backgroundColor: colors.red[100], padding: tokens.padding.base, borderRadius: tokens.radius.base },
   bulkText: { fontWeight: tokens.fontWeight.extrabold },
 
   emptyCard: { alignItems: 'center', padding: tokens.padding.xxl },
   emptyText: { marginTop: tokens.spacing.xs2, fontWeight: tokens.fontWeight.bold, color: colors.neutral[600] },
-  emptyText2: { marginTop: tokens.spacing.xs2, fontWeight: tokens.fontWeight.regular, color: colors.neutral[600] },
+  emptyText2: {
+    marginTop: tokens.spacing.xs2,
+    fontWeight: tokens.fontWeight.regular,
+    color: colors.neutral[600],
+  },
 
   modalBg: {
     flex: 1,
@@ -444,7 +415,11 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.baseLg,
     width: '80%',
   },
-  modalTitle: { fontSize: tokens.font.title, fontWeight: tokens.fontWeight.black, marginBottom: tokens.spacing.sm },
+  modalTitle: {
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.black,
+    marginBottom: tokens.spacing.sm,
+  },
 
   modalBtn: {
     flex: 1,
@@ -465,7 +440,11 @@ const styles = StyleSheet.create({
   toastError: { backgroundColor: colors.red[600] },
 
   errorCard: { alignItems: 'center', padding: tokens.padding.xxl },
-  errorTitle: { marginTop: tokens.spacing.xs2, fontWeight: tokens.fontWeight.extrabold, color: colors.error[600] },
+  errorTitle: {
+    marginTop: tokens.spacing.xs2,
+    fontWeight: tokens.fontWeight.extrabold,
+    color: colors.error[600],
+  },
   filterCard: {
     marginBottom: tokens.spacing.sm2,
   },

@@ -1,24 +1,26 @@
 
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import {
-useLocalSearchParams,
-useRouter } from 'expo-router';
-import { useEffect,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { ActivityIndicator,
-Pressable,
-ScrollView,
-Text,
-View,
+  ActivityIndicator,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { clubsApi } from '@/lib/clubsApi';
+import { fetchClubRegulation } from '@/lib/api/clubs';
+import {
+  createFetchRegulationDetailHandler,
+  createRegulationEditHandler,
+} from '@/lib/render/clubs/regulations';
 import { extractData } from '@/lib/responseUtils';
+import { getRegulationUpdatedDate } from '@/lib/value/clubRegulations';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
+
 export default function ClubRegulationDetailScreen() {
   const router = useRouter();
   const { clubId, regulationId } = useLocalSearchParams();
@@ -28,28 +30,37 @@ export default function ClubRegulationDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const loadRegulation = async () => {
-      if (!resolvedClubId || !resolvedRegulationId) {
-        setIsLoading(false);
-        return;
-      }
-      try {
-        setIsLoading(true);
-        setError('');
-        const response = await clubsApi.getClubRegulation(resolvedClubId, resolvedRegulationId);
-        const data = extractData(response);
-        setRegulation(data);
-      } catch (fetchError) {
-        console.error('클럽 규정 상세 조회 실패:', fetchError);
-        setError(fetchError?.message || '규정을 불러오는데 실패했습니다.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const loadRegulation = useMemo(
+    () =>
+      createFetchRegulationDetailHandler({
+        clubId: resolvedClubId,
+        regulationId: resolvedRegulationId,
+        fetchClubRegulation,
+        extractData,
+        setRegulation,
+        setIsLoading,
+        setError,
+      }),
+    [resolvedClubId, resolvedRegulationId, setRegulation, setIsLoading, setError]
+  );
 
+  useEffect(() => {
     loadRegulation();
-  }, [resolvedClubId, resolvedRegulationId]);
+  }, [loadRegulation]);
+
+  const updatedDate = useMemo(
+    () => getRegulationUpdatedDate(regulation),
+    [regulation]
+  );
+
+  const handleEditPress = useMemo(
+    () =>
+      createRegulationEditHandler({
+        router,
+        clubId: resolvedClubId || clubId,
+      }),
+    [router, resolvedClubId, clubId]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -66,23 +77,13 @@ export default function ClubRegulationDetailScreen() {
           ) : (
             <>
               <Text style={styles.title}>{regulation?.title || '규정'}</Text>
-              <Text style={styles.meta}>
-                마지막 업데이트{' '}
-                {regulation?.updated_at
-                  ? regulation.updated_at.slice(0, 10)
-                  : regulation?.created_at
-                    ? regulation.created_at.slice(0, 10)
-                    : '-'}
-              </Text>
+              <Text style={styles.meta}>마지막 업데이트 {updatedDate}</Text>
               <Text style={styles.body}>{regulation?.content || '등록된 내용이 없습니다.'}</Text>
             </>
           )}
         </Card>
 
-        <Pressable
-          style={styles.editButton}
-          onPress={() => router.push(`/clubs/${resolvedClubId || clubId}/regulations/create`)}
-        >
+        <Pressable style={styles.editButton} onPress={handleEditPress}>
           <Text style={styles.editButtonText}>수정하기</Text>
         </Pressable>
         <Text style={styles.helperText}>규정 수정 화면은 동일한 작성 화면으로 연결됩니다.</Text>

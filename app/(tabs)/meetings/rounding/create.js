@@ -1,23 +1,15 @@
-
-import {
-useLocalSearchParams,
-useRouter } from 'expo-router';
-import { useCallback,
-useEffect,
-useMemo,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-Alert,
-Pressable,
-ScrollView,
-Text,
-TextInput,
-View,
+  Alert,
+  ScrollView, StyleSheet, Text,
+  TextInput,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import ChipOption from '@/components/meetings/ChipOption';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import DateTimeField from '@/components/ui/DateTimeField';
@@ -27,30 +19,23 @@ import {
   roundingSettlementMethods,
   roundingTeamModes,
 } from '@/constants/meetingConstants';
-import { clubApi, roundsApi } from '@/lib/api';
+import { createRound, fetchMyClubs, fetchRound, updateRound } from '@/lib/api/meetings';
+import { extractData, extractList } from '@/lib/meetingUtils';
 import {
-  convertToKST,
-  extractData,
-  extractList,
-  normalizeNumber,
-  parseTeeTimes,
-  toDateTimeLocalValue,
-  validateMeetingTimeWithTeeTimes,
-} from '@/lib/meetingUtils';
+  createFetchClubsHandler,
+  createFetchMeetingHandler,
+  createFieldChangeHandler,
+  createOptionPressHandler,
+  createSubmitHandler,
+} from '@/lib/render/meetings/roundingForm';
+import {
+  buildRoundingFormFromData,
+  buildRoundingPayload,
+  getRoundingMeetingTitle,
+  validateRoundingForm,
+} from '@/lib/value/roundingForm';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
-const ChipOption = ({ label, selected, onPress }) => (
-  <Pressable
-    onPress={onPress}
-    style={({ pressed }) => [
-      styles.chip,
-      selected && styles.chipActive,
-      pressed && styles.chipPressed,
-    ]}
-  >
-    <Text style={[styles.chipText, selected && styles.chipTextActive]}>{label}</Text>
-  </Pressable>
-);
 
 export function RoundingForm({ mode = 'create' }) {
   const router = useRouter();
@@ -84,70 +69,59 @@ export function RoundingForm({ mode = 'create' }) {
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
 
-  const handleChange = useCallback((field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }, []);
-
-  const meetingTitle = useMemo(
-    () => (isEditMode ? '라운딩 모임 수정' : '라운딩 모임 만들기'),
-    [isEditMode],
+  const handleFieldChange = useMemo(
+    () => createFieldChangeHandler({ setForm }),
+    [setForm]
+  );
+  const handleClubSelect = useMemo(
+    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'club_id' }),
+    [handleFieldChange]
+  );
+  const handleTeamModeSelect = useMemo(
+    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'team_formation_mode' }),
+    [handleFieldChange]
+  );
+  const handleMeetingSubtypeSelect = useMemo(
+    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'meeting_subtype' }),
+    [handleFieldChange]
+  );
+  const handleSettlementSelect = useMemo(
+    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'settlement_method' }),
+    [handleFieldChange]
   );
 
-  const fetchClubs = useCallback(async () => {
-    try {
-      setClubsLoading(true);
-      const response = await clubApi.getMyClubs();
-      const list = extractList(response);
-      const activeClubs = list.filter(
-        (club) => club.status === 'ACTIVE' || club.status === 'APPROVED',
-      );
-      setClubs(activeClubs);
-      if (!isEditMode && activeClubs.length === 1) {
-        setForm((prev) => ({ ...prev, club_id: activeClubs[0].id }));
-      }
-    } catch (error) {
-      console.error('클럽 목록 조회 실패:', error);
-      setClubs([]);
-    } finally {
-      setClubsLoading(false);
-    }
-  }, [isEditMode]);
+  const meetingTitle = useMemo(
+    () => getRoundingMeetingTitle(isEditMode),
+    [isEditMode]
+  );
 
-  const fetchMeeting = useCallback(async () => {
-    if (!isEditMode || !meetingIdValue) return;
-    try {
-      setLoading(true);
-      const response = await roundsApi.getRound(meetingIdValue);
-      const data = extractData(response);
-      if (!data) return;
-      setForm((prev) => ({
-        ...prev,
-        name: data.name ?? '',
-        description: data.description ?? '',
-        location: data.location ?? '',
-        meeting_time: toDateTimeLocalValue(data.meeting_time),
-        application_deadline: toDateTimeLocalValue(data.application_deadline),
-        club_id: data.club_id ?? data.club?.id ?? '',
-        course_name: data.course_name ?? '',
-        reservation_name: data.reservation_name ?? '',
-        hole_count: data.hole_count ? String(data.hole_count) : '18',
-        tee_times: Array.isArray(data.tee_times) ? data.tee_times.join(', ') : data.tee_times ?? '',
-        max_participants: data.max_participants !== undefined ? String(data.max_participants) : '',
-        team_size: data.team_size !== undefined ? String(data.team_size) : '',
-        team_formation_mode: data.team_formation_mode || prev.team_formation_mode,
-        meeting_subtype: data.meeting_subtype || prev.meeting_subtype,
-        green_fee: data.green_fee !== undefined ? String(data.green_fee) : '',
-        caddy_fee: data.caddy_fee !== undefined ? String(data.caddy_fee) : '',
-        cart_fee: data.cart_fee !== undefined ? String(data.cart_fee) : '',
-        settlement_method: data.settlement_method || prev.settlement_method,
-      }));
-    } catch (error) {
-      console.error('모임 조회 실패:', error);
-      Alert.alert('오류', '모임 정보를 불러오는데 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  }, [isEditMode, meetingIdValue]);
+  const fetchClubs = useMemo(
+    () =>
+      createFetchClubsHandler({
+        fetchMyClubs,
+        extractList,
+        isEditMode,
+        setClubs,
+        setClubsLoading,
+        setForm,
+      }),
+    [isEditMode, setClubs, setClubsLoading, setForm]
+  );
+
+  const fetchMeeting = useMemo(
+    () =>
+      createFetchMeetingHandler({
+        isEditMode,
+        meetingIdValue,
+        fetchRound,
+        extractData,
+        setForm,
+        setLoading,
+        alert: Alert.alert,
+        buildFormFromData: buildRoundingFormFromData,
+      }),
+    [isEditMode, meetingIdValue, setForm, setLoading]
+  );
 
   useEffect(() => {
     fetchClubs();
@@ -157,118 +131,32 @@ export function RoundingForm({ mode = 'create' }) {
     fetchMeeting();
   }, [fetchMeeting]);
 
-  const validateForm = () => {
-    const errors = {};
-    const teeTimes = parseTeeTimes(form.tee_times);
-
-    if (!form.name.trim()) errors.name = '모임명을 입력해주세요.';
-    if (!form.location.trim()) errors.location = '장소를 입력해주세요.';
-    if (!form.meeting_time) errors.meeting_time = '모임 시간을 입력해주세요.';
-    if (!form.application_deadline) errors.application_deadline = '신청 마감일을 입력해주세요.';
-    if (form.meeting_time && form.application_deadline) {
-      const meetingDate = new Date(form.meeting_time);
-      const deadlineDate = new Date(form.application_deadline);
-      if (!Number.isNaN(meetingDate.getTime()) && !Number.isNaN(deadlineDate.getTime())) {
-        if (meetingDate < deadlineDate) {
-          errors.application_deadline = '신청 마감일은 모임 시간 이전이어야 합니다.';
-        }
-      }
-    }
-    if (!form.club_id) errors.club_id = '클럽을 선택해주세요.';
-    if (!form.course_name.trim()) errors.course_name = '골프장명을 입력해주세요.';
-    if (!form.reservation_name.trim()) errors.reservation_name = '예약자명을 입력해주세요.';
-    if (teeTimes.length === 0) errors.tee_times = '티타임을 입력해주세요.';
-    if (form.meeting_time && teeTimes.length > 0) {
-      if (!validateMeetingTimeWithTeeTimes(form.meeting_time, teeTimes)) {
-        errors.meeting_time = '모임 시간은 티업 시간보다 이전이어야 합니다.';
-      }
-    }
-
-    const maxParticipants = normalizeNumber(form.max_participants, 0);
-    const teamSize = normalizeNumber(form.team_size, 0);
-    if (!maxParticipants || maxParticipants <= 0) {
-      errors.max_participants = '최대 참가자 수는 1명 이상이어야 합니다.';
-    }
-    if (!teamSize || teamSize <= 0) {
-      errors.team_size = '한 조당 인원 수는 1명 이상이어야 합니다.';
-    }
-    if (maxParticipants && teamSize && teamSize > maxParticipants) {
-      errors.team_size = '한 조당 인원 수는 최대 참가자 수보다 클 수 없습니다.';
-    }
-
-    const greenFee = normalizeNumber(form.green_fee, -1);
-    const caddyFee = normalizeNumber(form.caddy_fee, -1);
-    const cartFee = normalizeNumber(form.cart_fee, -1);
-    if (greenFee <= 0) errors.green_fee = '그린피를 입력해주세요.';
-    if (caddyFee <= 0) errors.caddy_fee = '캐디피를 입력해주세요.';
-    if (cartFee <= 0) errors.cart_fee = '카트비를 입력해주세요.';
-
-    const holeCount = normalizeNumber(form.hole_count, 18);
-    if (holeCount < 1) {
-      errors.hole_count = '홀 수는 1 이상이어야 합니다.';
-    }
-
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) {
-      Alert.alert('확인 필요', '입력 항목을 확인해주세요.');
-      return;
-    }
-
-    const teeTimes = parseTeeTimes(form.tee_times);
-    const greenFee = normalizeNumber(form.green_fee, 0);
-    const caddyFee = normalizeNumber(form.caddy_fee, 0);
-    const cartFee = normalizeNumber(form.cart_fee, 0);
-    const payload = {
-      name: form.name.trim(),
-      description: form.description.trim() || undefined,
-      location: form.location.trim() || undefined,
-      meeting_time: convertToKST(form.meeting_time),
-      application_deadline: convertToKST(form.application_deadline),
-      club_id: form.club_id || undefined,
-      course_name: form.course_name.trim() || undefined,
-      reservation_name: form.reservation_name.trim() || undefined,
-      hole_count: normalizeNumber(form.hole_count, 18),
-      tee_times: teeTimes,
-      max_participants: normalizeNumber(form.max_participants, 0),
-      team_size: normalizeNumber(form.team_size, 0),
-      team_formation_mode: form.team_formation_mode,
-      meeting_subtype: form.meeting_subtype,
-      green_fee: greenFee,
-      caddy_fee: caddyFee,
-      cart_fee: cartFee,
-      total_cost: greenFee + caddyFee + cartFee,
-      settlement_method: roundingSettlementMethods.some((method) => method.id === form.settlement_method)
-        ? form.settlement_method
-        : 'EQUAL_SPLIT',
-    };
-
-    try {
-      setSaving(true);
-      const response = isEditMode
-        ? await roundsApi.updateRound(meetingIdValue, payload)
-        : await roundsApi.createRound(payload);
-      const data = extractData(response);
-      const createdId = data?.id || data?.meeting_id || meetingIdValue;
-      Alert.alert(
-        '완료',
-        isEditMode ? '모임 정보가 수정되었습니다.' : '라운딩 모임이 생성되었습니다.',
-      );
-      if (createdId) {
-        router.replace(`/meetings/rounding/${createdId}`);
-      } else {
-        router.replace('/meetings');
-      }
-    } catch (error) {
-      console.error('라운딩 저장 실패:', error);
-      Alert.alert('오류', error?.message || '모임 저장에 실패했습니다.');
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handleSubmit = useMemo(
+    () =>
+      createSubmitHandler({
+        form,
+        isEditMode,
+        meetingIdValue,
+        createRound,
+        updateRound,
+        extractData,
+        router,
+        alert: Alert.alert,
+        setSaving,
+        setFieldErrors,
+        validateForm: validateRoundingForm,
+        buildPayload: buildRoundingPayload,
+        settlementMethods: roundingSettlementMethods,
+      }),
+    [
+      form,
+      isEditMode,
+      meetingIdValue,
+      router,
+      setSaving,
+      setFieldErrors,
+    ]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -289,7 +177,7 @@ export function RoundingForm({ mode = 'create' }) {
                 <Text style={styles.label}>모임명</Text>
                 <TextInput
                   value={form.name}
-                  onChangeText={(value) => handleChange('name', value)}
+                  onChangeText={handleFieldChange('name')}
                   placeholder="예: 봄맞이 라운딩"
                   style={[styles.input, fieldErrors.name && styles.inputError]}
                   placeholderTextColor={colors.neutral[400]}
@@ -301,7 +189,7 @@ export function RoundingForm({ mode = 'create' }) {
                 <Text style={styles.label}>설명</Text>
                 <TextInput
                   value={form.description}
-                  onChangeText={(value) => handleChange('description', value)}
+                  onChangeText={handleFieldChange('description')}
                   placeholder="모임 소개를 입력하세요"
                   style={[styles.input, styles.textArea]}
                   multiline
@@ -313,7 +201,7 @@ export function RoundingForm({ mode = 'create' }) {
                 <Text style={styles.label}>장소</Text>
                 <TextInput
                   value={form.location}
-                  onChangeText={(value) => handleChange('location', value)}
+                  onChangeText={handleFieldChange('location')}
                   placeholder="예: 서울 강동구"
                   style={[styles.input, fieldErrors.location && styles.inputError]}
                   placeholderTextColor={colors.neutral[400]}
@@ -331,7 +219,7 @@ export function RoundingForm({ mode = 'create' }) {
               <DateTimeField
                 label="모임 시간"
                 value={form.meeting_time}
-                onChange={(value) => handleChange('meeting_time', value)}
+                onChange={handleFieldChange('meeting_time')}
                 placeholder="날짜/시간 선택"
                 error={fieldErrors.meeting_time}
                 minimumDate={isEditMode ? undefined : new Date()}
@@ -340,7 +228,7 @@ export function RoundingForm({ mode = 'create' }) {
               <DateTimeField
                 label="신청 마감"
                 value={form.application_deadline}
-                onChange={(value) => handleChange('application_deadline', value)}
+                onChange={handleFieldChange('application_deadline')}
                 placeholder="날짜/시간 선택"
                 error={fieldErrors.application_deadline}
                 minimumDate={isEditMode ? undefined : new Date()}
@@ -359,7 +247,8 @@ export function RoundingForm({ mode = 'create' }) {
                         key={club.id}
                         label={club.name}
                         selected={form.club_id === club.id}
-                        onPress={() => handleChange('club_id', club.id)}
+                        onPress={handleClubSelect(club.id)}
+                        styles={styles}
                       />
                     ))}
                   </View>
@@ -378,7 +267,7 @@ export function RoundingForm({ mode = 'create' }) {
                 <Text style={styles.label}>골프장명</Text>
                 <TextInput
                   value={form.course_name}
-                  onChangeText={(value) => handleChange('course_name', value)}
+                  onChangeText={handleFieldChange('course_name')}
                   placeholder="예: 한강 GC"
                   style={[styles.input, fieldErrors.course_name && styles.inputError]}
                   placeholderTextColor={colors.neutral[400]}
@@ -392,7 +281,7 @@ export function RoundingForm({ mode = 'create' }) {
                 <Text style={styles.label}>예약자명</Text>
                 <TextInput
                   value={form.reservation_name}
-                  onChangeText={(value) => handleChange('reservation_name', value)}
+                  onChangeText={handleFieldChange('reservation_name')}
                   placeholder="예약자명을 입력하세요"
                   style={[styles.input, fieldErrors.reservation_name && styles.inputError]}
                   placeholderTextColor={colors.neutral[400]}
@@ -407,7 +296,7 @@ export function RoundingForm({ mode = 'create' }) {
                   <Text style={styles.label}>홀 수</Text>
                   <TextInput
                     value={form.hole_count}
-                    onChangeText={(value) => handleChange('hole_count', value)}
+                    onChangeText={handleFieldChange('hole_count')}
                     placeholder="18"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.hole_count && styles.inputError]}
@@ -421,7 +310,7 @@ export function RoundingForm({ mode = 'create' }) {
                   <Text style={styles.label}>티타임</Text>
                   <TextInput
                     value={form.tee_times}
-                    onChangeText={(value) => handleChange('tee_times', value)}
+                    onChangeText={handleFieldChange('tee_times')}
                     placeholder="예: 09:00, 09:10"
                     style={[styles.input, fieldErrors.tee_times && styles.inputError]}
                     placeholderTextColor={colors.neutral[400]}
@@ -442,7 +331,7 @@ export function RoundingForm({ mode = 'create' }) {
                   <Text style={styles.label}>최대 인원</Text>
                   <TextInput
                     value={form.max_participants}
-                    onChangeText={(value) => handleChange('max_participants', value)}
+                    onChangeText={handleFieldChange('max_participants')}
                     placeholder="예: 16"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.max_participants && styles.inputError]}
@@ -456,7 +345,7 @@ export function RoundingForm({ mode = 'create' }) {
                   <Text style={styles.label}>조당 인원</Text>
                   <TextInput
                     value={form.team_size}
-                    onChangeText={(value) => handleChange('team_size', value)}
+                    onChangeText={handleFieldChange('team_size')}
                     placeholder="4"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.team_size && styles.inputError]}
@@ -476,7 +365,8 @@ export function RoundingForm({ mode = 'create' }) {
                       key={modeOption.id}
                       label={modeOption.label}
                       selected={form.team_formation_mode === modeOption.id}
-                      onPress={() => handleChange('team_formation_mode', modeOption.id)}
+                      onPress={handleTeamModeSelect(modeOption.id)}
+                      styles={styles}
                     />
                   ))}
                 </View>
@@ -490,7 +380,8 @@ export function RoundingForm({ mode = 'create' }) {
                       key={subtype.id}
                       label={subtype.label}
                       selected={form.meeting_subtype === subtype.id}
-                      onPress={() => handleChange('meeting_subtype', subtype.id)}
+                      onPress={handleMeetingSubtypeSelect(subtype.id)}
+                      styles={styles}
                     />
                   ))}
                 </View>
@@ -505,7 +396,7 @@ export function RoundingForm({ mode = 'create' }) {
                 <Text style={styles.label}>그린피</Text>
                 <TextInput
                   value={form.green_fee}
-                  onChangeText={(value) => handleChange('green_fee', value)}
+                  onChangeText={handleFieldChange('green_fee')}
                   placeholder="예: 120000"
                   keyboardType="numeric"
                   style={[styles.input, fieldErrors.green_fee && styles.inputError]}
@@ -521,7 +412,7 @@ export function RoundingForm({ mode = 'create' }) {
                   <Text style={styles.label}>캐디피</Text>
                   <TextInput
                     value={form.caddy_fee}
-                    onChangeText={(value) => handleChange('caddy_fee', value)}
+                    onChangeText={handleFieldChange('caddy_fee')}
                     placeholder="예: 150000"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.caddy_fee && styles.inputError]}
@@ -535,7 +426,7 @@ export function RoundingForm({ mode = 'create' }) {
                   <Text style={styles.label}>카트비</Text>
                   <TextInput
                     value={form.cart_fee}
-                    onChangeText={(value) => handleChange('cart_fee', value)}
+                    onChangeText={handleFieldChange('cart_fee')}
                     placeholder="예: 100000"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.cart_fee && styles.inputError]}
@@ -555,7 +446,8 @@ export function RoundingForm({ mode = 'create' }) {
                       key={method.id}
                       label={method.label}
                       selected={form.settlement_method === method.id}
-                      onPress={() => handleChange('settlement_method', method.id)}
+                      onPress={handleSettlementSelect(method.id)}
+                      styles={styles}
                     />
                   ))}
                 </View>

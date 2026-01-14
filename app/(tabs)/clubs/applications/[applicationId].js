@@ -1,23 +1,17 @@
-
-import {
-useLocalSearchParams } from 'expo-router';
-import { useEffect,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { ActivityIndicator,
-ScrollView,
-Text,
-View,
-} from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { clubsApi } from '@/lib/clubsApi';
+import { fetchClubApplication } from '@/lib/api/clubs';
+import { createFetchClubApplicationHandler } from '@/lib/render/clubs/applicationDetail';
 import { extractData } from '@/lib/responseUtils';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
+
 export default function ClubApplicationDetailScreen() {
   const { applicationId } = useLocalSearchParams();
   const resolvedId = Array.isArray(applicationId) ? applicationId[0] : applicationId;
@@ -25,28 +19,22 @@ export default function ClubApplicationDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const loadApplication = async () => {
-      if (!resolvedId) {
-        setIsLoading(false);
-        return;
-      }
-      try {
-        setIsLoading(true);
-        setError('');
-        const response = await clubsApi.getClubApplication(resolvedId);
-        const data = extractData(response);
-        setApplication(data);
-      } catch (fetchError) {
-        console.error('클럽 신청 조회 실패:', fetchError);
-        setError(fetchError?.message || '신청 정보를 불러오는데 실패했습니다.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const loadApplication = useMemo(
+    () =>
+      createFetchClubApplicationHandler({
+        applicationId: resolvedId,
+        fetchClubApplication,
+        extractData,
+        setApplication,
+        setIsLoading,
+        setError,
+      }),
+    [resolvedId, setApplication, setIsLoading, setError]
+  );
 
+  useEffect(() => {
     loadApplication();
-  }, [resolvedId]);
+  }, [loadApplication]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -85,7 +73,9 @@ export default function ClubApplicationDetailScreen() {
         <Card style={styles.card}>
           <Text style={styles.sectionTitle}>신청 내용</Text>
           <Text style={styles.sectionText}>
-            {application?.description || application?.additional_info || '등록된 신청 내용이 없습니다.'}
+            {application?.description ||
+              application?.additional_info ||
+              '등록된 신청 내용이 없습니다.'}
           </Text>
         </Card>
 

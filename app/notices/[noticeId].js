@@ -1,12 +1,14 @@
 
 import {
-useLocalSearchParams } from 'expo-router';
-import { useEffect,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { ScrollView,
-Text,
-View,
+  useLocalSearchParams
+} from 'expo-router';
+import {
+  useEffect,
+  useState
+} from 'react';
+import {
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,8 +17,8 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { noticeCategoryLabel } from '@/constants/noticesConstants';
 import { noticesApi } from '@/lib/api';
 import { normalizeNotice } from '@/lib/noticeUtils';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 export default function NoticeDetailScreen() {
   const { noticeId } = useLocalSearchParams();
   const resolvedId = Array.isArray(noticeId) ? noticeId[0] : noticeId;

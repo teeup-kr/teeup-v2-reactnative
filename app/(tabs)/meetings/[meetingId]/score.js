@@ -1,25 +1,18 @@
-
-import {
-useLocalSearchParams } from 'expo-router';
-import { useEffect,
-useMemo,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { ActivityIndicator,
-ScrollView,
-Text,
-TextInput,
-View,
-} from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { roundsApi } from '@/lib/api';
+import { fetchRoundParticipants } from '@/lib/api/meetings';
+import { createFetchParticipantsHandler } from '@/lib/render/meetings/score';
 import { extractList } from '@/lib/responseUtils';
+import { normalizePlayers } from '@/lib/value/meetingsScore';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
+
 export default function ScoreInputScreen() {
   const { meetingId } = useLocalSearchParams();
   const resolvedId = Array.isArray(meetingId) ? meetingId[0] : meetingId;
@@ -27,48 +20,39 @@ export default function ScoreInputScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const loadParticipants = useMemo(
+    () =>
+      createFetchParticipantsHandler({
+        meetingId: resolvedId,
+        fetchRoundParticipants,
+        extractList,
+        setParticipants,
+        setIsLoading,
+        setError,
+      }),
+    [resolvedId, setParticipants, setIsLoading, setError]
+  );
+
   useEffect(() => {
-    const loadParticipants = async () => {
-      if (!resolvedId) {
-        setIsLoading(false);
-        return;
-      }
-      try {
-        setIsLoading(true);
-        setError('');
-        const response = await roundsApi.getRoundParticipants(resolvedId);
-        const list = extractList(response);
-        setParticipants(list);
-      } catch (fetchError) {
-        console.error('참가자 조회 실패:', fetchError);
-        setError(fetchError?.message || '참가자를 불러오는데 실패했습니다.');
-        setParticipants([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadParticipants();
-  }, [resolvedId]);
+  }, [loadParticipants]);
 
-  const players = useMemo(() => (
-    participants.map((participant) => ({
-      id: participant?.id || participant?.participant_id || participant?.user_id,
-      name:
-        participant?.user?.name ||
-        participant?.user?.realname ||
-        participant?.user?.nickname ||
-        participant?.name ||
-        participant?.nickname ||
-        '-',
-      score:
-        participant?.score ??
-        participant?.total_score ??
-        participant?.simple_score ??
-        participant?.average_score ??
-        '',
-    }))
-  ), [participants]);
+  const players = useMemo(() => normalizePlayers(participants), [participants]);
+
+  const renderPlayerRow = useCallback(function renderPlayerRow(player) {
+    return (
+      <View key={player.id} style={styles.row}>
+        <Text style={styles.name}>{player.name}</Text>
+        <TextInput
+          placeholder="타수"
+          style={styles.input}
+          defaultValue={player.score ? String(player.score) : ''}
+          keyboardType="numeric"
+          placeholderTextColor={colors.neutral[400]}
+        />
+      </View>
+    );
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -92,18 +76,7 @@ export default function ScoreInputScreen() {
               <Text style={styles.stateText}>표시할 참가자가 없습니다.</Text>
             </View>
           ) : (
-            players.map((player) => (
-              <View key={player.id} style={styles.row}>
-                <Text style={styles.name}>{player.name}</Text>
-                <TextInput
-                  placeholder="타수"
-                  style={styles.input}
-                  defaultValue={player.score ? String(player.score) : ''}
-                  keyboardType="numeric"
-                  placeholderTextColor={colors.neutral[400]}
-                />
-              </View>
-            ))
+            players.map(renderPlayerRow)
           )}
         </Card>
 

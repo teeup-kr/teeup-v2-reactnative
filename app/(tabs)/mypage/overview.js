@@ -1,10 +1,7 @@
 
-import {
-  FontAwesome5
-} from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
-  useCallback,
   useEffect,
   useMemo,
   useState
@@ -19,12 +16,26 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppFooter from '@/components/layout/AppFooter';
 import Card from '@/components/ui/Card';
-import { usersApi } from '@/lib/api';
-import { clubsApi } from '@/lib/clubsApi';
+import {
+  fetchMyClubs,
+  fetchMyProfile,
+  fetchUserHandicap,
+} from '@/lib/api/mypage';
 import { formatProfileDate, getGenderLabel } from '@/lib/mypageUtils';
+import {
+  createFetchClubsHandler,
+  createFetchProfileHandler,
+  createOpenClubDetailHandler,
+  createOpenClubsHandler,
+} from '@/lib/render/mypage/overview';
 import { extractData, extractList } from '@/lib/responseUtils';
+import {
+  buildProfileInfoItems,
+  getHandicapDisplay,
+  getProfileInfoIconName,
+} from '@/lib/value/mypage';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 export default function OverviewScreen() {
   const router = useRouter();
   const [profile, setProfile] = useState(null);
@@ -33,36 +44,29 @@ export default function OverviewScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchProfile = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await usersApi.getMyProfile();
-      const user = extractData(response);
-      setProfile(user);
-      if (user?.id) {
-        const handicapResponse = await usersApi.getUserHandicap(user.id);
-        setHandicapInfo(extractData(handicapResponse));
-      }
-    } catch (fetchError) {
-      console.error('프로필 조회 실패:', fetchError);
-      setError('사용자 정보를 불러오는데 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchProfile = useMemo(
+    () =>
+      createFetchProfileHandler({
+        fetchMyProfile,
+        fetchUserHandicap,
+        extractData,
+        setProfile,
+        setHandicapInfo,
+        setLoading,
+        setError,
+      }),
+    [setError, setHandicapInfo, setLoading, setProfile],
+  );
 
-  const fetchClubs = useCallback(async () => {
-    try {
-      const response = await clubsApi.getMyClubs({ page: 1, limit: 3 });
-      const items = extractList(response);
-      setClubs(items);
-    } catch (fetchError) {
-      console.error('클럽 목록 조회 실패:', fetchError);
-      setClubs([]);
-    } finally {
-    }
-  }, []);
+  const fetchClubs = useMemo(
+    () =>
+      createFetchClubsHandler({
+        fetchMyClubs,
+        extractList,
+        setClubs,
+      }),
+    [setClubs],
+  );
 
   useEffect(() => {
     fetchProfile();
@@ -70,43 +74,22 @@ export default function OverviewScreen() {
   }, [fetchProfile, fetchClubs]);
 
   const handicapDisplay = useMemo(() => {
-    if (!profile) {
-      return { value: '-', badge: null, description: null, type: 'none' };
-    }
+    return getHandicapDisplay(profile, handicapInfo);
+  }, [handicapInfo, profile]);
 
-    const hasCalculated =
-      handicapInfo?.calculated_handicap != null &&
-      handicapInfo?.handicap_calculation_count >= 1;
+  const infoItems = useMemo(() => {
+    return buildProfileInfoItems(profile, { formatProfileDate, getGenderLabel });
+  }, [profile]);
 
-    if (hasCalculated) {
-      return {
-        value: handicapInfo.calculated_handicap.toFixed(1),
-        badge: '자동 계산됨',
-        description: `누적 평균으로 자동 계산됨 (${handicapInfo.handicap_calculation_count}회 기록)`,
-        type: 'calculated',
-      };
-    }
+  const handleOpenClubs = useMemo(
+    () => createOpenClubsHandler(router),
+    [router],
+  );
 
-    if (handicapInfo?.initial_handicap != null) {
-      return {
-        value: handicapInfo.initial_handicap.toFixed(1),
-        badge: null,
-        description: '초기 핸디캡',
-        type: 'initial', // ✅ 핵심
-      };
-    }
-
-    if (profile?.handicap != null) {
-      return {
-        value: Number(profile.handicap).toFixed(1),
-        badge: null,
-        description: '기본 핸디캡',
-        type: 'base',
-      };
-    }
-
-    return { value: '-', badge: null, description: null, type: 'none' };
-  }, [profile, handicapInfo]);
+  const createOpenClub = useMemo(
+    () => (clubId) => createOpenClubDetailHandler(router, clubId),
+    [router],
+  );
 
   if (loading) {
     return (
@@ -136,15 +119,6 @@ export default function OverviewScreen() {
     );
   }
 
-  const infoItems = [
-    { label: '실명', value: profile?.realname || '-' },
-    { label: '닉네임', value: profile?.nickname || '-' },
-    { label: '이메일', value: profile?.email || '-' },
-    { label: '성별', value: getGenderLabel(profile?.gender) },
-    { label: '생년월일', value: formatProfileDate(profile?.birthdate) },
-    { label: '가입일', value: formatProfileDate(profile?.created_at) },
-  ];
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* 기본 정보 */}
@@ -154,13 +128,7 @@ export default function OverviewScreen() {
         {infoItems.map(item => (
           <View key={item.label} style={[styles.row]}>
             <FontAwesome5
-              name={
-                item.label === '이메일' ? 'envelope' :
-                  item.label === '성별' ? 'venus-mars' :
-                    item.label === '생년월일' ? 'calendar-alt' :
-                      item.label === '가입일' ? 'calendar-check' :
-                        'user-alt'
-              }
+              name={getProfileInfoIconName(item.label)}
               size={14}
               color={colors.neutral[500]}
               style={styles.icon}
@@ -212,7 +180,7 @@ export default function OverviewScreen() {
       <Card style={styles.card}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>소속 클럽</Text>
-          <Pressable onPress={() => router.push('/clubs')}>
+          <Pressable onPress={handleOpenClubs}>
             <Text style={styles.linkText}>내 클럽 전체보기</Text>
           </Pressable>
         </View>
@@ -220,7 +188,7 @@ export default function OverviewScreen() {
         {clubs.map(club => (
           <Pressable
             key={club.id}
-            onPress={() => router.push(`/clubs/${club.id}`)}
+            onPress={createOpenClub(club.id)}
             style={({ pressed }) => [
               styles.clubRow,
               pressed && styles.clubRowPressed,

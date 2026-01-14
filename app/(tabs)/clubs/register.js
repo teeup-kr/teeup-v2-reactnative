@@ -1,25 +1,30 @@
-
-import {
-FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { useMemo, useState } from 'react';
 import {
   Pressable,
-ScrollView,
-Text,
-TextInput,
-View,
+  ScrollView, StyleSheet, Text,
+  TextInput,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import ChipOption from '@/components/clubs/ChipOption';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubFeeCycles, clubRegisterTypes } from '@/constants/clubConstants';
-import { clubsApi } from '@/lib/clubsApi';
+import { registerClubApplication } from '@/lib/api/clubs';
+import {
+  createFieldChangeHandler,
+  createSelectRegularFeeCycleHandler,
+  createSubmitClubRegisterHandler,
+  createToggleRegularFeeHandler,
+} from '@/lib/render/clubs/register';
+import { buildClubRegisterPayload, defaultClubRegisterErrors } from '@/lib/value/clubRegister';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
+
 export default function ClubRegisterScreen() {
   const router = useRouter();
 
@@ -32,89 +37,41 @@ export default function ClubRegisterScreen() {
     contact: '',
     additionalInfo: '',
     attachment: '',
-
-    // 🔽 추가
     hasRegularFee: false,
     regularFeeAmount: '',
-    regularFeeCycle: '', // 예: 'MONTHLY'
+    regularFeeCycle: '',
     regularFeeDescription: '',
   });
 
-  const [errors, setErrors] = useState({
-    name: '',
-    description: '',
-    member_count: '',
-    location: '',
-    contact: '',
-    additional_info: '',
-
-    has_regular_fee: '',
-    regular_fee_amount: '',
-    regular_fee_cycle: '',
-    regular_fee_description: '',
-
-    general: '',
-  });
-
+  const [errors, setErrors] = useState(defaultClubRegisterErrors);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (field) => (value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const handleChange = useMemo(
+    () => createFieldChangeHandler({ setFormData }),
+    [setFormData]
+  );
+  const handleToggleRegularFee = useMemo(
+    () => createToggleRegularFeeHandler({ setFormData }),
+    [setFormData]
+  );
+  const handleSelectFeeCycle = useMemo(
+    () => createSelectRegularFeeCycleHandler({ setFormData }),
+    [setFormData]
+  );
 
-  const handleRegister = async () => {
-    setErrors({
-      name: '',
-      description: '',
-      member_count: '',
-      location: '',
-      contact: '',
-      additional_info: '',
-      has_regular_fee: '',
-      regular_fee_amount: '',
-      regular_fee_cycle: '',
-      regular_fee_description: '',
-      general: '',
-    });
-
-    try {
-      setIsSubmitting(true);
-
-      const payload = {
-        name: formData.name,
-        type: formData.type,
-        description: formData.description,
-        member_count: Number(formData.memberCount) || 1,
-        location: formData.location,
-        contact_info: formData.contact,
-        additional_info: formData.additionalInfo || null,
-
-        // 🔽 정기 회비 필수 필드
-        has_regular_fee: formData.hasRegularFee,
-
-        // 🔽 조건부 필드
-        regular_fee_amount: formData.hasRegularFee
-          ? Number(formData.regularFeeAmount) || 0
-          : null,
-
-        regular_fee_cycle: formData.hasRegularFee
-          ? formData.regularFeeCycle || null
-          : null,
-
-        regular_fee_description: formData.hasRegularFee
-          ? formData.regularFeeDescription || null
-          : null,
-      };
-
-      await clubsApi.registerClubApplication(payload);
-      router.replace('/');
-    } catch (error) {
-      const message = error?.message || '클럽 생성에 실패했습니다.';
-      setErrors((prev) => ({ ...prev, general: message }));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const handleRegister = useMemo(
+    () =>
+      createSubmitClubRegisterHandler({
+        formData,
+        buildPayload: buildClubRegisterPayload,
+        registerClubApplication,
+        setErrors,
+        setIsSubmitting,
+        defaultErrors: defaultClubRegisterErrors,
+        router,
+      }),
+    [formData, setErrors, setIsSubmitting, router]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -140,15 +97,13 @@ export default function ClubRegisterScreen() {
             <Text style={styles.label}>클럽 타입</Text>
             <View style={styles.chipRow}>
               {clubRegisterTypes.map((type) => (
-                <Pressable
+                <ChipOption
                   key={type.id}
-                  onPress={() => handleChange('type')(type.id)}
-                  style={[styles.chip, formData.type === type.id && styles.chipActive]}
-                >
-                  <Text style={[styles.chipText, formData.type === type.id && styles.chipTextActive]}>
-                    {type.label}
-                  </Text>
-                </Pressable>
+                  label={type.label}
+                  selected={formData.type === type.id}
+                  onPress={handleChange('type')(type.id)}
+                  styles={styles}
+                />
               ))}
             </View>
           </View>
@@ -223,21 +178,8 @@ export default function ClubRegisterScreen() {
             </View>
 
             <Pressable
-              onPress={() =>
-                setFormData((prev) => ({
-                  ...prev,
-                  hasRegularFee: !prev.hasRegularFee,
-
-                  // OFF로 바꿀 때 값 정리 (중요)
-                  regularFeeAmount: !prev.hasRegularFee ? prev.regularFeeAmount : '',
-                  regularFeeCycle: !prev.hasRegularFee ? prev.regularFeeCycle : '',
-                  regularFeeDescription: !prev.hasRegularFee ? prev.regularFeeDescription : '',
-                }))
-              }
-              style={[
-                styles.toggle,
-                formData.hasRegularFee && styles.toggleActive,
-              ]}
+              onPress={handleToggleRegularFee}
+              style={[styles.toggle, formData.hasRegularFee && styles.toggleActive]}
             >
               <Text style={styles.toggleText}>
                 {formData.hasRegularFee ? 'ON' : 'OFF'}
@@ -247,17 +189,11 @@ export default function ClubRegisterScreen() {
 
           {formData.hasRegularFee && (
             <View>
-              {/* 회비 금액 */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>회비 금액</Text>
                 <TextInput
                   value={formData.regularFeeAmount}
-                  onChangeText={(text) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      regularFeeAmount: text,
-                    }))
-                  }
+                  onChangeText={handleChange('regularFeeAmount')}
                   placeholder="예: 50000"
                   keyboardType="numeric"
                   style={styles.input}
@@ -265,50 +201,26 @@ export default function ClubRegisterScreen() {
                 />
               </View>
 
-              {/* 회비 주기 */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>회비 주기</Text>
                 <View style={styles.chipRow}>
                   {clubFeeCycles.map((cycle) => (
-                    <Pressable
+                    <ChipOption
                       key={cycle.id}
-                      onPress={() =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          regularFeeCycle: cycle.id, // 'MONTHLY' | 'YEARLY'
-                        }))
-                      }
-                      style={[
-                        styles.chip,
-                        formData.regularFeeCycle === cycle.id &&
-                        styles.chipActive,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.chipText,
-                          formData.regularFeeCycle === cycle.id &&
-                          styles.chipTextActive,
-                        ]}
-                      >
-                        {cycle.label}
-                      </Text>
-                    </Pressable>
+                      label={cycle.label}
+                      selected={formData.regularFeeCycle === cycle.id}
+                      onPress={handleSelectFeeCycle(cycle.id)}
+                      styles={styles}
+                    />
                   ))}
                 </View>
               </View>
 
-              {/* 회비 설명 */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>회비 설명</Text>
                 <TextInput
                   value={formData.regularFeeDescription}
-                  onChangeText={(text) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      regularFeeDescription: text,
-                    }))
-                  }
+                  onChangeText={handleChange('regularFeeDescription')}
                   placeholder="회비 사용처 또는 납부 안내"
                   style={[styles.input, styles.textArea]}
                   multiline

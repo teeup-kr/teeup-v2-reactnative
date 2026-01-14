@@ -1,24 +1,25 @@
-
-import {
-FontAwesome5 } from '@expo/vector-icons';
-import { useLocalSearchParams,
-useRouter } from 'expo-router';
-import { StyleSheet } from 'react-native';
-import { Pressable,
-ScrollView,
-Text,
-View,
-} from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubManageSections } from '@/constants/clubConstants';
+import { createManageSectionHandler } from '@/lib/render/clubs/manage';
+import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
+
 export default function ClubManageScreen() {
   const { clubId } = useLocalSearchParams();
+  const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
   const router = useRouter();
+
+  const handleSectionPress = useMemo(
+    () => createManageSectionHandler({ clubId: resolvedId, router }),
+    [resolvedId, router]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -34,7 +35,7 @@ export default function ClubManageScreen() {
             <Pressable
               key={section.id}
               style={styles.sectionItem}
-              onPress={() => router.push(`/clubs/${clubId}/${section.route}`)}
+              onPress={handleSectionPress(section.route)}
             >
               <View style={styles.sectionIcon}>
                 <FontAwesome5 name={section.icon} size={16} color={colors.primary[600]} />
