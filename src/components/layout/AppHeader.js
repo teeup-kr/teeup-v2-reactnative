@@ -1,6 +1,8 @@
 import { useRouter } from 'expo-router';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 
 const logoImage = require('../../../public/icons/icon-512-transparent.png');
@@ -33,7 +35,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: tokens.padding.md,
   },
   left: {
     flexDirection: 'row',
@@ -46,11 +48,11 @@ const styles = StyleSheet.create({
   logo: {
     width: 28,
     height: 28,
-    marginRight: 8,
+    marginRight: tokens.spacing.xs2,
   },
   brandText: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: tokens.font.xl,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
   },
 });

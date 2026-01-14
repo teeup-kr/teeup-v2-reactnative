@@ -1,5 +1,3 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -8,6 +6,7 @@ import React,
 { useCallback,
 useMemo,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import {
   ActivityIndicator,
 Alert,
@@ -21,6 +20,7 @@ View,
 
 import Card from '@/components/ui/Card';
 import { roundsApi, usersApi } from '@/lib/api';
+import { base, tokens } from '@/styles/style';
 
 /**
  * RecordsTab (React Native)
@@ -414,8 +414,8 @@ const ComingSoonModal = ({ visible, onClose }) => {
             </Pressable>
           </View>
 
-          <View style={[styles.modalBody, { paddingBottom: 18 }]}>
-            <View style={{ alignItems: 'center', marginBottom: 12 }}>
+          <View style={[styles.modalBody, { paddingBottom: tokens.padding.lg2 }]}>
+            <View style={{ alignItems: 'center', marginBottom: tokens.spacing.sm2 }}>
               <FontAwesome5 name="golf-ball" size={40} color={tokens.colors.neutral[400]} />
             </View>
             <Text style={styles.comingSoonTitle}>이 기능은 현재 준비중입니다</Text>
@@ -833,7 +833,7 @@ export default function RecordsTab() {
 
         {/* Missing section */}
         {showMissingSection && (
-          <View style={{ marginTop: 6 }}>
+          <View style={{ marginTop: tokens.spacing.xs }}>
             <View style={styles.sectionHeaderRow}>
               <View style={styles.inlineRow}>
                 <FontAwesome5 name="exclamation-circle" size={16} color={tokens.colors.error[600]} />
@@ -852,7 +852,7 @@ export default function RecordsTab() {
 
         {/* Completed section */}
         {showCompletedSection && (
-          <View style={{ marginTop: 10 }}>
+          <View style={{ marginTop: tokens.spacing.sm }}>
             <View style={styles.sectionHeaderRow}>
               <View style={styles.inlineRow}>
                 <FontAwesome5 name="check-circle" size={16} color={tokens.colors.success?.[600] ?? tokens.colors.emerald[600]} />
@@ -952,8 +952,8 @@ export default function RecordsTab() {
 const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: {
-    padding: 16,
-    paddingBottom: 28,
+    padding: tokens.padding.md,
+    paddingBottom: tokens.padding.xl2,
   },
 
   /* Center states */
@@ -962,10 +962,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    padding: 16,
+    padding: tokens.padding.md,
   },
   centerText: {
-    fontSize: 13,
+    fontSize: tokens.font.md,
     color: tokens.colors.neutral[600],
   },
 
@@ -974,13 +974,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: 14,
+    marginBottom: tokens.spacing.md2,
   },
   statCard: {
     width: '48%',
     borderWidth: 1,
-    borderRadius: 14,
-    padding: 12,
+    borderRadius: tokens.radius.baseLg,
+    padding: tokens.padding.sm,
   },
   statCardSkeleton: {
     backgroundColor: tokens.colors.neutral[100],
@@ -991,12 +991,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 10,
+    marginBottom: tokens.spacing.sm,
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   statValueRow: {
     flexDirection: 'row',
@@ -1004,47 +1004,47 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   statValue: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontSize: tokens.font.display,
+    fontWeight: tokens.fontWeight.extrabold,
   },
   statUnit: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
   },
   statsErrorCard: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
     borderWidth: 1,
     borderColor: tokens.colors.error[200],
     backgroundColor: tokens.colors.error[50],
   },
   statsErrorText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.error[700],
   },
   statsEmptyCard: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
     backgroundColor: tokens.colors.neutral[50],
     borderWidth: 1,
     borderColor: tokens.colors.neutral[200],
     alignItems: 'center',
-    paddingVertical: 18,
+    paddingVertical: tokens.padding.lg2,
   },
   statsEmptyText: {
-    fontSize: 13,
+    fontSize: tokens.font.md,
     color: tokens.colors.neutral[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
 
   /* Filter row */
   filterRow: {
     gap: 8,
-    paddingBottom: 6,
-    marginBottom: 6,
+    paddingBottom: tokens.padding.xs2,
+    marginBottom: tokens.spacing.xs,
   },
   filterBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingHorizontal: tokens.padding.baseLg,
+    paddingVertical: tokens.padding.base,
+    borderRadius: tokens.radius.md,
     borderWidth: 1,
   },
   filterBtnNormal: {
@@ -1064,8 +1064,8 @@ const styles = StyleSheet.create({
     borderColor: tokens.colors.emerald[600],
   },
   filterBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
   },
   filterBtnTextNormal: {
     color: tokens.colors.neutral[700],
@@ -1079,31 +1079,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
-    marginTop: 6,
+    marginBottom: tokens.spacing.sm,
+    marginTop: tokens.spacing.xs,
   },
   sectionTitle: {
     ...base.sectionTitleMd,
-    fontWeight: '800',
-    marginLeft: 6,
+    fontWeight: tokens.fontWeight.extrabold,
+    marginLeft: tokens.spacing.xs,
   },
   badgeRed: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
+    paddingHorizontal: tokens.padding.base,
+    paddingVertical: tokens.padding.xxs,
+    borderRadius: tokens.radius.pill,
     backgroundColor: tokens.colors.error[100],
   },
   badgeRedText: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: tokens.font.xs,
+    fontWeight: tokens.fontWeight.extrabold,
     color: tokens.colors.error[700],
   },
 
   /* Meeting card */
   meetingBox: {
     borderWidth: 1,
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: tokens.radius.lg,
+    padding: tokens.padding.baseLg,
     backgroundColor: tokens.colors.white,
   },
   meetingMissing: {
@@ -1115,15 +1115,15 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.white,
   },
   meetingTitle: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.extrabold,
     color: tokens.colors.neutral[900],
-    marginBottom: 4,
+    marginBottom: tokens.spacing.xxs,
   },
   meetingClub: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   meetingDatesRow: {
     flexDirection: 'row',
@@ -1132,89 +1132,89 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   meetingDateText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
   },
   meetingDot: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[400],
   },
 
   scoreRow: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 12,
+    marginTop: tokens.spacing.sm2,
   },
   scoreLabel: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
-    fontWeight: '700',
-    marginBottom: 3,
+    fontWeight: tokens.fontWeight.bold,
+    marginBottom: tokens.spacing.micro,
   },
   scoreValue: {
-    fontSize: 18,
-    fontWeight: '900',
+    fontSize: tokens.font.xl,
+    fontWeight: tokens.fontWeight.black,
     color: tokens.colors.neutral[900],
   },
   handicapGreen: {
-    fontSize: 18,
-    fontWeight: '900',
+    fontSize: tokens.font.xl,
+    fontWeight: tokens.fontWeight.black,
     color: tokens.colors.emerald[600],
   },
 
   cardBtnRow: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 12,
+    marginTop: tokens.spacing.sm2,
   },
   primaryBtn: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
     backgroundColor: tokens.colors.primary[600],
-    paddingVertical: 10,
+    paddingVertical: tokens.padding.base,
     alignItems: 'center',
     justifyContent: 'center',
   },
   primaryBtnText: {
     color: tokens.colors.white,
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.extrabold,
   },
   outlineBtn: {
     ...base.btnOutline,
     flex: 1,
     borderWidth: 2,
     borderColor: tokens.colors.neutral[300],
-    paddingVertical: 10,
+    paddingVertical: tokens.padding.base,
   },
-  outlineBtnText: { ...base.btnOutlineText, fontWeight: '800' },
+  outlineBtnText: { ...base.btnOutlineText, fontWeight: tokens.fontWeight.extrabold },
   softPrimaryBtn: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
     borderWidth: 2,
     borderColor: tokens.colors.primary[200],
     backgroundColor: tokens.colors.primary[50],
-    paddingVertical: 10,
+    paddingVertical: tokens.padding.base,
     alignItems: 'center',
     justifyContent: 'center',
   },
   softPrimaryBtnText: {
     color: tokens.colors.primary[700],
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.extrabold,
   },
 
   /* Empty */
   emptyCard: {
-    marginTop: 14,
+    marginTop: tokens.spacing.md2,
     alignItems: 'center',
-    paddingVertical: 26,
+    paddingVertical: tokens.padding.xl3,
     gap: 10,
   },
   emptyText: {
-    fontSize: 13,
+    fontSize: tokens.font.md,
     color: tokens.colors.neutral[600],
-    fontWeight: '700',
+    fontWeight: tokens.fontWeight.bold,
     textAlign: 'center',
   },
 
@@ -1224,12 +1224,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    marginTop: 14,
+    marginTop: tokens.spacing.md2,
   },
   pageBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs,
+    borderRadius: tokens.radius.base,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
     backgroundColor: tokens.colors.white,
@@ -1238,14 +1238,14 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   pageBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[700],
   },
   paginationText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
-    fontWeight: '700',
+    fontWeight: tokens.fontWeight.bold,
   },
 
   stateRow: {
@@ -1253,29 +1253,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 14,
+    paddingVertical: tokens.padding.baseLg,
   },
   stateText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
   },
 
   /* Error */
   errorCard: {
-    margin: 16,
+    margin: tokens.spacing.md,
     borderWidth: 1,
     borderColor: tokens.colors.error[200],
     backgroundColor: tokens.colors.white,
-    paddingVertical: 22,
+    paddingVertical: tokens.padding.lg3,
   },
   errorTitle: {
-    fontSize: 14,
-    fontWeight: '900',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.black,
     color: tokens.colors.error[700],
     textAlign: 'center',
   },
   errorSub: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
     textAlign: 'center',
   },
@@ -1284,12 +1284,12 @@ const styles = StyleSheet.create({
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
-    padding: 14,
+    padding: tokens.padding.baseLg,
     justifyContent: 'center',
   },
   modalSheet: {
     backgroundColor: tokens.colors.white,
-    borderRadius: 18,
+    borderRadius: tokens.radius.lg2,
     overflow: 'hidden',
     maxHeight: '90%',
   },
@@ -1299,56 +1299,56 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: tokens.colors.neutral[200],
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: tokens.padding.md,
+    paddingVertical: tokens.padding.sm,
   },
   modalTitle: {
-    fontSize: 16,
-    fontWeight: '900',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.black,
     color: tokens.colors.neutral[900],
   },
   iconBtn: {
-    padding: 8,
-    borderRadius: 10,
+    padding: tokens.padding.xs,
+    borderRadius: tokens.radius.base,
   },
   modalBody: {
-    padding: 16,
+    padding: tokens.padding.md,
   },
 
   handicapBox: {
     borderWidth: 1,
     borderColor: tokens.colors.neutral[200],
     backgroundColor: tokens.colors.neutral[50],
-    borderRadius: 14,
-    padding: 12,
-    marginBottom: 14,
+    borderRadius: tokens.radius.baseLg,
+    padding: tokens.padding.sm,
+    marginBottom: tokens.spacing.md2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   handicapLabel: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
-    fontWeight: '700',
+    fontWeight: tokens.fontWeight.bold,
   },
   handicapValue: {
-    fontSize: 16,
-    fontWeight: '900',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.black,
     color: tokens.colors.neutral[900],
   },
 
   fieldLabel: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.extrabold,
     color: tokens.colors.neutral[700],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
+    borderRadius: tokens.radius.md,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.base,
+    fontSize: tokens.font.base,
   },
   inputNormal: {
     borderColor: tokens.colors.neutral[300],
@@ -1360,18 +1360,18 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...base.textSmError,
-    marginTop: 6,
+    marginTop: tokens.spacing.xs,
     color: tokens.colors.error[700],
-    fontWeight: '700',
+    fontWeight: tokens.fontWeight.bold,
   },
 
   previewBox: {
-    marginTop: 12,
+    marginTop: tokens.spacing.sm2,
     borderWidth: 1,
     borderColor: tokens.colors.primary[200],
     backgroundColor: tokens.colors.primary[50],
-    borderRadius: 14,
-    padding: 12,
+    borderRadius: tokens.radius.baseLg,
+    padding: tokens.padding.sm,
   },
   previewRow: {
     flexDirection: 'row',
@@ -1379,46 +1379,46 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   previewLabel: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.extrabold,
     color: tokens.colors.primary[700],
   },
   previewValue: {
-    fontSize: 16,
-    fontWeight: '900',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.black,
     color: tokens.colors.primary[900] ?? tokens.colors.primary[700],
   },
   previewHint: {
-    marginTop: 8,
-    fontSize: 11,
+    marginTop: tokens.spacing.xs2,
+    fontSize: tokens.font.xs,
     color: tokens.colors.primary[700],
     lineHeight: 16,
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
 
   submitErrorBox: {
-    marginTop: 12,
+    marginTop: tokens.spacing.sm2,
     borderWidth: 1,
     borderColor: tokens.colors.error[300],
     backgroundColor: tokens.colors.error[50],
-    borderRadius: 12,
-    padding: 10,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.base,
   },
   submitErrorText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.error[700],
-    fontWeight: '700',
+    fontWeight: tokens.fontWeight.bold,
   },
 
   modalBtnRow: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 16,
+    marginTop: tokens.spacing.md,
   },
   modalBtn: {
     flex: 1,
-    borderRadius: 14,
-    paddingVertical: 12,
+    borderRadius: tokens.radius.baseLg,
+    paddingVertical: tokens.padding.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1428,16 +1428,16 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.white,
   },
   modalBtnOutlineText: {
-    fontSize: 13,
-    fontWeight: '900',
+    fontSize: tokens.font.md,
+    fontWeight: tokens.fontWeight.black,
     color: tokens.colors.neutral[700],
   },
   modalBtnPrimary: {
     backgroundColor: tokens.colors.primary[600],
   },
   modalBtnPrimaryText: {
-    fontSize: 13,
-    fontWeight: '900',
+    fontSize: tokens.font.md,
+    fontWeight: tokens.fontWeight.black,
     color: tokens.colors.white,
   },
   inlineRow: {
@@ -1447,29 +1447,29 @@ const styles = StyleSheet.create({
   },
 
   comingSoonTitle: {
-    fontSize: 16,
-    fontWeight: '900',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.black,
     color: tokens.colors.neutral[800],
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   comingSoonSub: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
     textAlign: 'center',
-    marginBottom: 14,
-    fontWeight: '600',
+    marginBottom: tokens.spacing.md2,
+    fontWeight: tokens.fontWeight.semibold,
   },
   fullPrimaryBtn: {
-    marginTop: 6,
+    marginTop: tokens.spacing.xs,
     backgroundColor: tokens.colors.primary[600],
-    borderRadius: 14,
-    paddingVertical: 12,
+    borderRadius: tokens.radius.baseLg,
+    paddingVertical: tokens.padding.sm,
     alignItems: 'center',
   },
   fullPrimaryBtnText: {
     color: tokens.colors.white,
-    fontSize: 14,
-    fontWeight: '900',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.black,
   },
 });

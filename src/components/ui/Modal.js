@@ -7,6 +7,8 @@ import {
   View,
 } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 
 export default function Modal({
@@ -44,17 +46,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
-    padding: 16,
+    padding: tokens.padding.md,
   },
   container: {
     backgroundColor: colors.white,
-    borderRadius: 16,
+    borderRadius: tokens.radius.lg,
     maxHeight: '80%',
     overflow: 'hidden',
   },
   header: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: tokens.padding.md,
+    paddingVertical: tokens.padding.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.neutral[200],
     flexDirection: 'row',
@@ -62,23 +64,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
   },
   closeButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: tokens.padding.xs,
+    paddingVertical: tokens.padding.xxs,
   },
   closeText: {
-    fontSize: 22,
+    fontSize: tokens.font.xxl,
     color: colors.neutral[500],
   },
   body: {
-    padding: 16,
+    padding: tokens.padding.md,
   },
   footer: {
-    padding: 16,
+    padding: tokens.padding.md,
     borderTopWidth: 1,
     borderTopColor: colors.neutral[200],
   },

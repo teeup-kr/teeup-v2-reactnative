@@ -1,5 +1,3 @@
-import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
 
 import * as NavigationBar from 'expo-navigation-bar';
 import {
@@ -7,6 +5,7 @@ Slot } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { StyleSheet } from 'react-native';
 import { Platform,
 View,
 } from 'react-native';
@@ -16,6 +15,7 @@ import BottomNavigationBar, { bottomNavHeight } from '@/components/layout/Bottom
 import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { tokens } from '@/styles/style';
 
 function AppShell() {
   const insets = useSafeAreaInsets();

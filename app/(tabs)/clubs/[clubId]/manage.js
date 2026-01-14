@@ -1,10 +1,9 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams,
 useRouter } from 'expo-router';
+import { StyleSheet } from 'react-native';
 import { Pressable,
 ScrollView,
 Text,
@@ -15,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubManageSections } from '@/constants/clubConstants';
+import { base, tokens } from '@/styles/style';
 
 export default function ClubManageScreen() {
   const { clubId } = useLocalSearchParams();
@@ -56,49 +56,49 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   summaryCard: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   summaryTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   summaryText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
   },
   sectionList: {
     backgroundColor: tokens.colors.white,
-    borderRadius: 16,
-    paddingVertical: 6,
+    borderRadius: tokens.radius.lg,
+    paddingVertical: tokens.padding.xs2,
   },
   sectionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: tokens.padding.md,
+    paddingVertical: tokens.padding.sm,
   },
   sectionIcon: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: tokens.radius.lg,
     backgroundColor: tokens.colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: tokens.spacing.sm2,
   },
   sectionTextWrap: {
     flex: 1,
   },
   sectionLabel: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[800],
   },
   sectionHint: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
-    marginTop: 2,
+    marginTop: tokens.spacing.hairline,
   },
 });

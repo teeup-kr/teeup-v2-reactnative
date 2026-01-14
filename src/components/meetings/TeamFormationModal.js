@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -196,21 +198,21 @@ export default function TeamFormationModal({
 
 const styles = StyleSheet.create({
   sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: tokens.font.md,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   modeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   modeChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: tokens.padding.base,
+    paddingVertical: tokens.padding.xs2,
+    borderRadius: tokens.radius.md,
     borderWidth: 1,
     borderColor: colors.neutral[200],
     backgroundColor: colors.white,
@@ -223,46 +225,46 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   modeChipText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[600],
   },
   modeChipTextActive: {
     color: colors.primary[700],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: tokens.spacing.xs,
   },
   guestForm: {
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
   guestList: {
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
     gap: 8,
   },
   guestItem: {
-    padding: 10,
-    borderRadius: 10,
+    padding: tokens.padding.base,
+    borderRadius: tokens.radius.base,
     backgroundColor: colors.neutral[50],
     borderWidth: 1,
     borderColor: colors.neutral[200],
   },
   guestName: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
   },
   guestMeta: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[500],
-    marginTop: 4,
+    marginTop: tokens.spacing.xxs,
   },
   removeText: {
-    marginTop: 6,
-    fontSize: 11,
+    marginTop: tokens.spacing.xs,
+    fontSize: tokens.font.xs,
     color: colors.error[600],
   },
   footerRow: {
@@ -274,21 +276,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   fieldLabel: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
     color: colors.neutral[700],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   genderRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
     gap: 8,
   },
   genderChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs2,
+    borderRadius: tokens.radius.baseLg,
     backgroundColor: colors.neutral[100],
   },
   genderChipActive: {
@@ -298,9 +300,9 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   genderText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   genderTextActive: {
     color: colors.white,

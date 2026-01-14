@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams } from 'expo-router';
 import { useEffect,
 useMemo,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ActivityIndicator,
 ScrollView,
 Text,
@@ -18,6 +17,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api';
 import { extractList } from '@/lib/responseUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function ExpenseScreen() {
   const { meetingId } = useLocalSearchParams();
@@ -114,38 +114,38 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   summaryCard: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   summaryTitle: {
-    fontSize: 14,
+    fontSize: tokens.font.base,
     color: tokens.colors.neutral[600],
   },
   summaryValue: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: tokens.font.display,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginTop: 6,
+    marginTop: tokens.spacing.xs,
   },
   summaryHint: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
-    marginTop: 6,
+    marginTop: tokens.spacing.xs,
   },
   list: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   expenseCard: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   expenseLabel: {
-    fontSize: 13,
+    fontSize: tokens.font.md,
     color: tokens.colors.neutral[600],
   },
   expenseAmount: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginTop: 6,
+    marginTop: tokens.spacing.xs,
   },
   stateRow: base.stateRow,
   stateText: base.stateText,

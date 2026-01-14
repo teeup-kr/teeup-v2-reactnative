@@ -2,6 +2,8 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 
@@ -176,16 +178,16 @@ export default function MeetingWorkflowStatus({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
-    borderRadius: 16,
+    borderRadius: tokens.radius.lg,
     borderWidth: 1,
     borderColor: colors.neutral[200],
-    padding: 16,
+    padding: tokens.padding.md,
   },
   title: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   stepList: {
     gap: 10,
@@ -193,8 +195,8 @@ const styles = StyleSheet.create({
   stepItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
-    borderRadius: 12,
+    padding: tokens.padding.base,
+    borderRadius: tokens.radius.md,
     backgroundColor: colors.neutral[50],
   },
   stepItemActive: {
@@ -205,29 +207,29 @@ const styles = StyleSheet.create({
   stepIcon: {
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: tokens.radius.baseLg,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    marginRight: 10,
+    marginRight: tokens.spacing.sm,
     backgroundColor: colors.white,
   },
   stepTextGroup: {
     flex: 1,
   },
   stepLabel: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
   },
   stepHint: {
-    fontSize: 10,
+    fontSize: tokens.font.xxs,
     color: colors.neutral[500],
-    marginTop: 2,
+    marginTop: tokens.spacing.hairline,
   },
   actionRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginTop: 12,
+    marginTop: tokens.spacing.sm2,
   },
 });

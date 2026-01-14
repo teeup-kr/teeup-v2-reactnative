@@ -1,13 +1,14 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 useRouter } from 'expo-router';
+import { StyleSheet } from 'react-native';
 import { Pressable,
 Text,
 View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { base, tokens } from '@/styles/style';
 
 
 export default function RegisterSuccessScreen() {
@@ -32,25 +33,25 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: tokens.padding.xl,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: tokens.font.xxl,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   subtitle: {
     ...base.textSmMuted,
-    fontSize: 14,
+    fontSize: tokens.font.base,
     textAlign: 'center',
-    marginBottom: 18,
+    marginBottom: tokens.spacing.md3,
   },
   button: {
     ...base.btnPrimary,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
+    paddingVertical: tokens.padding.base,
+    paddingHorizontal: tokens.padding.md,
+    borderRadius: tokens.radius.base,
   },
   buttonText: base.btnPrimaryText,
 });

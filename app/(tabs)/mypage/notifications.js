@@ -1,5 +1,3 @@
-import { StyleSheet } from 'react-native';
-import { tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -8,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { useCallback,
 useEffect,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import {
   ActivityIndicator,
 Alert,
@@ -20,6 +19,7 @@ View,
 
 import Card from '@/components/ui/Card';
 import { notificationsApi } from '@/lib/api';
+import { base, tokens } from '@/styles/style';
 
 /* ------------------ Utils ------------------ */
 
@@ -218,11 +218,11 @@ export default function NotificationsTab() {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={{ padding: tokens.padding.md }}>
         {/*Filter & Actions Card*/}
         <Card style={styles.filterCard}>
           {/* 필터 영역 */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: tokens.spacing.xs2 }}>
             {/* 타입 필터 */}
             <View style={styles.filterBtn}>
               <Text style={styles.filterText}>
@@ -367,7 +367,7 @@ export default function NotificationsTab() {
         <View style={styles.modalBg}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>알림 삭제</Text>
-            <Text style={{ marginBottom: 16 }}>이 알림을 삭제하시겠습니까?</Text>
+            <Text style={{ marginBottom: tokens.spacing.md }}>이 알림을 삭제하시겠습니까?</Text>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <Pressable style={styles.modalBtn} onPress={() => setDeleteTarget(null)}>
                 <Text>취소</Text>
@@ -389,7 +389,7 @@ export default function NotificationsTab() {
       {/* Toast */}
       {toast && (
         <View style={[styles.toast, toast.tone === 'success' ? styles.toastSuccess : styles.toastError]}>
-          <Text style={{ color: 'white', fontWeight: '800' }}>{toast.msg}</Text>
+          <Text style={{ color: 'white', fontWeight: tokens.fontWeight.extrabold }}>{toast.msg}</Text>
         </View>
       )}
     </View>
@@ -400,40 +400,37 @@ export default function NotificationsTab() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  centerText: { marginTop: 8, color: tokens.colors.neutral[600] },
+  centerText: { marginTop: tokens.spacing.xs2, color: tokens.colors.neutral[600] },
 
   filterBtnActive: {
     backgroundColor: tokens.colors.primary[600],
     borderColor: tokens.colors.primary[600],
   },
-  filterText: { fontWeight: '700', color: tokens.colors.neutral[700] },
+  filterText: { fontWeight: tokens.fontWeight.bold, color: tokens.colors.neutral[700] },
 
   notiCard: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: tokens.colors.neutral[200],
-    backgroundColor: 'white',
-    marginBottom: 10,
-    alignItems: 'center',
+    ...base.card,
+    ...base.row,
+    gap: tokens.spacing.sm2,
+    padding: tokens.padding.baseLg,
+    borderRadius: tokens.radius.baseLg,
+    marginBottom: tokens.spacing.sm,
   },
   unreadBorder: { borderLeftWidth: 4, borderLeftColor: tokens.colors.emerald[500] },
 
-  title: { fontSize: 14, fontWeight: '700', color: tokens.colors.neutral[800] },
-  unreadTitle: { color: tokens.colors.neutral[900], fontWeight: '900' },
-  content: { fontSize: 12, color: tokens.colors.neutral[600], marginTop: 4 },
-  time: { fontSize: 11, color: tokens.colors.neutral[400], marginTop: 4 },
+  title: { fontSize: tokens.font.base, fontWeight: tokens.fontWeight.bold, color: tokens.colors.neutral[800] },
+  unreadTitle: { color: tokens.colors.neutral[900], fontWeight: tokens.fontWeight.black },
+  content: { fontSize: tokens.font.sm, color: tokens.colors.neutral[600], marginTop: tokens.spacing.xxs },
+  time: { fontSize: tokens.font.xs, color: tokens.colors.neutral[400], marginTop: tokens.spacing.xxs },
 
-  bulkRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  bulkBtnBlue: { backgroundColor: tokens.colors.blue[100], padding: 10, borderRadius: 10 },
-  bulkBtnRed: { backgroundColor: tokens.colors.red[100], padding: 10, borderRadius: 10 },
-  bulkText: { fontWeight: '800' },
+  bulkRow: { ...base.row, gap: tokens.spacing.xs2, marginBottom: tokens.spacing.sm2 },
+  bulkBtnBlue: { backgroundColor: tokens.colors.blue[100], padding: tokens.padding.base, borderRadius: tokens.radius.base },
+  bulkBtnRed: { backgroundColor: tokens.colors.red[100], padding: tokens.padding.base, borderRadius: tokens.radius.base },
+  bulkText: { fontWeight: tokens.fontWeight.extrabold },
 
-  emptyCard: { alignItems: 'center', padding: 32 },
-  emptyText: { marginTop: 8, fontWeight: '700', color: tokens.colors.neutral[600] },
-  emptyText2: { marginTop: 8, fontWeight: '400', color: tokens.colors.neutral[600] },
+  emptyCard: { alignItems: 'center', padding: tokens.padding.xxl },
+  emptyText: { marginTop: tokens.spacing.xs2, fontWeight: tokens.fontWeight.bold, color: tokens.colors.neutral[600] },
+  emptyText2: { marginTop: tokens.spacing.xs2, fontWeight: tokens.fontWeight.regular, color: tokens.colors.neutral[600] },
 
   modalBg: {
     flex: 1,
@@ -443,16 +440,16 @@ const styles = StyleSheet.create({
   },
   modalBox: {
     backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 14,
+    padding: tokens.padding.lg,
+    borderRadius: tokens.radius.baseLg,
     width: '80%',
   },
-  modalTitle: { fontSize: 16, fontWeight: '900', marginBottom: 10 },
+  modalTitle: { fontSize: tokens.font.title, fontWeight: tokens.fontWeight.black, marginBottom: tokens.spacing.sm },
 
   modalBtn: {
     flex: 1,
-    padding: 12,
-    borderRadius: 10,
+    padding: tokens.padding.sm,
+    borderRadius: tokens.radius.base,
     backgroundColor: tokens.colors.neutral[200],
     alignItems: 'center',
   },
@@ -461,101 +458,95 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 40,
     right: 20,
-    padding: 12,
-    borderRadius: 12,
+    padding: tokens.padding.sm,
+    borderRadius: tokens.radius.md,
   },
   toastSuccess: { backgroundColor: tokens.colors.emerald[600] },
   toastError: { backgroundColor: tokens.colors.red[600] },
 
-  errorCard: { alignItems: 'center', padding: 32 },
-  errorTitle: { marginTop: 8, fontWeight: '800', color: tokens.colors.error[600] },
+  errorCard: { alignItems: 'center', padding: tokens.padding.xxl },
+  errorTitle: { marginTop: tokens.spacing.xs2, fontWeight: tokens.fontWeight.extrabold, color: tokens.colors.error[600] },
   filterCard: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
 
   select: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.base,
+    borderRadius: tokens.radius.base,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
     backgroundColor: tokens.colors.white,
-    marginRight: 8,
+    marginRight: tokens.spacing.xs2,
   },
   selectText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[700],
   },
 
-  actionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
-  },
+  actionRow: { ...base.rowBetween, marginTop: tokens.spacing.sm },
 
   bulkRead: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs,
+    borderRadius: tokens.radius.base,
     backgroundColor: tokens.colors.blue[100],
     borderWidth: 1,
     borderColor: tokens.colors.blue[300],
   },
   bulkDelete: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs,
+    borderRadius: tokens.radius.base,
     backgroundColor: tokens.colors.red[100],
     borderWidth: 1,
     borderColor: tokens.colors.red[200],
   },
   bulkTextBlue: {
     color: tokens.colors.blue[700],
-    fontWeight: '800',
-    fontSize: 12,
+    fontWeight: tokens.fontWeight.extrabold,
+    fontSize: tokens.font.sm,
   },
   bulkTextRed: {
     color: tokens.colors.red[700],
-    fontWeight: '800',
-    fontSize: 12,
+    fontWeight: tokens.fontWeight.extrabold,
+    fontSize: tokens.font.sm,
   },
 
   markAllBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: tokens.padding.baseLg,
+    paddingVertical: tokens.padding.xs,
+    borderRadius: tokens.radius.base,
     backgroundColor: tokens.colors.white,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
   },
   markAllText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[700],
   },
 
   selectAllRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
-    paddingTop: 12,
+    ...base.row,
+    gap: tokens.spacing.xs2,
+    marginTop: tokens.spacing.sm2,
+    paddingTop: tokens.padding.sm,
     borderTopWidth: 1,
     borderTopColor: tokens.colors.neutral[200],
   },
   selectAllText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   pickerWrapper: {
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
-    borderRadius: 10,
+    borderRadius: tokens.radius.base,
     backgroundColor: tokens.colors.white,
-    marginRight: 8,
+    marginRight: tokens.spacing.xs2,
     overflow: 'hidden',
     minWidth: 160,
     height: 42,
@@ -564,19 +555,19 @@ const styles = StyleSheet.create({
   selectBox: {
     borderWidth: 1,
     borderColor: tokens.colors.zinc[300],
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
     backgroundColor: tokens.colors.white,
-    paddingHorizontal: 14,
-    paddingVertical: 2,
+    paddingHorizontal: tokens.padding.baseLg,
+    paddingVertical: tokens.padding.hairline,
     minWidth: 160,
     justifyContent: 'center',
   },
   filterBtn: {
-    paddingHorizontal: 14,
-    marginRight: 8,
+    paddingHorizontal: tokens.padding.baseLg,
+    marginRight: tokens.spacing.xs2,
     height: 40,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: tokens.radius.sm,
     borderColor: tokens.colors.zinc[300],
     backgroundColor: 'white',
     justifyContent: 'center',
@@ -592,8 +583,8 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
   arrow: {
-    marginLeft: 6,
-    fontSize: 12,
+    marginLeft: tokens.spacing.xs,
+    fontSize: tokens.font.sm,
     color: tokens.colors.green[600],
   },
 });

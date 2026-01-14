@@ -1,10 +1,9 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { StyleSheet } from 'react-native';
 import {
   Pressable,
 ScrollView,
@@ -19,6 +18,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubFeeCycles, clubRegisterTypes } from '@/constants/clubConstants';
 import { clubsApi } from '@/lib/clubsApi';
+import { base, tokens } from '@/styles/style';
 
 export default function ClubRegisterScreen() {
   const router = useRouter();
@@ -349,21 +349,21 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   card: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   sectionTitle: base.sectionTitle,
-  sectionSubtitle: { ...base.sectionSubtitle, marginTop: 4, marginBottom: 12 },
+  sectionSubtitle: { ...base.sectionSubtitle, marginTop: tokens.spacing.xxs, marginBottom: tokens.spacing.sm2 },
   sectionRow: base.rowBetween,
   fieldGroup: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   fieldGroupRow: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   halfField: {
     flex: 1,
-    marginRight: 12,
+    marginRight: tokens.spacing.sm2,
   },
   halfFieldLast: {
     marginRight: 0,
@@ -372,10 +372,10 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
+    borderRadius: tokens.radius.base,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.base,
+    fontSize: tokens.font.base,
     color: tokens.colors.neutral[900],
     backgroundColor: tokens.colors.white,
   },
@@ -386,33 +386,33 @@ const styles = StyleSheet.create({
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 4,
+    marginTop: tokens.spacing.xxs,
   },
   chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs2,
+    borderRadius: tokens.radius.lg,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[200],
-    marginRight: 8,
-    marginBottom: 8,
+    marginRight: tokens.spacing.xs2,
+    marginBottom: tokens.spacing.xs2,
   },
   chipActive: {
     backgroundColor: tokens.colors.primary[600],
     borderColor: tokens.colors.primary[600],
   },
   chipText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   chipTextActive: {
     color: tokens.colors.white,
   },
   toggle: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 14,
+    paddingHorizontal: tokens.padding.baseLg,
+    paddingVertical: tokens.padding.xs2,
+    borderRadius: tokens.radius.baseLg,
     backgroundColor: tokens.colors.neutral[200],
   },
   toggleActive: {
@@ -420,36 +420,36 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     color: tokens.colors.white,
-    fontWeight: '700',
-    fontSize: 12,
+    fontWeight: tokens.fontWeight.bold,
+    fontSize: tokens.font.sm,
   },
   uploadBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: tokens.padding.sm,
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: tokens.colors.neutral[300],
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
     backgroundColor: tokens.colors.neutral[50],
   },
   uploadTextWrap: {
-    marginLeft: 12,
+    marginLeft: tokens.spacing.sm2,
   },
   uploadTitle: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[800],
   },
   uploadSubtitle: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
-    marginTop: 2,
+    marginTop: tokens.spacing.hairline,
   },
   noticeText: {
     textAlign: 'center',
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
 });

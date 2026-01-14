@@ -1,5 +1,3 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -7,6 +5,7 @@ import { useLocalSearchParams,
 useRouter } from 'expo-router';
 import { useEffect,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ActivityIndicator,
 Pressable,
 ScrollView,
@@ -21,6 +20,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubDetailStatusLabel, clubDetailTypeLabel } from '@/constants/clubConstants';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractData } from '@/lib/responseUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function ClubDetailScreen() {
   const router = useRouter();
@@ -155,90 +155,90 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   heroCard: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   clubName: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: tokens.font.display,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   clubSubtitle: {
-    fontSize: 13,
+    fontSize: tokens.font.md,
     color: tokens.colors.neutral[600],
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   metaRow: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: tokens.spacing.sm2,
   },
   metaText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
-    marginLeft: 4,
+    marginLeft: tokens.spacing.xxs,
   },
   badgeRow: {
     flexDirection: 'row',
   },
   badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: tokens.padding.base,
+    paddingVertical: tokens.padding.xxs,
+    borderRadius: tokens.radius.md,
     backgroundColor: tokens.colors.primary[50],
-    marginRight: 8,
+    marginRight: tokens.spacing.xs2,
   },
   badgeAccent: {
     backgroundColor: tokens.colors.success[50],
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.primary[700],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   stateRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   stateText: {
-    marginLeft: 8,
-    fontSize: 12,
+    marginLeft: tokens.spacing.xs2,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
   },
   sectionCard: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
-  sectionTitle: { ...base.sectionTitleMd, marginBottom: 8 },
+  sectionTitle: { ...base.sectionTitleMd, marginBottom: tokens.spacing.xs2 },
   sectionText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
     lineHeight: 18,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 6,
+    paddingVertical: tokens.padding.xs2,
   },
   infoLabel: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
   },
   infoValue: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[800],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   actionRow: {
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
   secondaryButton: {
     ...base.btnOutline,
-    marginTop: 12,
+    marginTop: tokens.spacing.sm2,
   },
-  secondaryButtonText: { ...base.btnOutlineText, fontSize: 14 },
+  secondaryButtonText: { ...base.btnOutlineText, fontSize: tokens.font.base },
   errorText: base.textSmError,
 });

@@ -1,6 +1,8 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
@@ -52,13 +54,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   text: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
     textAlign: 'center',
   },
   subText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[600],
     textAlign: 'center',
   },

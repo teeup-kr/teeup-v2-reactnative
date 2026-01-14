@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { StyleSheet } from 'react-native';
 import {
   Image,
 KeyboardAvoidingView,
@@ -25,6 +24,7 @@ import { useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/authApi';
 import { buildGoogleAuthConfig, generateOauthState } from '@/lib/authUtils';
 import { tokenStorage } from '@/lib/tokenStorage';
+import { base, tokens } from '@/styles/style';
 
 const logoImage = require('../public/icons/icon-512-transparent.png');
 
@@ -238,72 +238,72 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
+    padding: tokens.padding.md,
     flexGrow: 1,
     justifyContent: 'center',
   },
   card: {
-    paddingHorizontal: 24,
-    paddingVertical: 28,
+    paddingHorizontal: tokens.padding.xl,
+    paddingVertical: tokens.padding.xl2,
   },
   brandSection: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: tokens.spacing.lg2,
   },
   logoWrap: {
     width: 56,
     height: 56,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   logo: {
     width: 48,
     height: 48,
   },
   brandTitle: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: tokens.font.xxl,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   brandSubtitle: {
-    fontSize: 13,
+    fontSize: tokens.font.md,
     color: tokens.colors.neutral[600],
   },
   pageTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: tokens.font.display,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   generalError: {
     textAlign: 'center',
     color: tokens.colors.error[600],
-    fontSize: 12,
-    marginBottom: 12,
+    fontSize: tokens.font.sm,
+    marginBottom: tokens.spacing.sm2,
   },
   buttonSpacing: {
-    marginTop: 4,
+    marginTop: tokens.spacing.xxs,
   },
   helperRow: {
-    marginTop: 12,
+    marginTop: tokens.spacing.sm2,
     flexDirection: 'row',
     justifyContent: 'center',
   },
   helperText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
   },
   helperLink: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.primary[600],
-    fontWeight: '600',
-    marginLeft: 6,
+    fontWeight: tokens.fontWeight.semibold,
+    marginLeft: tokens.spacing.xs,
   },
   dividerRow: {
-    marginVertical: 18,
+    marginVertical: tokens.spacing.md3,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -313,31 +313,31 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.neutral[200],
   },
   dividerText: {
-    marginHorizontal: 12,
-    fontSize: 12,
+    marginHorizontal: tokens.spacing.sm2,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
   },
   iconGap: {
-    marginRight: 8,
+    marginRight: tokens.spacing.xs2,
   },
   outlineText: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: tokens.font.lg,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[700],
   },
   registerRow: {
-    marginTop: 18,
+    marginTop: tokens.spacing.md3,
     flexDirection: 'row',
     justifyContent: 'center',
   },
   registerText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
   },
   registerLink: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.primary[600],
-    fontWeight: '600',
-    marginLeft: 6,
+    fontWeight: tokens.fontWeight.semibold,
+    marginLeft: tokens.spacing.xs,
   },
 });

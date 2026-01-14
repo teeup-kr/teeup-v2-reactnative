@@ -1,5 +1,3 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -10,6 +8,7 @@ import { useCallback,
 useEffect,
 useMemo,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import {
   ActivityIndicator,
 Platform,
@@ -32,6 +31,7 @@ import {
   formatMeetingTimeShort,
   getMeetingStatusKey,
 } from '@/lib/meetingUtils';
+import { base, tokens } from '@/styles/style';
 
 /* =========================
    Filter Chip
@@ -224,7 +224,7 @@ export default function MyMeetingsScreen() {
           <Text style={styles.dateText}>시작일</Text>
           <Pressable style={styles.dateInput} onPress={openStartPicker}>
 
-            <Text style={{ fontSize: 12, color: startDate ? tokens.colors.neutral[800] : tokens.colors.neutral[400] }}>
+            <Text style={{ fontSize: tokens.font.sm, color: startDate ? tokens.colors.neutral[800] : tokens.colors.neutral[400] }}>
               {startDate || 'YYYY-MM-DD'}
             </Text>
           </Pressable>
@@ -232,7 +232,7 @@ export default function MyMeetingsScreen() {
           {/* 종료일 */}
           <Text style={styles.dateText}>종료일</Text>
           <Pressable style={styles.dateInput} onPress={openEndPicker}>
-            <Text style={{ fontSize: 12, color: endDate ? tokens.colors.neutral[800] : tokens.colors.neutral[400] }}>
+            <Text style={{ fontSize: tokens.font.sm, color: endDate ? tokens.colors.neutral[800] : tokens.colors.neutral[400] }}>
               {endDate || 'YYYY-MM-DD'}
             </Text>
           </Pressable>
@@ -412,28 +412,28 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   filterCard: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
-  sectionTitle: { ...base.sectionTitleSm, marginBottom: 10 },
+  sectionTitle: { ...base.sectionTitleSm, marginBottom: tokens.spacing.sm },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs,
+    borderRadius: tokens.radius.lg,
     backgroundColor: tokens.colors.neutral[100],
-    marginRight: 8,
-    marginBottom: 8,
+    marginRight: tokens.spacing.xs2,
+    marginBottom: tokens.spacing.xs2,
   },
   chipActive: {
     backgroundColor: tokens.colors.primary[600],
   },
   chipText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[600],
   },
   chipTextActive: {
@@ -443,37 +443,37 @@ const styles = StyleSheet.create({
   dateRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   dateInput: {
     flex: 1,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    borderRadius: tokens.radius.base,
+    paddingVertical: tokens.padding.base,
+    paddingHorizontal: tokens.padding.sm,
     backgroundColor: tokens.colors.white,
     justifyContent: 'center',
   },
   dateText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[700],
   },
 
   resetButton: {
-    marginTop: 4,
+    marginTop: tokens.spacing.xxs,
     alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs,
+    borderRadius: tokens.radius.sm,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
     backgroundColor: tokens.colors.white,
   },
   resetButtonText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[700],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
 
   stateRow: {
@@ -481,63 +481,63 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 16,
+    paddingVertical: tokens.padding.md,
   },
   stateText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
   },
   errorText: base.textSmError,
 
   emptyCard: {
     alignItems: 'center',
-    paddingVertical: 32,
+    paddingVertical: tokens.padding.xxl,
     gap: 8,
   },
   emptyTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[800],
-    marginTop: 6,
+    marginTop: tokens.spacing.xs,
   },
   emptySubtitle: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
   },
 
   meetingCard: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   cardHeader: base.rowBetween,
   cardTitle: {
     ...base.cardTitle,
     flex: 1,
-    marginRight: 8,
+    marginRight: tokens.spacing.xs2,
   },
   badgeRow: {
     flexDirection: 'row',
     gap: 6,
   },
   badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: tokens.padding.xs,
+    paddingVertical: tokens.padding.xxs,
+    borderRadius: tokens.radius.md,
   },
   badgeText: {
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: tokens.font.xxs,
+    fontWeight: tokens.fontWeight.semibold,
   },
 
   cardSubtitle: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
-    marginTop: 6,
+    marginTop: tokens.spacing.xs,
   },
 
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
   metaItem: {
     flexDirection: 'row',
@@ -545,20 +545,20 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   metaText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[600],
   },
 
   detailButton: {
-    marginTop: 12,
+    marginTop: tokens.spacing.sm2,
     backgroundColor: tokens.colors.primary[600],
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: tokens.padding.base,
+    borderRadius: tokens.radius.base,
     alignItems: 'center',
   },
   detailButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.white,
   },
 
@@ -567,12 +567,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
   pageButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs2,
+    borderRadius: tokens.radius.sm,
     backgroundColor: tokens.colors.white,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[200],
@@ -581,11 +581,11 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   pageButtonText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[700],
   },
   paginationText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
   },
 });

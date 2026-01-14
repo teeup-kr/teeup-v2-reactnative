@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams } from 'expo-router';
 import { useEffect,
 useMemo,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ActivityIndicator,
 ScrollView,
 Text,
@@ -18,6 +17,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function ClubFeesScreen() {
   const { clubId } = useLocalSearchParams();
@@ -121,47 +121,47 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   summaryCard: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   summaryTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[700],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   summaryValue: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: tokens.font.xl,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 4,
+    marginBottom: tokens.spacing.xxs,
   },
   summaryHint: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
   },
   list: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   stateRow: base.stateRow,
   stateText: base.stateText,
   errorText: base.textSmError,
   feeCard: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   feeTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[800],
   },
   feeAmount: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginTop: 6,
+    marginTop: tokens.spacing.xs,
   },
   feeStatus: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
-    marginTop: 4,
+    marginTop: tokens.spacing.xxs,
   },
 });

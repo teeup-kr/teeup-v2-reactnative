@@ -1,5 +1,7 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
@@ -83,9 +85,9 @@ export default function TeamFormationPreviewModal({
 
 const styles = StyleSheet.create({
   subTitle: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[500],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   teamList: {
     maxHeight: 320,
@@ -93,42 +95,42 @@ const styles = StyleSheet.create({
   teamCard: {
     borderWidth: 1,
     borderColor: colors.neutral[200],
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.sm,
+    marginBottom: tokens.spacing.sm,
     backgroundColor: colors.neutral[50],
   },
   teamHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   teamTitle: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: tokens.font.md,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
   },
   teamMeta: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[500],
   },
   memberRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 4,
+    paddingVertical: tokens.padding.xxs,
     borderBottomWidth: 1,
     borderBottomColor: colors.neutral[100],
   },
   memberName: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[800],
   },
   memberMeta: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[500],
   },
   emptyText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[500],
   },
   footerRow: {

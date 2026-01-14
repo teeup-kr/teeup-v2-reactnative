@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { Pressable,
 ScrollView,
 Text,
@@ -19,6 +18,7 @@ import { noticeCategoryLabel } from '@/constants/noticesConstants';
 import { noticesApi } from '@/lib/api';
 import { normalizeNotice } from '@/lib/noticeUtils';
 import { extractList } from '@/lib/responseUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function NoticeListScreen() {
   const router = useRouter();
@@ -98,73 +98,73 @@ export default function NoticeListScreen() {
 const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
-  subtitle: { ...base.textSmMuted, marginBottom: 12 },
+  subtitle: { ...base.textSmMuted, marginBottom: tokens.spacing.sm2 },
   noticeCard: {
     backgroundColor: tokens.colors.white,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: tokens.radius.lg,
+    padding: tokens.padding.md,
+    marginBottom: tokens.spacing.sm2,
   },
   noticeCardPressed: {
     backgroundColor: tokens.colors.neutral[100],
   },
-  cardHeader: { ...base.row, marginBottom: 8 },
+  cardHeader: { ...base.row, marginBottom: tokens.spacing.xs2 },
   badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: tokens.padding.base,
+    paddingVertical: tokens.padding.xxs,
+    borderRadius: tokens.radius.md,
     backgroundColor: tokens.colors.primary[50],
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.primary[700],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   importantBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    marginLeft: tokens.spacing.xs2,
+    paddingHorizontal: tokens.padding.xs,
+    paddingVertical: tokens.padding.xxs,
+    borderRadius: tokens.radius.md,
     backgroundColor: tokens.colors.error[50],
   },
   importantText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.error[600],
-    marginLeft: 4,
-    fontWeight: '600',
+    marginLeft: tokens.spacing.xxs,
+    fontWeight: tokens.fontWeight.semibold,
   },
   noticeTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: tokens.font.lg,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   noticeSummary: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   noticeDate: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[400],
   },
   infoCard: {
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
   infoTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   infoText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
   },
   loadingCard: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   loadingText: base.textSmSubtle,
   errorText: base.textSmError,

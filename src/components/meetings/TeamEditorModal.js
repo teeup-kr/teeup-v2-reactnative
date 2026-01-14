@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -126,30 +128,30 @@ const styles = StyleSheet.create({
   teamCard: {
     borderWidth: 1,
     borderColor: colors.neutral[200],
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.sm,
+    marginBottom: tokens.spacing.sm2,
   },
   teamHeader: {
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   memberRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 6,
+    paddingVertical: tokens.padding.xs2,
     borderBottomWidth: 1,
     borderBottomColor: colors.neutral[100],
   },
   memberName: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[700],
   },
   emptyText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[500],
   },
   removeText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.error[600],
   },
   footerRow: {

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { extractList } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
@@ -179,21 +181,21 @@ export default function BatchFormationModal({
 
 const styles = StyleSheet.create({
   sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: tokens.font.md,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   modeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   modeChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: tokens.padding.base,
+    paddingVertical: tokens.padding.xs2,
+    borderRadius: tokens.radius.md,
     borderWidth: 1,
     borderColor: colors.neutral[200],
     backgroundColor: colors.white,
@@ -206,31 +208,31 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   modeChipText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[600],
   },
   modeChipTextActive: {
     color: colors.primary[700],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   teamSizeRow: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   teamSizeChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 14,
+    paddingHorizontal: tokens.padding.baseLg,
+    paddingVertical: tokens.padding.xs2,
+    borderRadius: tokens.radius.baseLg,
     backgroundColor: colors.neutral[100],
   },
   teamSizeChipActive: {
     backgroundColor: colors.primary[600],
   },
   teamSizeText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   teamSizeTextActive: {
     color: colors.white,
@@ -239,10 +241,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 16,
+    paddingVertical: tokens.padding.md,
   },
   loadingText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[600],
   },
   resultsList: {
@@ -251,23 +253,23 @@ const styles = StyleSheet.create({
   resultCard: {
     borderWidth: 1,
     borderColor: colors.neutral[200],
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.sm,
+    marginBottom: tokens.spacing.sm,
   },
   resultTitle: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   resultMeta: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[500],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   errorText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.error[600],
   },
   footerRow: {

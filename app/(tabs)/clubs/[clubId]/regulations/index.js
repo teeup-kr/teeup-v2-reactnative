@@ -1,5 +1,3 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -7,6 +5,7 @@ import { useLocalSearchParams,
 useRouter } from 'expo-router';
 import { useEffect,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ActivityIndicator,
 Pressable,
 ScrollView,
@@ -20,6 +19,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function ClubRegulationsScreen() {
   const router = useRouter();
@@ -118,11 +118,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   subtitle: base.textSmMuted,
   listCard: {
-    paddingVertical: 4,
+    paddingVertical: tokens.padding.xxs,
   },
   stateRow: base.stateRow,
   stateText: base.stateText,
@@ -130,29 +130,29 @@ const styles = StyleSheet.create({
   listRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: tokens.padding.md,
+    paddingVertical: tokens.padding.sm,
   },
   listIcon: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: tokens.radius.lg,
     backgroundColor: tokens.colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: tokens.spacing.sm2,
   },
   listInfo: {
     flex: 1,
   },
   listTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[800],
   },
   listDate: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
-    marginTop: 2,
+    marginTop: tokens.spacing.hairline,
   },
 });

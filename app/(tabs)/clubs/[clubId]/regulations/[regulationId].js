@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams,
 useRouter } from 'expo-router';
 import { useEffect,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ActivityIndicator,
 Pressable,
 ScrollView,
@@ -18,6 +17,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractData } from '@/lib/responseUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function ClubRegulationDetailScreen() {
   const router = useRouter();
@@ -96,21 +96,21 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   card: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   title: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   meta: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   body: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[700],
     lineHeight: 18,
   },
@@ -119,26 +119,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stateText: {
-    marginLeft: 8,
-    fontSize: 12,
+    marginLeft: tokens.spacing.xs2,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
   },
   errorText: base.textSmError,
   editButton: {
     borderWidth: 1,
     borderColor: tokens.colors.neutral[200],
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingVertical: tokens.padding.base,
+    borderRadius: tokens.radius.md,
     alignItems: 'center',
   },
   editButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[700],
   },
   helperText: {
-    marginTop: 8,
-    fontSize: 11,
+    marginTop: tokens.spacing.xs2,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
     textAlign: 'center',
   },

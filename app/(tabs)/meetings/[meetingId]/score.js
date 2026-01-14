@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams } from 'expo-router';
 import { useEffect,
 useMemo,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ActivityIndicator,
 ScrollView,
 Text,
@@ -19,6 +18,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api';
 import { extractList } from '@/lib/responseUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function ScoreInputScreen() {
   const { meetingId } = useLocalSearchParams();
@@ -119,37 +119,37 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   card: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   sectionTitle: base.sectionTitleMd,
   sectionSubtitle: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
-    marginTop: 4,
-    marginBottom: 12,
+    marginTop: tokens.spacing.xxs,
+    marginBottom: tokens.spacing.sm2,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   name: {
     flex: 1,
-    fontSize: 13,
+    fontSize: tokens.font.md,
     color: tokens.colors.neutral[700],
   },
   input: {
     width: 80,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    borderRadius: tokens.radius.sm,
+    paddingHorizontal: tokens.padding.base,
+    paddingVertical: tokens.padding.xs2,
     textAlign: 'center',
     color: tokens.colors.neutral[900],
   },
   stateRow: {
-    paddingVertical: 12,
+    paddingVertical: tokens.padding.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },

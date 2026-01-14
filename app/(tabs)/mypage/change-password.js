@@ -1,17 +1,15 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
-useState } from 'react';
-import { ScrollView,
-Text,
-} from 'react-native';
+  useState
+} from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { authApi } from '@/lib/authApi';
+import { base, tokens } from '@/styles/style';
 
 export default function ChangePasswordScreen() {
   const [form, setForm] = useState({
@@ -131,13 +129,13 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   card: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
-  cardTitle: { ...base.cardTitle, marginBottom: 6 },
-  cardSubtitle: { ...base.textSmSubtle, marginBottom: 12 },
-  errorText: { ...base.textSmError, marginTop: 4 },
-  successText: { ...base.textSmSuccess, marginTop: 4 },
+  cardTitle: { ...base.cardTitle, marginBottom: tokens.spacing.xs },
+  cardSubtitle: { ...base.textSmSubtle, marginBottom: tokens.spacing.sm2 },
+  errorText: { ...base.textSmError, marginTop: tokens.spacing.xxs },
+  successText: { ...base.textSmSuccess, marginTop: tokens.spacing.xxs },
   saveButton: {
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
 });

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { roundsApi } from '../../lib/api';
 import { extractData } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
@@ -76,30 +78,30 @@ export default function MySettlementView({ meetingId }) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: 16,
+    borderRadius: tokens.radius.lg,
     borderWidth: 1,
     borderColor: colors.neutral[200],
-    padding: 16,
+    padding: tokens.padding.md,
   },
   title: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   label: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[500],
   },
   value: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[800],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   stateRow: {
     flexDirection: 'row',
@@ -107,15 +109,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   stateText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[600],
   },
   errorText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.error[600],
   },
   emptyText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[600],
   },
 });

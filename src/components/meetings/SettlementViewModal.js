@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { roundsApi } from '../../lib/api';
 import { extractData } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
@@ -92,11 +94,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   stateText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[600],
   },
   errorText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.error[600],
   },
   detailList: {
@@ -105,21 +107,21 @@ const styles = StyleSheet.create({
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: tokens.padding.xs,
     borderBottomWidth: 1,
     borderBottomColor: colors.neutral[100],
   },
   detailLabel: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[500],
   },
   detailValue: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[800],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   emptyText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[600],
     textAlign: 'center',
   },

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { roundsApi } from '../../lib/api';
 import { extractData } from '../../lib/responseUtils';
 import { colors } from '../../theme/colors';
@@ -180,79 +182,79 @@ export default function SettlementManager({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
-    borderRadius: 16,
+    borderRadius: tokens.radius.lg,
     borderWidth: 1,
     borderColor: colors.neutral[200],
-    padding: 16,
+    padding: tokens.padding.md,
   },
   title: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   helperText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[600],
   },
   summaryCard: {
     backgroundColor: colors.neutral[50],
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.sm,
+    marginBottom: tokens.spacing.sm2,
   },
   summaryTitle: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   summaryLabel: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[500],
   },
   summaryValue: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[800],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   formCard: {
     borderWidth: 1,
     borderColor: colors.neutral[200],
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.sm,
   },
   formTitle: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   formLabel: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
     color: colors.neutral[700],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   methodRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   actionRow: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
   errorText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.error[600],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
 });

@@ -3,6 +3,8 @@ import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { tokens } from '@/styles/style';
+
 import { useAppLayout } from '../../context/AppLayoutContext';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
@@ -142,24 +144,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: tokens.padding.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.neutral[200],
   },
   sheetTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: tokens.font.xl,
+    fontWeight: tokens.fontWeight.semibold,
     color: colors.neutral[900],
   },
   closeButton: {
-    padding: 6,
+    padding: tokens.padding.xs2,
   },
   sheetContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: tokens.padding.md,
+    paddingVertical: tokens.padding.md,
   },
   menuCategory: {
-    marginBottom: 24,
+    marginBottom: tokens.spacing.lg,
   },
   menuCategoryLast: {
     marginBottom: 0,
@@ -167,8 +169,8 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.sm,
   },
   menuItemPressed: {
     backgroundColor: colors.neutral[50],
@@ -181,22 +183,22 @@ const styles = StyleSheet.create({
     width: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: tokens.spacing.sm2,
   },
   menuLabel: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
     color: colors.neutral[900],
   },
   menuFooter: {
     borderTopWidth: 1,
     borderTopColor: colors.neutral[200],
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: tokens.padding.base,
+    paddingHorizontal: tokens.padding.lg,
     backgroundColor: colors.neutral[50],
   },
   menuFooterText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[500],
     textAlign: 'center',
   },

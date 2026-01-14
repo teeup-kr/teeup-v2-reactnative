@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams } from 'expo-router';
 import { useEffect,
 useMemo,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { Pressable,
 ScrollView,
 Text,
@@ -17,6 +16,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { termsTabs } from '@/constants/termsConstants';
 import { termsApi } from '@/lib/termsApi';
+import { base, tokens } from '@/styles/style';
 
 const TabButton = ({ label, selected, onPress }) => (
   <Pressable
@@ -122,15 +122,15 @@ const styles = StyleSheet.create({
   tabRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   tabButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs,
+    borderRadius: tokens.radius.lg,
     backgroundColor: tokens.colors.neutral[100],
-    marginRight: 8,
-    marginBottom: 8,
+    marginRight: tokens.spacing.xs2,
+    marginBottom: tokens.spacing.xs2,
   },
   tabButtonActive: {
     backgroundColor: tokens.colors.primary[600],
@@ -139,27 +139,27 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   tabButtonText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   tabButtonTextActive: {
     color: tokens.colors.white,
   },
   card: {
-    padding: 20,
+    padding: tokens.padding.lg,
   },
-  cardTitle: { ...base.cardTitle, marginBottom: 12 },
+  cardTitle: { ...base.cardTitle, marginBottom: tokens.spacing.sm2 },
   contentBox: {
     backgroundColor: tokens.colors.neutral[50],
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.sm,
   },
   contentText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[700],
     lineHeight: 18,
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   loadingText: base.textSmSubtle,
   errorText: base.textSmError,

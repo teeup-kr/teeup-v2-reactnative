@@ -1,5 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 
 export default function Card({ children, style }) {
@@ -9,8 +11,8 @@ export default function Card({ children, style }) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: tokens.radius.lg,
+    padding: tokens.padding.xl,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,

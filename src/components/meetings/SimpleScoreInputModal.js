@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { roundsApi } from '../../lib/api';
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
@@ -160,49 +162,49 @@ const styles = StyleSheet.create({
   },
   sectionCard: {
     backgroundColor: colors.neutral[50],
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.sm,
+    marginBottom: tokens.spacing.sm2,
     borderWidth: 1,
     borderColor: colors.neutral[200],
   },
   sectionLabel: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[500],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   sectionValue: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: tokens.font.xl,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
   },
   previewCard: {
     backgroundColor: colors.primary[50],
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.sm,
     borderWidth: 1,
     borderColor: colors.primary[100],
-    marginTop: 4,
+    marginTop: tokens.spacing.xxs,
   },
   previewLabel: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.primary[700],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   previewValue: {
-    marginTop: 4,
-    fontSize: 18,
-    fontWeight: '700',
+    marginTop: tokens.spacing.xxs,
+    fontSize: tokens.font.xl,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.primary[800],
   },
   previewHint: {
-    marginTop: 6,
-    fontSize: 11,
+    marginTop: tokens.spacing.xs,
+    fontSize: tokens.font.xs,
     color: colors.primary[600],
   },
   errorText: {
-    marginTop: 8,
-    fontSize: 12,
+    marginTop: tokens.spacing.xs2,
+    fontSize: tokens.font.sm,
     color: colors.error[600],
   },
 });

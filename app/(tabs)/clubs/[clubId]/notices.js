@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ActivityIndicator,
 Pressable,
 ScrollView,
@@ -18,6 +17,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function ClubNoticesScreen() {
   const { clubId } = useLocalSearchParams();
@@ -102,45 +102,45 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   noticeCard: {
-    paddingVertical: 4,
+    paddingVertical: tokens.padding.xxs,
   },
   noticeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: tokens.padding.md,
+    paddingVertical: tokens.padding.sm,
   },
   noticeIcon: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: tokens.radius.lg,
     backgroundColor: tokens.colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: tokens.spacing.sm2,
   },
   noticeInfo: {
     flex: 1,
   },
   noticeTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[800],
   },
   noticeDate: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
-    marginTop: 2,
+    marginTop: tokens.spacing.hairline,
   },
   noticeBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
+    paddingHorizontal: tokens.padding.xs,
+    paddingVertical: tokens.padding.xxs,
+    borderRadius: tokens.radius.base,
     backgroundColor: tokens.colors.secondary[500],
   },
   noticeBadgeText: {
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: tokens.font.xxs,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.white,
   },
   stateRow: base.stateRow,

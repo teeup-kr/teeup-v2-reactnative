@@ -2,6 +2,8 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import { useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 
 const parseDateTimeValue = (value) => {
@@ -112,24 +114,24 @@ export default function DateTimeField({
 
 const styles = StyleSheet.create({
   field: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   label: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[700],
-    marginBottom: 6,
-    fontWeight: '600',
+    marginBottom: tokens.spacing.xs,
+    fontWeight: tokens.fontWeight.semibold,
   },
   input: {
     borderWidth: 1,
     borderColor: colors.neutral[300],
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    borderRadius: tokens.radius.base,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.sm,
     backgroundColor: colors.white,
   },
   inputText: {
-    fontSize: 14,
+    fontSize: tokens.font.base,
     color: colors.neutral[900],
   },
   placeholderText: {
@@ -142,8 +144,8 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   errorText: {
-    marginTop: 4,
-    fontSize: 12,
+    marginTop: tokens.spacing.xxs,
+    fontSize: tokens.font.sm,
     color: colors.error[600],
   },
 });

@@ -1,10 +1,9 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams } from 'expo-router';
 import { useEffect,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ActivityIndicator,
 ScrollView,
 Text,
@@ -16,6 +15,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractData } from '@/lib/responseUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function ClubStatsScreen() {
   const { clubId } = useLocalSearchParams();
@@ -116,41 +116,41 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: '48%',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   statValue: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: tokens.font.xl,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
   },
   chartCard: {
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
   chartTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   chartPlaceholder: {
     height: 160,
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[200],
     alignItems: 'center',
     justifyContent: 'center',
   },
   chartText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
   },
   stateCard: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   stateRow: {
     flexDirection: 'row',
@@ -158,8 +158,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   stateText: {
-    marginLeft: 8,
-    fontSize: 12,
+    marginLeft: tokens.spacing.xs2,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
   },
   errorText: base.textSmError,

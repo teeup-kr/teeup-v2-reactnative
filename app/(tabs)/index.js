@@ -1,9 +1,8 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { StyleSheet } from 'react-native';
 import { Image,
 Pressable,
 ScrollView,
@@ -16,6 +15,7 @@ import AppFooter from '@/components/layout/AppFooter';
 import AppHeader from '@/components/layout/AppHeader';
 import { homeFeatures } from '@/constants/homeConstants';
 import { useAuth } from '@/context/AuthContext';
+import { base, tokens } from '@/styles/style';
 
 const FeatureCard = ({ title, description, emoji, background, accent }) => {
   return (
@@ -128,8 +128,8 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.neutral[50],
   },
   heroSection: {
-    paddingHorizontal: 24,
-    paddingVertical: 32,
+    paddingHorizontal: tokens.padding.xl,
+    paddingVertical: tokens.padding.xxl,
   },
   heroInner: {
     alignItems: 'center',
@@ -137,11 +137,11 @@ const styles = StyleSheet.create({
   heroLogoWrap: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: tokens.radius.xxl,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   heroLogo: {
     width: 36,
@@ -149,114 +149,114 @@ const styles = StyleSheet.create({
   },
   heroBrand: {
     color: tokens.colors.white,
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 12,
+    fontSize: tokens.font.display,
+    fontWeight: tokens.fontWeight.bold,
+    marginBottom: tokens.spacing.sm2,
   },
   heroHeadline: {
     color: tokens.colors.white,
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: tokens.font.xxl,
+    fontWeight: tokens.fontWeight.bold,
     textAlign: 'center',
     lineHeight: 28,
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   heroSubcopy: {
     color: tokens.colors.emerald[100],
-    fontSize: 14,
+    fontSize: tokens.font.base,
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   heroChecklist: {
     alignItems: 'center',
   },
   heroChecklistText: {
     color: tokens.colors.emerald[100],
-    fontSize: 12,
-    marginBottom: 4,
+    fontSize: tokens.font.sm,
+    marginBottom: tokens.spacing.xxs,
   },
   contentSection: {
     backgroundColor: tokens.colors.white,
-    paddingHorizontal: 24,
-    paddingVertical: 28,
+    paddingHorizontal: tokens.padding.xl,
+    paddingVertical: tokens.padding.xl2,
   },
   pageTitle: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: tokens.spacing.lg2,
   },
   pageHeadline: {
     color: tokens.colors.neutral[900],
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: tokens.font.display,
+    fontWeight: tokens.fontWeight.bold,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   pageSubcopy: {
     color: tokens.colors.neutral[600],
-    fontSize: 14,
+    fontSize: tokens.font.base,
     textAlign: 'center',
     lineHeight: 20,
   },
   featureList: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   featureCard: {
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.md,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   featureIcon: {
     width: 44,
     height: 44,
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: tokens.spacing.sm2,
   },
   featureEmoji: {
-    fontSize: 18,
+    fontSize: tokens.font.xl,
   },
   featureText: {
     flex: 1,
   },
   featureTitle: {
     color: tokens.colors.neutral[900],
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 6,
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.semibold,
+    marginBottom: tokens.spacing.xs,
   },
   featureDescription: {
     color: tokens.colors.neutral[600],
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     lineHeight: 18,
   },
   primaryButton: {
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
     overflow: 'hidden',
   },
   primaryButtonPressed: {
     opacity: 0.9,
   },
   primaryButtonGradient: {
-    paddingVertical: 14,
+    paddingVertical: tokens.padding.baseLg,
     alignItems: 'center',
   },
   primaryButtonText: {
     color: tokens.colors.white,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.semibold,
   },
   loginHint: {
-    marginTop: 18,
+    marginTop: tokens.spacing.md3,
     textAlign: 'center',
     color: tokens.colors.neutral[500],
-    fontSize: 12,
+    fontSize: tokens.font.sm,
   },
   loginHintAccent: {
     color: tokens.colors.emerald[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
 });

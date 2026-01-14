@@ -1,6 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 
 const gradientColors = ['#059669', '#0F766E'];
@@ -88,21 +90,21 @@ export default function Button({
 
 const styles = StyleSheet.create({
   buttonBase: {
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sizeSmall: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: tokens.padding.xs,
+    paddingHorizontal: tokens.padding.md,
   },
   sizeMedium: {
-    paddingVertical: 10,
-    paddingHorizontal: 18,
+    paddingVertical: tokens.padding.base,
+    paddingHorizontal: tokens.padding.lg2,
   },
   sizeLarge: {
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: tokens.padding.baseLg,
+    paddingHorizontal: tokens.padding.lg,
   },
   outline: {
     borderWidth: 1,
@@ -117,13 +119,13 @@ const styles = StyleSheet.create({
   },
   textPrimary: {
     color: colors.white,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.semibold,
   },
   textOutline: {
     color: colors.neutral[700],
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.semibold,
   },
   content: {
     flexDirection: 'row',

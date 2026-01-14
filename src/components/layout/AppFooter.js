@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 
 export default function AppFooter() {
@@ -15,12 +17,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral[50],
     borderTopWidth: 1,
     borderTopColor: colors.neutral[200],
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: tokens.padding.md,
+    paddingVertical: tokens.padding.md,
     alignItems: 'center'
   },
   meta: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[500],
   },
 });

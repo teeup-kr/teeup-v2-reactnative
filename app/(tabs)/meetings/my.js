@@ -1,5 +1,3 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -7,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useEffect,
 useMemo,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ActivityIndicator,
 Pressable,
 ScrollView,
@@ -21,6 +20,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { useAuth } from '@/context/AuthContext';
 import { usersApi } from '@/lib/api';
 import { extractList, formatMeetingListDate } from '@/lib/meetingUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function MyMeetingsScreen() {
   const router = useRouter();
@@ -135,22 +135,22 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   summaryCard: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   summaryTitle: {
-    fontSize: 14,
+    fontSize: tokens.font.base,
     color: tokens.colors.neutral[600],
   },
   summaryValue: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: tokens.font.xl,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginTop: 6,
+    marginTop: tokens.spacing.xs,
   },
   list: {
     backgroundColor: tokens.colors.white,
-    borderRadius: 16,
-    paddingVertical: 4,
+    borderRadius: tokens.radius.lg,
+    paddingVertical: tokens.padding.xxs,
   },
   stateContainer: {
     flex: 1,
@@ -163,34 +163,34 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: tokens.padding.md,
+    paddingVertical: tokens.padding.sm,
   },
   iconWrap: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: tokens.radius.lg,
     backgroundColor: tokens.colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: tokens.spacing.sm2,
   },
   info: {
     flex: 1,
   },
   name: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[800],
   },
   date: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
-    marginTop: 2,
+    marginTop: tokens.spacing.hairline,
   },
   status: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
 });

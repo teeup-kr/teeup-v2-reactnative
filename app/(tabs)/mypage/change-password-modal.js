@@ -1,22 +1,23 @@
-import { StyleSheet } from 'react-native';
 
 import {
-FontAwesome5 } from '@expo/vector-icons';
-import { useEffect,
-useState } from 'react';
+    FontAwesome5
+} from '@expo/vector-icons';
+import {
+    useEffect,
+    useState
+} from 'react';
 import {
     ActivityIndicator,
-Modal,
-Pressable,
-Text,
-TextInput,
-View,
+    Modal,
+    Pressable, StyleSheet, Text,
+    TextInput,
+    View
 } from 'react-native';
 
 import { authApi } from '@/lib/authApi';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
-const ChangePasswordModal = ({ isOpen, onClose, onLogout }) => {
+export const ChangePasswordModal = ({ isOpen, onClose, onLogout }) => {
     /* =========================
        State
     ========================= */
@@ -225,13 +226,11 @@ const ChangePasswordModal = ({ isOpen, onClose, onLogout }) => {
     );
 };
 
-export default ChangePasswordModal;
-
 /* =========================
    UI Helpers
 ========================= */
 const Field = ({ label, children }) => (
-    <View style={{ marginBottom: 12 }}>
+    <View style={{ marginBottom: tokens.spacing.sm2 }}>
         <Text style={styles.label}>{label}</Text>
         {children}
     </View>
@@ -242,64 +241,60 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.5)',
         justifyContent: 'center',
-        padding: 16,
+        padding: tokens.padding.md,
     },
     card: {
         backgroundColor: tokens.colors.white,
-        borderRadius: 12,
+        borderRadius: tokens.radius.md,
         overflow: 'hidden',
     },
     header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 16,
+        ...base.rowBetween,
+        padding: tokens.padding.md,
         borderBottomWidth: 1,
         borderColor: tokens.colors.border,
     },
-    title: { fontSize: 18, fontWeight: '700' },
-    body: { padding: 16 },
-    label: { marginBottom: 6, fontWeight: '600' },
+    title: { fontSize: tokens.font.xl, fontWeight: tokens.fontWeight.bold },
+    body: { padding: tokens.padding.md },
+    label: { marginBottom: tokens.spacing.xs, fontWeight: tokens.fontWeight.semibold },
     input: {
-        borderWidth: 1,
-        borderColor: tokens.colors.inputBorder,
-        borderRadius: 8,
-        padding: 12,
+        ...base.input,
+        borderRadius: tokens.radius.sm,
+        paddingHorizontal: tokens.padding.sm,
+        paddingVertical: tokens.padding.sm,
     },
-    error: { color: tokens.colors.red[600], fontSize: 12, marginTop: 4 },
+    error: { color: tokens.colors.red[600], fontSize: tokens.font.sm, marginTop: tokens.spacing.xxs },
     errorBox: {
         backgroundColor: tokens.colors.red[100],
-        padding: 10,
-        borderRadius: 8,
+        padding: tokens.padding.base,
+        borderRadius: tokens.radius.sm,
         color: tokens.colors.red[800],
-        marginBottom: 8,
+        marginBottom: tokens.spacing.xs2,
     },
-    buttonRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
+    buttonRow: { ...base.row, gap: tokens.spacing.xs2, marginTop: tokens.spacing.xs2 },
     cancelBtn: {
+        ...base.btnOutline,
         flex: 1,
-        padding: 12,
-        borderRadius: 8,
-        borderWidth: 1,
-        alignItems: 'center',
+        borderRadius: tokens.radius.sm,
     },
     submitBtn: {
+        ...base.btnPrimary,
         flex: 1,
-        padding: 12,
-        borderRadius: 8,
+        borderRadius: tokens.radius.sm,
         backgroundColor: tokens.colors.blue[600],
-        alignItems: 'center',
     },
-    submitText: { color: tokens.colors.white, fontWeight: '600' },
+    submitText: { color: tokens.colors.white, fontWeight: tokens.fontWeight.semibold },
 
-    center: { alignItems: 'center', padding: 32 },
+    center: { alignItems: 'center', padding: tokens.padding.xxl },
     successIcon: {
         width: 56,
         height: 56,
-        borderRadius: 28,
+        borderRadius: tokens.radius.xxl,
         backgroundColor: tokens.colors.green[100],
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: tokens.spacing.sm2,
     },
-    successTitle: { fontSize: 18, fontWeight: '700' },
-    successText: { fontSize: 13, color: tokens.colors.textSubtle, marginVertical: 8 },
+    successTitle: { fontSize: tokens.font.xl, fontWeight: tokens.fontWeight.bold },
+    successText: { fontSize: tokens.font.md, color: tokens.colors.textSubtle, marginVertical: tokens.spacing.xs2 },
 });

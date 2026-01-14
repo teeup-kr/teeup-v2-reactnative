@@ -3,6 +3,8 @@ import { usePathname, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { tokens } from '@/styles/style';
+
 import { useAppLayout } from '../../context/AppLayoutContext';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
@@ -123,12 +125,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   label: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[500],
-    marginTop: 4,
+    marginTop: tokens.spacing.xxs,
   },
   activeLabel: {
     color: colors.primary[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
 });

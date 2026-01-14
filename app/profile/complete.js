@@ -1,9 +1,8 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
+import { StyleSheet } from 'react-native';
 import {
   ScrollView,
 Text,
@@ -15,6 +14,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import ScreenHeader from '@/components/ui/ScreenHeader';
+import { base, tokens } from '@/styles/style';
 
 export default function ProfileCompleteScreen() {
   const [form, setForm] = useState({
@@ -104,35 +104,35 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   hero: {
-    borderRadius: 18,
-    padding: 20,
-    marginBottom: 16,
+    borderRadius: tokens.radius.lg2,
+    padding: tokens.padding.lg,
+    marginBottom: tokens.spacing.md,
   },
   heroTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.white,
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   heroSubtitle: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.emerald[100],
     lineHeight: 18,
   },
   card: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
-  cardTitle: { ...base.cardTitle, marginBottom: 12 },
+  cardTitle: { ...base.cardTitle, marginBottom: tokens.spacing.sm2 },
   tipBox: {
-    padding: 12,
-    borderRadius: 12,
+    padding: tokens.padding.sm,
+    borderRadius: tokens.radius.md,
     backgroundColor: tokens.colors.primary[50],
   },
   tipText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.primary[700],
   },
   saveButton: {
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
 });

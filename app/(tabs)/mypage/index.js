@@ -1,9 +1,11 @@
-import LoginRequired from '@/components/auth/LoginRequired';
-import AppHeader from '@/components/layout/AppHeader';
-import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import LoginRequired from '@/components/auth/LoginRequired';
+import AppHeader from '@/components/layout/AppHeader';
+import { useAuth } from '@/context/AuthContext';
+import { tokens } from '@/styles/style';
 
 import UserProfileEditTab from './edit';
 import MyMeetingsScreen from './meetings';
@@ -11,7 +13,6 @@ import NotificationsScreen from './notifications';
 import OverviewScreen from './overview';
 import RecordsScreen from './records';
 import WithdrawScreen from './withdraw';
-import { tokens } from '@/styles/style';
 
 export default function MyPageScreen() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -65,7 +66,7 @@ export default function MyPageScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
-              paddingHorizontal: 8,
+              paddingHorizontal: tokens.padding.xs,
               alignItems: 'center',
             }}
           >
@@ -77,17 +78,17 @@ export default function MyPageScreen() {
                   key={tab.id}
                   onPress={() => setActiveTab(tab.id)}
                   style={{
-                    paddingVertical: 10,
-                    paddingHorizontal: 16,
-                    marginRight: 8,
-                    borderRadius: 12,
+                    paddingVertical: tokens.padding.base,
+                    paddingHorizontal: tokens.padding.md,
+                    marginRight: tokens.spacing.xs2,
+                    borderRadius: tokens.radius.md,
                     backgroundColor: active ? tokens.colors.emerald[600] : tokens.colors.white,
                   }}
                 >
                   <Text
                     style={{
-                      fontSize: 14,
-                      fontWeight: '600',
+                      fontSize: tokens.font.base,
+                      fontWeight: tokens.fontWeight.semibold,
                       color: active ? tokens.colors.white : tokens.colors.textStrong,
                     }}
                   >

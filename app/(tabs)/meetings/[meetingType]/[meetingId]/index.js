@@ -1,5 +1,3 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -8,6 +6,7 @@ import { useCallback,
 useEffect,
 useMemo,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import {
   ActivityIndicator,
 Alert,
@@ -36,6 +35,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { meetingDetailTabs } from '@/constants/meetingConstants';
 import { roundsApi, socialsApi, usersApi } from '@/lib/api';
 import { extractData, extractList, formatDateTime } from '@/lib/meetingUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function MeetingDetailScreen() {
   const { meetingType, meetingId } = useLocalSearchParams();
@@ -609,20 +609,20 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   card: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: tokens.font.xl,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 4,
+    marginBottom: tokens.spacing.xxs,
   },
-  subtitle: { ...base.textSmSubtle, marginBottom: 12 },
+  subtitle: { ...base.textSmSubtle, marginBottom: tokens.spacing.sm2 },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   metaItem: {
     flexDirection: 'row',
@@ -630,33 +630,33 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   metaText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
   },
   actionRow: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
   tabRow: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
     flexWrap: 'wrap',
     gap: 8,
   },
   tabButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs,
+    borderRadius: tokens.radius.lg,
     backgroundColor: tokens.colors.neutral[100],
   },
   tabButtonActive: {
     backgroundColor: tokens.colors.primary[600],
   },
   tabText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   tabTextActive: {
     color: tokens.colors.white,
@@ -664,40 +664,40 @@ const styles = StyleSheet.create({
   participantRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: tokens.padding.xs,
     borderBottomWidth: 1,
     borderBottomColor: tokens.colors.neutral[100],
   },
   participantName: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[800],
   },
   participantRole: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
   },
   emptyText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
     textAlign: 'center',
   },
   teamCard: {
     borderWidth: 1,
     borderColor: tokens.colors.neutral[200],
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 10,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.sm,
+    marginTop: tokens.spacing.sm,
   },
   teamTitle: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: tokens.font.md,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   teamMember: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[700],
-    marginBottom: 4,
+    marginBottom: tokens.spacing.xxs,
   },
   stateRow: {
     flex: 1,
@@ -706,7 +706,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   stateText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
   },
   errorText: base.textSmError,

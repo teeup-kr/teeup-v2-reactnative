@@ -1,10 +1,9 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams } from 'expo-router';
 import { useEffect,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ActivityIndicator,
 ScrollView,
 Text,
@@ -16,6 +15,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function ClubActivitiesScreen() {
   const { clubId } = useLocalSearchParams();
@@ -101,32 +101,32 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   listCard: {
-    paddingVertical: 4,
+    paddingVertical: tokens.padding.xxs,
   },
   stateRow: base.stateRow,
   stateText: base.stateText,
   errorText: base.textSmError,
   itemRow: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: tokens.padding.md,
+    paddingVertical: tokens.padding.sm,
     borderBottomWidth: 1,
     borderBottomColor: tokens.colors.neutral[100],
   },
   itemInfo: {
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   itemTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[800],
   },
   itemDetail: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
-    marginTop: 2,
+    marginTop: tokens.spacing.hairline,
   },
   itemDate: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[400],
   },
 });

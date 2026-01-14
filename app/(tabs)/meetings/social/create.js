@@ -1,5 +1,3 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams,
@@ -8,6 +6,7 @@ import { useCallback,
 useEffect,
 useMemo,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import {
   ActivityIndicator,
 Alert,
@@ -32,6 +31,7 @@ import {
   normalizeNumber,
   toDateTimeLocalValue,
 } from '@/lib/meetingUtils';
+import { base, tokens } from '@/styles/style';
 
 const ChipOption = ({ label, selected, onPress }) => (
   <Pressable
@@ -427,28 +427,28 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   card: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   loadingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: tokens.padding.mega,
   },
-  loadingText: { ...base.textSmMuted, marginTop: 12, fontSize: 14 },
+  loadingText: { ...base.textSmMuted, marginTop: tokens.spacing.sm2, fontSize: tokens.font.base },
   sectionTitle: base.sectionTitle,
-  sectionSubtitle: { ...base.sectionSubtitle, marginTop: 4, marginBottom: 12 },
+  sectionSubtitle: { ...base.sectionSubtitle, marginTop: tokens.spacing.xxs, marginBottom: tokens.spacing.sm2 },
   label: base.labelSm,
   helperText: base.textSmSubtle,
   input: {
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
+    borderRadius: tokens.radius.base,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.base,
+    fontSize: tokens.font.base,
     color: tokens.colors.neutral[900],
     backgroundColor: tokens.colors.white,
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   inputError: {
     borderColor: tokens.colors.error[500],
@@ -458,21 +458,21 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   fieldGroup: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
   chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs2,
+    borderRadius: tokens.radius.lg,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
     backgroundColor: tokens.colors.white,
-    marginRight: 8,
-    marginBottom: 8,
+    marginRight: tokens.spacing.xs2,
+    marginBottom: tokens.spacing.xs2,
   },
   chipActive: {
     backgroundColor: tokens.colors.primary[50],
@@ -482,12 +482,12 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   chipText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
   },
   chipTextActive: {
     color: tokens.colors.primary[700],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
-  errorText: { ...base.textSmError, marginTop: 4 },
+  errorText: { ...base.textSmError, marginTop: tokens.spacing.xxs },
 });

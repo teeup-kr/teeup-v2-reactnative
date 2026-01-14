@@ -3,6 +3,8 @@ import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 import AppFooter from '../layout/AppFooter';
 import AppHeader from '../layout/AppHeader';
@@ -50,15 +52,15 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: tokens.padding.lg,
   },
   card: {
     width: '100%',
     maxWidth: 360,
     backgroundColor: colors.white,
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
+    borderRadius: tokens.radius.lg,
+    paddingHorizontal: tokens.padding.lg,
+    paddingVertical: tokens.padding.xl,
     alignItems: 'center',
     shadowColor: colors.black,
     shadowOpacity: 0.08,
@@ -67,43 +69,43 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   icon: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   title: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: tokens.font.md,
     color: colors.neutral[600],
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: tokens.spacing.lg2,
   },
   actions: {
     width: '100%',
   },
   primaryButton: {
     backgroundColor: colors.primary[600],
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: tokens.padding.sm,
+    borderRadius: tokens.radius.base,
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: tokens.spacing.sm,
   },
   primaryLabel: {
     color: colors.white,
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   secondaryButton: {
     backgroundColor: colors.neutral[100],
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: tokens.padding.sm,
+    borderRadius: tokens.radius.base,
     alignItems: 'center',
   },
   secondaryLabel: {
     color: colors.neutral[700],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
 });

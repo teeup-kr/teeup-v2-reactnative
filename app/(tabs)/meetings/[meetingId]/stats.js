@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams } from 'expo-router';
 import { useEffect,
 useMemo,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ActivityIndicator,
 ScrollView,
 Text,
@@ -16,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api';
+import { base, tokens } from '@/styles/style';
 
 export default function MeetingStatsScreen() {
   const { meetingId } = useLocalSearchParams();
@@ -125,16 +125,16 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   summaryCard: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   summaryTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[700],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   summaryHint: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
   },
   grid: {
@@ -144,41 +144,41 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: '48%',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   statValue: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: tokens.font.xl,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
   },
   chartCard: {
-    marginTop: 4,
+    marginTop: tokens.spacing.xxs,
   },
   chartTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   chartPlaceholder: {
     height: 160,
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[200],
     alignItems: 'center',
     justifyContent: 'center',
   },
   chartText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
   },
   stateCard: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   stateRow: {
     flexDirection: 'row',
@@ -186,8 +186,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   stateText: {
-    marginLeft: 8,
-    fontSize: 12,
+    marginLeft: tokens.spacing.xs2,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
   },
   errorText: base.textSmError,

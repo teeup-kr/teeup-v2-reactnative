@@ -1,5 +1,3 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -10,6 +8,7 @@ import { useCallback,
 useEffect,
 useMemo,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ActivityIndicator,
 Pressable,
 ScrollView,
@@ -39,6 +38,7 @@ import {
   getMeetingTypeBadgeConfig,
   parseYmd,
 } from '@/lib/meetingUtils';
+import { base, tokens } from '@/styles/style';
 
 const Badge = ({ text, backgroundColor, textColor }) => (
   <View style={[styles.badge, { backgroundColor }]}>
@@ -801,24 +801,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loadingBlock: {
-    paddingVertical: 48,
+    paddingVertical: tokens.padding.xxxl,
     alignItems: 'center',
     justifyContent: 'center',
   },
   noClubState: {
-    paddingVertical: 48,
+    paddingVertical: tokens.padding.xxxl,
     alignItems: 'center',
   },
   noClubTitle: {
-    marginTop: 16,
-    fontSize: 18,
-    fontWeight: '700',
+    marginTop: tokens.spacing.md,
+    fontSize: tokens.font.xl,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
   },
   noClubSubtitle: {
-    marginTop: 10,
-    marginBottom: 16,
-    fontSize: 12,
+    marginTop: tokens.spacing.sm,
+    marginBottom: tokens.spacing.md,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
     textAlign: 'center',
     lineHeight: 18,
@@ -828,11 +828,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: tokens.font.xxl,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
   },
   createRow: {
@@ -846,9 +846,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs,
+    borderRadius: tokens.radius.base,
   },
   createButtonPressed: {
     opacity: 0.9,
@@ -861,22 +861,22 @@ const styles = StyleSheet.create({
   },
   createButtonText: {
     color: tokens.colors.white,
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
   },
   tabBar: {
     borderBottomWidth: 1,
     borderBottomColor: tokens.colors.neutral[200],
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   tabBarRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
   tabButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 6,
-    marginRight: 12,
+    paddingVertical: tokens.padding.base,
+    paddingHorizontal: tokens.padding.xs2,
+    marginRight: tokens.spacing.sm2,
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
@@ -884,8 +884,8 @@ const styles = StyleSheet.create({
     borderBottomColor: tokens.colors.primary[500],
   },
   tabText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[500],
   },
   tabTextActive: {
@@ -893,7 +893,7 @@ const styles = StyleSheet.create({
   },
   filtersBlock: {
     gap: 12,
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   dateRow: {
     flexDirection: 'row',
@@ -906,32 +906,32 @@ const styles = StyleSheet.create({
   dateInput: {
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    borderRadius: tokens.radius.base,
+    paddingHorizontal: tokens.padding.base,
+    paddingVertical: tokens.padding.base,
     backgroundColor: tokens.colors.white,
   },
   dateInputText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[900],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   dateInputPlaceholder: {
     color: tokens.colors.neutral[400],
-    fontWeight: '500',
+    fontWeight: tokens.fontWeight.medium,
   },
   dateDivider: {
     color: tokens.colors.neutral[500],
-    fontSize: 12,
+    fontSize: tokens.font.sm,
   },
   resetButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingHorizontal: tokens.padding.base,
+    paddingVertical: tokens.padding.base,
   },
   resetButtonText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   searchRow: {
     flexDirection: 'row',
@@ -944,25 +944,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    borderRadius: tokens.radius.base,
+    paddingHorizontal: tokens.padding.base,
+    paddingVertical: tokens.padding.base,
     gap: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[900],
   },
   searchButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingHorizontal: tokens.padding.baseLg,
+    paddingVertical: tokens.padding.base,
+    borderRadius: tokens.radius.base,
     backgroundColor: tokens.colors.primary[600],
   },
   searchButtonText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.white,
   },
   statusRow: {
@@ -970,12 +970,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   statusButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingHorizontal: tokens.padding.baseLg,
+    paddingVertical: tokens.padding.base,
+    borderRadius: tokens.radius.base,
   },
   statusButtonActive: {
     backgroundColor: tokens.colors.primary[600],
@@ -984,68 +984,68 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.neutral[100],
   },
   statusButtonText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[700],
   },
   statusButtonTextActive: {
     color: tokens.colors.white,
   },
   statusDivider: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[400],
   },
   emptyState: {
-    paddingVertical: 48,
+    paddingVertical: tokens.padding.xxxl,
     alignItems: 'center',
   },
   emptyTitle: {
-    marginTop: 16,
-    fontSize: 15,
-    fontWeight: '700',
+    marginTop: tokens.spacing.md,
+    fontSize: tokens.font.lg,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
     textAlign: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: tokens.padding.lg,
   },
   emptySubtitle: {
-    marginTop: 8,
-    marginBottom: 16,
-    fontSize: 12,
+    marginTop: tokens.spacing.xs2,
+    marginBottom: tokens.spacing.md,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
     textAlign: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: tokens.padding.lg,
     lineHeight: 18,
   },
   emptyCreateButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingHorizontal: tokens.padding.baseLg,
+    paddingVertical: tokens.padding.base,
+    borderRadius: tokens.radius.base,
   },
   emptyCreateButtonText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.white,
   },
   cardList: {
-    marginTop: 4,
+    marginTop: tokens.spacing.xxs,
   },
   cardPressable: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   cardPressed: {
     opacity: 0.96,
   },
   card: {
-    padding: 16,
-    borderRadius: 12,
+    padding: tokens.padding.md,
+    borderRadius: tokens.radius.md,
   },
-  cardHeader: { ...base.rowBetween, gap: 10, marginBottom: 10 },
+  cardHeader: { ...base.rowBetween, gap: 10, marginBottom: tokens.spacing.sm },
   cardTitleArea: {
     flex: 1,
     minWidth: 0,
   },
   cardTitle: base.cardTitleSm,
-  cardSubtitle: { ...base.sectionSubtitle, marginTop: 2 },
+  cardSubtitle: { ...base.sectionSubtitle, marginTop: tokens.spacing.hairline },
   cardBadgeRow: {
     alignItems: 'flex-end',
     gap: 6,
@@ -1057,27 +1057,27 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
+    paddingHorizontal: tokens.padding.base,
+    paddingVertical: tokens.padding.xxs,
+    borderRadius: tokens.radius.pill,
   },
   badgeText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: tokens.font.xs,
+    fontWeight: tokens.fontWeight.bold,
   },
   cardDescription: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
     lineHeight: 18,
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   metaList: {
     gap: 6,
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   extraList: {
     gap: 6,
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   metaItem: {
     flexDirection: 'row',
@@ -1085,10 +1085,10 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   golfEmoji: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
   },
   metaText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
     flex: 1,
   },
@@ -1098,16 +1098,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   cardDate: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[400],
   },
   cardLink: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.primary[600],
   },
   paginationRow: {
-    marginTop: 12,
+    marginTop: tokens.spacing.sm2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1115,17 +1115,17 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pageNavButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.base,
+    borderRadius: tokens.radius.base,
     backgroundColor: tokens.colors.neutral[100],
   },
   pageNavButtonDisabled: {
     opacity: 0.5,
   },
   pageNavText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[700],
   },
   pageNumbersRow: {
@@ -1135,9 +1135,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pageNumber: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.base,
+    borderRadius: tokens.radius.base,
   },
   pageNumberActive: {
     backgroundColor: tokens.colors.primary[600],
@@ -1146,8 +1146,8 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.neutral[100],
   },
   pageNumberText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[700],
   },
   pageNumberTextActive: {

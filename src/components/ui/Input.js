@@ -1,5 +1,7 @@
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 
 export default function Input({
@@ -38,13 +40,13 @@ export default function Input({
 
 const styles = StyleSheet.create({
   field: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
     color: colors.neutral[700],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   required: {
     color: colors.error[500],
@@ -52,10 +54,10 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: colors.neutral[300],
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
+    borderRadius: tokens.radius.base,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.base,
+    fontSize: tokens.font.base,
     color: colors.neutral[900],
     backgroundColor: colors.white,
   },
@@ -63,8 +65,8 @@ const styles = StyleSheet.create({
     borderColor: colors.error[500],
   },
   errorText: {
-    marginTop: 4,
-    fontSize: 12,
+    marginTop: tokens.spacing.xxs,
+    fontSize: tokens.font.sm,
     color: colors.error[600],
   },
 });

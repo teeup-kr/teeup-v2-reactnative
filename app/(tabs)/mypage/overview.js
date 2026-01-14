@@ -1,19 +1,19 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
-FontAwesome5 } from '@expo/vector-icons';
+  FontAwesome5
+} from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCallback,
-useEffect,
-useMemo,
-useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
 import {
   ActivityIndicator,
-Pressable,
-ScrollView,
-Text,
-View,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -23,6 +23,7 @@ import { usersApi } from '@/lib/api';
 import { clubsApi } from '@/lib/clubsApi';
 import { formatProfileDate, getGenderLabel } from '@/lib/mypageUtils';
 import { extractData, extractList } from '@/lib/responseUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function OverviewScreen() {
   const router = useRouter();
@@ -30,7 +31,6 @@ export default function OverviewScreen() {
   const [handicapInfo, setHandicapInfo] = useState(null);
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [clubsLoading, setClubsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchProfile = useCallback(async () => {
@@ -54,7 +54,6 @@ export default function OverviewScreen() {
 
   const fetchClubs = useCallback(async () => {
     try {
-      setClubsLoading(true);
       const response = await clubsApi.getMyClubs({ page: 1, limit: 3 });
       const items = extractList(response);
       setClubs(items);
@@ -62,7 +61,6 @@ export default function OverviewScreen() {
       console.error('클럽 목록 조회 실패:', fetchError);
       setClubs([]);
     } finally {
-      setClubsLoading(false);
     }
   }, []);
 
@@ -263,31 +261,31 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   card: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
-  cardTitle: { ...base.cardTitle, marginBottom: 12 },
+  cardTitle: { ...base.cardTitle, marginBottom: tokens.spacing.sm2 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   rowContent: {
     flex: 1,
   },
   infoLabel: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
-    marginBottom: 2,
+    marginBottom: tokens.spacing.hairline,
   },
   infoValue: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[900],
   },
   infoSubtext: {
-    marginTop: 4,
-    fontSize: 11,
+    marginTop: tokens.spacing.xxs,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
   },
   handicapRow: {
@@ -297,29 +295,29 @@ const styles = StyleSheet.create({
   },
   badge: {
     backgroundColor: tokens.colors.primary[50],
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
+    paddingHorizontal: tokens.padding.xs,
+    paddingVertical: tokens.padding.micro,
+    borderRadius: tokens.radius.md,
   },
   badgeText: {
-    fontSize: 10,
+    fontSize: tokens.font.xxs,
     color: tokens.colors.primary[700],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
-  cardHeader: { ...base.rowBetween, marginBottom: 8 },
+  cardHeader: { ...base.rowBetween, marginBottom: tokens.spacing.xs2 },
   linkText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.primary[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   clubRow: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: tokens.colors.neutral[200],
-    borderRadius: 14,
-    padding: 12,
-    marginTop: 10,
+    borderRadius: tokens.radius.baseLg,
+    padding: tokens.padding.sm,
+    marginTop: tokens.spacing.sm,
   },
   clubRowPressed: {
     backgroundColor: tokens.colors.primary[50],
@@ -327,36 +325,36 @@ const styles = StyleSheet.create({
   clubIcon: {
     width: 42,
     height: 42,
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
     backgroundColor: tokens.colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: tokens.spacing.sm2,
   },
   clubInfo: {
     flex: 1,
   },
   clubName: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
   },
   clubMeta: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
-    marginTop: 4,
+    marginTop: tokens.spacing.xxs,
   },
   roleBadge: {
     alignSelf: 'flex-start',
-    marginTop: 6,
+    marginTop: tokens.spacing.xs,
     backgroundColor: tokens.colors.primary[50],
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
+    paddingHorizontal: tokens.padding.xs,
+    paddingVertical: tokens.padding.micro,
+    borderRadius: tokens.radius.md,
   },
   roleBadgeText: {
-    fontSize: 10,
+    fontSize: tokens.font.xxs,
     color: tokens.colors.primary[700],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
 });

@@ -1,22 +1,21 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
-FontAwesome5 } from '@expo/vector-icons';
+  FontAwesome5
+} from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Pressable,
-ScrollView,
-Text,
-TextInput,
-View,
+  ScrollView, StyleSheet, Text,
+  TextInput,
+  View
 } from 'react-native';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Modal from '@/components/ui/Modal';
 import { authApi } from '@/lib/authApi';
+import { base, tokens } from '@/styles/style';
 
 export default function WithdrawScreen() {
   const router = useRouter();
@@ -82,7 +81,7 @@ export default function WithdrawScreen() {
         </Card>
 
         <Card style={styles.card}>
-          <Text style={styles.inputLabel}>확인을 위해 '회원탈퇴'를 입력하세요.*</Text>
+          <Text style={styles.inputLabel}>확인을 위해 '회원탈퇴'를 입력하세요.<Text style={styles.required}>*</Text></Text>
           <TextInput
             value={confirmText}
             onChangeText={setConfirmText}
@@ -136,31 +135,31 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   warningCard: {
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: tokens.radius.lg,
+    padding: tokens.padding.md,
     backgroundColor: tokens.colors.error[50],
     borderWidth: 1,
     borderColor: tokens.colors.error[500],
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   warningHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   warningTitle: {
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: '700',
+    marginLeft: tokens.spacing.xs2,
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.error[700],
   },
   warningText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.error[700],
-    marginTop: 4,
+    marginTop: tokens.spacing.xxs,
   },
   card: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   agreeRow: {
     flexDirection: 'row',
@@ -169,44 +168,44 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 20,
     height: 20,
-    borderRadius: 6,
+    borderRadius: tokens.radius.xs,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
+    marginRight: tokens.spacing.xs2,
   },
   checkboxChecked: {
     backgroundColor: tokens.colors.error[600],
     borderColor: tokens.colors.error[600],
   },
   agreeText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[700],
   },
   inputLabel: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[700],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   input: {
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
+    borderRadius: tokens.radius.base,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.base,
+    fontSize: tokens.font.base,
     color: tokens.colors.neutral[900],
     backgroundColor: tokens.colors.white,
   },
   inputError: {
     borderColor: tokens.colors.error[500],
   },
-  errorText: { ...base.textSmError, marginTop: 6 },
-  successText: { ...base.textSmSuccess, marginTop: 8, textAlign: 'center' },
+  errorText: { ...base.textSmError, marginTop: tokens.spacing.xs },
+  successText: { ...base.textSmSuccess, marginTop: tokens.spacing.xs2, textAlign: 'center' },
   withdrawButton: {
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
   modalFooter: {
     flexDirection: 'row',
@@ -216,11 +215,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalButtonSpacing: {
-    marginRight: 8,
+    marginRight: tokens.spacing.xs2,
   },
   modalText: {
-    fontSize: 13,
+    fontSize: tokens.font.md,
     color: tokens.colors.neutral[700],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
+  required: { color: tokens.colors.red[500] },
+
 });

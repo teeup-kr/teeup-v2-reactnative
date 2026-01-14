@@ -1,6 +1,8 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -155,37 +157,37 @@ export default function RoundingJoinModal({
 const styles = StyleSheet.create({
   infoCard: {
     backgroundColor: colors.primary[50],
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.sm,
+    marginBottom: tokens.spacing.sm2,
     borderWidth: 1,
     borderColor: colors.primary[100],
   },
   infoTitle: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: tokens.font.md,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.primary[700],
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   infoLabel: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.primary[500],
   },
   infoValue: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.primary[800],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
   },
   sectionTitleRow: {
     flexDirection: 'row',
@@ -193,24 +195,24 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: tokens.font.md,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
   },
   editButton: {
-    paddingHorizontal: 10,
+    paddingHorizontal: tokens.padding.base,
   },
   readonlyCard: {
     backgroundColor: colors.neutral[50],
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.sm,
     borderWidth: 1,
     borderColor: colors.neutral[200],
   },
   readonlyText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[700],
-    marginBottom: 4,
+    marginBottom: tokens.spacing.xxs,
   },
   footerRow: {
     flexDirection: 'row',

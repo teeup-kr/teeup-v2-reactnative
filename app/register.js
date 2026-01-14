@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import {
   Image,
 KeyboardAvoidingView,
@@ -22,6 +21,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { registerInitialErrors, registerInitialForm } from '@/constants/authConstants';
 import { authApi } from '@/lib/authApi';
+import { base, tokens } from '@/styles/style';
 
 const logoImage = require('../public/icons/icon-512-transparent.png');
 
@@ -551,42 +551,42 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
+    padding: tokens.padding.md,
     flexGrow: 1,
     justifyContent: 'center',
   },
   card: {
-    paddingHorizontal: 24,
-    paddingVertical: 28,
+    paddingHorizontal: tokens.padding.xl,
+    paddingVertical: tokens.padding.xl2,
   },
   brandSection: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: tokens.spacing.lg2,
   },
   logoWrap: {
     width: 56,
     height: 56,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   logo: {
     width: 48,
     height: 48,
   },
   pageTitle: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: tokens.font.xxl,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   pageSubtitle: {
-    fontSize: 13,
+    fontSize: tokens.font.md,
     color: tokens.colors.neutral[600],
     textAlign: 'center',
   },
   fieldGroup: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   label: base.labelSm,
   required: {
@@ -596,10 +596,10 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[300],
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
+    borderRadius: tokens.radius.base,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.base,
+    fontSize: tokens.font.base,
     color: tokens.colors.neutral[900],
     backgroundColor: tokens.colors.white,
   },
@@ -611,29 +611,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   inlineButton: {
-    marginLeft: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    marginLeft: tokens.spacing.xs2,
+    paddingVertical: tokens.padding.base,
+    paddingHorizontal: tokens.padding.sm,
     backgroundColor: tokens.colors.primary[600],
-    borderRadius: 10,
+    borderRadius: tokens.radius.base,
   },
   inlineButtonDisabled: {
     opacity: 0.5,
   },
   inlineButtonText: {
     color: tokens.colors.white,
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
   },
-  errorText: { ...base.textSmError, marginTop: 6 },
-  successText: { ...base.textSmSuccess, marginTop: 6 },
+  errorText: { ...base.textSmError, marginTop: tokens.spacing.xs },
+  successText: { ...base.textSmSuccess, marginTop: tokens.spacing.xs },
   passwordChecks: {
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
   checkItem: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[500],
-    marginBottom: 4,
+    marginBottom: tokens.spacing.xxs,
   },
   checkItemSuccess: {
     color: tokens.colors.success[600],
@@ -641,33 +641,33 @@ const styles = StyleSheet.create({
   termsSection: {
     borderTopWidth: 1,
     borderTopColor: tokens.colors.neutral[200],
-    paddingTop: 16,
-    marginTop: 8,
+    paddingTop: tokens.padding.md,
+    marginTop: tokens.spacing.xs2,
   },
   termsTitle: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: tokens.font.md,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[700],
-    marginBottom: 10,
+    marginBottom: tokens.spacing.sm,
   },
   termsList: {
-    marginTop: 8,
+    marginTop: tokens.spacing.xs2,
   },
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: tokens.spacing.xs2,
     flexWrap: 'wrap',
   },
   checkboxBox: {
     width: 18,
     height: 18,
-    borderRadius: 4,
+    borderRadius: tokens.radius.xxs,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[400],
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
+    marginRight: tokens.spacing.xs2,
     backgroundColor: tokens.colors.white,
   },
   checkboxChecked: {
@@ -676,35 +676,35 @@ const styles = StyleSheet.create({
   },
   checkboxMark: {
     color: tokens.colors.white,
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
   },
   checkboxLabel: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[700],
-    marginRight: 6,
+    marginRight: tokens.spacing.xs,
   },
   termsLink: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.primary[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   submitButton: {
-    marginTop: 12,
+    marginTop: tokens.spacing.sm2,
   },
   loginRow: {
-    marginTop: 18,
+    marginTop: tokens.spacing.md3,
     flexDirection: 'row',
     justifyContent: 'center',
   },
   loginText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
   },
   loginLink: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.primary[600],
-    fontWeight: '600',
-    marginLeft: 6,
+    fontWeight: tokens.fontWeight.semibold,
+    marginLeft: tokens.spacing.xs,
   },
 });

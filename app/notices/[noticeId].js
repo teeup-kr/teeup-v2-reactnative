@@ -1,10 +1,9 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 useLocalSearchParams } from 'expo-router';
 import { useEffect,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ScrollView,
 Text,
 View,
@@ -16,6 +15,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { noticeCategoryLabel } from '@/constants/noticesConstants';
 import { noticesApi } from '@/lib/api';
 import { normalizeNotice } from '@/lib/noticeUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function NoticeDetailScreen() {
   const { noticeId } = useLocalSearchParams();
@@ -80,43 +80,43 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   card: {
-    padding: 20,
+    padding: tokens.padding.lg,
   },
   badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
   badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: tokens.padding.base,
+    paddingVertical: tokens.padding.xxs,
+    borderRadius: tokens.radius.md,
     backgroundColor: tokens.colors.primary[50],
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.primary[700],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   importantText: {
-    marginLeft: 8,
-    fontSize: 11,
+    marginLeft: tokens.spacing.xs2,
+    fontSize: tokens.font.xs,
     color: tokens.colors.error[600],
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: tokens.font.xl,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   date: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[400],
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   content: {
-    fontSize: 13,
+    fontSize: tokens.font.md,
     color: tokens.colors.neutral[700],
     lineHeight: 20,
   },

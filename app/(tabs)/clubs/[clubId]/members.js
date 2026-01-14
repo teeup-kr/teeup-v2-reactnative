@@ -1,11 +1,10 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { ActivityIndicator,
 Pressable,
 ScrollView,
@@ -19,6 +18,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubMemberStatusColors } from '@/constants/clubConstants';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function ClubMemberManageScreen() {
   const { clubId } = useLocalSearchParams();
@@ -134,22 +134,22 @@ const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
   summaryCard: {
-    marginBottom: 16,
+    marginBottom: tokens.spacing.md,
   },
   summaryTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.bold,
     color: tokens.colors.neutral[900],
-    marginBottom: 6,
+    marginBottom: tokens.spacing.xs,
   },
   summaryText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
   },
   listCard: {
     backgroundColor: tokens.colors.white,
-    borderRadius: 16,
-    paddingVertical: 4,
+    borderRadius: tokens.radius.lg,
+    paddingVertical: tokens.padding.xxs,
   },
   stateRow: base.stateRow,
   stateText: base.stateText,
@@ -157,51 +157,51 @@ const styles = StyleSheet.create({
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: tokens.padding.md,
+    paddingVertical: tokens.padding.sm,
   },
   avatar: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: tokens.radius.lg,
     backgroundColor: tokens.colors.neutral[100],
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: tokens.spacing.sm2,
   },
   memberInfo: {
     flex: 1,
   },
   memberName: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[800],
   },
   memberRole: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[500],
-    marginTop: 2,
+    marginTop: tokens.spacing.hairline,
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
-    marginRight: 8,
+    paddingHorizontal: tokens.padding.xs,
+    paddingVertical: tokens.padding.xxs,
+    borderRadius: tokens.radius.base,
+    marginRight: tokens.spacing.xs2,
   },
   statusText: {
-    fontSize: 10,
+    fontSize: tokens.font.xxs,
     color: tokens.colors.white,
-    fontWeight: '600',
+    fontWeight: tokens.fontWeight.semibold,
   },
   actionButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: tokens.padding.xs,
+    paddingVertical: tokens.padding.xs2,
+    borderRadius: tokens.radius.sm,
     borderWidth: 1,
     borderColor: tokens.colors.neutral[200],
   },
   actionButtonText: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: tokens.colors.neutral[700],
   },
 });

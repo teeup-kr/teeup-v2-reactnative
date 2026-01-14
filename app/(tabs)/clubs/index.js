@@ -1,5 +1,3 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
@@ -9,6 +7,7 @@ import { useCallback,
 useEffect,
 useMemo,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import {
   ActivityIndicator,
 Alert,
@@ -42,6 +41,7 @@ import {
   getClubTypeBadgeConfig,
   normalizePaginatedResponse,
 } from '@/lib/clubUtils';
+import { base, tokens } from '@/styles/style';
 
 const logoImage = require('../../../public/icons/icon-512-transparent.png');
 

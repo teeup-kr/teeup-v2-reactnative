@@ -1,10 +1,9 @@
-import { StyleSheet } from 'react-native';
-import { base, tokens } from '@/styles/style';
 
 import {
 FontAwesome5 } from '@expo/vector-icons';
 import { useEffect,
 useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { Pressable,
 ScrollView,
 Text,
@@ -15,6 +14,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { faqApi } from '@/lib/api';
 import { normalizeFaqList } from '@/lib/faqUtils';
+import { base, tokens } from '@/styles/style';
 
 export default function FaqScreen() {
   const [items, setItems] = useState([]);
@@ -90,26 +90,22 @@ export default function FaqScreen() {
 const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
-  subtitle: { ...base.textSmMuted, marginBottom: 12 },
+  subtitle: { ...base.textSmMuted, marginBottom: tokens.spacing.sm2 },
   card: {
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm2,
   },
-  questionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
+  questionRow: base.rowBetween,
   questionText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
     color: tokens.colors.neutral[900],
     flex: 1,
-    marginRight: 8,
+    marginRight: tokens.spacing.xs2,
   },
   answerText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: tokens.colors.neutral[600],
-    marginTop: 12,
+    marginTop: tokens.spacing.sm2,
     lineHeight: 18,
   },
   loadingText: base.textSmSubtle,

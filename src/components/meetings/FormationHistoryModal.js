@@ -1,5 +1,7 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { tokens } from '@/styles/style';
+
 import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
@@ -62,28 +64,28 @@ const styles = StyleSheet.create({
   historyCard: {
     borderWidth: 1,
     borderColor: colors.neutral[200],
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
+    borderRadius: tokens.radius.md,
+    padding: tokens.padding.sm,
+    marginBottom: tokens.spacing.sm,
     backgroundColor: colors.neutral[50],
   },
   historyTitle: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
   },
   historyMeta: {
-    fontSize: 11,
+    fontSize: tokens.font.xs,
     color: colors.neutral[500],
-    marginTop: 4,
+    marginTop: tokens.spacing.xxs,
   },
   actionRow: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 10,
+    marginTop: tokens.spacing.sm,
   },
   emptyText: {
-    fontSize: 12,
+    fontSize: tokens.font.sm,
     color: colors.neutral[600],
     textAlign: 'center',
   },
