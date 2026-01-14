@@ -2,12 +2,12 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView, StyleSheet, Text,
-  TextInput,
-  View
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    ScrollView, StyleSheet, Text,
+    TextInput,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,33 +18,33 @@ import AppHeader from '@/components/layout/AppHeader';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import {
-  clubMyStatusOptions,
-  clubStatusFilterOptions,
-  clubTabs,
-  clubValidTabs,
+    clubMyStatusOptions,
+    clubStatusFilterOptions,
+    clubTabs,
+    clubValidTabs,
 } from '@/constants/clubConstants';
 import { useAuth } from '@/context/AuthContext';
 import { clubsApi } from '@/lib/api/api';
 import {
-  createBrowseClubsHandler,
-  createCardPressHandler,
-  createClubPressHandler,
-  createCreateClubHandler,
-  createDebouncedSearchHandler,
-  createFetchClubsHandler,
-  createMyStatusFilterHandler,
-  createNextPageHandler,
-  createPageChangeHandler,
-  createPrevPageHandler,
-  createSearchTermChangeHandler,
-  createStatusFilterSelectHandler,
-  createTabChangeHandler,
-  createToggleStatusFilterHandler,
-} from '@/lib/render/clubs';
+    createBrowseClubsHandler,
+    createCardPressHandler,
+    createClubPressHandler,
+    createCreateClubHandler,
+    createDebouncedSearchHandler,
+    createFetchClubsHandler,
+    createMyStatusFilterHandler,
+    createNextPageHandler,
+    createPageChangeHandler,
+    createPrevPageHandler,
+    createSearchTermChangeHandler,
+    createStatusFilterSelectHandler,
+    createTabChangeHandler,
+    createToggleStatusFilterHandler,
+} from '@/lib/handler/clubs';
 import {
-  getClubCardVariant,
-  getClubPageNumbers,
-  normalizePaginatedResponse,
+    getClubCardVariant,
+    getClubPageNumbers,
+    normalizePaginatedResponse,
 } from '@/lib/util/clubUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';

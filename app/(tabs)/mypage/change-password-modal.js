@@ -18,7 +18,7 @@ import {
     createResetPasswordModalHandler,
     createSubmitPasswordModalHandler,
     createValidatePasswordModalHandler,
-} from '@/lib/render/mypage';
+} from '@/lib/handler/mypage';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 

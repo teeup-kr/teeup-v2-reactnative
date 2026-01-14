@@ -3,39 +3,39 @@ import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Pressable,
-  ScrollView, StyleSheet, Text,
-  View
+    ActivityIndicator,
+    Alert,
+    Modal,
+    Pressable,
+    ScrollView, StyleSheet, Text,
+    View
 } from 'react-native';
 
 import Card from '@/components/ui/Card';
 import { notificationsApi } from '@/lib/api/api';
 import {
-  createBulkDeleteHandler,
-  createBulkReadHandler,
-  createClearDeleteTargetHandler,
-  createConfirmDeleteHandler,
-  createDeleteNotificationHandler,
-  createDeleteTargetHandler,
-  createFilterPressHandler,
-  createLoadNotificationsHandler,
-  createMarkAllAsReadHandler,
-  createMarkAsReadHandler,
-  createOpenNotificationHandler,
-  createOpenNotificationPressHandler,
-  createSelectAllHandler,
-  createToggleSelectHandler,
-  createToggleSelectPressHandler,
-} from '@/lib/render/mypage';
+    createBulkDeleteHandler,
+    createBulkReadHandler,
+    createClearDeleteTargetHandler,
+    createConfirmDeleteHandler,
+    createDeleteNotificationHandler,
+    createDeleteTargetHandler,
+    createFilterPressHandler,
+    createLoadNotificationsHandler,
+    createMarkAllAsReadHandler,
+    createMarkAsReadHandler,
+    createOpenNotificationHandler,
+    createOpenNotificationPressHandler,
+    createSelectAllHandler,
+    createToggleSelectHandler,
+    createToggleSelectPressHandler,
+} from '@/lib/handler/mypage';
 import {
-  formatNotificationDate,
-  getNotificationIcon,
-  isUnreadNotification,
-  notificationTypeLabels,
-  pickData,
+    formatNotificationDate,
+    getNotificationIcon,
+    isUnreadNotification,
+    notificationTypeLabels,
+    pickData,
 } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';

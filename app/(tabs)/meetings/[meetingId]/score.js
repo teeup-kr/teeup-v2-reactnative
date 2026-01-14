@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { meetingsApi } from '@/lib/api/api';
-import { createFetchParticipantsHandler } from '@/lib/render/meetings';
+import { createFetchParticipantsHandler } from '@/lib/handler/meetings';
 import { normalizePlayers } from '@/lib/util/meetingUtils';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';

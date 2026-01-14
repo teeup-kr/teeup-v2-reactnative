@@ -2,11 +2,11 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView, StyleSheet, Text,
-  TextInput,
-  View
+    ActivityIndicator,
+    Pressable,
+    ScrollView, StyleSheet, Text,
+    TextInput,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -20,29 +20,29 @@ import { meetingTabs, meetingValidTabs } from '@/constants/meetingConstants';
 import { useAuth } from '@/context/AuthContext';
 import { meetingsApi } from '@/lib/api/api';
 import {
-  createCreateMeetingHandler,
-  createDateChangeHandler,
-  createFetchClubsHandler,
-  createFetchRoundingMeetingsHandler,
-  createFetchSocialMeetingsHandler,
-  createMeetingPressHandler,
-  createNextPageHandler,
-  createPageNumberHandler,
-  createPrevPageHandler,
-  createResetDatesHandler,
-  createSearchHandler,
-  createSearchInputChangeHandler,
-  createStatusFilterHandler,
-  createTabChangeHandler,
-  createTabPressHandler,
-} from '@/lib/render/meetings';
+    createCreateMeetingHandler,
+    createDateChangeHandler,
+    createFetchClubsHandler,
+    createFetchRoundingMeetingsHandler,
+    createFetchSocialMeetingsHandler,
+    createMeetingPressHandler,
+    createNextPageHandler,
+    createPageNumberHandler,
+    createPrevPageHandler,
+    createResetDatesHandler,
+    createSearchHandler,
+    createSearchInputChangeHandler,
+    createStatusFilterHandler,
+    createTabChangeHandler,
+    createTabPressHandler,
+} from '@/lib/handler/meetings';
 import {
-  extractList,
-  filterByDate,
-  filterByStatus,
-  getActiveFilters,
-  getDateRange,
-  getPageNumbers,
+    extractList,
+    filterByDate,
+    filterByStatus,
+    getActiveFilters,
+    getDateRange,
+    getPageNumbers,
 } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';

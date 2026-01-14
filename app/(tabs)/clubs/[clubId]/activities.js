@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/api/api';
-import { createFetchActivitiesHandler } from '@/lib/render/clubs';
+import { createFetchActivitiesHandler } from '@/lib/handler/clubs';
 import { normalizeClubActivities } from '@/lib/util/clubUtils';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';

@@ -2,15 +2,15 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
-  useEffect,
-  useMemo,
-  useState
+    useEffect,
+    useMemo,
+    useState
 } from 'react';
 import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView, StyleSheet, Text,
-  View
+    ActivityIndicator,
+    Pressable,
+    ScrollView, StyleSheet, Text,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,17 +18,17 @@ import AppFooter from '@/components/layout/AppFooter';
 import Card from '@/components/ui/Card';
 import { mypageApi } from '@/lib/api/api';
 import {
-  createFetchClubsHandler,
-  createFetchProfileHandler,
-  createOpenClubDetailHandler,
-  createOpenClubsHandler,
-} from '@/lib/render/mypage';
+    createFetchClubsHandler,
+    createFetchProfileHandler,
+    createOpenClubDetailHandler,
+    createOpenClubsHandler,
+} from '@/lib/handler/mypage';
 import {
-  buildProfileInfoItems,
-  formatProfileDate,
-  getGenderLabel,
-  getHandicapDisplay,
-  getProfileInfoIconName,
+    buildProfileInfoItems,
+    formatProfileDate,
+    getGenderLabel,
+    getHandicapDisplay,
+    getProfileInfoIconName,
 } from '@/lib/util/mypageUtils';
 import { extractData, extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';

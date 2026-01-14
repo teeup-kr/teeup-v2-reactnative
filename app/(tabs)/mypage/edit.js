@@ -25,7 +25,7 @@ import {
   createSaveProfileHandler,
   createShowToastHandler,
   createValidateProfileFormHandler,
-} from '@/lib/render/mypage';
+} from '@/lib/handler/mypage';
 import {
   buildProfileFormData,
   calcHandicapFromAvg,

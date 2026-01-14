@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { meetingsApi } from '@/lib/api/api';
-import { createFetchMeetingStatsHandler } from '@/lib/render/meetings';
+import { createFetchMeetingStatsHandler } from '@/lib/handler/meetings';
 import { buildMeetingStats, getParticipantsFromResponse } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';

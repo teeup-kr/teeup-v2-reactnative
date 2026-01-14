@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LoginRequired from '@/components/auth/LoginRequired';
 import AppHeader from '@/components/layout/AppHeader';
 import { useAuth } from '@/context/AuthContext';
-import { createTabPressHandler, getMyPageTabContent } from '@/lib/render/mypage';
+import { createTabPressHandler, getMyPageTabContent } from '@/lib/handler/mypage';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 

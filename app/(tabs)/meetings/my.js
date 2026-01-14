@@ -10,7 +10,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { useAuth } from '@/context/AuthContext';
 import { mypageApi } from '@/lib/api/api';
-import { createFetchMyMeetingsHandler, createOpenMeetingHandler } from '@/lib/render/meetings';
+import { createFetchMyMeetingsHandler, createOpenMeetingHandler } from '@/lib/handler/meetings';
 import { extractList, normalizeMyMeetings } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';

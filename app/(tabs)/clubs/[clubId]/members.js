@@ -2,10 +2,10 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView, StyleSheet, Text,
-  View
+    ActivityIndicator,
+    Pressable,
+    ScrollView, StyleSheet, Text,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -13,7 +13,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubMemberStatusColors } from '@/constants/clubConstants';
 import { clubsApi } from '@/lib/api/api';
-import { createFetchMembersHandler } from '@/lib/render/clubs';
+import { createFetchMembersHandler } from '@/lib/handler/clubs';
 import { buildMemberSummary, normalizeClubMembers } from '@/lib/util/clubUtils';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';

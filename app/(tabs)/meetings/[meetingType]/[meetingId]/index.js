@@ -2,11 +2,11 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView, StyleSheet, Text,
-  View
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    ScrollView, StyleSheet, Text,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -28,35 +28,35 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { meetingDetailTabs } from '@/constants/meetingConstants';
 import { meetingsApi, mypageApi } from '@/lib/api/api';
 import {
-  createAutoFormTeamsHandler,
-  createCompleteRoundingHandler,
-  createConfirmSettlementHandler,
-  createConfirmTeamsHandler,
-  createFetchApplicationStatusHandler,
-  createFetchMeetingHandler,
-  createFetchParticipantsHandler,
-  createFetchTeamsHandler,
-  createFetchUserInfoHandler,
-  createJoinHandler,
-  createLeaveHandler,
-  createRestoreHistoryHandler,
-  createSaveHistoryHandler,
-  createScoreSuccessHandler,
-  createStartRoundingHandler,
-  createTabPressHandler,
-  createUpdateUserInfoHandler,
-} from '@/lib/render/meetings';
+    createAutoFormTeamsHandler,
+    createCompleteRoundingHandler,
+    createConfirmSettlementHandler,
+    createConfirmTeamsHandler,
+    createFetchApplicationStatusHandler,
+    createFetchMeetingHandler,
+    createFetchParticipantsHandler,
+    createFetchTeamsHandler,
+    createFetchUserInfoHandler,
+    createJoinHandler,
+    createLeaveHandler,
+    createRestoreHistoryHandler,
+    createSaveHistoryHandler,
+    createScoreSuccessHandler,
+    createStartRoundingHandler,
+    createTabPressHandler,
+    createUpdateUserInfoHandler,
+} from '@/lib/handler/meetings';
 import {
-  buildUserInfoFromProfile,
-  extractData,
-  extractList,
-  formatDateTime,
-  getCurrentHandicap,
-  getIsJoined,
-  getMeetingDomainType,
-  getMyParticipantId,
-  getTypeSlug,
-  getUserRole,
+    buildUserInfoFromProfile,
+    extractData,
+    extractList,
+    formatDateTime,
+    getCurrentHandicap,
+    getIsJoined,
+    getMeetingDomainType,
+    getMyParticipantId,
+    getTypeSlug,
+    getUserRole,
 } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';

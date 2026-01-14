@@ -2,12 +2,12 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from 'react-native';
 
 import Button from '@/components/ui/Button';
@@ -15,12 +15,12 @@ import Card from '@/components/ui/Card';
 import Modal from '@/components/ui/Modal';
 import { authApi } from '@/lib/api/api';
 import {
-  createCloseWithdrawModalHandler,
-  createConfirmTextChangeHandler,
-  createConfirmWithdrawHandler,
-  createSubmitWithdrawHandler,
-  createToggleAgreedHandler,
-} from '@/lib/render/mypage';
+    createCloseWithdrawModalHandler,
+    createConfirmTextChangeHandler,
+    createConfirmWithdrawHandler,
+    createSubmitWithdrawHandler,
+    createToggleAgreedHandler,
+} from '@/lib/handler/mypage';
 import { getWithdrawValidationError } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';

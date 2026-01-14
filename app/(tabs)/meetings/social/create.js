@@ -1,11 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView, StyleSheet, Text,
-  TextInput,
-  View
+    ActivityIndicator,
+    Alert,
+    ScrollView, StyleSheet, Text,
+    TextInput,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -17,20 +17,20 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { socialSettlementMethods, socialTypeOptions } from '@/constants/meetingConstants';
 import { meetingsApi } from '@/lib/api/api';
 import {
-  createFetchClubsHandler,
-  createFetchMeetingHandler,
-  createFieldChangeHandler,
-  createOptionPressHandler,
-  createParticipantTypeHandler,
-  createSubmitHandler,
-} from '@/lib/render/meetings';
+    createFetchClubsHandler,
+    createFetchMeetingHandler,
+    createFieldChangeHandler,
+    createOptionPressHandler,
+    createParticipantTypeHandler,
+    createSubmitHandler,
+} from '@/lib/handler/meetings';
 import { extractData, extractList } from '@/lib/util/meetingUtils';
 import {
-  buildSocialFormFromData,
-  buildSocialPayload,
-  getParticipantTypeFromData,
-  getSocialMeetingTitle,
-  validateSocialForm,
+    buildSocialFormFromData,
+    buildSocialPayload,
+    getParticipantTypeFromData,
+    getSocialMeetingTitle,
+    validateSocialForm,
 } from '@/lib/util/socialForm';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';

@@ -7,11 +7,11 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { meetingsApi } from '@/lib/api/api';
-import { createFetchExpensesHandler } from '@/lib/render/meetings';
+import { createFetchExpensesHandler } from '@/lib/handler/meetings';
 import {
-  formatExpenseAmount,
-  getExpenseLabel,
-  getTotalExpenseAmount,
+    formatExpenseAmount,
+    getExpenseLabel,
+    getTotalExpenseAmount,
 } from '@/lib/util/meetingUtils';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';

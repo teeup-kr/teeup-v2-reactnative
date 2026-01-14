@@ -4,37 +4,37 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  ScrollView, StyleSheet, Text,
-  View
+    ActivityIndicator,
+    Platform,
+    Pressable,
+    ScrollView, StyleSheet, Text,
+    View
 } from 'react-native';
 
 import FilterChip from '@/components/mypage/FilterChip';
 import Card from '@/components/ui/Card';
 import {
-  myMeetingsRoleConfig,
-  myMeetingsStatusConfig,
-  myMeetingsTypeConfig,
-  myMeetingsTypeTabs
+    myMeetingsRoleConfig,
+    myMeetingsStatusConfig,
+    myMeetingsTypeConfig,
+    myMeetingsTypeTabs
 } from '@/constants/mypageConstants';
 import { mypageApi } from '@/lib/api/api';
 import {
-  createDatePickerChangeHandler,
-  createFetchMeetingsHandler,
-  createMeetingDetailHandler,
-  createNextPageHandler,
-  createOpenDatePickerHandler,
-  createPrevPageHandler,
-  createResetFiltersHandler,
-  createTypeFilterHandler,
-  createTypeTabPressHandler,
-} from '@/lib/render/mypage';
+    createDatePickerChangeHandler,
+    createFetchMeetingsHandler,
+    createMeetingDetailHandler,
+    createNextPageHandler,
+    createOpenDatePickerHandler,
+    createPrevPageHandler,
+    createResetFiltersHandler,
+    createTypeFilterHandler,
+    createTypeTabPressHandler,
+} from '@/lib/handler/mypage';
 import {
-  extractList,
-  formatMeetingTimeShort,
-  getMeetingStatusKey,
+    extractList,
+    formatMeetingTimeShort,
+    getMeetingStatusKey,
 } from '@/lib/util/meetingUtils';
 import { fromYmd, hasMeetingFilters, toYmd } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';

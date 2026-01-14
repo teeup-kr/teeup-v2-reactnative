@@ -2,10 +2,10 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView, StyleSheet, Text,
-  View
+    ActivityIndicator,
+    Pressable,
+    ScrollView, StyleSheet, Text,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -13,9 +13,9 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/api/api';
 import {
-  createFetchRegulationDetailHandler,
-  createRegulationEditHandler,
-} from '@/lib/render/clubs';
+    createFetchRegulationDetailHandler,
+    createRegulationEditHandler,
+} from '@/lib/handler/clubs';
 import { getRegulationUpdatedDate } from '@/lib/util/clubUtils';
 import { extractData } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';

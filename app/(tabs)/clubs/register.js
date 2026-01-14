@@ -2,10 +2,10 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
-  Pressable,
-  ScrollView, StyleSheet, Text,
-  TextInput,
-  View
+    Pressable,
+    ScrollView, StyleSheet, Text,
+    TextInput,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,11 +16,11 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubFeeCycles, clubRegisterTypes } from '@/constants/clubConstants';
 import { clubsApi } from '@/lib/api/api';
 import {
-  createFieldChangeHandler,
-  createSelectRegularFeeCycleHandler,
-  createSubmitClubRegisterHandler,
-  createToggleRegularFeeHandler,
-} from '@/lib/render/clubs';
+    createFieldChangeHandler,
+    createSelectRegularFeeCycleHandler,
+    createSubmitClubRegisterHandler,
+    createToggleRegularFeeHandler,
+} from '@/lib/handler/clubs';
 import { buildClubRegisterPayload, defaultClubRegisterErrors } from '@/lib/util/clubUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';

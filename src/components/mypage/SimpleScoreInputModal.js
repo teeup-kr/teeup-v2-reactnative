@@ -1,23 +1,23 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
 } from 'react-native';
 
 import { mypageApi } from '@/lib/api/api';
 import {
-  createCloseScoreEntryHandler,
-  createGrossScoreChangeHandler,
-  createResetScoreEntryHandler,
-  createScoreSubmitHandler,
-  createScoreValidationHandler,
-} from '@/lib/render/mypage';
+    createCloseScoreEntryHandler,
+    createGrossScoreChangeHandler,
+    createResetScoreEntryHandler,
+    createScoreSubmitHandler,
+    createScoreValidationHandler,
+} from '@/lib/handler/mypage';
 import { asNumber, getGrossScoreHandicap } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';

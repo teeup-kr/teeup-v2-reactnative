@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/api/api';
-import { createFetchFeesHandler } from '@/lib/render/clubs';
+import { createFetchFeesHandler } from '@/lib/handler/clubs';
 import { buildFeeSummary, normalizeFeeItem } from '@/lib/util/clubUtils';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';

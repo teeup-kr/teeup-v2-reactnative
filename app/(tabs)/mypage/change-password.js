@@ -8,9 +8,9 @@ import Input from '@/components/ui/Input';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { mypageApi } from '@/lib/api/api';
 import {
-  createPasswordFieldChangeHandler,
-  createSubmitChangePasswordHandler,
-} from '@/lib/render/mypage';
+    createPasswordFieldChangeHandler,
+    createSubmitChangePasswordHandler,
+} from '@/lib/handler/mypage';
 import { base, tokens } from '@/styles/style';
 
 export default function ChangePasswordScreen() {

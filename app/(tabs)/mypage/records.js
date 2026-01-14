@@ -2,11 +2,11 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView, StyleSheet, Text,
-  View
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    ScrollView, StyleSheet, Text,
+    View
 } from 'react-native';
 
 import ComingSoonModal from '@/components/mypage/ComingSoonModal';
@@ -16,20 +16,20 @@ import SimpleScoreInputModal from '@/components/mypage/SimpleScoreInputModal';
 import Card from '@/components/ui/Card';
 import { mypageApi } from '@/lib/api/api';
 import {
-  createCloseComingSoonHandler,
-  createCloseScoreModalHandler,
-  createFetchHandicapHandler,
-  createFetchMeetingsHandler,
-  createFetchStatsHandler,
-  createGoToDetailHandler,
-  createNextPageHandler,
-  createOpenComingSoonHandler,
-  createOpenScoreModalHandler,
-  createPrevPageHandler,
-  createScoreStatusHandler,
-  createScoreStatusPressHandler,
-  createScoreSuccessHandler,
-} from '@/lib/render/mypage';
+    createCloseComingSoonHandler,
+    createCloseScoreModalHandler,
+    createFetchHandicapHandler,
+    createFetchMeetingsHandler,
+    createFetchStatsHandler,
+    createGoToDetailHandler,
+    createNextPageHandler,
+    createOpenComingSoonHandler,
+    createOpenScoreModalHandler,
+    createPrevPageHandler,
+    createScoreStatusHandler,
+    createScoreStatusPressHandler,
+    createScoreSuccessHandler,
+} from '@/lib/handler/mypage';
 import { getRecordErrorMessage, pickData } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';

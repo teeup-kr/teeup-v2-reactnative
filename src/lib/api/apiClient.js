@@ -65,90 +65,15 @@ async function apiRequest(path, options = {}) {
     params,
     headers = {},
     body,
-    auth = false,
-  } = options;
-
-  const url = `${buildUrl(path)}${buildQuery(params)}`;
-
-  const requestHeaders = {
-    'Content-Type': 'application/json',
-    ...headers,
-  };
-
-  if (auth) {
-    const token = await tokenStorage.getAccessToken();
-    if (token) {
-      requestHeaders.Authorization = `Bearer ${token}`;
-    }
-  }
-
-  const logHeaders = { ...requestHeaders };
-  if (logHeaders.Authorization) {
-    logHeaders.Authorization = `Bearer ${maskValue(logHeaders.Authorization.replace('Bearer ', ''))}`;
-  }
-
-  console.log('[API Request]', {
-    method,
-    url,
-    params,
-    headers: logHeaders,
-    body: sanitizePayload(body),
-  });
-
-  let response;
-  try {
-    response = await fetch(url, {
-      method,
-      headers: requestHeaders,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-  } catch (networkError) {
-    console.warn('[API Network Error]', {
-      method,
-      url,
-      message: networkError?.message,
-    });
-    throw networkError;
-  }
-
-  const isJson = response.headers.get('content-type')?.includes('application/json');
-  const payload = isJson ? await response.json() : null;
-
-  console.log('[API Response]', {
-    method,
-    url,
-    status: response.status,
-    payload: sanitizePayload(payload),
-  });
-
-  if (!response.ok) {
-    const error = new Error(payload?.detail || payload?.message || '요청에 실패했습니다.');
-    error.status = response.status;
-    error.payload = payload;
-    console.warn('[API Error]', {
-      method,
-      url,
-      status: response.status,
-      payload: sanitizePayload(payload),
-    });
-    throw error;
-  }
-
-  return payload;
-};
-
-async function apiRequestForm(path, options = {}) {
-  const {
-    method = 'POST',
-    params,
-    headers = {},
     formData,
     auth = false,
   } = options;
 
   const url = `${buildUrl(path)}${buildQuery(params)}`;
+  const isForm = Boolean(formData);
 
   const requestHeaders = {
+    ...(isForm ? {} : { 'Content-Type': 'application/json' }),
     ...headers,
   };
 
@@ -169,7 +94,7 @@ async function apiRequestForm(path, options = {}) {
     url,
     params,
     headers: logHeaders,
-    body: '[FormData]',
+    body: isForm ? '[FormData]' : sanitizePayload(body),
   });
 
   let response;
@@ -177,7 +102,7 @@ async function apiRequestForm(path, options = {}) {
     response = await fetch(url, {
       method,
       headers: requestHeaders,
-      body: formData,
+      body: isForm ? formData : (body ? JSON.stringify(body) : undefined),
     });
   } catch (networkError) {
     console.warn('[API Network Error]', {
@@ -253,7 +178,7 @@ async function deleteRequest(url, config = {}) {
 }
 
 async function upload(url, formData, config = {}) {
-  const response = await apiRequestForm(url, {
+  const response = await apiRequest(url, {
     method: config.method || 'POST',
     formData,
     ...buildRequestConfig(config),

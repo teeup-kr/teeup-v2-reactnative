@@ -1,11 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView, StyleSheet, Text,
-  TextInput,
-  View
+    ActivityIndicator,
+    Alert,
+    ScrollView, StyleSheet, Text,
+    TextInput,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,24 +15,24 @@ import Card from '@/components/ui/Card';
 import DateTimeField from '@/components/ui/DateTimeField';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import {
-  roundingMeetingSubtypes,
-  roundingSettlementMethods,
-  roundingTeamModes,
+    roundingMeetingSubtypes,
+    roundingSettlementMethods,
+    roundingTeamModes,
 } from '@/constants/meetingConstants';
 import { meetingsApi } from '@/lib/api/api';
 import {
-  createFetchClubsHandler,
-  createFetchMeetingHandler,
-  createFieldChangeHandler,
-  createOptionPressHandler,
-  createSubmitHandler,
-} from '@/lib/render/meetings';
+    createFetchClubsHandler,
+    createFetchMeetingHandler,
+    createFieldChangeHandler,
+    createOptionPressHandler,
+    createSubmitHandler,
+} from '@/lib/handler/meetings';
 import { extractData, extractList } from '@/lib/util/meetingUtils';
 import {
-  buildRoundingFormFromData,
-  buildRoundingPayload,
-  getRoundingMeetingTitle,
-  validateRoundingForm,
+    buildRoundingFormFromData,
+    buildRoundingPayload,
+    getRoundingMeetingTitle,
+    validateRoundingForm,
 } from '@/lib/util/roundingForm';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';

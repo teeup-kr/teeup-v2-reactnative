@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubManageSections } from '@/constants/clubConstants';
-import { createManageSectionHandler } from '@/lib/render/clubs';
+import { createManageSectionHandler } from '@/lib/handler/clubs';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
