@@ -1,20 +1,19 @@
 import { URLSearchParams } from 'react-native-url-polyfill';
 
-import { getApiBaseUrl } from '../config/env';
-
-import { tokenStorage } from './tokenStorage';
+import { getApiBaseUrl } from '../../config/env';
+import { tokenStorage } from '../tokenStorage';
 
 const API_BASE_URL = getApiBaseUrl();
 
 const sensitiveKeys = ['password', 'token', 'authorization', 'refresh', 'access'];
 
-const maskValue = (value) => {
+function maskValue(value) {
   if (typeof value !== 'string') return value;
   if (value.length <= 6) return '***';
   return `${value.slice(0, 3)}***${value.slice(-2)}`;
 };
 
-const sanitizePayload = (payload) => {
+function sanitizePayload(payload) {
   if (!payload) return payload;
   if (Array.isArray(payload)) {
     return payload.map((item) => sanitizePayload(item));
@@ -33,7 +32,7 @@ const sanitizePayload = (payload) => {
   return payload;
 };
 
-const buildQuery = (params = {}) => {
+function buildQuery(params = {}) {
   const entries = Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '');
   if (!entries.length) return '';
 
@@ -44,7 +43,7 @@ const buildQuery = (params = {}) => {
   return `?${query.toString()}`;
 };
 
-const buildUrl = (path) => {
+function buildUrl(path) {
   if (!path) {
     throw new Error('요청 경로를 지정해주세요.');
   }
@@ -52,7 +51,15 @@ const buildUrl = (path) => {
   return `${API_BASE_URL}${urlPath}`;
 };
 
-export const apiRequest = async (path, options = {}) => {
+function buildRequestConfig(config = {}) {
+  return {
+    params: config.params,
+    headers: config.headers,
+    auth: config.auth !== false,
+  };
+};
+
+async function apiRequest(path, options = {}) {
   const {
     method = 'GET',
     params,
@@ -130,64 +137,7 @@ export const apiRequest = async (path, options = {}) => {
   return payload;
 };
 
-export const oauthRequest = async (path, authData) => {
-
-  const url = `${buildUrl(path)}`;
-
-  const requestHeaders = {
-    'Content-Type': 'application/json'
-  };
-
-  // console.log('[OAuth Request]', {
-  //     url,
-  //     method,
-  //     headers: requestHeaders,
-  //     body: body
-  //   });
-
-  let response;
-  try {
-    response = await fetch(url, {
-      method: 'POST',
-      headers: requestHeaders,
-      body: JSON.stringify(authData)
-    });
-  } catch (networkError) {
-    console.warn('[OAuth Network Error]', {
-      method: 'POST',
-      url,
-      message: networkError?.message,
-    });
-    throw networkError;
-  }
-
-  const isJson = response.headers.get('content-type')?.includes('application/json');
-  const payload = isJson ? await response.json() : null;
-
-  console.log('[OAuth Response]', {
-    method: 'POST',
-    url,
-    status: response.status,
-    payload: sanitizePayload(payload),
-  });
-
-  if (!response.ok) {
-    const error = new Error(payload?.detail || payload?.message || 'OAuth 요청에 실패했습니다.');
-    error.status = response.status;
-    error.payload = payload;
-    console.warn('[OAuth Error]', {
-      method: 'POST',
-      url,
-      status: response.status,
-      payload: sanitizePayload(payload),
-    });
-    throw error;
-  }
-
-  return payload;
-};
-
-export const apiRequestForm = async (path, options = {}) => {
+async function apiRequestForm(path, options = {}) {
   const {
     method = 'POST',
     params,
@@ -254,6 +204,119 @@ export const apiRequestForm = async (path, options = {}) => {
     error.payload = payload;
     console.warn('[API Error]', {
       method,
+      url,
+      status: response.status,
+      payload: sanitizePayload(payload),
+    });
+    throw error;
+  }
+
+  return payload;
+};
+
+async function get(url, config = {}) {
+  const response = await apiRequest(url, { method: 'GET', ...buildRequestConfig(config) });
+  return { data: response };
+}
+
+async function post(url, data, config = {}) {
+  const response = await apiRequest(url, {
+    method: 'POST',
+    body: data,
+    ...buildRequestConfig(config),
+  });
+  return { data: response };
+}
+
+async function put(url, data, config = {}) {
+  const response = await apiRequest(url, {
+    method: 'PUT',
+    body: data,
+    ...buildRequestConfig(config),
+  });
+  return { data: response };
+}
+
+async function patch(url, data, config = {}) {
+  const response = await apiRequest(url, {
+    method: 'PATCH',
+    body: data,
+    ...buildRequestConfig(config),
+  });
+  return { data: response };
+}
+
+// 예약어 delete -> deleteRequest
+async function deleteRequest(url, config = {}) {
+  const response = await apiRequest(url, { method: 'DELETE', ...buildRequestConfig(config) });
+  return { data: response };
+}
+
+async function upload(url, formData, config = {}) {
+  const response = await apiRequestForm(url, {
+    method: config.method || 'POST',
+    formData,
+    ...buildRequestConfig(config),
+  });
+  return { data: response };
+}
+
+export const apiClient = {
+  get,
+  post,
+  put,
+  patch,
+  delete: deleteRequest,
+  upload,
+};
+
+export async function oauthRequest(path, authData) {
+
+  const url = `${buildUrl(path)}`;
+
+  const requestHeaders = {
+    'Content-Type': 'application/json'
+  };
+
+  // console.log('[OAuth Request]', {
+  //     url,
+  //     method,
+  //     headers: requestHeaders,
+  //     body: body
+  //   });
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: requestHeaders,
+      body: JSON.stringify(authData)
+    });
+  } catch (networkError) {
+    console.warn('[OAuth Network Error]', {
+      method: 'POST',
+      url,
+      message: networkError?.message,
+    });
+    throw networkError;
+  }
+
+  const isJson = response.headers.get('content-type')?.includes('application/json');
+  const payload = isJson ? await response.json() : null;
+
+  console.log('[OAuth Response]', {
+    method: 'POST',
+    url,
+    status: response.status,
+    payload: sanitizePayload(payload),
+  });
+
+  if (!response.ok) {
+    const error = new Error(payload?.detail || payload?.message || 'OAuth 요청에 실패했습니다.');
+    error.status = response.status;
+    error.payload = payload;
+    console.warn('[OAuth Error]', {
+      method: 'POST',
       url,
       status: response.status,
       payload: sanitizePayload(payload),

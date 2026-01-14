@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
+import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 
-import { roundsApi } from '../../lib/api';
-import { extractData } from '../../lib/responseUtils';
+import { roundsApi } from '../../lib/api/api';
+import { extractData } from '../../lib/util/responseUtils';
 const formatCurrency = (value) => {
   if (value === null || value === undefined || value === '') return '-';
   const num = Number(value);

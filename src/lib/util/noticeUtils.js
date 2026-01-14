@@ -1,7 +1,7 @@
-import { extractData } from './responseUtils';
+import { responseUtils } from './responseUtils';
 
-export const normalizeNotice = (payload) => {
-  const notice = extractData(payload) || {};
+function normalizeNotice(payload)  {
+  const notice = responseUtils.extractData(payload) || {};
   return {
     id: notice?.id || notice?.notice_id || notice?.title,
     title: notice?.title || '공지사항',
@@ -11,4 +11,8 @@ export const normalizeNotice = (payload) => {
     date: notice?.created_at ? notice.created_at.slice(0, 10) : notice?.date || '',
     important: notice?.is_important || notice?.important || false,
   };
+};
+
+export const noticeUtils = {
+  normalizeNotice,
 };

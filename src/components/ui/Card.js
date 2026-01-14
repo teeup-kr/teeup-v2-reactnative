@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
+import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 export default function Card({ children, style }) {
   return <View style={[styles.card, style]}>{children}</View>;
 }

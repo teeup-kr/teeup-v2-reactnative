@@ -2,8 +2,8 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import { useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 const parseDateTimeValue = (value) => {
   if (!value) return new Date();
   const safeValue = value.includes(' ') ? value.replace(' ', 'T') : value;

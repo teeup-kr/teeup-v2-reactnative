@@ -17,7 +17,7 @@ const OAUTH_STATE_KEY = 'oauth_state';
 
 const memoryStore = new Map();
 
-const warnOnce = () => {
+function warnOnce()  {
   if (hasWarned) return;
   hasWarned = true;
   console.warn('AsyncStorage unavailable, using in-memory storage fallback.');

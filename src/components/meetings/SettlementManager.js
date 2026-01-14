@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 
-import { roundsApi } from '../../lib/api';
-import { extractData } from '../../lib/responseUtils';
+import { roundsApi } from '../../lib/api/api';
+import { extractData } from '../../lib/util/responseUtils';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
-import { colors } from '@/theme/colors';
 
-import { extractList } from '../../lib/responseUtils';
+import { extractList } from '../../lib/util/responseUtils';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 

@@ -1,4 +1,4 @@
-import { colors } from '@/theme/colors';
+import { colors } from '@/styles/colors';
 export const mypageTabRoutes = {
   overview: '/mypage/overview',
   meetings: '/mypage/meetings',

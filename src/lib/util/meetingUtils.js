@@ -1,7 +1,6 @@
-import { colors } from '@/theme/colors';
-export { extractData, extractList } from './responseUtils';
+import { colors } from '@/styles/colors';
 
-export const formatYmd = (date) => {
+function formatYmd(date)  {
   if (!date) return '';
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -9,14 +8,14 @@ export const formatYmd = (date) => {
   return `${yyyy}-${mm}-${dd}`;
 };
 
-export const parseYmd = (value) => {
+function parseYmd(value)  {
   if (!value) return null;
   const [yyyy, mm, dd] = String(value).split('-').map((v) => Number(v));
   if (!yyyy || !mm || !dd) return null;
   return new Date(yyyy, mm - 1, dd);
 };
 
-export const isPastDateTime = (value) => {
+function isPastDateTime(value)  {
   if (!value) return false;
   try {
     const date = new Date(value);
@@ -27,7 +26,7 @@ export const isPastDateTime = (value) => {
   }
 };
 
-export const getDateRange = (startDate, endDate) => {
+function getDateRange(startDate, endDate)  {
   if (!startDate && !endDate) return null;
   const start = startDate ? new Date(startDate) : null;
   const end = endDate ? new Date(endDate) : null;
@@ -37,7 +36,7 @@ export const getDateRange = (startDate, endDate) => {
   return { startDate: start, endDate: end };
 };
 
-export const filterByDate = (meetings, dateRange) => {
+function filterByDate(meetings, dateRange)  {
   if (!dateRange || (!dateRange.startDate && !dateRange.endDate)) return meetings;
   return meetings.filter((meeting) => {
     if (!meeting?.meeting_time) return false;
@@ -57,7 +56,7 @@ export const filterByDate = (meetings, dateRange) => {
   });
 };
 
-export const isMeetingActive = (meeting) => {
+function isMeetingActive(meeting)  {
   const status = meeting?.status;
   const participantCount = meeting?.participant_count || 0;
   const applicationDeadline = meeting?.application_deadline;
@@ -106,14 +105,14 @@ export const isMeetingActive = (meeting) => {
   return !isCanceled;
 };
 
-export const filterByStatus = (meetings, statusFilter) => {
+function filterByStatus(meetings, statusFilter)  {
   if (statusFilter === 'active') {
     return meetings.filter((meeting) => isMeetingActive(meeting));
   }
   return meetings.filter((meeting) => !isMeetingActive(meeting));
 };
 
-export const formatMeetingTime = (meetingTime) => {
+function formatMeetingTime(meetingTime)  {
   try {
     if (!meetingTime) return meetingTime;
     const date = new Date(meetingTime);
@@ -131,7 +130,7 @@ export const formatMeetingTime = (meetingTime) => {
   }
 };
 
-export const formatMeetingTimeShort = (value) => {
+function formatMeetingTimeShort(value)  {
   if (!value) return '-';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
@@ -143,7 +142,7 @@ export const formatMeetingTimeShort = (value) => {
   });
 };
 
-export const formatCost = (cost) => {
+function formatCost(cost)  {
   if (!cost) return '미정';
   try {
     return `${Number(cost).toLocaleString()}원`;
@@ -152,7 +151,7 @@ export const formatCost = (cost) => {
   }
 };
 
-export const getMeetingTypeBadgeConfig = (type) => {
+function getMeetingTypeBadgeConfig(type)  {
   const normalized = String(type || '').toUpperCase();
   if (normalized === 'SOCIAL') {
     return { text: '소셜', backgroundColor: colors.success[50], textColor: colors.success[700] };
@@ -160,7 +159,7 @@ export const getMeetingTypeBadgeConfig = (type) => {
   return { text: '라운딩', backgroundColor: colors.info[50], textColor: colors.info[700] };
 };
 
-export const getMeetingStatusBadgeConfigs = (meeting) => {
+function getMeetingStatusBadgeConfigs(meeting)  {
   const status = meeting?.status;
   const participantCount = meeting?.participant_count || 0;
   const applicationDeadline = meeting?.application_deadline;
@@ -257,7 +256,7 @@ export const getMeetingStatusBadgeConfigs = (meeting) => {
   return badges;
 };
 
-export const getMeetingStatusKey = (meeting) => {
+function getMeetingStatusKey(meeting)  {
   if (!meeting) return 'UPCOMING';
 
   if (meeting.settlement_confirmed) {
@@ -283,7 +282,7 @@ export const getMeetingStatusKey = (meeting) => {
   return 'UPCOMING';
 };
 
-export const toDateTimeLocalValue = (value) => {
+function toDateTimeLocalValue(value)  {
   if (!value) return '';
   const safeValue = typeof value === 'string' && value.includes(' ') ? value.replace(' ', 'T') : value;
   const date = new Date(safeValue);
@@ -296,7 +295,7 @@ export const toDateTimeLocalValue = (value) => {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
-export const convertToKST = (value) => {
+function convertToKST(value)  {
   if (!value) return undefined;
   const normalized = value.trim().replace(' ', 'T');
   if (normalized.includes('+') || normalized.endsWith('Z')) return normalized;
@@ -304,20 +303,19 @@ export const convertToKST = (value) => {
   return `${normalized}+09:00`;
 };
 
-export const normalizeNumber = (value, fallback = 0) => {
+function normalizeNumber(value, fallback = 0)  {
   if (value === '' || value === null || value === undefined) return fallback;
   const parsed = Number(value);
   if (Number.isNaN(parsed)) return fallback;
   return parsed;
 };
 
-export const parseTeeTimes = (value) =>
-  value
+function parseTeeTimes(value) { return value
     .split(',')
     .map((time) => time.trim())
-    .filter((time) => time.length > 0);
+    .filter((time) => time.length > 0); }
 
-export const validateMeetingTimeWithTeeTimes = (meetingTime, teeTimes) => {
+function validateMeetingTimeWithTeeTimes(meetingTime, teeTimes)  {
   if (!meetingTime || teeTimes.length === 0) return true;
   const meetingDate = new Date(meetingTime);
   if (Number.isNaN(meetingDate.getTime())) return true;
@@ -331,16 +329,181 @@ export const validateMeetingTimeWithTeeTimes = (meetingTime, teeTimes) => {
   return meetingDate < teeDateTime;
 };
 
-export const formatDateTime = (value) => {
+function formatDateTime(value)  {
   if (!value) return '-';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
   return date.toLocaleString('ko-KR');
 };
 
-export const formatMeetingListDate = (value) => {
+function formatMeetingListDate(value)  {
   if (!value) return '-';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
   return date.toLocaleDateString('ko-KR');
+};
+function getPageNumbers({ currentPage, totalPages })  {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+  const groupStart = Math.floor((currentPage - 1) / 5) * 5 + 1;
+  const groupEnd = Math.min(groupStart + 4, totalPages);
+  const numbers = [];
+  for (let page = groupStart; page <= groupEnd; page += 1) {
+    numbers.push(page);
+  }
+  return numbers;
+};
+
+function getActiveFilters({
+  activeTab,
+  roundingSearchQuery,
+  roundingStartDate,
+  roundingEndDate,
+  socialSearchQuery,
+  socialStartDate,
+  socialEndDate,
+})  {
+  if (activeTab === 'rounding') {
+    return Boolean(roundingSearchQuery || roundingStartDate || roundingEndDate);
+  }
+  return Boolean(socialSearchQuery || socialStartDate || socialEndDate);
+};
+function getTypeSlug(meetingType) { return meetingType === 'social' ? 'social' : 'rounding'; }
+
+function getMeetingDomainType(typeSlug) { return typeSlug === 'social' ? 'SOCIAL' : 'ROUND'; }
+
+function getMyParticipantId({ user, participants })  {
+  if (!user?.id) return null;
+  const match = participants.find((participant) => participant.user_id === user.id);
+  return match?.id || null;
+};
+
+function getCurrentHandicap(handicapInfo) { return handicapInfo?.calculated_handicap ?? handicapInfo?.initial_handicap ?? null; }
+
+function buildUserInfoFromProfile(profile) { return ({
+  realname: profile?.realname || '',
+  average_score: profile?.average_score || '',
+  phone_number: profile?.phone_number || '',
+  birthdate: profile?.birthdate ? profile.birthdate.split('T')[0] : '',
+  gender: profile?.gender || '',
+  handicap: '',
+}); }
+
+function getIsJoined({ participants, user }) { return participants.some((participant) => participant.user_id === user?.id); }
+
+function getUserRole({ meeting, user }) { return meeting?.user_role || meeting?.role || user?.role; }
+function getExpenseAmountValue(expense) { return expense?.amount ?? expense?.price ?? expense?.cost; }
+
+function formatExpenseAmount(expense)  {
+  const value = getExpenseAmountValue(expense);
+  return value !== undefined && value !== null
+    ? `${Number(value).toLocaleString('ko-KR')}원`
+    : '-';
+};
+
+function getExpenseLabel(expense) { return expense?.label || expense?.title || '경비'; }
+
+function getTotalExpenseAmount(expenses)  {
+  const amounts = expenses
+    .map((expense) => {
+      const value = getExpenseAmountValue(expense);
+      return value !== undefined && value !== null ? Number(value) : null;
+    })
+    .filter((value) => Number.isFinite(value));
+  if (amounts.length === 0) return '-';
+  const total = amounts.reduce((sum, value) => sum + value, 0);
+  return `${total.toLocaleString('ko-KR')}원`;
+};
+
+function normalizeMyMeetings(meetings) { return meetings.map((meeting) => {
+    const meetingType = meeting?.meeting_type || meeting?.type || 'ROUND';
+    const typeSlug = meetingType === 'ROUND' || meetingType === 'ROUNDING' ? 'rounding' : 'social';
+    return {
+      id: meeting?.id || meeting?.meeting_id,
+      name: meeting?.meeting_name || meeting?.title || '모임',
+      type: typeSlug,
+      date: formatMeetingListDate(meeting?.meeting_time || meeting?.date),
+      status: meeting?.status || meeting?.application_status || '-',
+    };
+  }); }
+function normalizePlayers(participants) { return participants.map((participant) => ({
+    id: participant?.id || participant?.participant_id || participant?.user_id,
+    name:
+      participant?.user?.name ||
+      participant?.user?.realname ||
+      participant?.user?.nickname ||
+      participant?.name ||
+      participant?.nickname ||
+      '-',
+    score:
+      participant?.score ??
+      participant?.total_score ??
+      participant?.simple_score ??
+      participant?.average_score ??
+      '',
+  })); }
+function getParticipantsFromResponse(response)  {
+  if (Array.isArray(response?.data)) return response.data;
+  if (Array.isArray(response)) return response;
+  if (Array.isArray(response?.items)) return response.items;
+  return [];
+};
+
+function buildMeetingStats({ participants, meeting })  {
+  const participantCount = participants.length;
+  const scoreValues = participants
+    .map((participant) => {
+      const score = participant?.score ?? participant?.total_score ?? participant?.average_score;
+      return score !== undefined && score !== null ? Number(score) : null;
+    })
+    .filter((value) => Number.isFinite(value));
+  const average = scoreValues.length
+    ? (scoreValues.reduce((sum, value) => sum + value, 0) / scoreValues.length).toFixed(1)
+    : meeting?.average_score ?? '-';
+  const best = scoreValues.length ? Math.min(...scoreValues) : meeting?.best_score ?? '-';
+
+  return [
+    { id: 'participants', label: '참가자', value: `${participantCount}명` },
+    { id: 'average', label: '평균 타수', value: average },
+    { id: 'best', label: '베스트 스코어', value: best },
+  ];
+};
+
+export const meetingUtils = {
+  formatYmd,
+  parseYmd,
+  isPastDateTime,
+  getDateRange,
+  filterByDate,
+  filterByStatus,
+  formatMeetingTime,
+  formatMeetingTimeShort,
+  formatCost,
+  getMeetingTypeBadgeConfig,
+  getMeetingStatusBadgeConfigs,
+  getMeetingStatusKey,
+  toDateTimeLocalValue,
+  convertToKST,
+  normalizeNumber,
+  parseTeeTimes,
+  validateMeetingTimeWithTeeTimes,
+  formatDateTime,
+  formatMeetingListDate,
+  getPageNumbers,
+  getActiveFilters,
+  getTypeSlug,
+  getMeetingDomainType,
+  getMyParticipantId,
+  getCurrentHandicap,
+  buildUserInfoFromProfile,
+  getIsJoined,
+  getUserRole,
+  formatExpenseAmount,
+  getExpenseLabel,
+  getTotalExpenseAmount,
+  normalizeMyMeetings,
+  normalizePlayers,
+  getParticipantsFromResponse,
+  buildMeetingStats,
 };
