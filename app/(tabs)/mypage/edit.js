@@ -16,7 +16,7 @@ import { extractData } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
 import { colors } from '@/theme/colors';
 
-import { ChangePasswordModal } from './change-password-modal';
+import ChangePasswordModal from './change-password-modal';
 /* ===========================
    Component
 =========================== */

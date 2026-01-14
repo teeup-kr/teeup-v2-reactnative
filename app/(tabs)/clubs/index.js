@@ -1,22 +1,25 @@
 
 import {
-FontAwesome5 } from '@expo/vector-icons';
-import { useLocalSearchParams,
-useRouter } from 'expo-router';
-import { useCallback,
-useEffect,
-useMemo,
-useState } from 'react';
-import { StyleSheet } from 'react-native';
+  FontAwesome5
+} from '@expo/vector-icons';
+import {
+  useLocalSearchParams,
+  useRouter
+} from 'expo-router';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
 import {
   ActivityIndicator,
-Alert,
-Image,
-Pressable,
-ScrollView,
-Text,
-TextInput,
-View,
+  Alert,
+  Image,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  TextInput,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

@@ -6,7 +6,7 @@ try {
   AsyncStorageModule = imported?.default || imported;
   console.log('AsyncStorage module loaded successfully.');
 } catch (error) {
-  console.err(error);
+  console.error(error);
   AsyncStorageModule = null;
 }
 
@@ -30,7 +30,7 @@ const storage = {
         await AsyncStorageModule.setItem(key, value);
         return;
       } catch (error) {
-        console.err(error);
+        console.error(error);
         warnOnce();
       }
     } else {
@@ -46,7 +46,7 @@ const storage = {
           return value;
         }
       } catch (error) {
-        console.err(error);
+        console.error(error);
         warnOnce();
       }
     } else {
@@ -59,7 +59,7 @@ const storage = {
       try {
         await AsyncStorageModule.removeItem(key);
       } catch (error) {
-        console.err(error);
+        console.error(error);
         warnOnce();
       }
     } else {
@@ -73,7 +73,7 @@ const storage = {
         await AsyncStorageModule.multiRemove(keys);
         return;
       } catch (error) {
-        console.err(error);
+        console.error(error);
         warnOnce();
       }
     } else {

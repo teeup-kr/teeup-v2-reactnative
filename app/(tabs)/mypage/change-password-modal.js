@@ -17,7 +17,7 @@ import {
 import { authApi } from '@/lib/authApi';
 import { base, tokens } from '@/styles/style';
 import { colors } from '@/theme/colors';
-export const ChangePasswordModal = ({ isOpen, onClose, onLogout }) => {
+export default function ChangePasswordModal({ isOpen, onClose, onLogout }) {
     /* =========================
        State
     ========================= */
@@ -224,7 +224,7 @@ export const ChangePasswordModal = ({ isOpen, onClose, onLogout }) => {
             </View>
         </Modal>
     );
-};
+}
 
 /* =========================
    UI Helpers

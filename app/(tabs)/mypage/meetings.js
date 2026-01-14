@@ -82,16 +82,30 @@ export default function MyMeetingsScreen() {
 
   const fromYmd = (s) => (s ? new Date(`${s}T00:00:00`) : new Date());
 
+  const openWebDateInput = ({ value, onChange }) => {
+    const doc = globalThis?.document;
+    if (!doc || typeof doc.createElement !== 'function') return false;
+
+    const input = doc.createElement('input');
+    input.type = 'date';
+    input.value = value;
+    input.onchange = (event) => {
+      onChange(event?.target?.value || '');
+    };
+    input.click();
+    return true;
+  };
+
   const openStartPicker = () => {
     if (Platform.OS === 'web') {
-      const input = document.createElement('input');
-      input.type = 'date';
-      input.value = startDate;
-      input.onchange = (e) => {
-        setStartDate(e.target.value);
-        setPage(1);
-      };
-      input.click();
+      const didOpen = openWebDateInput({
+        value: startDate,
+        onChange: (nextValue) => {
+          setStartDate(nextValue);
+          setPage(1);
+        },
+      });
+      if (didOpen) return;
       return;
     }
 
@@ -116,14 +130,14 @@ export default function MyMeetingsScreen() {
 
   const openEndPicker = () => {
     if (Platform.OS === 'web') {
-      const input = document.createElement('input');
-      input.type = 'date';
-      input.value = endDate;
-      input.onchange = (e) => {
-        setEndDate(e.target.value);
-        setPage(1);
-      };
-      input.click();
+      const didOpen = openWebDateInput({
+        value: endDate,
+        onChange: (nextValue) => {
+          setEndDate(nextValue);
+          setPage(1);
+        },
+      });
+      if (didOpen) return;
       return;
     }
 

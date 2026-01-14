@@ -78,9 +78,9 @@ module.exports = [
       ],
 
       // React-Native / Metro 호환
-      "no-undef": "off",
-      "no-var": "off",
-      "no-unused-expressions": "off",
+      "no-undef": "error",
+      "no-var": "error",
+      "no-unused-expressions": "error",
     },
   },
 
