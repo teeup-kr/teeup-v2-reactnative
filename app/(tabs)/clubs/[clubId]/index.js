@@ -21,7 +21,7 @@ import { clubDetailStatusLabel, clubDetailTypeLabel } from '@/constants/clubCons
 import { clubsApi } from '@/lib/clubsApi';
 import { extractData } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ClubDetailScreen() {
   const router = useRouter();
   const { clubId } = useLocalSearchParams();
@@ -82,7 +82,7 @@ export default function ClubDetailScreen() {
         {isLoading ? (
           <Card style={styles.heroCard}>
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+              <ActivityIndicator size="small" color={colors.primary[600]} />
               <Text style={styles.stateText}>클럽 정보를 불러오는 중...</Text>
             </View>
           </Card>
@@ -97,11 +97,11 @@ export default function ClubDetailScreen() {
               <Text style={styles.clubSubtitle}>{clubSubtitle}</Text>
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
-                  <FontAwesome5 name="map-marker-alt" size={12} color={tokens.colors.neutral[500]} />
+                  <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
                   <Text style={styles.metaText}>{location}</Text>
                 </View>
                 <View style={styles.metaItem}>
-                  <FontAwesome5 name="users" size={12} color={tokens.colors.neutral[500]} />
+                  <FontAwesome5 name="users" size={12} color={colors.neutral[500]} />
                   <Text style={styles.metaText}>멤버 {memberCount}명</Text>
                 </View>
               </View>
@@ -160,12 +160,12 @@ const styles = StyleSheet.create({
   clubName: {
     fontSize: tokens.font.display,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginBottom: tokens.spacing.xs,
   },
   clubSubtitle: {
     fontSize: tokens.font.md,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     marginBottom: tokens.spacing.sm2,
   },
   metaRow: {
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     marginLeft: tokens.spacing.xxs,
   },
   badgeRow: {
@@ -189,15 +189,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.base,
     paddingVertical: tokens.padding.xxs,
     borderRadius: tokens.radius.md,
-    backgroundColor: tokens.colors.primary[50],
+    backgroundColor: colors.primary[50],
     marginRight: tokens.spacing.xs2,
   },
   badgeAccent: {
-    backgroundColor: tokens.colors.success[50],
+    backgroundColor: colors.success[50],
   },
   badgeText: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.primary[700],
+    color: colors.primary[700],
     fontWeight: tokens.fontWeight.semibold,
   },
   stateRow: {
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   stateText: {
     marginLeft: tokens.spacing.xs2,
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
   sectionCard: {
     marginBottom: tokens.spacing.md,
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   sectionTitle: { ...base.sectionTitleMd, marginBottom: tokens.spacing.xs2 },
   sectionText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     lineHeight: 18,
   },
   infoRow: {
@@ -225,11 +225,11 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
   infoValue: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[800],
+    color: colors.neutral[800],
     fontWeight: tokens.fontWeight.semibold,
   },
   actionRow: {

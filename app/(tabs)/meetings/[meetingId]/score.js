@@ -19,7 +19,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api';
 import { extractList } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ScoreInputScreen() {
   const { meetingId } = useLocalSearchParams();
   const resolvedId = Array.isArray(meetingId) ? meetingId[0] : meetingId;
@@ -80,7 +80,7 @@ export default function ScoreInputScreen() {
 
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+              <ActivityIndicator size="small" color={colors.primary[600]} />
               <Text style={styles.stateText}>참가자를 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -100,7 +100,7 @@ export default function ScoreInputScreen() {
                   style={styles.input}
                   defaultValue={player.score ? String(player.score) : ''}
                   keyboardType="numeric"
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
               </View>
             ))
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   sectionTitle: base.sectionTitleMd,
   sectionSubtitle: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginTop: tokens.spacing.xxs,
     marginBottom: tokens.spacing.sm2,
   },
@@ -136,17 +136,17 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontSize: tokens.font.md,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
   input: {
     width: 80,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
     borderRadius: tokens.radius.sm,
     paddingHorizontal: tokens.padding.base,
     paddingVertical: tokens.padding.xs2,
     textAlign: 'center',
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
   },
   stateRow: {
     paddingVertical: tokens.padding.sm,

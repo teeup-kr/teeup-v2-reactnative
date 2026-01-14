@@ -4,11 +4,10 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { tokens } from '@/styles/style';
+import { colors } from '@/theme/colors';
 
 import { useAppLayout } from '../../context/AppLayoutContext';
 import { useAuth } from '../../context/AuthContext';
-import { colors } from '../../theme/colors';
-
 const MenuItem = ({ icon, label, onPress, isLast }) => (
   <View>
     <Pressable

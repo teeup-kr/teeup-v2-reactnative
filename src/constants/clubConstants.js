@@ -1,5 +1,4 @@
-import { colors } from '../theme/colors';
-
+import { colors } from '@/theme/colors';
 export const clubValidTabs = ['my', 'all', 'applications', 'join-applications'];
 
 export const clubTabs = [

@@ -2,8 +2,7 @@ import { useRouter } from 'expo-router';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { tokens } from '@/styles/style';
-
-import { colors } from '../../theme/colors';
+import { colors } from '@/theme/colors';
 
 const logoImage = require('../../../public/icons/icon-512-transparent.png');
 

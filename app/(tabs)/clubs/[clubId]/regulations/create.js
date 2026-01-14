@@ -12,7 +12,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ClubRegulationCreateScreen() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -28,7 +28,7 @@ export default function ClubRegulationCreateScreen() {
             onChangeText={setTitle}
             placeholder="규정 제목을 입력하세요"
             style={styles.input}
-            placeholderTextColor={tokens.colors.neutral[400]}
+            placeholderTextColor={colors.neutral[400]}
           />
 
           <Text style={styles.label}>내용</Text>
@@ -38,7 +38,7 @@ export default function ClubRegulationCreateScreen() {
             placeholder="규정 내용을 입력하세요"
             style={[styles.input, styles.textArea]}
             multiline
-            placeholderTextColor={tokens.colors.neutral[400]}
+            placeholderTextColor={colors.neutral[400]}
           />
         </Card>
 
@@ -59,13 +59,13 @@ const styles = StyleSheet.create({
   label: base.labelSm,
   input: {
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
     borderRadius: tokens.radius.base,
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.base,
     fontSize: tokens.font.base,
-    color: tokens.colors.neutral[900],
-    backgroundColor: tokens.colors.white,
+    color: colors.neutral[900],
+    backgroundColor: colors.white,
     marginBottom: tokens.spacing.sm2,
   },
   textArea: {

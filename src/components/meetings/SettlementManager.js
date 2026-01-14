@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { tokens } from '@/styles/style';
+import { colors } from '@/theme/colors';
 
 import { roundsApi } from '../../lib/api';
 import { extractData } from '../../lib/responseUtils';
-import { colors } from '../../theme/colors';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 

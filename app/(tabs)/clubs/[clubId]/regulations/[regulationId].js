@@ -18,7 +18,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractData } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ClubRegulationDetailScreen() {
   const router = useRouter();
   const { clubId, regulationId } = useLocalSearchParams();
@@ -58,7 +58,7 @@ export default function ClubRegulationDetailScreen() {
         <Card style={styles.card}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+              <ActivityIndicator size="small" color={colors.primary[600]} />
               <Text style={styles.stateText}>규정을 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -101,17 +101,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: tokens.font.title,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginBottom: tokens.spacing.xs,
   },
   meta: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginBottom: tokens.spacing.sm2,
   },
   body: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
     lineHeight: 18,
   },
   stateRow: {
@@ -121,12 +121,12 @@ const styles = StyleSheet.create({
   stateText: {
     marginLeft: tokens.spacing.xs2,
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
   errorText: base.textSmError,
   editButton: {
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[200],
+    borderColor: colors.neutral[200],
     paddingVertical: tokens.padding.base,
     borderRadius: tokens.radius.md,
     alignItems: 'center',
@@ -134,12 +134,12 @@ const styles = StyleSheet.create({
   editButtonText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
   helperText: {
     marginTop: tokens.spacing.xs2,
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     textAlign: 'center',
   },
 });

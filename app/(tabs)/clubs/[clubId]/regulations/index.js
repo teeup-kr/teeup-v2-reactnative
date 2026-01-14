@@ -20,7 +20,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ClubRegulationsScreen() {
   const router = useRouter();
   const { clubId } = useLocalSearchParams();
@@ -76,7 +76,7 @@ export default function ClubRegulationsScreen() {
         <Card style={styles.listCard}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+              <ActivityIndicator size="small" color={colors.primary[600]} />
               <Text style={styles.stateText}>규정을 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -95,13 +95,13 @@ export default function ClubRegulationsScreen() {
                 onPress={() => router.push(`/clubs/${resolvedId || clubId}/regulations/${item.id}`)}
               >
                 <View style={styles.listIcon}>
-                  <FontAwesome5 name="file-alt" size={14} color={tokens.colors.primary[600]} />
+                  <FontAwesome5 name="file-alt" size={14} color={colors.primary[600]} />
                 </View>
                 <View style={styles.listInfo}>
                   <Text style={styles.listTitle}>{item.title}</Text>
                   <Text style={styles.listDate}>업데이트: {item.updated}</Text>
                 </View>
-                <FontAwesome5 name="chevron-right" size={12} color={tokens.colors.neutral[400]} />
+                <FontAwesome5 name="chevron-right" size={12} color={colors.neutral[400]} />
               </Pressable>
             ))
           )}
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: tokens.radius.lg,
-    backgroundColor: tokens.colors.primary[50],
+    backgroundColor: colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: tokens.spacing.sm2,
@@ -148,11 +148,11 @@ const styles = StyleSheet.create({
   listTitle: {
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[800],
+    color: colors.neutral[800],
   },
   listDate: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginTop: tokens.spacing.hairline,
   },
 });

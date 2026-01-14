@@ -42,6 +42,7 @@ import {
   normalizePaginatedResponse,
 } from '@/lib/clubUtils';
 import { base, tokens } from '@/styles/style';
+import { colors } from '@/theme/colors';
 
 const logoImage = require('../../../public/icons/icon-512-transparent.png');
 
@@ -105,13 +106,13 @@ const ClubCard = ({ club, variant, onPress }) => {
 
         <View style={styles.metaList}>
           <View style={styles.metaItem}>
-            <FontAwesome5 name="map-marker-alt" size={12} color={tokens.colors.neutral[500]} />
+            <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
             <Text style={styles.metaText} numberOfLines={1}>
               {club?.location || '-'}
             </Text>
           </View>
           <View style={styles.metaItem}>
-            <FontAwesome5 name="user-friends" size={12} color={tokens.colors.neutral[500]} />
+            <FontAwesome5 name="user-friends" size={12} color={colors.neutral[500]} />
             <Text style={styles.metaText}>멤버 {club?.member_count ?? 0}명</Text>
           </View>
         </View>
@@ -286,7 +287,7 @@ export default function ClubsScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.stateContainer}>
-          <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
+          <ActivityIndicator size="large" color={colors.primary[600]} />
         </View>
       </SafeAreaView>
     );
@@ -332,13 +333,13 @@ export default function ClubsScreen() {
 
         <View style={styles.searchFilterRow}>
           <View style={styles.searchBox}>
-            <FontAwesome5 name="search" size={14} color={tokens.colors.neutral[400]} />
+            <FontAwesome5 name="search" size={14} color={colors.neutral[400]} />
             <TextInput
               value={searchTerm}
               onChangeText={setSearchTerm}
               placeholder="클럽명, 설명, 위치로 검색..."
               style={styles.searchInput}
-              placeholderTextColor={tokens.colors.neutral[400]}
+              placeholderTextColor={colors.neutral[400]}
             />
           </View>
 
@@ -354,7 +355,7 @@ export default function ClubsScreen() {
                 <FontAwesome5
                   name={isStatusFilterOpen ? 'chevron-up' : 'chevron-down'}
                   size={12}
-                  color={tokens.colors.neutral[400]}
+                  color={colors.neutral[400]}
                 />
               </Pressable>
               {isStatusFilterOpen && (
@@ -400,7 +401,7 @@ export default function ClubsScreen() {
 
         {isLoading ? (
           <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+            <ActivityIndicator size="small" color={colors.primary[600]} />
           </View>
         ) : error ? (
           <Card style={styles.errorCard}>
@@ -411,7 +412,7 @@ export default function ClubsScreen() {
             <FontAwesome5
               name={activeTab === 'applications' ? 'file-alt' : 'users'}
               size={44}
-              color={tokens.colors.neutral[300]}
+              color={colors.neutral[300]}
             />
             <Text style={styles.emptyTitle}>
               {activeTab === 'all'
@@ -523,11 +524,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: tokens.font.xxl,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
   },
   tabBar: {
     borderBottomWidth: 1,
-    borderBottomColor: tokens.colors.neutral[200],
+    borderBottomColor: colors.neutral[200],
     marginBottom: tokens.padding.md,
   },
   tabBarRow: {
@@ -542,15 +543,15 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabButtonActive: {
-    borderBottomColor: tokens.colors.primary[500],
+    borderBottomColor: colors.primary[500],
   },
   tabText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
   tabTextActive: {
-    color: tokens.colors.primary[600],
+    color: colors.primary[600],
   },
   searchFilterRow: {
     gap: 12,
@@ -561,14 +562,14 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.spacing.sm,
     borderRadius: tokens.radius.md,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[200],
-    backgroundColor: tokens.colors.white,
+    borderColor: colors.neutral[200],
+    backgroundColor: colors.white,
   },
   searchInput: {
     flex: 1,
     marginLeft: tokens.padding.xs,
     fontSize: tokens.font.md,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
   },
   statusFilterWrap: {
     position: 'relative',
@@ -580,13 +581,13 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.spacing.sm,
     borderRadius: tokens.radius.md,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[200],
-    backgroundColor: tokens.colors.white,
+    borderColor: colors.neutral[200],
+    backgroundColor: colors.white,
   },
   statusFilterText: {
     fontSize: tokens.font.md,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
   statusFilterMenu: {
     position: 'absolute',
@@ -595,19 +596,19 @@ const styles = StyleSheet.create({
     top: 48,
     borderRadius: tokens.radius.md,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[200],
-    backgroundColor: tokens.colors.white,
+    borderColor: colors.neutral[200],
+    backgroundColor: colors.white,
     overflow: 'hidden',
   },
   statusFilterMenuItem: {
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: tokens.colors.neutral[100],
+    borderBottomColor: colors.neutral[100],
   },
   statusFilterMenuText: {
     fontSize: tokens.font.md,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
     fontWeight: tokens.fontWeight.semibold,
   },
   myStatusRow: {
@@ -621,18 +622,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.xs,
     borderRadius: tokens.radius.base,
-    backgroundColor: tokens.colors.neutral[100],
+    backgroundColor: colors.neutral[100],
   },
   myStatusButtonActive: {
-    backgroundColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
   },
   myStatusText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
   myStatusTextActive: {
-    color: tokens.colors.white,
+    color: colors.white,
   },
   loadingRow: {
     paddingVertical: tokens.spacing.xl,
@@ -641,7 +642,7 @@ const styles = StyleSheet.create({
   errorCard: {
     marginTop: tokens.padding.md,
   },
-  errorText: { ...base.textSmError, color: tokens.colors.error[700] },
+  errorText: { ...base.textSmError, color: colors.error[700] },
   emptyState: {
     paddingVertical: tokens.spacing.xxl,
     alignItems: 'center',
@@ -650,13 +651,13 @@ const styles = StyleSheet.create({
     marginTop: tokens.padding.md,
     fontSize: tokens.font.title,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
   },
   emptySubtitle: {
     marginTop: tokens.padding.xs,
     marginBottom: tokens.padding.md,
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     textAlign: 'center',
     paddingHorizontal: tokens.padding.xl,
   },
@@ -688,9 +689,9 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: tokens.radius.lg,
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[200],
+    borderColor: colors.neutral[200],
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: tokens.spacing.sm,
@@ -727,7 +728,7 @@ const styles = StyleSheet.create({
   },
   cardDescription: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     lineHeight: 18,
     marginBottom: tokens.padding.sm,
   },
@@ -741,7 +742,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     flex: 1,
   },
   cardFooter: {
@@ -749,12 +750,12 @@ const styles = StyleSheet.create({
   },
   cardDate: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[400],
+    color: colors.neutral[400],
   },
   cardLink: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.primary[600],
+    color: colors.primary[600],
   },
   paginationRow: {
     ...base.row,
@@ -773,7 +774,7 @@ const styles = StyleSheet.create({
   pageNavText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
   pageNumber: {
     paddingHorizontal: tokens.spacing.sm,
@@ -781,14 +782,14 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.base,
   },
   pageNumberActive: {
-    backgroundColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
   },
   pageNumberText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
   pageNumberTextActive: {
-    color: tokens.colors.white,
+    color: colors.white,
   },
 });

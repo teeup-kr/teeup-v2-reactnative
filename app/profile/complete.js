@@ -15,7 +15,7 @@ import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ProfileCompleteScreen() {
   const [form, setForm] = useState({
     realName: '',
@@ -35,7 +35,7 @@ export default function ProfileCompleteScreen() {
       <ScreenHeader title="프로필 완성" />
       <ScrollView contentContainerStyle={styles.container}>
         <LinearGradient
-          colors={[tokens.colors.emerald[600], tokens.colors.teal[700]]}
+          colors={[colors.emerald[600], colors.teal[700]]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.hero}
@@ -111,12 +111,12 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: tokens.font.title,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.white,
+    color: colors.white,
     marginBottom: tokens.spacing.xs2,
   },
   heroSubtitle: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.emerald[100],
+    color: colors.emerald[100],
     lineHeight: 18,
   },
   card: {
@@ -126,11 +126,11 @@ const styles = StyleSheet.create({
   tipBox: {
     padding: tokens.padding.sm,
     borderRadius: tokens.radius.md,
-    backgroundColor: tokens.colors.primary[50],
+    backgroundColor: colors.primary[50],
   },
   tipText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.primary[700],
+    color: colors.primary[700],
   },
   saveButton: {
     marginTop: tokens.spacing.xs2,

@@ -6,6 +6,7 @@ import LoginRequired from '@/components/auth/LoginRequired';
 import AppHeader from '@/components/layout/AppHeader';
 import { useAuth } from '@/context/AuthContext';
 import { tokens } from '@/styles/style';
+import { colors } from '@/theme/colors';
 
 import UserProfileEditTab from './edit';
 import MyMeetingsScreen from './meetings';
@@ -13,7 +14,6 @@ import NotificationsScreen from './notifications';
 import OverviewScreen from './overview';
 import RecordsScreen from './records';
 import WithdrawScreen from './withdraw';
-
 export default function MyPageScreen() {
   const { isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
@@ -49,9 +49,9 @@ export default function MyPageScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: tokens.colors.neutral[50] }}>
+    <View style={{ flex: 1, backgroundColor: colors.neutral[50] }}>
       {/* 상단 SafeArea */}
-      <SafeAreaView edges={['top']} style={{ backgroundColor: tokens.colors.neutral[50] }}>
+      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.neutral[50] }}>
         <AppHeader />
 
         {/* 탭 영역 */}
@@ -59,7 +59,7 @@ export default function MyPageScreen() {
           style={{
             height: 56,
             justifyContent: 'center',
-            backgroundColor: tokens.colors.neutral[50],
+            backgroundColor: colors.neutral[50],
           }}
         >
           <ScrollView
@@ -82,14 +82,14 @@ export default function MyPageScreen() {
                     paddingHorizontal: tokens.padding.md,
                     marginRight: tokens.spacing.xs2,
                     borderRadius: tokens.radius.md,
-                    backgroundColor: active ? tokens.colors.emerald[600] : tokens.colors.white,
+                    backgroundColor: active ? colors.emerald[600] : colors.white,
                   }}
                 >
                   <Text
                     style={{
                       fontSize: tokens.font.base,
                       fontWeight: tokens.fontWeight.semibold,
-                      color: active ? tokens.colors.white : tokens.colors.textStrong,
+                      color: active ? colors.white : colors.textStrong,
                     }}
                   >
                     {tab.label}

@@ -17,7 +17,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractData } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ClubApplicationDetailScreen() {
   const { applicationId } = useLocalSearchParams();
   const resolvedId = Array.isArray(applicationId) ? applicationId[0] : applicationId;
@@ -55,7 +55,7 @@ export default function ClubApplicationDetailScreen() {
         <Card style={styles.card}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+              <ActivityIndicator size="small" color={colors.primary[600]} />
               <Text style={styles.stateText}>신청 정보를 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: tokens.font.title,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginBottom: tokens.spacing.xxs,
   },
   subtitle: { ...base.textSmSubtle, marginBottom: tokens.spacing.sm2 },
@@ -117,17 +117,17 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
   infoValue: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[800],
+    color: colors.neutral[800],
     fontWeight: tokens.fontWeight.semibold,
   },
   sectionTitle: { ...base.sectionTitleMd, marginBottom: tokens.spacing.xs2 },
   sectionText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     lineHeight: 18,
   },
   stateRow: {
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   stateText: {
     marginLeft: tokens.spacing.xs2,
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
   errorText: base.textSmError,
 });

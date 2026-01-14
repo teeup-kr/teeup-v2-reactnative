@@ -4,8 +4,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { tokens } from '@/styles/style';
+import { colors } from '@/theme/colors';
 
-import { colors } from '../../theme/colors';
 import AppFooter from '../layout/AppFooter';
 import AppHeader from '../layout/AppHeader';
 

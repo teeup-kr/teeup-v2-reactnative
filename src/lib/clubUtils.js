@@ -1,10 +1,11 @@
+import { colors } from '@/theme/colors';
+
 import {
   clubMembershipStatusBadgeConfig,
   clubRoleBadgeConfig,
   clubStatusBadgeConfig,
   clubTypeBadgeConfig,
 } from '../constants/clubConstants';
-import { colors } from '../theme/colors';
 
 import { extractList } from './responseUtils';
 

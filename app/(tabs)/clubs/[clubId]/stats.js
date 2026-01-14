@@ -16,7 +16,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractData } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ClubStatsScreen() {
   const { clubId } = useLocalSearchParams();
   const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
@@ -77,7 +77,7 @@ export default function ClubStatsScreen() {
         {isLoading ? (
           <Card style={styles.stateCard}>
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+              <ActivityIndicator size="small" color={colors.primary[600]} />
               <Text style={styles.stateText}>통계를 불러오는 중...</Text>
             </View>
           </Card>
@@ -120,13 +120,13 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     marginBottom: tokens.spacing.xs,
   },
   statValue: {
     fontSize: tokens.font.xl,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
   },
   chartCard: {
     marginTop: tokens.spacing.xs2,
@@ -134,20 +134,20 @@ const styles = StyleSheet.create({
   chartTitle: {
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginBottom: tokens.spacing.sm2,
   },
   chartPlaceholder: {
     height: 160,
     borderRadius: tokens.radius.md,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[200],
+    borderColor: colors.neutral[200],
     alignItems: 'center',
     justifyContent: 'center',
   },
   chartText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
   stateCard: {
     marginBottom: tokens.spacing.sm2,
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   stateText: {
     marginLeft: tokens.spacing.xs2,
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
   errorText: base.textSmError,
 });

@@ -18,7 +18,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ClubFeesScreen() {
   const { clubId } = useLocalSearchParams();
   const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
@@ -79,7 +79,7 @@ export default function ClubFeesScreen() {
         <View style={styles.list}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+              <ActivityIndicator size="small" color={colors.primary[600]} />
               <Text style={styles.stateText}>회비 내역을 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -126,18 +126,18 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
     marginBottom: tokens.spacing.xs,
   },
   summaryValue: {
     fontSize: tokens.font.xl,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginBottom: tokens.spacing.xxs,
   },
   summaryHint: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
   list: {
     marginBottom: tokens.spacing.md,
@@ -151,17 +151,17 @@ const styles = StyleSheet.create({
   feeTitle: {
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[800],
+    color: colors.neutral[800],
   },
   feeAmount: {
     fontSize: tokens.font.title,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginTop: tokens.spacing.xs,
   },
   feeStatus: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginTop: tokens.spacing.xxs,
   },
 });

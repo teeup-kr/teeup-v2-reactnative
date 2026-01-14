@@ -1,5 +1,4 @@
-import { colors } from '../theme/colors';
-
+import { colors } from '@/theme/colors';
 export { extractData, extractList } from './responseUtils';
 
 export const formatYmd = (date) => {

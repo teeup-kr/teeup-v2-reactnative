@@ -16,7 +16,7 @@ import AppHeader from '@/components/layout/AppHeader';
 import { homeFeatures } from '@/constants/homeConstants';
 import { useAuth } from '@/context/AuthContext';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 const FeatureCard = ({ title, description, emoji, background, accent }) => {
   return (
     <View style={[styles.featureCard, { backgroundColor: background }]}>
@@ -34,7 +34,7 @@ const FeatureCard = ({ title, description, emoji, background, accent }) => {
 export default function HomeScreen() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  const heroGradient = [tokens.colors.emerald[600], tokens.colors.teal[700]];
+  const heroGradient = [colors.emerald[600], colors.teal[700]];
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -125,7 +125,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: base.safeAreaWhite,
   container: {
-    backgroundColor: tokens.colors.neutral[50],
+    backgroundColor: colors.neutral[50],
   },
   heroSection: {
     paddingHorizontal: tokens.padding.xl,
@@ -148,13 +148,13 @@ const styles = StyleSheet.create({
     height: 36,
   },
   heroBrand: {
-    color: tokens.colors.white,
+    color: colors.white,
     fontSize: tokens.font.display,
     fontWeight: tokens.fontWeight.bold,
     marginBottom: tokens.spacing.sm2,
   },
   heroHeadline: {
-    color: tokens.colors.white,
+    color: colors.white,
     fontSize: tokens.font.xxl,
     fontWeight: tokens.fontWeight.bold,
     textAlign: 'center',
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing.sm2,
   },
   heroSubcopy: {
-    color: tokens.colors.emerald[100],
+    color: colors.emerald[100],
     fontSize: tokens.font.base,
     textAlign: 'center',
     lineHeight: 20,
@@ -172,12 +172,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heroChecklistText: {
-    color: tokens.colors.emerald[100],
+    color: colors.emerald[100],
     fontSize: tokens.font.sm,
     marginBottom: tokens.spacing.xxs,
   },
   contentSection: {
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
     paddingHorizontal: tokens.padding.xl,
     paddingVertical: tokens.padding.xl2,
   },
@@ -186,14 +186,14 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing.lg2,
   },
   pageHeadline: {
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     fontSize: tokens.font.display,
     fontWeight: tokens.fontWeight.bold,
     textAlign: 'center',
     marginBottom: tokens.spacing.xs2,
   },
   pageSubcopy: {
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     fontSize: tokens.font.base,
     textAlign: 'center',
     lineHeight: 20,
@@ -223,13 +223,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   featureTitle: {
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     fontSize: tokens.font.title,
     fontWeight: tokens.fontWeight.semibold,
     marginBottom: tokens.spacing.xs,
   },
   featureDescription: {
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     fontSize: tokens.font.sm,
     lineHeight: 18,
   },
@@ -245,18 +245,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryButtonText: {
-    color: tokens.colors.white,
+    color: colors.white,
     fontSize: tokens.font.title,
     fontWeight: tokens.fontWeight.semibold,
   },
   loginHint: {
     marginTop: tokens.spacing.md3,
     textAlign: 'center',
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     fontSize: tokens.font.sm,
   },
   loginHintAccent: {
-    color: tokens.colors.emerald[600],
+    color: colors.emerald[600],
     fontWeight: tokens.fontWeight.semibold,
   },
 });

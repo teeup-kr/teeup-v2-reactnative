@@ -16,7 +16,7 @@ import { noticeCategoryLabel } from '@/constants/noticesConstants';
 import { noticesApi } from '@/lib/api';
 import { normalizeNotice } from '@/lib/noticeUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function NoticeDetailScreen() {
   const { noticeId } = useLocalSearchParams();
   const resolvedId = Array.isArray(noticeId) ? noticeId[0] : noticeId;
@@ -91,33 +91,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.base,
     paddingVertical: tokens.padding.xxs,
     borderRadius: tokens.radius.md,
-    backgroundColor: tokens.colors.primary[50],
+    backgroundColor: colors.primary[50],
   },
   badgeText: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.primary[700],
+    color: colors.primary[700],
     fontWeight: tokens.fontWeight.semibold,
   },
   importantText: {
     marginLeft: tokens.spacing.xs2,
     fontSize: tokens.font.xs,
-    color: tokens.colors.error[600],
+    color: colors.error[600],
     fontWeight: tokens.fontWeight.semibold,
   },
   title: {
     fontSize: tokens.font.xl,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginBottom: tokens.spacing.xs,
   },
   date: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[400],
+    color: colors.neutral[400],
     marginBottom: tokens.spacing.md,
   },
   content: {
     fontSize: tokens.font.md,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
     lineHeight: 20,
   },
   loadingText: base.textSmSubtle,

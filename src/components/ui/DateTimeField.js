@@ -3,9 +3,7 @@ import { useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { tokens } from '@/styles/style';
-
-import { colors } from '../../theme/colors';
-
+import { colors } from '@/theme/colors';
 const parseDateTimeValue = (value) => {
   if (!value) return new Date();
   const safeValue = value.includes(' ') ? value.replace(' ', 'T') : value;

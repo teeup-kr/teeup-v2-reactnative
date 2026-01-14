@@ -17,7 +17,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { termsTabs } from '@/constants/termsConstants';
 import { termsApi } from '@/lib/termsApi';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 const TabButton = ({ label, selected, onPress }) => (
   <Pressable
     onPress={onPress}
@@ -128,36 +128,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.xs,
     borderRadius: tokens.radius.lg,
-    backgroundColor: tokens.colors.neutral[100],
+    backgroundColor: colors.neutral[100],
     marginRight: tokens.spacing.xs2,
     marginBottom: tokens.spacing.xs2,
   },
   tabButtonActive: {
-    backgroundColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
   },
   tabButtonPressed: {
     opacity: 0.9,
   },
   tabButtonText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     fontWeight: tokens.fontWeight.semibold,
   },
   tabButtonTextActive: {
-    color: tokens.colors.white,
+    color: colors.white,
   },
   card: {
     padding: tokens.padding.lg,
   },
   cardTitle: { ...base.cardTitle, marginBottom: tokens.spacing.sm2 },
   contentBox: {
-    backgroundColor: tokens.colors.neutral[50],
+    backgroundColor: colors.neutral[50],
     borderRadius: tokens.radius.md,
     padding: tokens.padding.sm,
   },
   contentText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
     lineHeight: 18,
     marginBottom: tokens.spacing.xs2,
   },

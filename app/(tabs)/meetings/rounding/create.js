@@ -38,7 +38,7 @@ import {
   validateMeetingTimeWithTeeTimes,
 } from '@/lib/meetingUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 const ChipOption = ({ label, selected, onPress }) => (
   <Pressable
     onPress={onPress}
@@ -276,7 +276,7 @@ export function RoundingForm({ mode = 'create' }) {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
+            <ActivityIndicator size="large" color={colors.primary[600]} />
             <Text style={styles.loadingText}>모임 정보를 불러오는 중...</Text>
           </View>
         ) : (
@@ -292,7 +292,7 @@ export function RoundingForm({ mode = 'create' }) {
                   onChangeText={(value) => handleChange('name', value)}
                   placeholder="예: 봄맞이 라운딩"
                   style={[styles.input, fieldErrors.name && styles.inputError]}
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
                 {fieldErrors.name && <Text style={styles.errorText}>{fieldErrors.name}</Text>}
               </View>
@@ -305,7 +305,7 @@ export function RoundingForm({ mode = 'create' }) {
                   placeholder="모임 소개를 입력하세요"
                   style={[styles.input, styles.textArea]}
                   multiline
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
               </View>
 
@@ -316,7 +316,7 @@ export function RoundingForm({ mode = 'create' }) {
                   onChangeText={(value) => handleChange('location', value)}
                   placeholder="예: 서울 강동구"
                   style={[styles.input, fieldErrors.location && styles.inputError]}
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
                 {fieldErrors.location && (
                   <Text style={styles.errorText}>{fieldErrors.location}</Text>
@@ -349,7 +349,7 @@ export function RoundingForm({ mode = 'create' }) {
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>클럽</Text>
                 {clubsLoading ? (
-                  <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+                  <ActivityIndicator size="small" color={colors.primary[600]} />
                 ) : clubs.length === 0 ? (
                   <Text style={styles.helperText}>가입된 클럽이 없습니다.</Text>
                 ) : (
@@ -381,7 +381,7 @@ export function RoundingForm({ mode = 'create' }) {
                   onChangeText={(value) => handleChange('course_name', value)}
                   placeholder="예: 한강 GC"
                   style={[styles.input, fieldErrors.course_name && styles.inputError]}
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
                 {fieldErrors.course_name && (
                   <Text style={styles.errorText}>{fieldErrors.course_name}</Text>
@@ -395,7 +395,7 @@ export function RoundingForm({ mode = 'create' }) {
                   onChangeText={(value) => handleChange('reservation_name', value)}
                   placeholder="예약자명을 입력하세요"
                   style={[styles.input, fieldErrors.reservation_name && styles.inputError]}
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
                 {fieldErrors.reservation_name && (
                   <Text style={styles.errorText}>{fieldErrors.reservation_name}</Text>
@@ -411,7 +411,7 @@ export function RoundingForm({ mode = 'create' }) {
                     placeholder="18"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.hole_count && styles.inputError]}
-                    placeholderTextColor={tokens.colors.neutral[400]}
+                    placeholderTextColor={colors.neutral[400]}
                   />
                   {fieldErrors.hole_count && (
                     <Text style={styles.errorText}>{fieldErrors.hole_count}</Text>
@@ -424,7 +424,7 @@ export function RoundingForm({ mode = 'create' }) {
                     onChangeText={(value) => handleChange('tee_times', value)}
                     placeholder="예: 09:00, 09:10"
                     style={[styles.input, fieldErrors.tee_times && styles.inputError]}
-                    placeholderTextColor={tokens.colors.neutral[400]}
+                    placeholderTextColor={colors.neutral[400]}
                   />
                   {fieldErrors.tee_times && (
                     <Text style={styles.errorText}>{fieldErrors.tee_times}</Text>
@@ -446,7 +446,7 @@ export function RoundingForm({ mode = 'create' }) {
                     placeholder="예: 16"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.max_participants && styles.inputError]}
-                    placeholderTextColor={tokens.colors.neutral[400]}
+                    placeholderTextColor={colors.neutral[400]}
                   />
                   {fieldErrors.max_participants && (
                     <Text style={styles.errorText}>{fieldErrors.max_participants}</Text>
@@ -460,7 +460,7 @@ export function RoundingForm({ mode = 'create' }) {
                     placeholder="4"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.team_size && styles.inputError]}
-                    placeholderTextColor={tokens.colors.neutral[400]}
+                    placeholderTextColor={colors.neutral[400]}
                   />
                   {fieldErrors.team_size && (
                     <Text style={styles.errorText}>{fieldErrors.team_size}</Text>
@@ -509,7 +509,7 @@ export function RoundingForm({ mode = 'create' }) {
                   placeholder="예: 120000"
                   keyboardType="numeric"
                   style={[styles.input, fieldErrors.green_fee && styles.inputError]}
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
                 {fieldErrors.green_fee && (
                   <Text style={styles.errorText}>{fieldErrors.green_fee}</Text>
@@ -525,7 +525,7 @@ export function RoundingForm({ mode = 'create' }) {
                     placeholder="예: 150000"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.caddy_fee && styles.inputError]}
-                    placeholderTextColor={tokens.colors.neutral[400]}
+                    placeholderTextColor={colors.neutral[400]}
                   />
                   {fieldErrors.caddy_fee && (
                     <Text style={styles.errorText}>{fieldErrors.caddy_fee}</Text>
@@ -539,7 +539,7 @@ export function RoundingForm({ mode = 'create' }) {
                     placeholder="예: 100000"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.cart_fee && styles.inputError]}
-                    placeholderTextColor={tokens.colors.neutral[400]}
+                    placeholderTextColor={colors.neutral[400]}
                   />
                   {fieldErrors.cart_fee && (
                     <Text style={styles.errorText}>{fieldErrors.cart_fee}</Text>
@@ -594,17 +594,17 @@ const styles = StyleSheet.create({
   helperText: base.textSmSubtle,
   input: {
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
     borderRadius: tokens.radius.base,
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.base,
     fontSize: tokens.font.base,
-    color: tokens.colors.neutral[900],
-    backgroundColor: tokens.colors.white,
+    color: colors.neutral[900],
+    backgroundColor: colors.white,
     marginBottom: tokens.spacing.sm2,
   },
   inputError: {
-    borderColor: tokens.colors.error[500],
+    borderColor: colors.error[500],
   },
   textArea: {
     minHeight: 96,
@@ -632,24 +632,24 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.padding.xs2,
     borderRadius: tokens.radius.lg,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
-    backgroundColor: tokens.colors.white,
+    borderColor: colors.neutral[300],
+    backgroundColor: colors.white,
     marginRight: tokens.spacing.xs2,
     marginBottom: tokens.spacing.xs2,
   },
   chipActive: {
-    backgroundColor: tokens.colors.primary[50],
-    borderColor: tokens.colors.primary[500],
+    backgroundColor: colors.primary[50],
+    borderColor: colors.primary[500],
   },
   chipPressed: {
     opacity: 0.85,
   },
   chipText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   chipTextActive: {
-    color: tokens.colors.primary[700],
+    color: colors.primary[700],
     fontWeight: tokens.fontWeight.semibold,
   },
   errorText: { ...base.textSmError, marginTop: tokens.spacing.xxs },

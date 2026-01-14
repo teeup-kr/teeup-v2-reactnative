@@ -15,7 +15,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubManageSections } from '@/constants/clubConstants';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ClubManageScreen() {
   const { clubId } = useLocalSearchParams();
   const router = useRouter();
@@ -37,13 +37,13 @@ export default function ClubManageScreen() {
               onPress={() => router.push(`/clubs/${clubId}/${section.route}`)}
             >
               <View style={styles.sectionIcon}>
-                <FontAwesome5 name={section.icon} size={16} color={tokens.colors.primary[600]} />
+                <FontAwesome5 name={section.icon} size={16} color={colors.primary[600]} />
               </View>
               <View style={styles.sectionTextWrap}>
                 <Text style={styles.sectionLabel}>{section.label}</Text>
                 <Text style={styles.sectionHint}>관리 페이지로 이동</Text>
               </View>
-              <FontAwesome5 name="chevron-right" size={12} color={tokens.colors.neutral[400]} />
+              <FontAwesome5 name="chevron-right" size={12} color={colors.neutral[400]} />
             </Pressable>
           ))}
         </View>
@@ -61,15 +61,15 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: tokens.font.title,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginBottom: tokens.spacing.xs,
   },
   summaryText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   sectionList: {
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
     borderRadius: tokens.radius.lg,
     paddingVertical: tokens.padding.xs2,
   },
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: tokens.radius.lg,
-    backgroundColor: tokens.colors.primary[50],
+    backgroundColor: colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: tokens.spacing.sm2,
@@ -94,11 +94,11 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[800],
+    color: colors.neutral[800],
   },
   sectionHint: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginTop: tokens.spacing.hairline,
   },
 });

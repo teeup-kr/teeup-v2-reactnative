@@ -19,7 +19,7 @@ import { clubMemberStatusColors } from '@/constants/clubConstants';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ClubMemberManageScreen() {
   const { clubId } = useLocalSearchParams();
   const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
@@ -89,7 +89,7 @@ export default function ClubMemberManageScreen() {
         <View style={styles.listCard}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+              <ActivityIndicator size="small" color={colors.primary[600]} />
               <Text style={styles.stateText}>멤버를 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -104,7 +104,7 @@ export default function ClubMemberManageScreen() {
             normalizedMembers.map((member) => (
               <View key={member.id} style={styles.memberRow}>
                 <View style={styles.avatar}>
-                  <FontAwesome5 name="user" size={14} color={tokens.colors.neutral[500]} />
+                  <FontAwesome5 name="user" size={14} color={colors.neutral[500]} />
                 </View>
                 <View style={styles.memberInfo}>
                   <Text style={styles.memberName}>{member.name}</Text>
@@ -113,7 +113,7 @@ export default function ClubMemberManageScreen() {
                 <View
                   style={[
                     styles.statusBadge,
-                    { backgroundColor: clubMemberStatusColors[member.status] || tokens.colors.neutral[400] },
+                    { backgroundColor: clubMemberStatusColors[member.status] || colors.neutral[400] },
                   ]}
                 >
                   <Text style={styles.statusText}>{member.status}</Text>
@@ -139,15 +139,15 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: tokens.font.title,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginBottom: tokens.spacing.xs,
   },
   summaryText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   listCard: {
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
     borderRadius: tokens.radius.lg,
     paddingVertical: tokens.padding.xxs,
   },
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: tokens.radius.lg,
-    backgroundColor: tokens.colors.neutral[100],
+    backgroundColor: colors.neutral[100],
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: tokens.spacing.sm2,
@@ -175,11 +175,11 @@ const styles = StyleSheet.create({
   memberName: {
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[800],
+    color: colors.neutral[800],
   },
   memberRole: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginTop: tokens.spacing.hairline,
   },
   statusBadge: {
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: tokens.font.xxs,
-    color: tokens.colors.white,
+    color: colors.white,
     fontWeight: tokens.fontWeight.semibold,
   },
   actionButton: {
@@ -198,10 +198,10 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.padding.xs2,
     borderRadius: tokens.radius.sm,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[200],
+    borderColor: colors.neutral[200],
   },
   actionButtonText: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
 });

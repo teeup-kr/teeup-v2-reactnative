@@ -19,7 +19,7 @@ import { noticesApi } from '@/lib/api';
 import { normalizeNotice } from '@/lib/noticeUtils';
 import { extractList } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function NoticeListScreen() {
   const router = useRouter();
   const [notices, setNotices] = useState([]);
@@ -75,7 +75,7 @@ export default function NoticeListScreen() {
                 </View>
                 {notice.important ? (
                   <View style={styles.importantBadge}>
-                    <FontAwesome5 name="exclamation-circle" size={10} color={tokens.colors.error[600]} />
+                    <FontAwesome5 name="exclamation-circle" size={10} color={colors.error[600]} />
                     <Text style={styles.importantText}>중요</Text>
                   </View>
                 ) : null}
@@ -100,24 +100,24 @@ const styles = StyleSheet.create({
   container: base.containerLg,
   subtitle: { ...base.textSmMuted, marginBottom: tokens.spacing.sm2 },
   noticeCard: {
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
     borderRadius: tokens.radius.lg,
     padding: tokens.padding.md,
     marginBottom: tokens.spacing.sm2,
   },
   noticeCardPressed: {
-    backgroundColor: tokens.colors.neutral[100],
+    backgroundColor: colors.neutral[100],
   },
   cardHeader: { ...base.row, marginBottom: tokens.spacing.xs2 },
   badge: {
     paddingHorizontal: tokens.padding.base,
     paddingVertical: tokens.padding.xxs,
     borderRadius: tokens.radius.md,
-    backgroundColor: tokens.colors.primary[50],
+    backgroundColor: colors.primary[50],
   },
   badgeText: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.primary[700],
+    color: colors.primary[700],
     fontWeight: tokens.fontWeight.semibold,
   },
   importantBadge: {
@@ -127,28 +127,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.xs,
     paddingVertical: tokens.padding.xxs,
     borderRadius: tokens.radius.md,
-    backgroundColor: tokens.colors.error[50],
+    backgroundColor: colors.error[50],
   },
   importantText: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.error[600],
+    color: colors.error[600],
     marginLeft: tokens.spacing.xxs,
     fontWeight: tokens.fontWeight.semibold,
   },
   noticeTitle: {
     fontSize: tokens.font.lg,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginBottom: tokens.spacing.xs,
   },
   noticeSummary: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     marginBottom: tokens.spacing.xs2,
   },
   noticeDate: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[400],
+    color: colors.neutral[400],
   },
   infoCard: {
     marginTop: tokens.spacing.xs2,
@@ -156,12 +156,12 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginBottom: tokens.spacing.xs,
   },
   infoText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   loadingCard: {
     marginBottom: tokens.spacing.sm2,

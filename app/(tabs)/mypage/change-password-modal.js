@@ -16,7 +16,7 @@ import {
 
 import { authApi } from '@/lib/authApi';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export const ChangePasswordModal = ({ isOpen, onClose, onLogout }) => {
     /* =========================
        State
@@ -133,7 +133,7 @@ export const ChangePasswordModal = ({ isOpen, onClose, onLogout }) => {
                     {success ? (
                         <View style={styles.center}>
                             <View style={styles.successIcon}>
-                                <FontAwesome5 name="check" size={28} color={tokens.colors.green[600]} />
+                                <FontAwesome5 name="check" size={28} color={colors.green[600]} />
                             </View>
                             <Text style={styles.successTitle}>비밀번호 변경 완료</Text>
                             <Text style={styles.successText}>
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
         padding: tokens.padding.md,
     },
     card: {
-        backgroundColor: tokens.colors.white,
+        backgroundColor: colors.white,
         borderRadius: tokens.radius.md,
         overflow: 'hidden',
     },
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
         ...base.rowBetween,
         padding: tokens.padding.md,
         borderBottomWidth: 1,
-        borderColor: tokens.colors.border,
+        borderColor: colors.border,
     },
     title: { fontSize: tokens.font.xl, fontWeight: tokens.fontWeight.bold },
     body: { padding: tokens.padding.md },
@@ -263,12 +263,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: tokens.padding.sm,
         paddingVertical: tokens.padding.sm,
     },
-    error: { color: tokens.colors.red[600], fontSize: tokens.font.sm, marginTop: tokens.spacing.xxs },
+    error: { color: colors.red[600], fontSize: tokens.font.sm, marginTop: tokens.spacing.xxs },
     errorBox: {
-        backgroundColor: tokens.colors.red[100],
+        backgroundColor: colors.red[100],
         padding: tokens.padding.base,
         borderRadius: tokens.radius.sm,
-        color: tokens.colors.red[800],
+        color: colors.red[800],
         marginBottom: tokens.spacing.xs2,
     },
     buttonRow: { ...base.row, gap: tokens.spacing.xs2, marginTop: tokens.spacing.xs2 },
@@ -281,20 +281,20 @@ const styles = StyleSheet.create({
         ...base.btnPrimary,
         flex: 1,
         borderRadius: tokens.radius.sm,
-        backgroundColor: tokens.colors.blue[600],
+        backgroundColor: colors.blue[600],
     },
-    submitText: { color: tokens.colors.white, fontWeight: tokens.fontWeight.semibold },
+    submitText: { color: colors.white, fontWeight: tokens.fontWeight.semibold },
 
     center: { alignItems: 'center', padding: tokens.padding.xxl },
     successIcon: {
         width: 56,
         height: 56,
         borderRadius: tokens.radius.xxl,
-        backgroundColor: tokens.colors.green[100],
+        backgroundColor: colors.green[100],
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: tokens.spacing.sm2,
     },
     successTitle: { fontSize: tokens.font.xl, fontWeight: tokens.fontWeight.bold },
-    successText: { fontSize: tokens.font.md, color: tokens.colors.textSubtle, marginVertical: tokens.spacing.xs2 },
+    successText: { fontSize: tokens.font.md, color: colors.textSubtle, marginVertical: tokens.spacing.xs2 },
 });

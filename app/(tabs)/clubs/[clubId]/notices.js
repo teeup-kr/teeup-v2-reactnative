@@ -18,7 +18,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ClubNoticesScreen() {
   const { clubId } = useLocalSearchParams();
   const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
@@ -63,7 +63,7 @@ export default function ClubNoticesScreen() {
         <Card style={styles.noticeCard}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+              <ActivityIndicator size="small" color={colors.primary[600]} />
               <Text style={styles.stateText}>공지사항을 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -78,7 +78,7 @@ export default function ClubNoticesScreen() {
             notices.map((notice) => (
               <Pressable key={notice.id} style={styles.noticeRow}>
                 <View style={styles.noticeIcon}>
-                  <FontAwesome5 name="bullhorn" size={14} color={tokens.colors.primary[600]} />
+                  <FontAwesome5 name="bullhorn" size={14} color={colors.primary[600]} />
                 </View>
                 <View style={styles.noticeInfo}>
                   <Text style={styles.noticeTitle}>{notice.title}</Text>
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: tokens.radius.lg,
-    backgroundColor: tokens.colors.primary[50],
+    backgroundColor: colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: tokens.spacing.sm2,
@@ -125,23 +125,23 @@ const styles = StyleSheet.create({
   noticeTitle: {
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[800],
+    color: colors.neutral[800],
   },
   noticeDate: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginTop: tokens.spacing.hairline,
   },
   noticeBadge: {
     paddingHorizontal: tokens.padding.xs,
     paddingVertical: tokens.padding.xxs,
     borderRadius: tokens.radius.base,
-    backgroundColor: tokens.colors.secondary[500],
+    backgroundColor: colors.secondary[500],
   },
   noticeBadgeText: {
     fontSize: tokens.font.xxs,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.white,
+    color: colors.white,
   },
   stateRow: base.stateRow,
   stateText: base.stateText,

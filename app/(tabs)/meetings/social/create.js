@@ -32,7 +32,7 @@ import {
   toDateTimeLocalValue,
 } from '@/lib/meetingUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 const ChipOption = ({ label, selected, onPress }) => (
   <Pressable
     onPress={onPress}
@@ -227,7 +227,7 @@ export function SocialForm({ mode = 'create' }) {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
+            <ActivityIndicator size="large" color={colors.primary[600]} />
             <Text style={styles.loadingText}>모임 정보를 불러오는 중...</Text>
           </View>
         ) : (
@@ -243,7 +243,7 @@ export function SocialForm({ mode = 'create' }) {
                   onChangeText={(value) => handleChange('name', value)}
                   placeholder="예: 봄맞이 저녁 모임"
                   style={[styles.input, fieldErrors.name && styles.inputError]}
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
                 {fieldErrors.name && <Text style={styles.errorText}>{fieldErrors.name}</Text>}
               </View>
@@ -256,7 +256,7 @@ export function SocialForm({ mode = 'create' }) {
                   placeholder="모임 소개를 입력하세요"
                   style={[styles.input, styles.textArea]}
                   multiline
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
               </View>
 
@@ -300,7 +300,7 @@ export function SocialForm({ mode = 'create' }) {
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>클럽</Text>
                 {clubsLoading ? (
-                  <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+                  <ActivityIndicator size="small" color={colors.primary[600]} />
                 ) : clubs.length === 0 ? (
                   <Text style={styles.helperText}>가입된 클럽이 없습니다.</Text>
                 ) : (
@@ -332,7 +332,7 @@ export function SocialForm({ mode = 'create' }) {
                   onChangeText={(value) => handleChange('venue_name', value)}
                   placeholder="예: 판교 라운지"
                   style={[styles.input, fieldErrors.venue_name && styles.inputError]}
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
                 {fieldErrors.venue_name && (
                   <Text style={styles.errorText}>{fieldErrors.venue_name}</Text>
@@ -347,7 +347,7 @@ export function SocialForm({ mode = 'create' }) {
                   placeholder="예: 30000"
                   keyboardType="numeric"
                   style={[styles.input, fieldErrors.social_cost && styles.inputError]}
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
                 {fieldErrors.social_cost && (
                   <Text style={styles.errorText}>{fieldErrors.social_cost}</Text>
@@ -400,7 +400,7 @@ export function SocialForm({ mode = 'create' }) {
                     placeholder="예: 20"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.max_participants && styles.inputError]}
-                    placeholderTextColor={tokens.colors.neutral[400]}
+                    placeholderTextColor={colors.neutral[400]}
                   />
                   {fieldErrors.max_participants && (
                     <Text style={styles.errorText}>{fieldErrors.max_participants}</Text>
@@ -441,17 +441,17 @@ const styles = StyleSheet.create({
   helperText: base.textSmSubtle,
   input: {
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
     borderRadius: tokens.radius.base,
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.base,
     fontSize: tokens.font.base,
-    color: tokens.colors.neutral[900],
-    backgroundColor: tokens.colors.white,
+    color: colors.neutral[900],
+    backgroundColor: colors.white,
     marginBottom: tokens.spacing.sm2,
   },
   inputError: {
-    borderColor: tokens.colors.error[500],
+    borderColor: colors.error[500],
   },
   textArea: {
     minHeight: 96,
@@ -469,24 +469,24 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.padding.xs2,
     borderRadius: tokens.radius.lg,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
-    backgroundColor: tokens.colors.white,
+    borderColor: colors.neutral[300],
+    backgroundColor: colors.white,
     marginRight: tokens.spacing.xs2,
     marginBottom: tokens.spacing.xs2,
   },
   chipActive: {
-    backgroundColor: tokens.colors.primary[50],
-    borderColor: tokens.colors.primary[500],
+    backgroundColor: colors.primary[50],
+    borderColor: colors.primary[500],
   },
   chipPressed: {
     opacity: 0.85,
   },
   chipText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   chipTextActive: {
-    color: tokens.colors.primary[700],
+    color: colors.primary[700],
     fontWeight: tokens.fontWeight.semibold,
   },
   errorText: { ...base.textSmError, marginTop: tokens.spacing.xxs },

@@ -16,7 +16,7 @@ import Card from '@/components/ui/Card';
 import Modal from '@/components/ui/Modal';
 import { authApi } from '@/lib/authApi';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function WithdrawScreen() {
   const router = useRouter();
   const [agreed, setAgreed] = useState(false);
@@ -58,7 +58,7 @@ export default function WithdrawScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.warningCard}>
           <View style={styles.warningHeader}>
-            <FontAwesome5 name="exclamation-triangle" size={16} color={tokens.colors.error[600]} />
+            <FontAwesome5 name="exclamation-triangle" size={16} color={colors.error[600]} />
             <Text style={styles.warningTitle}>회원 탈퇴 안내</Text>
           </View>
           <Text style={styles.warningText}>• 회원 탈퇴 시 개인정보는 관련 법령에 따라 처리됩니다.</Text>
@@ -73,7 +73,7 @@ export default function WithdrawScreen() {
           >
             <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
               {agreed ? (
-                <FontAwesome5 name="check" size={12} color={tokens.colors.white} />
+                <FontAwesome5 name="check" size={12} color={colors.white} />
               ) : null}
             </View>
             <Text style={styles.agreeText}>위 내용을 확인했으며 동의합니다.</Text>
@@ -87,12 +87,12 @@ export default function WithdrawScreen() {
             onChangeText={setConfirmText}
             placeholder="회원탈퇴"
             style={[styles.input, error && styles.inputError]}
-            placeholderTextColor={tokens.colors.neutral[400]}
+            placeholderTextColor={colors.neutral[400]}
           />
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
         </Card>
 
-        <Button style={styles.withdrawButton} onPress={handleSubmit} color={tokens.colors.red[600]}>
+        <Button style={styles.withdrawButton} onPress={handleSubmit} color={colors.red[600]}>
           회원 탈퇴
         </Button>
         {resultMessage ? <Text style={styles.successText}>{resultMessage}</Text> : null}
@@ -137,9 +137,9 @@ const styles = StyleSheet.create({
   warningCard: {
     borderRadius: tokens.radius.lg,
     padding: tokens.padding.md,
-    backgroundColor: tokens.colors.error[50],
+    backgroundColor: colors.error[50],
     borderWidth: 1,
-    borderColor: tokens.colors.error[500],
+    borderColor: colors.error[500],
     marginBottom: tokens.spacing.md,
   },
   warningHeader: {
@@ -151,11 +151,11 @@ const styles = StyleSheet.create({
     marginLeft: tokens.spacing.xs2,
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.error[700],
+    color: colors.error[700],
   },
   warningText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.error[700],
+    color: colors.error[700],
     marginTop: tokens.spacing.xxs,
   },
   card: {
@@ -170,37 +170,37 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: tokens.radius.xs,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: tokens.spacing.xs2,
   },
   checkboxChecked: {
-    backgroundColor: tokens.colors.error[600],
-    borderColor: tokens.colors.error[600],
+    backgroundColor: colors.error[600],
+    borderColor: colors.error[600],
   },
   agreeText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
   inputLabel: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
     marginBottom: tokens.spacing.xs2,
   },
   input: {
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
     borderRadius: tokens.radius.base,
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.base,
     fontSize: tokens.font.base,
-    color: tokens.colors.neutral[900],
-    backgroundColor: tokens.colors.white,
+    color: colors.neutral[900],
+    backgroundColor: colors.white,
   },
   inputError: {
-    borderColor: tokens.colors.error[500],
+    borderColor: colors.error[500],
   },
   errorText: { ...base.textSmError, marginTop: tokens.spacing.xs },
   successText: { ...base.textSmSuccess, marginTop: tokens.spacing.xs2, textAlign: 'center' },
@@ -219,9 +219,9 @@ const styles = StyleSheet.create({
   },
   modalText: {
     fontSize: tokens.font.md,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
     marginBottom: tokens.spacing.xs2,
   },
-  required: { color: tokens.colors.red[500] },
+  required: { color: colors.red[500] },
 
 });

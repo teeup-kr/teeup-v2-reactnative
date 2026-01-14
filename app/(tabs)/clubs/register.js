@@ -19,7 +19,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubFeeCycles, clubRegisterTypes } from '@/constants/clubConstants';
 import { clubsApi } from '@/lib/clubsApi';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ClubRegisterScreen() {
   const router = useRouter();
 
@@ -131,7 +131,7 @@ export default function ClubRegisterScreen() {
               onChangeText={handleChange('name')}
               placeholder="클럽명을 입력하세요"
               style={styles.input}
-              placeholderTextColor={tokens.colors.neutral[400]}
+              placeholderTextColor={colors.neutral[400]}
               error={errors.name}
             />
           </View>
@@ -161,7 +161,7 @@ export default function ClubRegisterScreen() {
               placeholder="클럽 소개글을 입력하세요"
               style={[styles.input, styles.textArea]}
               multiline
-              placeholderTextColor={tokens.colors.neutral[400]}
+              placeholderTextColor={colors.neutral[400]}
             />
           </View>
 
@@ -174,7 +174,7 @@ export default function ClubRegisterScreen() {
                 placeholder="예: 20"
                 keyboardType="numeric"
                 style={styles.input}
-                placeholderTextColor={tokens.colors.neutral[400]}
+                placeholderTextColor={colors.neutral[400]}
                 error={errors.memberCount}
               />
             </View>
@@ -185,7 +185,7 @@ export default function ClubRegisterScreen() {
                 onChangeText={handleChange('location')}
                 placeholder="예: 서울/경기"
                 style={styles.input}
-                placeholderTextColor={tokens.colors.neutral[400]}
+                placeholderTextColor={colors.neutral[400]}
               />
             </View>
           </View>
@@ -198,7 +198,7 @@ export default function ClubRegisterScreen() {
               placeholder="01012345678"
               keyboardType="numeric"
               style={styles.input}
-              placeholderTextColor={tokens.colors.neutral[400]}
+              placeholderTextColor={colors.neutral[400]}
             />
           </View>
 
@@ -210,7 +210,7 @@ export default function ClubRegisterScreen() {
               placeholder="가입 안내, 회비 안내 등을 적어주세요"
               style={[styles.input, styles.textArea]}
               multiline
-              placeholderTextColor={tokens.colors.neutral[400]}
+              placeholderTextColor={colors.neutral[400]}
             />
           </View>
         </Card>
@@ -261,7 +261,7 @@ export default function ClubRegisterScreen() {
                   placeholder="예: 50000"
                   keyboardType="numeric"
                   style={styles.input}
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
               </View>
 
@@ -312,7 +312,7 @@ export default function ClubRegisterScreen() {
                   placeholder="회비 사용처 또는 납부 안내"
                   style={[styles.input, styles.textArea]}
                   multiline
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
               </View>
             </View>
@@ -323,7 +323,7 @@ export default function ClubRegisterScreen() {
           <Text style={styles.sectionTitle}>첨부 파일</Text>
           <Text style={styles.sectionSubtitle}>클럽 소개서, 규정 등을 첨부하세요.</Text>
           <Pressable style={styles.uploadBox}>
-            <FontAwesome5 name="file-alt" size={18} color={tokens.colors.neutral[500]} />
+            <FontAwesome5 name="file-alt" size={18} color={colors.neutral[500]} />
             <View style={styles.uploadTextWrap}>
               <Text style={styles.uploadTitle}>파일 선택</Text>
               <Text style={styles.uploadSubtitle}>{formData.attachment}</Text>
@@ -371,13 +371,13 @@ const styles = StyleSheet.create({
   label: base.labelSm,
   input: {
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
     borderRadius: tokens.radius.base,
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.base,
     fontSize: tokens.font.base,
-    color: tokens.colors.neutral[900],
-    backgroundColor: tokens.colors.white,
+    color: colors.neutral[900],
+    backgroundColor: colors.white,
   },
   textArea: {
     minHeight: 88,
@@ -393,33 +393,33 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.padding.xs2,
     borderRadius: tokens.radius.lg,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[200],
+    borderColor: colors.neutral[200],
     marginRight: tokens.spacing.xs2,
     marginBottom: tokens.spacing.xs2,
   },
   chipActive: {
-    backgroundColor: tokens.colors.primary[600],
-    borderColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
+    borderColor: colors.primary[600],
   },
   chipText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     fontWeight: tokens.fontWeight.semibold,
   },
   chipTextActive: {
-    color: tokens.colors.white,
+    color: colors.white,
   },
   toggle: {
     paddingHorizontal: tokens.padding.baseLg,
     paddingVertical: tokens.padding.xs2,
     borderRadius: tokens.radius.baseLg,
-    backgroundColor: tokens.colors.neutral[200],
+    backgroundColor: colors.neutral[200],
   },
   toggleActive: {
-    backgroundColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
   },
   toggleText: {
-    color: tokens.colors.white,
+    color: colors.white,
     fontWeight: tokens.fontWeight.bold,
     fontSize: tokens.font.sm,
   },
@@ -429,9 +429,9 @@ const styles = StyleSheet.create({
     padding: tokens.padding.sm,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
     borderRadius: tokens.radius.md,
-    backgroundColor: tokens.colors.neutral[50],
+    backgroundColor: colors.neutral[50],
   },
   uploadTextWrap: {
     marginLeft: tokens.spacing.sm2,
@@ -439,17 +439,17 @@ const styles = StyleSheet.create({
   uploadTitle: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[800],
+    color: colors.neutral[800],
   },
   uploadSubtitle: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginTop: tokens.spacing.hairline,
   },
   noticeText: {
     textAlign: 'center',
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginTop: tokens.spacing.xs2,
   },
 });

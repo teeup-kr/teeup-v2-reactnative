@@ -9,8 +9,7 @@ View,
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { base, tokens } from '@/styles/style';
-
-
+import { colors } from '@/theme/colors';
 export default function RegisterSuccessScreen() {
   const router = useRouter();
 
@@ -38,7 +37,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: tokens.font.xxl,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginBottom: tokens.spacing.xs2,
   },
   subtitle: {

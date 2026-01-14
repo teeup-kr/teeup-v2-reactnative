@@ -32,7 +32,7 @@ import {
   getMeetingStatusKey,
 } from '@/lib/meetingUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 /* =========================
    Filter Chip
 ========================= */
@@ -224,7 +224,7 @@ export default function MyMeetingsScreen() {
           <Text style={styles.dateText}>시작일</Text>
           <Pressable style={styles.dateInput} onPress={openStartPicker}>
 
-            <Text style={{ fontSize: tokens.font.sm, color: startDate ? tokens.colors.neutral[800] : tokens.colors.neutral[400] }}>
+            <Text style={{ fontSize: tokens.font.sm, color: startDate ? colors.neutral[800] : colors.neutral[400] }}>
               {startDate || 'YYYY-MM-DD'}
             </Text>
           </Pressable>
@@ -232,7 +232,7 @@ export default function MyMeetingsScreen() {
           {/* 종료일 */}
           <Text style={styles.dateText}>종료일</Text>
           <Pressable style={styles.dateInput} onPress={openEndPicker}>
-            <Text style={{ fontSize: tokens.font.sm, color: endDate ? tokens.colors.neutral[800] : tokens.colors.neutral[400] }}>
+            <Text style={{ fontSize: tokens.font.sm, color: endDate ? colors.neutral[800] : colors.neutral[400] }}>
               {endDate || 'YYYY-MM-DD'}
             </Text>
           </Pressable>
@@ -275,7 +275,7 @@ export default function MyMeetingsScreen() {
         ========================= */}
         {loading && (
           <View style={styles.stateRow}>
-            <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+            <ActivityIndicator size="small" color={colors.primary[600]} />
             <Text style={styles.stateText}>모임을 불러오는 중...</Text>
           </View>
         )}
@@ -291,7 +291,7 @@ export default function MyMeetingsScreen() {
             <FontAwesome5
               name="golf-ball"
               size={28}
-              color={tokens.colors.neutral[400]}
+              color={colors.neutral[400]}
             />
             <Text style={styles.emptyTitle}>참가한 모임이 없습니다.</Text>
             <Text style={styles.emptySubtitle}>
@@ -338,13 +338,13 @@ export default function MyMeetingsScreen() {
 
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
-                  <FontAwesome5 name="calendar-alt" size={12} color={tokens.colors.neutral[500]} />
+                  <FontAwesome5 name="calendar-alt" size={12} color={colors.neutral[500]} />
                   <Text style={styles.metaText}>
                     {formatMeetingTimeShort(meeting?.meeting_time)}
                   </Text>
                 </View>
                 <View style={styles.metaItem}>
-                  <FontAwesome5 name="map-marker-alt" size={12} color={tokens.colors.neutral[500]} />
+                  <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
                   <Text style={styles.metaText}>
                     {meeting?.location || '-'}
                   </Text>
@@ -353,7 +353,7 @@ export default function MyMeetingsScreen() {
 
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
-                  <FontAwesome5 name="users" size={12} color={tokens.colors.neutral[500]} />
+                  <FontAwesome5 name="users" size={12} color={colors.neutral[500]} />
                   <Text style={styles.metaText}>
                     {meeting?.participant_count ?? 0}명 참여
                   </Text>
@@ -424,20 +424,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.xs,
     borderRadius: tokens.radius.lg,
-    backgroundColor: tokens.colors.neutral[100],
+    backgroundColor: colors.neutral[100],
     marginRight: tokens.spacing.xs2,
     marginBottom: tokens.spacing.xs2,
   },
   chipActive: {
-    backgroundColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
   },
   chipText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   chipTextActive: {
-    color: tokens.colors.white,
+    color: colors.white,
   },
 
   dateRow: {
@@ -448,16 +448,16 @@ const styles = StyleSheet.create({
   dateInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
     borderRadius: tokens.radius.base,
     paddingVertical: tokens.padding.base,
     paddingHorizontal: tokens.padding.sm,
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
     justifyContent: 'center',
   },
   dateText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
 
   resetButton: {
@@ -467,12 +467,12 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.padding.xs,
     borderRadius: tokens.radius.sm,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
-    backgroundColor: tokens.colors.white,
+    borderColor: colors.neutral[300],
+    backgroundColor: colors.white,
   },
   resetButtonText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
     fontWeight: tokens.fontWeight.semibold,
   },
 
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
   },
   stateText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   errorText: base.textSmError,
 
@@ -497,12 +497,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[800],
+    color: colors.neutral[800],
     marginTop: tokens.spacing.xs,
   },
   emptySubtitle: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
 
   meetingCard: {
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
 
   cardSubtitle: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginTop: tokens.spacing.xs,
   },
 
@@ -546,12 +546,12 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
 
   detailButton: {
     marginTop: tokens.spacing.sm2,
-    backgroundColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
     paddingVertical: tokens.padding.base,
     borderRadius: tokens.radius.base,
     alignItems: 'center',
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
   detailButtonText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.white,
+    color: colors.white,
   },
 
   paginationRow: {
@@ -573,19 +573,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.xs2,
     borderRadius: tokens.radius.sm,
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[200],
+    borderColor: colors.neutral[200],
   },
   pageButtonDisabled: {
     opacity: 0.5,
   },
   pageButtonText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
   paginationText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
 });

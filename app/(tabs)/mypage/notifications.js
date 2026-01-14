@@ -20,7 +20,7 @@ View,
 import Card from '@/components/ui/Card';
 import { notificationsApi } from '@/lib/api';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 /* ------------------ Utils ------------------ */
 
 const pickData = (resp) => (resp?.data !== undefined ? resp.data : resp);
@@ -60,19 +60,19 @@ const getIcon = (type) => {
     case 'CLUB_MEMBERSHIP_REJECTED':
     case 'CLUB_MEMBERSHIP_REQUEST':
     case 'CLUB_INVITATION':
-      return { name: 'users', color: tokens.colors.blue[600] };
+      return { name: 'users', color: colors.blue[600] };
     case 'MEETING_REMINDER':
     case 'MEETING_CANCELLATION':
     case 'MEETING_COMPLETED':
     case 'TEAM_FORMATION_COMPLETED':
-      return { name: 'calendar-alt', color: tokens.colors.emerald[600] };
+      return { name: 'calendar-alt', color: colors.emerald[600] };
     case 'NEW_NOTICE':
-      return { name: 'file-alt', color: tokens.colors.yellow[600] };
+      return { name: 'file-alt', color: colors.yellow[600] };
     case 'MEETING_SETTLEMENT_COMPLETED':
     case 'SOCIAL_SETTLEMENT_COMPLETED':
-      return { name: 'money-bill-wave', color: tokens.colors.violet[600] };
+      return { name: 'money-bill-wave', color: colors.violet[600] };
     default:
-      return { name: 'bell', color: tokens.colors.neutral[600] };
+      return { name: 'bell', color: colors.neutral[600] };
   }
 };
 
@@ -201,7 +201,7 @@ export default function NotificationsTab() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
+        <ActivityIndicator size="large" color={colors.primary[600]} />
         <Text style={styles.centerText}>알림을 불러오는 중...</Text>
       </View>
     );
@@ -210,7 +210,7 @@ export default function NotificationsTab() {
   if (error) {
     return (
       <Card style={styles.errorCard}>
-        <FontAwesome5 name="times" size={36} color={tokens.colors.error[600]} />
+        <FontAwesome5 name="times" size={36} color={colors.error[600]} />
         <Text style={styles.errorTitle}>알림을 불러올 수 없습니다</Text>
       </Card>
     );
@@ -257,8 +257,8 @@ export default function NotificationsTab() {
                 style={[
                   styles.filterBtn,
                   filter === f && styles.filterBtnActive,
-                  f === 'unread' && filter === f && { backgroundColor: tokens.colors.red[600] },
-                  f === 'read' && filter === f && { backgroundColor: tokens.colors.emerald[600] },
+                  f === 'unread' && filter === f && { backgroundColor: colors.red[600] },
+                  f === 'read' && filter === f && { backgroundColor: colors.emerald[600] },
                 ]}
               >
                 <Text
@@ -297,7 +297,7 @@ export default function NotificationsTab() {
               <FontAwesome5
                 name={selected.length === notifications.length ? 'check-square' : 'square'}
                 size={18}
-                color={tokens.colors.primary[600]}
+                color={colors.primary[600]}
               />
               <Text style={styles.selectAllText}>전체 선택</Text>
             </Pressable>
@@ -319,7 +319,7 @@ export default function NotificationsTab() {
         {/* List */}
         {notifications.length === 0 ? (
           <Card style={styles.emptyCard}>
-            <FontAwesome5 name="bell" size={32} color={tokens.colors.neutral[400]} />
+            <FontAwesome5 name="bell" size={32} color={colors.neutral[400]} />
             <Text style={styles.emptyText}>알림이 없습니다</Text>
             <Text style={styles.emptyText2}>새로운 알림이 오면 여기에 표시됩니다.</Text>
           </Card>
@@ -341,7 +341,7 @@ export default function NotificationsTab() {
                   <FontAwesome5
                     name={selected.includes(n.id) ? 'check-square' : 'square'}
                     size={18}
-                    color={tokens.colors.primary[600]}
+                    color={colors.primary[600]}
                   />
                 </Pressable>
 
@@ -354,7 +354,7 @@ export default function NotificationsTab() {
                 </View>
 
                 <Pressable onPress={() => setDeleteTarget(n.id)}>
-                  <FontAwesome5 name="trash" size={16} color={tokens.colors.error[600]} />
+                  <FontAwesome5 name="trash" size={16} color={colors.error[600]} />
                 </Pressable>
               </Pressable>
             );
@@ -373,7 +373,7 @@ export default function NotificationsTab() {
                 <Text>취소</Text>
               </Pressable>
               <Pressable
-                style={[styles.modalBtn, { backgroundColor: tokens.colors.error[600] }]}
+                style={[styles.modalBtn, { backgroundColor: colors.error[600] }]}
                 onPress={() => {
                   deleteOne(deleteTarget);
                   setDeleteTarget(null);
@@ -400,13 +400,13 @@ export default function NotificationsTab() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  centerText: { marginTop: tokens.spacing.xs2, color: tokens.colors.neutral[600] },
+  centerText: { marginTop: tokens.spacing.xs2, color: colors.neutral[600] },
 
   filterBtnActive: {
-    backgroundColor: tokens.colors.primary[600],
-    borderColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
+    borderColor: colors.primary[600],
   },
-  filterText: { fontWeight: tokens.fontWeight.bold, color: tokens.colors.neutral[700] },
+  filterText: { fontWeight: tokens.fontWeight.bold, color: colors.neutral[700] },
 
   notiCard: {
     ...base.card,
@@ -416,21 +416,21 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.baseLg,
     marginBottom: tokens.spacing.sm,
   },
-  unreadBorder: { borderLeftWidth: 4, borderLeftColor: tokens.colors.emerald[500] },
+  unreadBorder: { borderLeftWidth: 4, borderLeftColor: colors.emerald[500] },
 
-  title: { fontSize: tokens.font.base, fontWeight: tokens.fontWeight.bold, color: tokens.colors.neutral[800] },
-  unreadTitle: { color: tokens.colors.neutral[900], fontWeight: tokens.fontWeight.black },
-  content: { fontSize: tokens.font.sm, color: tokens.colors.neutral[600], marginTop: tokens.spacing.xxs },
-  time: { fontSize: tokens.font.xs, color: tokens.colors.neutral[400], marginTop: tokens.spacing.xxs },
+  title: { fontSize: tokens.font.base, fontWeight: tokens.fontWeight.bold, color: colors.neutral[800] },
+  unreadTitle: { color: colors.neutral[900], fontWeight: tokens.fontWeight.black },
+  content: { fontSize: tokens.font.sm, color: colors.neutral[600], marginTop: tokens.spacing.xxs },
+  time: { fontSize: tokens.font.xs, color: colors.neutral[400], marginTop: tokens.spacing.xxs },
 
   bulkRow: { ...base.row, gap: tokens.spacing.xs2, marginBottom: tokens.spacing.sm2 },
-  bulkBtnBlue: { backgroundColor: tokens.colors.blue[100], padding: tokens.padding.base, borderRadius: tokens.radius.base },
-  bulkBtnRed: { backgroundColor: tokens.colors.red[100], padding: tokens.padding.base, borderRadius: tokens.radius.base },
+  bulkBtnBlue: { backgroundColor: colors.blue[100], padding: tokens.padding.base, borderRadius: tokens.radius.base },
+  bulkBtnRed: { backgroundColor: colors.red[100], padding: tokens.padding.base, borderRadius: tokens.radius.base },
   bulkText: { fontWeight: tokens.fontWeight.extrabold },
 
   emptyCard: { alignItems: 'center', padding: tokens.padding.xxl },
-  emptyText: { marginTop: tokens.spacing.xs2, fontWeight: tokens.fontWeight.bold, color: tokens.colors.neutral[600] },
-  emptyText2: { marginTop: tokens.spacing.xs2, fontWeight: tokens.fontWeight.regular, color: tokens.colors.neutral[600] },
+  emptyText: { marginTop: tokens.spacing.xs2, fontWeight: tokens.fontWeight.bold, color: colors.neutral[600] },
+  emptyText2: { marginTop: tokens.spacing.xs2, fontWeight: tokens.fontWeight.regular, color: colors.neutral[600] },
 
   modalBg: {
     flex: 1,
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: tokens.padding.sm,
     borderRadius: tokens.radius.base,
-    backgroundColor: tokens.colors.neutral[200],
+    backgroundColor: colors.neutral[200],
     alignItems: 'center',
   },
 
@@ -461,11 +461,11 @@ const styles = StyleSheet.create({
     padding: tokens.padding.sm,
     borderRadius: tokens.radius.md,
   },
-  toastSuccess: { backgroundColor: tokens.colors.emerald[600] },
-  toastError: { backgroundColor: tokens.colors.red[600] },
+  toastSuccess: { backgroundColor: colors.emerald[600] },
+  toastError: { backgroundColor: colors.red[600] },
 
   errorCard: { alignItems: 'center', padding: tokens.padding.xxl },
-  errorTitle: { marginTop: tokens.spacing.xs2, fontWeight: tokens.fontWeight.extrabold, color: tokens.colors.error[600] },
+  errorTitle: { marginTop: tokens.spacing.xs2, fontWeight: tokens.fontWeight.extrabold, color: colors.error[600] },
   filterCard: {
     marginBottom: tokens.spacing.sm2,
   },
@@ -475,14 +475,14 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.padding.base,
     borderRadius: tokens.radius.base,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
-    backgroundColor: tokens.colors.white,
+    borderColor: colors.neutral[300],
+    backgroundColor: colors.white,
     marginRight: tokens.spacing.xs2,
   },
   selectText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
 
   actionRow: { ...base.rowBetween, marginTop: tokens.spacing.sm },
@@ -491,25 +491,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.xs,
     borderRadius: tokens.radius.base,
-    backgroundColor: tokens.colors.blue[100],
+    backgroundColor: colors.blue[100],
     borderWidth: 1,
-    borderColor: tokens.colors.blue[300],
+    borderColor: colors.blue[300],
   },
   bulkDelete: {
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.xs,
     borderRadius: tokens.radius.base,
-    backgroundColor: tokens.colors.red[100],
+    backgroundColor: colors.red[100],
     borderWidth: 1,
-    borderColor: tokens.colors.red[200],
+    borderColor: colors.red[200],
   },
   bulkTextBlue: {
-    color: tokens.colors.blue[700],
+    color: colors.blue[700],
     fontWeight: tokens.fontWeight.extrabold,
     fontSize: tokens.font.sm,
   },
   bulkTextRed: {
-    color: tokens.colors.red[700],
+    color: colors.red[700],
     fontWeight: tokens.fontWeight.extrabold,
     fontSize: tokens.font.sm,
   },
@@ -518,14 +518,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.baseLg,
     paddingVertical: tokens.padding.xs,
     borderRadius: tokens.radius.base,
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
   },
   markAllText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
 
   selectAllRow: {
@@ -534,18 +534,18 @@ const styles = StyleSheet.create({
     marginTop: tokens.spacing.sm2,
     paddingTop: tokens.padding.sm,
     borderTopWidth: 1,
-    borderTopColor: tokens.colors.neutral[200],
+    borderTopColor: colors.neutral[200],
   },
   selectAllText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     fontWeight: tokens.fontWeight.semibold,
   },
   pickerWrapper: {
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
     borderRadius: tokens.radius.base,
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
     marginRight: tokens.spacing.xs2,
     overflow: 'hidden',
     minWidth: 160,
@@ -554,9 +554,9 @@ const styles = StyleSheet.create({
   },
   selectBox: {
     borderWidth: 1,
-    borderColor: tokens.colors.zinc[300],
+    borderColor: colors.zinc[300],
     borderRadius: tokens.radius.md,
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
     paddingHorizontal: tokens.padding.baseLg,
     paddingVertical: tokens.padding.hairline,
     minWidth: 160,
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderWidth: 1,
     borderRadius: tokens.radius.sm,
-    borderColor: tokens.colors.zinc[300],
+    borderColor: colors.zinc[300],
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
@@ -585,6 +585,6 @@ const styles = StyleSheet.create({
   arrow: {
     marginLeft: tokens.spacing.xs,
     fontSize: tokens.font.sm,
-    color: tokens.colors.green[600],
+    color: colors.green[600],
   },
 });

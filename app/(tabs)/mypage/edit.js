@@ -14,9 +14,9 @@ import { usersApi } from '@/lib/api';
 import { authApi } from '@/lib/authApi';
 import { extractData } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
+import { colors } from '@/theme/colors';
 
 import { ChangePasswordModal } from './change-password-modal';
-
 /* ===========================
    Component
 =========================== */
@@ -356,7 +356,7 @@ export default function UserProfileEditForm() {
                     handleInputChange('nickname', t)
                   }
                   placeholder="닉네임을 입력하세요"
-                  placeholderTextColor={tokens.colors.gray[400]}
+                  placeholderTextColor={colors.gray[400]}
                   style={[
                     styles.input,
                     errors.nickname
@@ -451,7 +451,7 @@ export default function UserProfileEditForm() {
                   );
                 }}
                 placeholder="실명을 입력하세요"
-                placeholderTextColor={tokens.colors.gray[400]}
+                placeholderTextColor={colors.gray[400]}
                 style={[
                   styles.input,
                   errors.realname
@@ -480,7 +480,7 @@ export default function UserProfileEditForm() {
                   handleInputChange('phone_number', t)
                 }
                 placeholder="전화번호를 입력하세요"
-                placeholderTextColor={tokens.colors.gray[400]}
+                placeholderTextColor={colors.gray[400]}
                 style={[
                   styles.input,
                   errors.phone_number
@@ -602,7 +602,7 @@ export default function UserProfileEditForm() {
                       handleInputChange('average_score', t)
                     }
                     placeholder="평균 타수를 입력하세요 (55-144)"
-                    placeholderTextColor={tokens.colors.gray[400]}
+                    placeholderTextColor={colors.gray[400]}
                     style={[
                       styles.input,
                       errors.average_score
@@ -764,7 +764,7 @@ export default function UserProfileEditForm() {
                 styles.btnPressed,
               ]}
             >
-              <FontAwesome5 name="save" size={14} color={tokens.colors.white} />
+              <FontAwesome5 name="save" size={14} color={colors.white} />
               <Text style={styles.saveBtnText}>
                 {updateProfilePending ? '저장 중...' : '저장'}
               </Text>
@@ -800,7 +800,7 @@ export default function UserProfileEditForm() {
                 : 'check-circle'
             }
             size={16}
-            color={tokens.colors.white}
+            color={colors.white}
           />
           <Text style={styles.toastText}>
             {toast.message}
@@ -811,25 +811,25 @@ export default function UserProfileEditForm() {
   );
 }
 
-const PRIMARY_600 = tokens.colors.green[600];
+const PRIMARY_600 = colors.green[600];
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: tokens.colors.bg },
+  root: { flex: 1, backgroundColor: colors.bg },
   container: base.container,
 
   card: {
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
     borderRadius: tokens.radius.md,
     borderWidth: 1,
-    borderColor: tokens.colors.border,
+    borderColor: colors.border,
     padding: tokens.padding.md,
-    shadowColor: tokens.colors.black,
+    shadowColor: colors.black,
     shadowOpacity: 0.06,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  cardTitle: { ...base.cardTitle, color: tokens.colors.text, marginBottom: tokens.spacing.md },
+  cardTitle: { ...base.cardTitle, color: colors.text, marginBottom: tokens.spacing.md },
 
   stackLg: { gap: 18 },
   stackSm: { gap: 8 },
@@ -838,11 +838,11 @@ const styles = StyleSheet.create({
   label: {
     fontSize: tokens.font.md,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.textMuted,
+    color: colors.textMuted,
     marginBottom: tokens.spacing.xs2,
   },
-  labelIcon: { marginRight: tokens.spacing.xs2, color: tokens.colors.textMuted },
-  required: { color: tokens.colors.red[500] },
+  labelIcon: { marginRight: tokens.spacing.xs2, color: colors.textMuted },
+  required: { color: colors.red[500] },
 
   input: {
     flex: 1,
@@ -851,47 +851,47 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.lg,
     borderWidth: 1,
     borderRadius: tokens.radius.md,
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
   },
   inputLike: {
     paddingHorizontal: tokens.padding.baseLg,
     paddingVertical: tokens.padding.sm,
     borderWidth: 1,
     borderRadius: tokens.radius.md,
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
   },
-  inputLikeText: { fontSize: tokens.font.lg, color: tokens.colors.text },
+  inputLikeText: { fontSize: tokens.font.lg, color: colors.text },
   inputPressed: { opacity: 0.9 },
 
-  inputNormal: { borderColor: tokens.colors.inputBorder },
+  inputNormal: { borderColor: colors.inputBorder },
   inputError: {
-    borderColor: tokens.colors.red[300],
-    backgroundColor: tokens.colors.red[50],
+    borderColor: colors.red[300],
+    backgroundColor: colors.red[50],
   },
 
   readonlyBox: {
     paddingHorizontal: tokens.padding.baseLg,
     paddingVertical: tokens.padding.sm,
-    backgroundColor: tokens.colors.bg,
+    backgroundColor: colors.bg,
     borderWidth: 1,
-    borderColor: tokens.colors.inputBorder,
+    borderColor: colors.inputBorder,
     borderRadius: tokens.radius.md,
   },
-  readonlyText: { color: tokens.colors.textMuted, fontSize: tokens.font.lg },
+  readonlyText: { color: colors.textMuted, fontSize: tokens.font.lg },
 
-  helperText: { marginTop: tokens.spacing.xs, fontSize: tokens.font.sm, color: tokens.colors.textSubtle },
+  helperText: { marginTop: tokens.spacing.xs, fontSize: tokens.font.sm, color: colors.textSubtle },
   loadingText: base.textSmSubtle,
 
   errorText: {
     ...base.textSmError,
     marginTop: tokens.spacing.xs,
-    color: tokens.colors.red[600],
+    color: colors.red[600],
     fontSize: tokens.font.md,
   },
   successText: {
     ...base.textSmSuccess,
     marginTop: tokens.spacing.xs,
-    color: tokens.colors.green[600],
+    color: colors.green[600],
     fontSize: tokens.font.md,
   },
 
@@ -903,7 +903,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primaryBtnText: {
-    color: tokens.colors.white,
+    color: colors.white,
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
   },
@@ -912,11 +912,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.sm,
     borderRadius: tokens.radius.md,
-    backgroundColor: tokens.colors.gray[100],
+    backgroundColor: colors.gray[100],
     alignSelf: 'flex-start',
   },
   grayBtnText: {
-    color: tokens.colors.textMuted,
+    color: colors.textMuted,
     fontWeight: tokens.fontWeight.bold,
     fontSize: tokens.font.sm,
   },
@@ -928,27 +928,27 @@ const styles = StyleSheet.create({
     marginTop: tokens.spacing.sm,
     borderRadius: tokens.radius.md,
     borderWidth: 1,
-    borderColor: tokens.colors.green[200],
-    backgroundColor: tokens.colors.green[50],
+    borderColor: colors.green[200],
+    backgroundColor: colors.green[50],
     padding: tokens.padding.sm,
   },
-  infoTitle: { fontWeight: tokens.fontWeight.extrabold, color: tokens.colors.green[800] },
-  infoSub: { fontSize: tokens.font.xs, color: tokens.colors.green[600], marginTop: tokens.spacing.xxs },
+  infoTitle: { fontWeight: tokens.fontWeight.extrabold, color: colors.green[800] },
+  infoSub: { fontSize: tokens.font.xs, color: colors.green[600], marginTop: tokens.spacing.xxs },
 
   autoBox: {
     borderRadius: tokens.radius.md,
     borderWidth: 1,
-    borderColor: tokens.colors.green[200],
-    backgroundColor: tokens.colors.green[50],
+    borderColor: colors.green[200],
+    backgroundColor: colors.green[50],
     padding: tokens.padding.sm,
   },
   autoTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  autoTitle: { fontWeight: tokens.fontWeight.extrabold, color: tokens.colors.green[900] },
-  autoSub: { fontSize: tokens.font.xs, color: tokens.colors.green[700] },
-  autoHint: { fontSize: tokens.font.xs, color: tokens.colors.green[600], marginTop: tokens.spacing.xxs },
+  autoTitle: { fontWeight: tokens.fontWeight.extrabold, color: colors.green[900] },
+  autoSub: { fontSize: tokens.font.xs, color: colors.green[700] },
+  autoHint: { fontSize: tokens.font.xs, color: colors.green[600], marginTop: tokens.spacing.xxs },
 
   badge: {
     paddingHorizontal: tokens.padding.xs,
@@ -956,13 +956,13 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.pill,
     backgroundColor: PRIMARY_600,
   },
-  badgeText: { color: tokens.colors.white, fontSize: tokens.font.xs, fontWeight: tokens.fontWeight.extrabold },
+  badgeText: { color: colors.white, fontSize: tokens.font.xs, fontWeight: tokens.fontWeight.extrabold },
 
   footer: {
     marginTop: tokens.spacing.md3,
     paddingTop: tokens.padding.md,
     borderTopWidth: 1,
-    borderTopColor: tokens.colors.border,
+    borderTopColor: colors.border,
     alignItems: 'flex-end',
   },
   saveBtn: {
@@ -974,7 +974,7 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY_600,
     alignItems: 'center',
   },
-  saveBtnText: { color: tokens.colors.white, fontWeight: tokens.fontWeight.extrabold, fontSize: tokens.font.sm },
+  saveBtnText: { color: colors.white, fontWeight: tokens.fontWeight.extrabold, fontSize: tokens.font.sm },
 
   toast: {
     position: 'absolute',
@@ -986,8 +986,8 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.baseLg,
     elevation: 8,
   },
-  toastError: { backgroundColor: tokens.colors.red[600] },
-  toastInfo: { backgroundColor: tokens.colors.blue[600] },
-  toastSuccess: { backgroundColor: tokens.colors.green[600] },
-  toastText: { color: tokens.colors.white, fontWeight: tokens.fontWeight.extrabold },
+  toastError: { backgroundColor: colors.red[600] },
+  toastInfo: { backgroundColor: colors.blue[600] },
+  toastSuccess: { backgroundColor: colors.green[600] },
+  toastText: { color: colors.white, fontWeight: tokens.fontWeight.extrabold },
 });

@@ -21,7 +21,7 @@ import { useAuth } from '@/context/AuthContext';
 import { usersApi } from '@/lib/api';
 import { extractList, formatMeetingListDate } from '@/lib/meetingUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function MyMeetingsScreen() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -69,7 +69,7 @@ export default function MyMeetingsScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.stateContainer}>
-          <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
+          <ActivityIndicator size="large" color={colors.primary[600]} />
         </View>
       </SafeAreaView>
     );
@@ -96,7 +96,7 @@ export default function MyMeetingsScreen() {
         <View style={styles.list}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+              <ActivityIndicator size="small" color={colors.primary[600]} />
               <Text style={styles.stateText}>모임을 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -115,7 +115,7 @@ export default function MyMeetingsScreen() {
                 onPress={() => router.push(`/meetings/${meeting.type}/${meeting.id}`)}
               >
                 <View style={styles.iconWrap}>
-                  <FontAwesome5 name="calendar-check" size={14} color={tokens.colors.primary[600]} />
+                  <FontAwesome5 name="calendar-check" size={14} color={colors.primary[600]} />
                 </View>
                 <View style={styles.info}>
                   <Text style={styles.name}>{meeting.name}</Text>
@@ -139,16 +139,16 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     fontSize: tokens.font.base,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   summaryValue: {
     fontSize: tokens.font.xl,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginTop: tokens.spacing.xs,
   },
   list: {
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
     borderRadius: tokens.radius.lg,
     paddingVertical: tokens.padding.xxs,
   },
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: tokens.radius.lg,
-    backgroundColor: tokens.colors.primary[50],
+    backgroundColor: colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: tokens.spacing.sm2,
@@ -181,16 +181,16 @@ const styles = StyleSheet.create({
   name: {
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[800],
+    color: colors.neutral[800],
   },
   date: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginTop: tokens.spacing.hairline,
   },
   status: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     fontWeight: tokens.fontWeight.semibold,
   },
 });

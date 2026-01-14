@@ -25,6 +25,7 @@ import { authApi } from '@/lib/authApi';
 import { buildGoogleAuthConfig, generateOauthState } from '@/lib/authUtils';
 import { tokenStorage } from '@/lib/tokenStorage';
 import { base, tokens } from '@/styles/style';
+import { colors } from '@/theme/colors';
 
 const logoImage = require('../public/icons/icon-512-transparent.png');
 
@@ -137,7 +138,7 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient colors={[tokens.colors.primary[50], tokens.colors.primary[100]]} style={styles.gradient}>
+      <LinearGradient colors={[colors.primary[50], colors.primary[100]]} style={styles.gradient}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.flex}
@@ -211,7 +212,7 @@ export default function LoginScreen() {
                 loading={isGoogleSigningIn}
                 disabled={isSubmitting || isGoogleSigningIn}
               >
-                <FontAwesome name="google" size={16} color={tokens.colors.neutral[700]} style={styles.iconGap} />
+                <FontAwesome name="google" size={16} color={colors.neutral[700]} style={styles.iconGap} />
                 <Text style={styles.outlineText}>Google로 로그인</Text>
               </Button>
 
@@ -264,23 +265,23 @@ const styles = StyleSheet.create({
   brandTitle: {
     fontSize: tokens.font.xxl,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginBottom: tokens.spacing.xs,
   },
   brandSubtitle: {
     fontSize: tokens.font.md,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   pageTitle: {
     fontSize: tokens.font.display,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     textAlign: 'center',
     marginBottom: tokens.spacing.md,
   },
   generalError: {
     textAlign: 'center',
-    color: tokens.colors.error[600],
+    color: colors.error[600],
     fontSize: tokens.font.sm,
     marginBottom: tokens.spacing.sm2,
   },
@@ -294,11 +295,11 @@ const styles = StyleSheet.create({
   },
   helperText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   helperLink: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.primary[600],
+    color: colors.primary[600],
     fontWeight: tokens.fontWeight.semibold,
     marginLeft: tokens.spacing.xs,
   },
@@ -310,12 +311,12 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: tokens.colors.neutral[200],
+    backgroundColor: colors.neutral[200],
   },
   dividerText: {
     marginHorizontal: tokens.spacing.sm2,
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
   iconGap: {
     marginRight: tokens.spacing.xs2,
@@ -323,7 +324,7 @@ const styles = StyleSheet.create({
   outlineText: {
     fontSize: tokens.font.lg,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
   registerRow: {
     marginTop: tokens.spacing.md3,
@@ -332,11 +333,11 @@ const styles = StyleSheet.create({
   },
   registerText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   registerLink: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.primary[600],
+    color: colors.primary[600],
     fontWeight: tokens.fontWeight.semibold,
     marginLeft: tokens.spacing.xs,
   },

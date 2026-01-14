@@ -22,6 +22,7 @@ import Card from '@/components/ui/Card';
 import { registerInitialErrors, registerInitialForm } from '@/constants/authConstants';
 import { authApi } from '@/lib/authApi';
 import { base, tokens } from '@/styles/style';
+import { colors } from '@/theme/colors';
 
 const logoImage = require('../public/icons/icon-512-transparent.png');
 
@@ -296,7 +297,7 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient colors={[tokens.colors.primary[50], tokens.colors.secondary[50]]} style={styles.gradient}>
+      <LinearGradient colors={[colors.primary[50], colors.secondary[50]]} style={styles.gradient}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.flex}
@@ -323,7 +324,7 @@ export default function RegisterScreen() {
                     keyboardType="email-address"
                     autoCapitalize="none"
                     style={[styles.input, validationErrors.email && styles.inputError]}
-                    placeholderTextColor={tokens.colors.neutral[400]}
+                    placeholderTextColor={colors.neutral[400]}
                   />
                   <Pressable
                     onPress={checkEmailDuplicate}
@@ -355,7 +356,7 @@ export default function RegisterScreen() {
                   placeholder="비밀번호를 입력하세요"
                   secureTextEntry
                   style={[styles.input, validationErrors.password && styles.inputError]}
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
                 {formData.password ? (
                   <View style={styles.passwordChecks}>
@@ -388,7 +389,7 @@ export default function RegisterScreen() {
                   placeholder="비밀번호를 다시 입력하세요"
                   secureTextEntry
                   style={[styles.input, validationErrors.confirmPassword && styles.inputError]}
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
                 {validationErrors.confirmPassword ? (
                   <Text style={styles.errorText}>{validationErrors.confirmPassword}</Text>
@@ -407,7 +408,7 @@ export default function RegisterScreen() {
                     onChangeText={handleInputChange('nickname')}
                     placeholder="닉네임을 입력하세요"
                     style={[styles.input, validationErrors.nickname && styles.inputError]}
-                    placeholderTextColor={tokens.colors.neutral[400]}
+                    placeholderTextColor={colors.neutral[400]}
                   />
                   <Pressable
                     onPress={checkNicknameDuplicate}
@@ -437,7 +438,7 @@ export default function RegisterScreen() {
                   placeholder="예: 90 (55-144타)"
                   keyboardType="numeric"
                   style={[styles.input, validationErrors.average_score && styles.inputError]}
-                  placeholderTextColor={tokens.colors.neutral[400]}
+                  placeholderTextColor={colors.neutral[400]}
                 />
                 {validationErrors.average_score ? (
                   <Text style={styles.errorText}>{validationErrors.average_score}</Text>
@@ -577,12 +578,12 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: tokens.font.xxl,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginBottom: tokens.spacing.xs,
   },
   pageSubtitle: {
     fontSize: tokens.font.md,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     textAlign: 'center',
   },
   fieldGroup: {
@@ -590,21 +591,21 @@ const styles = StyleSheet.create({
   },
   label: base.labelSm,
   required: {
-    color: tokens.colors.error[500],
+    color: colors.error[500],
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
     borderRadius: tokens.radius.base,
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.base,
     fontSize: tokens.font.base,
-    color: tokens.colors.neutral[900],
-    backgroundColor: tokens.colors.white,
+    color: colors.neutral[900],
+    backgroundColor: colors.white,
   },
   inputError: {
-    borderColor: tokens.colors.error[500],
+    borderColor: colors.error[500],
   },
   inlineField: {
     flexDirection: 'row',
@@ -614,14 +615,14 @@ const styles = StyleSheet.create({
     marginLeft: tokens.spacing.xs2,
     paddingVertical: tokens.padding.base,
     paddingHorizontal: tokens.padding.sm,
-    backgroundColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
     borderRadius: tokens.radius.base,
   },
   inlineButtonDisabled: {
     opacity: 0.5,
   },
   inlineButtonText: {
-    color: tokens.colors.white,
+    color: colors.white,
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.semibold,
   },
@@ -632,22 +633,22 @@ const styles = StyleSheet.create({
   },
   checkItem: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginBottom: tokens.spacing.xxs,
   },
   checkItemSuccess: {
-    color: tokens.colors.success[600],
+    color: colors.success[600],
   },
   termsSection: {
     borderTopWidth: 1,
-    borderTopColor: tokens.colors.neutral[200],
+    borderTopColor: colors.neutral[200],
     paddingTop: tokens.padding.md,
     marginTop: tokens.spacing.xs2,
   },
   termsTitle: {
     fontSize: tokens.font.md,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
     marginBottom: tokens.spacing.sm,
   },
   termsList: {
@@ -664,29 +665,29 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: tokens.radius.xxs,
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[400],
+    borderColor: colors.neutral[400],
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: tokens.spacing.xs2,
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
   },
   checkboxChecked: {
-    backgroundColor: tokens.colors.primary[600],
-    borderColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
+    borderColor: colors.primary[600],
   },
   checkboxMark: {
-    color: tokens.colors.white,
+    color: colors.white,
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
   },
   checkboxLabel: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
     marginRight: tokens.spacing.xs,
   },
   termsLink: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.primary[600],
+    color: colors.primary[600],
     fontWeight: tokens.fontWeight.semibold,
   },
   submitButton: {
@@ -699,11 +700,11 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   loginLink: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.primary[600],
+    color: colors.primary[600],
     fontWeight: tokens.fontWeight.semibold,
     marginLeft: tokens.spacing.xs,
   },

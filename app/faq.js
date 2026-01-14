@@ -15,7 +15,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { faqApi } from '@/lib/api';
 import { normalizeFaqList } from '@/lib/faqUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function FaqScreen() {
   const [items, setItems] = useState([]);
   const [openId, setOpenId] = useState(null);
@@ -74,7 +74,7 @@ export default function FaqScreen() {
                   <FontAwesome5
                     name={isOpen ? 'chevron-up' : 'chevron-down'}
                     size={12}
-                    color={tokens.colors.neutral[500]}
+                    color={colors.neutral[500]}
                   />
                 </Pressable>
                 {isOpen ? <Text style={styles.answerText}>{item.answer}</Text> : null}
@@ -98,13 +98,13 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     flex: 1,
     marginRight: tokens.spacing.xs2,
   },
   answerText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     marginTop: tokens.spacing.sm2,
     lineHeight: 18,
   },

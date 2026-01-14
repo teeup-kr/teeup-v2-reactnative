@@ -16,7 +16,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/clubsApi';
 import { extractList } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ClubActivitiesScreen() {
   const { clubId } = useLocalSearchParams();
   const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
@@ -56,7 +56,7 @@ export default function ClubActivitiesScreen() {
         <Card style={styles.listCard}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+              <ActivityIndicator size="small" color={colors.primary[600]} />
               <Text style={styles.stateText}>활동 내역을 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.md,
     paddingVertical: tokens.padding.sm,
     borderBottomWidth: 1,
-    borderBottomColor: tokens.colors.neutral[100],
+    borderBottomColor: colors.neutral[100],
   },
   itemInfo: {
     marginBottom: tokens.spacing.xs,
@@ -118,15 +118,15 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[800],
+    color: colors.neutral[800],
   },
   itemDetail: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginTop: tokens.spacing.hairline,
   },
   itemDate: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[400],
+    color: colors.neutral[400],
   },
 });

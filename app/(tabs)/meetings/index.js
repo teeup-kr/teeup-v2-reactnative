@@ -39,7 +39,7 @@ import {
   parseYmd,
 } from '@/lib/meetingUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 const Badge = ({ text, backgroundColor, textColor }) => (
   <View style={[styles.badge, { backgroundColor }]}>
     <Text style={[styles.badgeText, { color: textColor }]}>{text}</Text>
@@ -121,21 +121,21 @@ const MeetingCard = ({ meeting, onPress }) => {
 
         <View style={styles.metaList}>
           <View style={styles.metaItem}>
-            <FontAwesome5 name="calendar-alt" size={12} color={tokens.colors.neutral[500]} />
+            <FontAwesome5 name="calendar-alt" size={12} color={colors.neutral[500]} />
             <Text style={styles.metaText} numberOfLines={1}>
               {formatMeetingTime(meeting?.meeting_time)}
             </Text>
           </View>
           {meeting?.location ? (
             <View style={styles.metaItem}>
-              <FontAwesome5 name="map-marker-alt" size={12} color={tokens.colors.neutral[500]} />
+              <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
               <Text style={styles.metaText} numberOfLines={1}>
                 {meeting.location}
               </Text>
             </View>
           ) : null}
           <View style={styles.metaItem}>
-            <FontAwesome5 name="users" size={12} color={tokens.colors.neutral[500]} />
+            <FontAwesome5 name="users" size={12} color={colors.neutral[500]} />
             <Text style={styles.metaText}>
               {meeting?.participant_count ?? 0}
               {maxParticipants ? `/${maxParticipants}` : ''}명
@@ -143,7 +143,7 @@ const MeetingCard = ({ meeting, onPress }) => {
           </View>
           {meeting?.application_deadline ? (
             <View style={styles.metaItem}>
-              <FontAwesome5 name="clock" size={12} color={tokens.colors.neutral[500]} />
+              <FontAwesome5 name="clock" size={12} color={colors.neutral[500]} />
               <Text style={styles.metaText} numberOfLines={1}>
                 참가 신청 마감: {formatMeetingTime(meeting.application_deadline)}
               </Text>
@@ -163,7 +163,7 @@ const MeetingCard = ({ meeting, onPress }) => {
             ) : null}
             {meeting?.total_cost ? (
               <View style={styles.metaItem}>
-                <FontAwesome5 name="dollar-sign" size={12} color={tokens.colors.neutral[500]} />
+                <FontAwesome5 name="dollar-sign" size={12} color={colors.neutral[500]} />
                 <Text style={styles.metaText}>총 비용: {formatCost(meeting.total_cost)}</Text>
               </View>
             ) : null}
@@ -173,7 +173,7 @@ const MeetingCard = ({ meeting, onPress }) => {
         {meetingType === 'SOCIAL' && meeting?.social_cost ? (
           <View style={styles.extraList}>
             <View style={styles.metaItem}>
-              <FontAwesome5 name="dollar-sign" size={12} color={tokens.colors.neutral[500]} />
+              <FontAwesome5 name="dollar-sign" size={12} color={colors.neutral[500]} />
               <Text style={styles.metaText}>참가 비용(원): {formatCost(meeting.social_cost)}</Text>
             </View>
           </View>
@@ -459,7 +459,7 @@ export default function MeetingsScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.stateContainer}>
-          <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
+          <ActivityIndicator size="large" color={colors.primary[600]} />
         </View>
       </SafeAreaView>
     );
@@ -490,11 +490,11 @@ export default function MeetingsScreen() {
 
         {loading ? (
           <View style={styles.loadingBlock}>
-            <ActivityIndicator size="large" color={tokens.colors.primary[600]} />
+            <ActivityIndicator size="large" color={colors.primary[600]} />
           </View>
         ) : !hasClubs ? (
           <View style={styles.noClubState}>
-            <FontAwesome5 name="users" size={52} color={tokens.colors.neutral[300]} />
+            <FontAwesome5 name="users" size={52} color={colors.neutral[300]} />
             <Text style={styles.noClubTitle}>소속된 클럽이 없습니다.</Text>
             <Text style={styles.noClubSubtitle}>
               모임을 개설하거나 참여하려면,{'\n'}먼저 클럽을 개설하거나, 클럽에 가입해 주세요.
@@ -516,7 +516,7 @@ export default function MeetingsScreen() {
                     pressed && styles.createButtonPressed,
                   ]}
                 >
-                  <FontAwesome5 name="plus" size={12} color={tokens.colors.white} />
+                  <FontAwesome5 name="plus" size={12} color={colors.white} />
                   <Text style={styles.createButtonText}>라운딩 생성</Text>
                 </Pressable>
                 <Pressable
@@ -527,7 +527,7 @@ export default function MeetingsScreen() {
                     pressed && styles.createButtonPressed,
                   ]}
                 >
-                  <FontAwesome5 name="plus" size={12} color={tokens.colors.white} />
+                  <FontAwesome5 name="plus" size={12} color={colors.white} />
                   <Text style={styles.createButtonText}>소셜 생성</Text>
                 </Pressable>
               </View>
@@ -599,7 +599,7 @@ export default function MeetingsScreen() {
 
               <View style={styles.searchRow}>
                 <View style={styles.searchInputWrap}>
-                  <FontAwesome5 name="search" size={14} color={tokens.colors.neutral[400]} />
+                  <FontAwesome5 name="search" size={14} color={colors.neutral[400]} />
                   <TextInput
                     value={searchInput}
                     onChangeText={(value) => {
@@ -610,7 +610,7 @@ export default function MeetingsScreen() {
                       }
                     }}
                     placeholder="모임명으로 검색..."
-                    placeholderTextColor={tokens.colors.neutral[400]}
+                    placeholderTextColor={colors.neutral[400]}
                     style={styles.searchInput}
                     returnKeyType="search"
                     onSubmitEditing={handleSearch}
@@ -666,7 +666,7 @@ export default function MeetingsScreen() {
 
             {currentMeetings.length === 0 ? (
               <View style={styles.emptyState}>
-                <FontAwesome5 name="calendar-alt" size={44} color={tokens.colors.neutral[300]} />
+                <FontAwesome5 name="calendar-alt" size={44} color={colors.neutral[300]} />
                 {hasActiveFilters() ? (
                   <>
                     <Text style={styles.emptyTitle}>
@@ -813,13 +813,13 @@ const styles = StyleSheet.create({
     marginTop: tokens.spacing.md,
     fontSize: tokens.font.xl,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
   },
   noClubSubtitle: {
     marginTop: tokens.spacing.sm,
     marginBottom: tokens.spacing.md,
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -833,7 +833,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: tokens.font.xxl,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
   },
   createRow: {
     flexDirection: 'row',
@@ -854,19 +854,19 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   createButtonRounding: {
-    backgroundColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
   },
   createButtonSocial: {
-    backgroundColor: tokens.colors.accent[600],
+    backgroundColor: colors.accent[600],
   },
   createButtonText: {
-    color: tokens.colors.white,
+    color: colors.white,
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
   },
   tabBar: {
     borderBottomWidth: 1,
-    borderBottomColor: tokens.colors.neutral[200],
+    borderBottomColor: colors.neutral[200],
     marginBottom: tokens.spacing.md,
   },
   tabBarRow: {
@@ -881,15 +881,15 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabButtonActive: {
-    borderBottomColor: tokens.colors.primary[500],
+    borderBottomColor: colors.primary[500],
   },
   tabText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.semibold,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
   },
   tabTextActive: {
-    color: tokens.colors.primary[600],
+    color: colors.primary[600],
   },
   filtersBlock: {
     gap: 12,
@@ -905,23 +905,23 @@ const styles = StyleSheet.create({
   },
   dateInput: {
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
     borderRadius: tokens.radius.base,
     paddingHorizontal: tokens.padding.base,
     paddingVertical: tokens.padding.base,
-    backgroundColor: tokens.colors.white,
+    backgroundColor: colors.white,
   },
   dateInputText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     fontWeight: tokens.fontWeight.semibold,
   },
   dateInputPlaceholder: {
-    color: tokens.colors.neutral[400],
+    color: colors.neutral[400],
     fontWeight: tokens.fontWeight.medium,
   },
   dateDivider: {
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     fontSize: tokens.font.sm,
   },
   resetButton: {
@@ -930,7 +930,7 @@ const styles = StyleSheet.create({
   },
   resetButtonText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     fontWeight: tokens.fontWeight.semibold,
   },
   searchRow: {
@@ -943,7 +943,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: tokens.colors.neutral[300],
+    borderColor: colors.neutral[300],
     borderRadius: tokens.radius.base,
     paddingHorizontal: tokens.padding.base,
     paddingVertical: tokens.padding.base,
@@ -952,18 +952,18 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
   },
   searchButton: {
     paddingHorizontal: tokens.padding.baseLg,
     paddingVertical: tokens.padding.base,
     borderRadius: tokens.radius.base,
-    backgroundColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
   },
   searchButtonText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.white,
+    color: colors.white,
   },
   statusRow: {
     flexDirection: 'row',
@@ -978,22 +978,22 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.base,
   },
   statusButtonActive: {
-    backgroundColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
   },
   statusButtonInactive: {
-    backgroundColor: tokens.colors.neutral[100],
+    backgroundColor: colors.neutral[100],
   },
   statusButtonText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
   statusButtonTextActive: {
-    color: tokens.colors.white,
+    color: colors.white,
   },
   statusDivider: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[400],
+    color: colors.neutral[400],
   },
   emptyState: {
     paddingVertical: tokens.padding.xxxl,
@@ -1003,7 +1003,7 @@ const styles = StyleSheet.create({
     marginTop: tokens.spacing.md,
     fontSize: tokens.font.lg,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     textAlign: 'center',
     paddingHorizontal: tokens.padding.lg,
   },
@@ -1011,7 +1011,7 @@ const styles = StyleSheet.create({
     marginTop: tokens.spacing.xs2,
     marginBottom: tokens.spacing.md,
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     textAlign: 'center',
     paddingHorizontal: tokens.padding.lg,
     lineHeight: 18,
@@ -1024,7 +1024,7 @@ const styles = StyleSheet.create({
   emptyCreateButtonText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.white,
+    color: colors.white,
   },
   cardList: {
     marginTop: tokens.spacing.xxs,
@@ -1067,7 +1067,7 @@ const styles = StyleSheet.create({
   },
   cardDescription: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     lineHeight: 18,
     marginBottom: tokens.spacing.sm2,
   },
@@ -1089,7 +1089,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: tokens.font.sm,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
     flex: 1,
   },
   cardFooter: {
@@ -1099,12 +1099,12 @@ const styles = StyleSheet.create({
   },
   cardDate: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[400],
+    color: colors.neutral[400],
   },
   cardLink: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.primary[600],
+    color: colors.primary[600],
   },
   paginationRow: {
     marginTop: tokens.spacing.sm2,
@@ -1118,7 +1118,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.base,
     borderRadius: tokens.radius.base,
-    backgroundColor: tokens.colors.neutral[100],
+    backgroundColor: colors.neutral[100],
   },
   pageNavButtonDisabled: {
     opacity: 0.5,
@@ -1126,7 +1126,7 @@ const styles = StyleSheet.create({
   pageNavText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
   pageNumbersRow: {
     flexDirection: 'row',
@@ -1140,17 +1140,17 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.base,
   },
   pageNumberActive: {
-    backgroundColor: tokens.colors.primary[600],
+    backgroundColor: colors.primary[600],
   },
   pageNumberInactive: {
-    backgroundColor: tokens.colors.neutral[100],
+    backgroundColor: colors.neutral[100],
   },
   pageNumberText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[700],
+    color: colors.neutral[700],
   },
   pageNumberTextActive: {
-    color: tokens.colors.white,
+    color: colors.white,
   },
 });

@@ -18,7 +18,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api';
 import { extractList } from '@/lib/responseUtils';
 import { base, tokens } from '@/styles/style';
-
+import { colors } from '@/theme/colors';
 export default function ExpenseScreen() {
   const { meetingId } = useLocalSearchParams();
   const resolvedId = Array.isArray(meetingId) ? meetingId[0] : meetingId;
@@ -75,7 +75,7 @@ export default function ExpenseScreen() {
         <View style={styles.list}>
           {isLoading ? (
             <View style={styles.stateRow}>
-              <ActivityIndicator size="small" color={tokens.colors.primary[600]} />
+              <ActivityIndicator size="small" color={colors.primary[600]} />
               <Text style={styles.stateText}>경비를 불러오는 중...</Text>
             </View>
           ) : error ? (
@@ -118,17 +118,17 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     fontSize: tokens.font.base,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   summaryValue: {
     fontSize: tokens.font.display,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginTop: tokens.spacing.xs,
   },
   summaryHint: {
     fontSize: tokens.font.xs,
-    color: tokens.colors.neutral[500],
+    color: colors.neutral[500],
     marginTop: tokens.spacing.xs,
   },
   list: {
@@ -139,12 +139,12 @@ const styles = StyleSheet.create({
   },
   expenseLabel: {
     fontSize: tokens.font.md,
-    color: tokens.colors.neutral[600],
+    color: colors.neutral[600],
   },
   expenseAmount: {
     fontSize: tokens.font.title,
     fontWeight: tokens.fontWeight.bold,
-    color: tokens.colors.neutral[900],
+    color: colors.neutral[900],
     marginTop: tokens.spacing.xs,
   },
   stateRow: base.stateRow,

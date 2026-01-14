@@ -2,9 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { tokens } from '@/styles/style';
-
-import { colors } from '../../theme/colors';
-
+import { colors } from '@/theme/colors';
 const gradientColors = ['#059669', '#0F766E'];
 
 const getSizeStyle = (size) => {

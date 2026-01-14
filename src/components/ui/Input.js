@@ -1,9 +1,7 @@
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { tokens } from '@/styles/style';
-
-import { colors } from '../../theme/colors';
-
+import { colors } from '@/theme/colors';
 export default function Input({
   label,
   value,
