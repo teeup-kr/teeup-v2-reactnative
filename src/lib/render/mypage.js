@@ -6,11 +6,13 @@ function createPasswordFieldChangeHandler({
     setError,
     setSuccess,
     field,
-}) { return (value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    setError('');
-    setSuccess('');
-}; }
+}) {
+    return (value) => {
+        setForm((prev) => ({ ...prev, [field]: value }));
+        setError('');
+        setSuccess('');
+    };
+}
 
 function createSubmitChangePasswordHandler({
     form,
@@ -19,58 +21,64 @@ function createSubmitChangePasswordHandler({
     setSuccess,
     setIsSubmitting,
     changePassword,
-}) { return async () => {
-    if (isSubmitting) return;
+}) {
+    return async function () {
+        if (isSubmitting) return;
 
-    setError('');
-    setSuccess('');
+        setError('');
+        setSuccess('');
 
-    const errorMessage = getChangePasswordScreenError(form);
-    if (errorMessage) {
-        setError(errorMessage);
-        return;
-    }
+        const errorMessage = getChangePasswordScreenError(form);
+        if (errorMessage) {
+            setError(errorMessage);
+            return;
+        }
 
-    try {
-        setIsSubmitting(true);
-        const payload = {
-            current_password: form.currentPassword,
-            new_password: form.newPassword,
-            confirm_password: form.confirmPassword,
-        };
-        await changePassword(payload);
-        setSuccess('비밀번호가 변경되었습니다.');
-    } catch (error) {
-        setError(error?.message || '비밀번호 변경에 실패했습니다.');
-    } finally {
-        setIsSubmitting(false);
-    }
-}; }
+        try {
+            setIsSubmitting(true);
+            const payload = {
+                current_password: form.currentPassword,
+                new_password: form.newPassword,
+                confirm_password: form.confirmPassword,
+            };
+            await changePassword(payload);
+            setSuccess('비밀번호가 변경되었습니다.');
+        } catch (error) {
+            setError(error?.message || '비밀번호 변경에 실패했습니다.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+}
 
 function createResetPasswordModalHandler({
     setFormData,
     setValidationErrors,
     setError,
     setSuccess,
-}) { return () => {
-    setFormData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-    });
-    setValidationErrors({});
-    setError(null);
-    setSuccess(false);
-}; }
+}) {
+    return () => {
+        setFormData({
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: '',
+        });
+        setValidationErrors({});
+        setError(null);
+        setSuccess(false);
+    };
+}
 
 function createValidatePasswordModalHandler({
     formData,
     setValidationErrors,
-}) { return () => {
-    const errors = validateChangePasswordForm(formData);
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-}; }
+}) {
+    return () => {
+        const errors = validateChangePasswordForm(formData);
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+}
 
 function createSubmitPasswordModalHandler({
     formData,
@@ -81,31 +89,33 @@ function createSubmitPasswordModalHandler({
     setSuccess,
     onClose,
     onLogout,
-}) { return async () => {
-    if (!validateForm()) return;
+}) {
+    return async function () {
+        if (!validateForm()) return;
 
-    try {
-        setLoading(true);
-        setError(null);
+        try {
+            setLoading(true);
+            setError(null);
 
-        await changePassword({
-            current_password: formData.currentPassword,
-            new_password: formData.newPassword,
-            confirm_password: formData.confirmPassword,
-        });
+            await changePassword({
+                current_password: formData.currentPassword,
+                new_password: formData.newPassword,
+                confirm_password: formData.confirmPassword,
+            });
 
-        setSuccess(true);
+            setSuccess(true);
 
-        setTimeout(() => {
-            onClose();
-            onLogout?.();
-        }, 3000);
-    } catch (error) {
-        setError(error?.response?.data?.message || '비밀번호 변경에 실패했습니다.');
-    } finally {
-        setLoading(false);
-    }
-}; }
+            setTimeout(() => {
+                onClose();
+                onLogout?.();
+            }, 3000);
+        } catch (error) {
+            setError(error?.response?.data?.message || '비밀번호 변경에 실패했습니다.');
+        } finally {
+            setLoading(false);
+        }
+    };
+}
 
 import { buildProfilePayload, formatDateYYYYMMDD, validateProfileForm } from '@/lib/value/mypage';
 
@@ -115,20 +125,22 @@ function createInputChangeHandler({
     setNicknameChecked,
     setNicknameMessage,
     calcHandicapFromAvg,
-}) { return (field, value) => {
-    setFormData((prev) => {
-        const next = { ...prev, [field]: value };
-        if (field === 'average_score') {
-            next.calculatedHandicap = calcHandicapFromAvg(value);
+}) {
+    return (field, value) => {
+        setFormData((prev) => {
+            const next = { ...prev, [field]: value };
+            if (field === 'average_score') {
+                next.calculatedHandicap = calcHandicapFromAvg(value);
+            }
+            return next;
+        });
+        setErrors((prev) => ({ ...prev, [field]: '' }));
+        if (field === 'nickname') {
+            setNicknameChecked(false);
+            setNicknameMessage('');
         }
-        return next;
-    });
-    setErrors((prev) => ({ ...prev, [field]: '' }));
-    if (field === 'nickname') {
-        setNicknameChecked(false);
-        setNicknameMessage('');
-    }
-}; }
+    };
+}
 
 function createCheckNicknameDuplicateHandler({
     nickname,
@@ -138,68 +150,72 @@ function createCheckNicknameDuplicateHandler({
     setNicknameChecked,
     setNicknameMessage,
     checkNicknameAvailability,
-}) { return async () => {
-    if (!nickname) {
-        setErrors((prev) => ({ ...prev, nickname: '닉네임을 입력해주세요.' }));
-        return;
-    }
+}) {
+    return async function () {
+        if (!nickname) {
+            setErrors((prev) => ({ ...prev, nickname: '닉네임을 입력해주세요.' }));
+            return;
+        }
 
-    if (nickname.length < 2 || nickname.length > 20) {
-        setErrors((prev) => ({ ...prev, nickname: '닉네임은 2-20자여야 합니다.' }));
-        setNicknameChecked(false);
-        setNicknameMessage('');
-        return;
-    }
+        if (nickname.length < 2 || nickname.length > 20) {
+            setErrors((prev) => ({ ...prev, nickname: '닉네임은 2-20자여야 합니다.' }));
+            setNicknameChecked(false);
+            setNicknameMessage('');
+            return;
+        }
 
-    if (!/^[a-zA-Z가-힣0-9]+$/.test(nickname)) {
-        setErrors((prev) => ({ ...prev, nickname: '닉네임은 영문, 한글, 숫자만 사용 가능합니다.' }));
-        setNicknameChecked(false);
-        setNicknameMessage('');
-        return;
-    }
+        if (!/^[a-zA-Z가-힣0-9]+$/.test(nickname)) {
+            setErrors((prev) => ({ ...prev, nickname: '닉네임은 영문, 한글, 숫자만 사용 가능합니다.' }));
+            setNicknameChecked(false);
+            setNicknameMessage('');
+            return;
+        }
 
-    if (isNicknameSame) {
-        setNicknameChecked(true);
-        setNicknameMessage('사용 가능한 닉네임입니다.');
-        return;
-    }
-
-    try {
-        setIsCheckingNickname(true);
-        setErrors((prev) => ({ ...prev, nickname: '' }));
-        const result = await checkNicknameAvailability(nickname.trim());
-        if (result?.is_available && result?.is_valid) {
+        if (isNicknameSame) {
             setNicknameChecked(true);
             setNicknameMessage('사용 가능한 닉네임입니다.');
-        } else {
+            return;
+        }
+
+        try {
+            setIsCheckingNickname(true);
+            setErrors((prev) => ({ ...prev, nickname: '' }));
+            const result = await checkNicknameAvailability(nickname.trim());
+            if (result?.is_available && result?.is_valid) {
+                setNicknameChecked(true);
+                setNicknameMessage('사용 가능한 닉네임입니다.');
+            } else {
+                setNicknameChecked(false);
+                setNicknameMessage('');
+                setErrors((prev) => ({
+                    ...prev,
+                    nickname: result?.message || '이미 사용 중인 닉네임입니다.',
+                }));
+            }
+        } catch (checkError) {
             setNicknameChecked(false);
             setNicknameMessage('');
             setErrors((prev) => ({
                 ...prev,
-                nickname: result?.message || '이미 사용 중인 닉네임입니다.',
+                nickname: checkError?.message || '닉네임 확인에 실패했습니다.',
             }));
+        } finally {
+            setIsCheckingNickname(false);
         }
-    } catch (checkError) {
-        setNicknameChecked(false);
-        setNicknameMessage('');
-        setErrors((prev) => ({
-            ...prev,
-            nickname: checkError?.message || '닉네임 확인에 실패했습니다.',
-        }));
-    } finally {
-        setIsCheckingNickname(false);
-    }
-}; }
+    };
+}
 
-function createBirthPickerChangeHandler({ setShowBirthPicker, handleInputChange }) { return (event, selected) => {
-    if (Platform.OS !== 'ios') {
-        setShowBirthPicker(false);
-    }
-    if (event.type === 'dismissed') return;
-    if (selected) {
-        handleInputChange('birthdate', formatDateYYYYMMDD(selected));
-    }
-}; }
+function createBirthPickerChangeHandler({ setShowBirthPicker, handleInputChange }) {
+    return (event, selected) => {
+        if (Platform.OS !== 'ios') {
+            setShowBirthPicker(false);
+        }
+        if (event.type === 'dismissed') return;
+        if (selected) {
+            handleInputChange('birthdate', formatDateYYYYMMDD(selected));
+        }
+    };
+}
 
 function createValidateProfileFormHandler({
     formData,
@@ -207,16 +223,18 @@ function createValidateProfileFormHandler({
     isNicknameSame,
     nicknameChecked,
     setErrors,
-}) { return () => {
-    const nextErrors = validateProfileForm({
-        formData,
-        isSocialLogin,
-        isNicknameSameValue: isNicknameSame,
-        nicknameChecked,
-    });
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-}; }
+}) {
+    return () => {
+        const nextErrors = validateProfileForm({
+            formData,
+            isSocialLogin,
+            isNicknameSameValue: isNicknameSame,
+            nicknameChecked,
+        });
+        setErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    };
+}
 
 function createSaveProfileHandler({
     formData,
@@ -228,68 +246,88 @@ function createSaveProfileHandler({
     setNicknameChecked,
     fetchProfile,
     setUpdateProfilePending,
-}) { return async () => {
-    if (!validateForm()) return;
+}) {
+    return async function () {
+        if (!validateForm()) return;
 
-    const payload = buildProfilePayload(formData, profile, isSocialLogin);
+        const payload = buildProfilePayload(formData, profile, isSocialLogin);
 
-    try {
-        setUpdateProfilePending(true);
-        await updateMyProfile(payload);
-        showToast('success', '저장되었습니다.');
-        setNicknameChecked(true);
-        fetchProfile();
-    } catch (updateError) {
-        console.error('회원정보 수정 실패:', updateError);
-        showToast('error', updateError?.message || '회원정보 수정에 실패했습니다.');
-    } finally {
-        setUpdateProfilePending(false);
-    }
-}; }
+        try {
+            setUpdateProfilePending(true);
+            await updateMyProfile(payload);
+            showToast('success', '저장되었습니다.');
+            setNicknameChecked(true);
+            fetchProfile();
+        } catch (updateError) {
+            console.error('회원정보 수정 실패:', updateError);
+            showToast('error', updateError?.message || '회원정보 수정에 실패했습니다.');
+        } finally {
+            setUpdateProfilePending(false);
+        }
+    };
+}
 
-function createPasswordModalOpenHandler(setShowPasswordModal) { return () => {
-    setShowPasswordModal(true);
-}; }
+function createPasswordModalOpenHandler(setShowPasswordModal) {
+    return () => {
+        setShowPasswordModal(true);
+    };
+}
 
-function createPasswordModalCloseHandler(setShowPasswordModal) { return () => {
-    setShowPasswordModal(false);
-}; }
+function createPasswordModalCloseHandler(setShowPasswordModal) {
+    return () => {
+        setShowPasswordModal(false);
+    };
+}
 
-function createBirthPickerOpenHandler(setShowBirthPicker) { return () => {
-    setShowBirthPicker(true);
-}; }
+function createBirthPickerOpenHandler(setShowBirthPicker) {
+    return () => {
+        setShowBirthPicker(true);
+    };
+}
 
-function createCompositionStartHandler(setIsNameComposing) { return () => {
-    setIsNameComposing(true);
-}; }
+function createCompositionStartHandler(setIsNameComposing) {
+    return () => {
+        setIsNameComposing(true);
+    };
+}
 
-function createCompositionEndHandler({ setIsNameComposing, handleInputChange, fallbackValue }) { return (event) => {
-    setIsNameComposing(false);
-    handleInputChange('realname', event?.nativeEvent?.text ?? fallbackValue);
-}; }
+function createCompositionEndHandler({ setIsNameComposing, handleInputChange, fallbackValue }) {
+    return (event) => {
+        setIsNameComposing(false);
+        handleInputChange('realname', event?.nativeEvent?.text ?? fallbackValue);
+    };
+}
 
-function createShowToastHandler(setToast) { return (tone, message) => {
-    setToast({ open: true, tone, message });
-}; }
+function createShowToastHandler(setToast) {
+    return (tone, message) => {
+        setToast({ open: true, tone, message });
+    };
+}
 
-function createFieldChangeHandler(handleInputChange, field) { return (value) => {
-    handleInputChange(field, value);
-}; }
+function createFieldChangeHandler(handleInputChange, field) {
+    return (value) => {
+        handleInputChange(field, value);
+    };
+}
 
 function createConditionalFieldChangeHandler({
     handleInputChange,
     field,
     shouldBlock,
-}) { return (value) => {
-    if (shouldBlock()) return;
-    handleInputChange(field, value);
-}; }
-function createTabPressHandler({ setActiveTab }) { return (tabId) =>
-            () => {
-                setActiveTab(tabId);
-            }; }
+}) {
+    return (value) => {
+        if (shouldBlock()) return;
+        handleInputChange(field, value);
+    };
+}
+function createTabPressHandler({ setActiveTab }) {
+    return (tabId) =>
+        () => {
+            setActiveTab(tabId);
+        };
+}
 
-function getMyPageTabContent({ activeTab, tabs })  {
+function getMyPageTabContent({ activeTab, tabs }) {
     switch (activeTab) {
         case 'overview':
             return tabs.overview;
@@ -307,7 +345,7 @@ function getMyPageTabContent({ activeTab, tabs })  {
             return tabs.overview;
     }
 };
-function openWebDateInput({ value, onChange })  {
+function openWebDateInput({ value, onChange }) {
     const doc = globalThis?.document;
     if (!doc || typeof doc.createElement !== 'function') return false;
 
@@ -321,204 +359,248 @@ function openWebDateInput({ value, onChange })  {
     return true;
 };
 
-function createDatePickerChangeHandler({ setValue, setPage, toYmd }) { return (event, date) => {
-            if (event?.type === 'dismissed') return;
-            if (!date) return;
-            setValue(toYmd(date));
-            setPage(1);
-        }; }
+function createDatePickerChangeHandler({ setValue, setPage, toYmd }) {
+    return (event, date) => {
+        if (event?.type === 'dismissed') return;
+        if (!date) return;
+        setValue(toYmd(date));
+        setPage(1);
+    };
+}
 
 function createOpenDatePickerHandler({
-        platform,
-        value,
-        setValue,
-        setPage,
-        setShowPicker,
-        DateTimePickerAndroid,
-        fromYmd,
-        toYmd,
-    }) { return () => {
-            if (platform === 'web') {
-                const didOpen = openWebDateInput({
-                    value,
-                    onChange: (nextValue) => {
-                        setValue(nextValue);
-                        setPage(1);
-                    },
-                });
-                if (didOpen) return;
-                return;
-            }
+    platform,
+    value,
+    setValue,
+    setPage,
+    setShowPicker,
+    DateTimePickerAndroid,
+    fromYmd,
+    toYmd,
+}) {
+    return () => {
+        if (platform === 'web') {
+            const didOpen = openWebDateInput({
+                value,
+                onChange: (nextValue) => {
+                    setValue(nextValue);
+                    setPage(1);
+                },
+            });
+            if (didOpen) return;
+            return;
+        }
 
-            if (platform === 'android') {
-                DateTimePickerAndroid.open({
-                    value: fromYmd(value),
-                    mode: 'date',
-                    onChange: createDatePickerChangeHandler({ setValue, setPage, toYmd }),
-                });
-                return;
-            }
+        if (platform === 'android') {
+            DateTimePickerAndroid.open({
+                value: fromYmd(value),
+                mode: 'date',
+                onChange: createDatePickerChangeHandler({ setValue, setPage, toYmd }),
+            });
+            return;
+        }
 
-            setShowPicker(true);
-        }; }
+        setShowPicker(true);
+    };
+}
 
-function createTypeFilterHandler({ setTypeFilter, setPage }) { return (nextType) => {
-            setTypeFilter(nextType);
-            setPage(1);
-        }; }
+function createTypeFilterHandler({ setTypeFilter, setPage }) {
+    return (nextType) => {
+        setTypeFilter(nextType);
+        setPage(1);
+    };
+}
 
-function createTypeTabPressHandler({ onSelect }) { return (tabId) =>
-            () => {
-                onSelect(tabId);
-            }; }
+function createTypeTabPressHandler({ onSelect }) {
+    return (tabId) =>
+        () => {
+            onSelect(tabId);
+        };
+}
 
-function createResetFiltersHandler({ setTypeFilter, setStatusFilter, setStartDate, setEndDate, setPage }) { return () => {
-            setTypeFilter('all');
-            setStatusFilter('all');
-            setStartDate('');
-            setEndDate('');
-            setPage(1);
-        }; }
+function createResetFiltersHandler({ setTypeFilter, setStatusFilter, setStartDate, setEndDate, setPage }) {
+    return () => {
+        setTypeFilter('all');
+        setStatusFilter('all');
+        setStartDate('');
+        setEndDate('');
+        setPage(1);
+    };
+}
 
-function createMeetingDetailHandler({ router }) { return (meetingId, slug) =>
-            () => {
-                router.push(`/meetings/${slug}/${meetingId}`);
-            }; }
+function createMeetingDetailHandler({ router }) {
+    return (meetingId, slug) =>
+        () => {
+            router.push(`/meetings/${slug}/${meetingId}`);
+        };
+}
 
-function createNextPageHandler({ setPage, totalPages }) { return () => {
-            setPage((prev) => Math.min(totalPages, prev + 1));
-        }; }
+function createNextPageHandler({ setPage, totalPages }) {
+    return () => {
+        setPage((prev) => Math.min(totalPages, prev + 1));
+    };
+}
 
 function createLoadNotificationsHandler({
-        notificationsApi,
-        filter,
-        typeFilter,
-        pickData,
-        setNotifications,
-        setLoading,
-        setError,
-    }) { return async () => {
-            try {
-                setLoading(true);
-                setError(null);
+    notificationsApi,
+    filter,
+    typeFilter,
+    pickData,
+    setNotifications,
+    setLoading,
+    setError,
+}) {
+    return async function () {
+        try {
+            setLoading(true);
+            setError(null);
 
-                const params = { filter };
-                if (typeFilter !== 'all') params.type_filter = typeFilter;
+            const params = { filter };
+            if (typeFilter !== 'all') params.type_filter = typeFilter;
 
-                const response = await notificationsApi.getNotifications(params);
-                setNotifications(pickData(response) || []);
-            } catch (error) {
-                setError(error);
-            } finally {
-                setLoading(false);
-            }
-        }; }
+            const response = await notificationsApi.getNotifications(params);
+            setNotifications(pickData(response) || []);
+        } catch (error) {
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+}
 
-function createMarkAsReadHandler({ notificationsApi, setNotifications, alert }) { return async (id) => {
-            try {
-                await notificationsApi.markAsRead(id);
-                const now = new Date().toISOString();
-                setNotifications((prev) =>
-                    prev.map((item) =>
-                        item.id === id
-                            ? { ...item, status: 'READ', read_at: item.read_at || now }
-                            : item
-                    )
-                );
-            } catch {
-                alert('오류', '읽음 처리에 실패했습니다.');
-            }
-        }; }
-
-function createMarkAllAsReadHandler({ notificationsApi, setNotifications, setToast, alert }) { return async () => {
-            try {
-                await notificationsApi.markAllAsRead();
-                const now = new Date().toISOString();
-                setNotifications((prev) =>
-                    prev.map((item) => ({ ...item, status: 'READ', read_at: item.read_at || now }))
-                );
-                setToast({ tone: 'success', msg: '모든 알림이 읽음 처리되었습니다.' });
-            } catch {
-                alert('오류', '처리에 실패했습니다.');
-            }
-        }; }
-
-function createDeleteNotificationHandler({ notificationsApi, setNotifications, setToast, alert }) { return async (id) => {
-            try {
-                await notificationsApi.deleteNotification(id);
-                setNotifications((prev) => prev.filter((item) => item.id !== id));
-                setToast({ tone: 'success', msg: '알림이 삭제되었습니다.' });
-            } catch {
-                alert('오류', '삭제에 실패했습니다.');
-            }
-        }; }
-
-function createToggleSelectHandler({ setSelected }) { return (id) => {
-            setSelected((prev) =>
-                prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id]
+function createMarkAsReadHandler({ notificationsApi, setNotifications, alert }) {
+    return async function (id) {
+        try {
+            await notificationsApi.markAsRead(id);
+            const now = new Date().toISOString();
+            setNotifications((prev) =>
+                prev.map((item) =>
+                    item.id === id
+                        ? { ...item, status: 'READ', read_at: item.read_at || now }
+                        : item
+                )
             );
-        }; }
+        } catch {
+            alert('오류', '읽음 처리에 실패했습니다.');
+        }
+    };
+}
 
-function createToggleSelectPressHandler({ onToggle }) { return (id) =>
-            () => {
-                onToggle(id);
-            }; }
+function createMarkAllAsReadHandler({ notificationsApi, setNotifications, setToast, alert }) {
+    return async function () {
+        try {
+            await notificationsApi.markAllAsRead();
+            const now = new Date().toISOString();
+            setNotifications((prev) =>
+                prev.map((item) => ({ ...item, status: 'READ', read_at: item.read_at || now }))
+            );
+            setToast({ tone: 'success', msg: '모든 알림이 읽음 처리되었습니다.' });
+        } catch {
+            alert('오류', '처리에 실패했습니다.');
+        }
+    };
+}
 
-function createSelectAllHandler({ notifications, selected, setSelected }) { return () => {
-            if (selected.length === notifications.length) setSelected([]);
-            else setSelected(notifications.map((item) => item.id));
-        }; }
+function createDeleteNotificationHandler({ notificationsApi, setNotifications, setToast, alert }) {
+    return async function (id) {
+        try {
+            await notificationsApi.deleteNotification(id);
+            setNotifications((prev) => prev.filter((item) => item.id !== id));
+            setToast({ tone: 'success', msg: '알림이 삭제되었습니다.' });
+        } catch {
+            alert('오류', '삭제에 실패했습니다.');
+        }
+    };
+}
 
-function createBulkReadHandler({ selected, markAsRead, setSelected }) { return async () => {
-            for (const id of selected) await markAsRead(id);
-            setSelected([]);
-        }; }
+function createToggleSelectHandler({ setSelected }) {
+    return (id) => {
+        setSelected((prev) =>
+            prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id]
+        );
+    };
+}
 
-function createBulkDeleteHandler({ selected, deleteOne, setSelected }) { return async () => {
-            for (const id of selected) await deleteOne(id);
-            setSelected([]);
-        }; }
+function createToggleSelectPressHandler({ onToggle }) {
+    return (id) =>
+        () => {
+            onToggle(id);
+        };
+}
 
-function createOpenNotificationHandler({ isUnreadNotification, markAsRead, router }) { return async (notification) => {
-            if (isUnreadNotification(notification)) await markAsRead(notification.id);
+function createSelectAllHandler({ notifications, selected, setSelected }) {
+    return () => {
+        if (selected.length === notifications.length) setSelected([]);
+        else setSelected(notifications.map((item) => item.id));
+    };
+}
 
-            if (!notification.related_entity_type || !notification.related_entity_id) return;
+function createBulkReadHandler({ selected, markAsRead, setSelected }) {
+    return async function () {
+        for (const id of selected) await markAsRead(id);
+        setSelected([]);
+    };
+}
 
-            if (
-                notification.related_entity_type === 'CLUB' ||
-                notification.related_entity_type === 'CLUB_MEMBERSHIP'
-            ) {
-                router.push(`/clubs/${notification.related_entity_id}`);
-            }
-            if (notification.related_entity_type === 'CLUB_NOTICE' && notification.extra_data?.club_id) {
-                router.push(`/clubs/${notification.extra_data.club_id}/notices`);
-            }
-        }; }
+function createBulkDeleteHandler({ selected, deleteOne, setSelected }) {
+    return async function () {
+        for (const id of selected) await deleteOne(id);
+        setSelected([]);
+    };
+}
 
-function createOpenNotificationPressHandler({ onOpen }) { return (notification) =>
-            () => {
-                onOpen(notification);
-            }; }
+function createOpenNotificationHandler({ isUnreadNotification, markAsRead, router }) {
+    return async function (notification) {
+        if (isUnreadNotification(notification)) await markAsRead(notification.id);
 
-function createFilterPressHandler({ setFilter }) { return (nextFilter) =>
-            () => {
-                setFilter(nextFilter);
-            }; }
+        if (!notification.related_entity_type || !notification.related_entity_id) return;
 
-function createDeleteTargetHandler({ setDeleteTarget }) { return (id) =>
-            () => {
-                setDeleteTarget(id);
-            }; }
+        if (
+            notification.related_entity_type === 'CLUB' ||
+            notification.related_entity_type === 'CLUB_MEMBERSHIP'
+        ) {
+            router.push(`/clubs/${notification.related_entity_id}`);
+        }
+        if (notification.related_entity_type === 'CLUB_NOTICE' && notification.extra_data?.club_id) {
+            router.push(`/clubs/${notification.extra_data.club_id}/notices`);
+        }
+    };
+}
 
-function createClearDeleteTargetHandler({ setDeleteTarget }) { return () => {
-            setDeleteTarget(null);
-        }; }
+function createOpenNotificationPressHandler({ onOpen }) {
+    return (notification) =>
+        () => {
+            onOpen(notification);
+        };
+}
 
-function createConfirmDeleteHandler({ deleteTarget, deleteOne, setDeleteTarget }) { return () => {
-            if (!deleteTarget) return;
-            deleteOne(deleteTarget);
-            setDeleteTarget(null);
-        }; }
+function createFilterPressHandler({ setFilter }) {
+    return (nextFilter) =>
+        () => {
+            setFilter(nextFilter);
+        };
+}
+
+function createDeleteTargetHandler({ setDeleteTarget }) {
+    return (id) =>
+        () => {
+            setDeleteTarget(id);
+        };
+}
+
+function createClearDeleteTargetHandler({ setDeleteTarget }) {
+    return () => {
+        setDeleteTarget(null);
+    };
+}
+
+function createConfirmDeleteHandler({ deleteTarget, deleteOne, setDeleteTarget }) {
+    return () => {
+        if (!deleteTarget) return;
+        deleteOne(deleteTarget);
+        setDeleteTarget(null);
+    };
+}
 function createFetchProfileHandler({
     fetchMyProfile,
     fetchUserHandicap,
@@ -527,330 +609,382 @@ function createFetchProfileHandler({
     setHandicapInfo,
     setLoading,
     setError,
-}) { return async () => {
-    try {
-        setLoading(true);
-        setError(null);
-        const response = await fetchMyProfile();
-        const user = extractData(response);
-        setProfile(user);
-        if (user?.id) {
-            const handicapResponse = await fetchUserHandicap(user.id);
-            setHandicapInfo(extractData(handicapResponse));
+}) {
+    return async function () {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await fetchMyProfile();
+            const user = extractData(response);
+            setProfile(user);
+            if (user?.id) {
+                const handicapResponse = await fetchUserHandicap(user.id);
+                setHandicapInfo(extractData(handicapResponse));
+            }
+        } catch (fetchError) {
+            console.error('프로필 조회 실패:', fetchError);
+            setError('사용자 정보를 불러오는데 실패했습니다.');
+        } finally {
+            setLoading(false);
         }
-    } catch (fetchError) {
-        console.error('프로필 조회 실패:', fetchError);
-        setError('사용자 정보를 불러오는데 실패했습니다.');
-    } finally {
-        setLoading(false);
-    }
-}; }
+    };
+}
 
 function createFetchClubsHandler({
     fetchMyClubs,
     extractList,
     setClubs,
-}) { return async () => {
-    try {
-        const response = await fetchMyClubs({ page: 1, limit: 3 });
-        const items = extractList(response);
-        setClubs(items);
-    } catch (fetchError) {
-        console.error('클럽 목록 조회 실패:', fetchError);
-        setClubs([]);
-    }
-}; }
+}) {
+    return async function () {
+        try {
+            const response = await fetchMyClubs({ page: 1, limit: 3 });
+            const items = extractList(response);
+            setClubs(items);
+        } catch (fetchError) {
+            console.error('클럽 목록 조회 실패:', fetchError);
+            setClubs([]);
+        }
+    };
+}
 
-function createOpenClubsHandler(router) { return () => {
-    router.push('/clubs');
-}; }
+function createOpenClubsHandler(router) {
+    return () => {
+        router.push('/clubs');
+    };
+}
 
-function createOpenClubDetailHandler(router, clubId) { return () => {
-    router.push(`/clubs/${clubId}`);
-}; }
-function createScoreStatusHandler({ setScoreStatus, setPage }) { return (nextStatus) => {
-            setScoreStatus(nextStatus);
-            setPage(1);
-        }; }
+function createOpenClubDetailHandler(router, clubId) {
+    return () => {
+        router.push(`/clubs/${clubId}`);
+    };
+}
+function createScoreStatusHandler({ setScoreStatus, setPage }) {
+    return (nextStatus) => {
+        setScoreStatus(nextStatus);
+        setPage(1);
+    };
+}
 
-function createScoreStatusPressHandler({ onSelect }) { return (status) =>
-            () => {
-                onSelect(status);
-            }; }
+function createScoreStatusPressHandler({ onSelect }) {
+    return (status) =>
+        () => {
+            onSelect(status);
+        };
+}
 
-function createPrevPageHandler({ setPage }) { return () => {
-            setPage((prev) => Math.max(1, prev - 1));
-        }; }
+function createPrevPageHandler({ setPage }) {
+    return () => {
+        setPage((prev) => Math.max(1, prev - 1));
+    };
+}
 
-function createGoToDetailHandler({ router }) { return (meetingId) =>
-            () => {
-                router.push(`/meetings/rounding/${meetingId}`);
-            }; }
+function createGoToDetailHandler({ router }) {
+    return (meetingId) =>
+        () => {
+            router.push(`/meetings/rounding/${meetingId}`);
+        };
+}
 
-function createCloseScoreModalHandler({ setShowScoreModal, setSelectedMeeting, setSelectedParticipantId }) { return () => {
-            setShowScoreModal(false);
-            setSelectedMeeting(null);
-            setSelectedParticipantId(null);
-        }; }
+function createCloseScoreModalHandler({ setShowScoreModal, setSelectedMeeting, setSelectedParticipantId }) {
+    return () => {
+        setShowScoreModal(false);
+        setSelectedMeeting(null);
+        setSelectedParticipantId(null);
+    };
+}
 
-function createOpenComingSoonHandler({ setShowComingSoonModal }) { return () => {
-            setShowComingSoonModal(true);
-        }; }
+function createOpenComingSoonHandler({ setShowComingSoonModal }) {
+    return () => {
+        setShowComingSoonModal(true);
+    };
+}
 
-function createCloseComingSoonHandler({ setShowComingSoonModal }) { return () => {
-            setShowComingSoonModal(false);
-        }; }
+function createCloseComingSoonHandler({ setShowComingSoonModal }) {
+    return () => {
+        setShowComingSoonModal(false);
+    };
+}
 
-function createFetchStatsHandler({ fetchRoundingStats, pickData, setStatsLoading, setStatsError, setStats }) { return async () => {
-            try {
-                setStatsLoading(true);
-                setStatsError(null);
+function createFetchStatsHandler({ fetchRoundingStats, pickData, setStatsLoading, setStatsError, setStats }) {
+    return async function () {
+        try {
+            setStatsLoading(true);
+            setStatsError(null);
 
-                const response = await fetchRoundingStats();
-                setStats(pickData(response));
-            } catch (error) {
-                console.error(error);
-                setStatsError(error);
-            } finally {
-                setStatsLoading(false);
-            }
-        }; }
+            const response = await fetchRoundingStats();
+            setStats(pickData(response));
+        } catch (error) {
+            console.error(error);
+            setStatsError(error);
+        } finally {
+            setStatsLoading(false);
+        }
+    };
+}
 
 function createFetchMeetingsHandler({
-        fetchMyRoundingMeetings,
-        scoreStatus,
-        page,
-        limit,
-        pickData,
-        setMeetings,
-        setTotalPages,
-        setLoading,
-        setError,
-    }) { return async () => {
-            try {
-                setLoading(true);
-                setError(null);
+    fetchMyRoundingMeetings,
+    scoreStatus,
+    page,
+    limit,
+    pickData,
+    setMeetings,
+    setTotalPages,
+    setLoading,
+    setError,
+}) {
+    return async function () {
+        try {
+            setLoading(true);
+            setError(null);
 
-                const response = await fetchMyRoundingMeetings({
-                    score_status: scoreStatus,
-                    page,
-                    limit,
-                });
+            const response = await fetchMyRoundingMeetings({
+                score_status: scoreStatus,
+                page,
+                limit,
+            });
 
-                const data = pickData(response) || response || {};
-                const list = data?.data ?? data?.list ?? [];
-                setMeetings(Array.isArray(list) ? list : []);
-                setTotalPages(Number(data?.total_pages) || 1);
-            } catch (error) {
-                console.error(error);
-                setError(error);
-            } finally {
-                setLoading(false);
-            }
-        }; }
+            const data = pickData(response) || response || {};
+            const list = data?.data ?? data?.list ?? [];
+            setMeetings(Array.isArray(list) ? list : []);
+            setTotalPages(Number(data?.total_pages) || 1);
+        } catch (error) {
+            console.error(error);
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+}
 
-function createFetchHandicapHandler({ fetchMyProfile, fetchUserHandicap, pickData, setCurrentHandicap }) { return async () => {
-            try {
-                const profileResp = await fetchMyProfile?.();
-                const profile = pickData(profileResp);
-                const userId = profile?.id || profile?.data?.id;
+function createFetchHandicapHandler({ fetchMyProfile, fetchUserHandicap, pickData, setCurrentHandicap }) {
+    return async function () {
+        try {
+            const profileResp = await fetchMyProfile?.();
+            const profile = pickData(profileResp);
+            const userId = profile?.id || profile?.data?.id;
 
-                if (!userId || !fetchUserHandicap) return;
+            if (!userId || !fetchUserHandicap) return;
 
-                const handicapResp = await fetchUserHandicap(userId);
-                const handicapData = pickData(handicapResp) || {};
-                const info = handicapData?.data || handicapData;
+            const handicapResp = await fetchUserHandicap(userId);
+            const handicapData = pickData(handicapResp) || {};
+            const info = handicapData?.data || handicapData;
 
-                const calculated = info?.calculated_handicap;
-                const initial = info?.initial_handicap;
-                const value = calculated ?? initial ?? null;
+            const calculated = info?.calculated_handicap;
+            const initial = info?.initial_handicap;
+            const value = calculated ?? initial ?? null;
 
-                setCurrentHandicap(value);
-            } catch (error) {
-                console.warn('handicap fetch failed:', error?.message || error);
-            }
-        }; }
+            setCurrentHandicap(value);
+        } catch (error) {
+            console.warn('handicap fetch failed:', error?.message || error);
+        }
+    };
+}
 
 function createOpenScoreModalHandler({
-        fetchRoundParticipants,
-        fetchMyProfile,
-        pickData,
-        setSelectedParticipantId,
-        setSelectedMeeting,
-        setShowScoreModal,
-        alert,
-    }) { return async (meeting) => {
-            try {
-                const participantsResp = await fetchRoundParticipants(meeting.meeting_id);
-                const participants = pickData(participantsResp);
-                const list = Array.isArray(participants)
-                    ? participants
-                    : participants?.data || [];
+    fetchRoundParticipants,
+    fetchMyProfile,
+    pickData,
+    setSelectedParticipantId,
+    setSelectedMeeting,
+    setShowScoreModal,
+    alert,
+}) {
+    return async function (meeting) {
+        try {
+            const participantsResp = await fetchRoundParticipants(meeting.meeting_id);
+            const participants = pickData(participantsResp);
+            const list = Array.isArray(participants)
+                ? participants
+                : participants?.data || [];
 
-                const profileResp = await fetchMyProfile?.();
-                const profile = pickData(profileResp);
-                const myUserId = profile?.id || profile?.data?.id;
+            const profileResp = await fetchMyProfile?.();
+            const profile = pickData(profileResp);
+            const myUserId = profile?.id || profile?.data?.id;
 
-                const mine = list.find((participant) => participant.user_id === myUserId);
+            const mine = list.find((participant) => participant.user_id === myUserId);
 
-                if (!mine) {
-                    alert('오류', '참가자 정보를 찾을 수 없습니다.');
-                    return;
-                }
-
-                setSelectedParticipantId(mine.id);
-                setSelectedMeeting(meeting);
-                setShowScoreModal(true);
-            } catch (error) {
-                console.error('참가자 조회 실패:', error);
-                alert('오류', '참가자 정보를 불러오는데 실패했습니다.');
+            if (!mine) {
+                alert('오류', '참가자 정보를 찾을 수 없습니다.');
+                return;
             }
-        }; }
+
+            setSelectedParticipantId(mine.id);
+            setSelectedMeeting(meeting);
+            setShowScoreModal(true);
+        } catch (error) {
+            console.error('참가자 조회 실패:', error);
+            alert('오류', '참가자 정보를 불러오는데 실패했습니다.');
+        }
+    };
+}
 
 function createScoreSuccessHandler({
-        setShowScoreModal,
-        setSelectedMeeting,
-        setSelectedParticipantId,
-        fetchMeetings,
-        fetchStats,
-        fetchHandicap,
-    }) { return async () => {
-            setShowScoreModal(false);
-            setSelectedMeeting(null);
-            setSelectedParticipantId(null);
-            await fetchMeetings();
-            await fetchStats();
-            await fetchHandicap();
-        }; }
+    setShowScoreModal,
+    setSelectedMeeting,
+    setSelectedParticipantId,
+    fetchMeetings,
+    fetchStats,
+    fetchHandicap,
+}) {
+    return async function () {
+        setShowScoreModal(false);
+        setSelectedMeeting(null);
+        setSelectedParticipantId(null);
+        await fetchMeetings();
+        await fetchStats();
+        await fetchHandicap();
+    };
+}
 
-function createGrossScoreChangeHandler({ setGrossScore }) { return (value) => {
-            if (value === '') {
+function createGrossScoreChangeHandler({ setGrossScore }) {
+    return (value) => {
+        if (value === '') {
+            setGrossScore('');
+            return;
+        }
+        if (!/^\d+$/.test(value)) return;
+
+        if (value.length > 1 && value[0] === '0') {
+            const stripped = value.replace(/^0+/, '') || '0';
+            if (stripped === '0') {
                 setGrossScore('');
                 return;
             }
-            if (!/^\d+$/.test(value)) return;
+            setGrossScore(stripped);
+            return;
+        }
 
-            if (value.length > 1 && value[0] === '0') {
-                const stripped = value.replace(/^0+/, '') || '0';
-                if (stripped === '0') {
-                    setGrossScore('');
-                    return;
-                }
-                setGrossScore(stripped);
-                return;
+        setGrossScore(value);
+    };
+}
+
+function createScoreValidationHandler({ grossScore, setErrors }) {
+    return () => {
+        const nextErrors = {};
+        if (!grossScore || grossScore.trim() === '') {
+            nextErrors.grossScore = '라운딩 스코어를 입력해주세요.';
+        } else {
+            const score = parseInt(grossScore, 10);
+            if (Number.isNaN(score)) nextErrors.grossScore = '숫자만 입력 가능합니다.';
+            else if (score < 55 || score > 144) {
+                nextErrors.grossScore = '스코어는 55~144 사이의 값이어야 합니다.';
             }
-
-            setGrossScore(value);
-        }; }
-
-function createScoreValidationHandler({ grossScore, setErrors }) { return () => {
-            const nextErrors = {};
-            if (!grossScore || grossScore.trim() === '') {
-                nextErrors.grossScore = '라운딩 스코어를 입력해주세요.';
-            } else {
-                const score = parseInt(grossScore, 10);
-                if (Number.isNaN(score)) nextErrors.grossScore = '숫자만 입력 가능합니다.';
-                else if (score < 55 || score > 144) {
-                    nextErrors.grossScore = '스코어는 55~144 사이의 값이어야 합니다.';
-                }
-            }
-            setErrors(nextErrors);
-            return Object.keys(nextErrors).length === 0;
-        }; }
+        }
+        setErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    };
+}
 
 function createScoreSubmitHandler({
-        validate,
-        shouldCompleteRounding,
-        meetingId,
-        participantId,
-        grossScore,
-        submitSimpleScore,
-        completeRounding,
-        onSuccess,
-        onClose,
-        resetLocal,
-        setIsSubmitting,
-        setErrors,
-    }) { return async () => {
-            if (!validate()) return;
+    validate,
+    shouldCompleteRounding,
+    meetingId,
+    participantId,
+    grossScore,
+    submitSimpleScore,
+    completeRounding,
+    onSuccess,
+    onClose,
+    resetLocal,
+    setIsSubmitting,
+    setErrors,
+}) {
+    return async function () {
+        if (!validate()) return;
 
-            try {
-                setIsSubmitting(true);
+        try {
+            setIsSubmitting(true);
 
-                if (shouldCompleteRounding) {
-                    await completeRounding(meetingId);
-                }
-
-                await submitSimpleScore(meetingId, participantId, {
-                    gross_score: parseInt(grossScore, 10),
-                });
-
-                onSuccess?.(shouldCompleteRounding);
-                onClose?.();
-                resetLocal();
-            } catch (error) {
-                console.error('점수 입력 실패:', error);
-                const detail =
-                    error?.response?.data?.detail || error?.message || '점수 입력에 실패했습니다.';
-                setErrors({ submit: detail });
-            } finally {
-                setIsSubmitting(false);
+            if (shouldCompleteRounding) {
+                await completeRounding(meetingId);
             }
-        }; }
 
-function createResetScoreEntryHandler({ setGrossScore, setIsSubmitting, setErrors }) { return () => {
-            setGrossScore('');
-            setIsSubmitting(false);
-            setErrors({});
-        }; }
+            await submitSimpleScore(meetingId, participantId, {
+                gross_score: parseInt(grossScore, 10),
+            });
 
-function createCloseScoreEntryHandler({ isSubmitting, onClose, resetLocal }) { return () => {
-            if (isSubmitting) return;
+            onSuccess?.(shouldCompleteRounding);
             onClose?.();
             resetLocal();
-        }; }
-function createToggleAgreedHandler({ setAgreed }) { return () => {
-            setAgreed((prev) => !prev);
-        }; }
+        } catch (error) {
+            console.error('점수 입력 실패:', error);
+            const detail =
+                error?.response?.data?.detail || error?.message || '점수 입력에 실패했습니다.';
+            setErrors({ submit: detail });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+}
 
-function createConfirmTextChangeHandler({ setConfirmText }) { return (value) => {
-            setConfirmText(value);
-        }; }
+function createResetScoreEntryHandler({ setGrossScore, setIsSubmitting, setErrors }) {
+    return () => {
+        setGrossScore('');
+        setIsSubmitting(false);
+        setErrors({});
+    };
+}
 
-function createSubmitWithdrawHandler({ agreed, confirmText, setError, setModalOpen, getWithdrawValidationError }) { return () => {
-            const message = getWithdrawValidationError({ agreed, confirmText });
-            if (message) {
-                setError(message);
-                return;
-            }
-            setError('');
-            setModalOpen(true);
-        }; }
+function createCloseScoreEntryHandler({ isSubmitting, onClose, resetLocal }) {
+    return () => {
+        if (isSubmitting) return;
+        onClose?.();
+        resetLocal();
+    };
+}
+function createToggleAgreedHandler({ setAgreed }) {
+    return () => {
+        setAgreed((prev) => !prev);
+    };
+}
 
-function createCloseWithdrawModalHandler({ setModalOpen }) { return () => {
-            setModalOpen(false);
-        }; }
+function createConfirmTextChangeHandler({ setConfirmText }) {
+    return (value) => {
+        setConfirmText(value);
+    };
+}
+
+function createSubmitWithdrawHandler({ agreed, confirmText, setError, setModalOpen, getWithdrawValidationError }) {
+    return () => {
+        const message = getWithdrawValidationError({ agreed, confirmText });
+        if (message) {
+            setError(message);
+            return;
+        }
+        setError('');
+        setModalOpen(true);
+    };
+}
+
+function createCloseWithdrawModalHandler({ setModalOpen }) {
+    return () => {
+        setModalOpen(false);
+    };
+}
 
 function createConfirmWithdrawHandler({
-        deleteAccount,
-        setIsSubmitting,
-        setResultMessage,
-        setModalOpen,
-        setError,
-        router,
-    }) { return async () => {
-            try {
-                setIsSubmitting(true);
-                await deleteAccount();
-                setResultMessage('회원 탈퇴가 완료되었습니다.');
-                setModalOpen(false);
-                router.replace('/login');
-            } catch (error) {
-                setError(error?.message || '회원 탈퇴에 실패했습니다.');
-            } finally {
-                setIsSubmitting(false);
-            }
-        }; }
+    deleteAccount,
+    setIsSubmitting,
+    setResultMessage,
+    setModalOpen,
+    setError,
+    router,
+}) {
+    return async function () {
+        try {
+            setIsSubmitting(true);
+            await deleteAccount();
+            setResultMessage('회원 탈퇴가 완료되었습니다.');
+            setModalOpen(false);
+            router.replace('/login');
+        } catch (error) {
+            setError(error?.message || '회원 탈퇴에 실패했습니다.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+}
 
 export const mypageRenderUtils = {
     createPasswordFieldChangeHandler,

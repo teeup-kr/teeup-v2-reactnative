@@ -1,10 +1,10 @@
-const extractData = (payload) => {
+function extractData(payload) {
   if (!payload) return null;
   if (payload.data && Object.keys(payload).length === 1) return payload.data;
   return payload.data ?? payload;
 };
 
-const extractList = (payload) => {
+function extractList(payload) {
   if (!payload) return [];
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload.data)) return payload.data;

@@ -1,6 +1,6 @@
 import { responseUtils } from './responseUtils';
 
-function normalizeNotice(payload)  {
+function normalizeNotice(payload) {
   const notice = responseUtils.extractData(payload) || {};
   return {
     id: notice?.id || notice?.notice_id || notice?.title,

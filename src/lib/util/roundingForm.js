@@ -8,29 +8,31 @@ import {
 
 function getRoundingMeetingTitle(isEditMode) { return isEditMode ? '라운딩 모임 수정' : '라운딩 모임 만들기'; }
 
-function buildRoundingFormFromData({ data, fallback }) { return ({
-  ...fallback,
-  name: data.name ?? '',
-  description: data.description ?? '',
-  location: data.location ?? '',
-  meeting_time: toDateTimeLocalValue(data.meeting_time),
-  application_deadline: toDateTimeLocalValue(data.application_deadline),
-  club_id: data.club_id ?? data.club?.id ?? '',
-  course_name: data.course_name ?? '',
-  reservation_name: data.reservation_name ?? '',
-  hole_count: data.hole_count ? String(data.hole_count) : '18',
-  tee_times: Array.isArray(data.tee_times) ? data.tee_times.join(', ') : data.tee_times ?? '',
-  max_participants: data.max_participants !== undefined ? String(data.max_participants) : '',
-  team_size: data.team_size !== undefined ? String(data.team_size) : '',
-  team_formation_mode: data.team_formation_mode || fallback.team_formation_mode,
-  meeting_subtype: data.meeting_subtype || fallback.meeting_subtype,
-  green_fee: data.green_fee !== undefined ? String(data.green_fee) : '',
-  caddy_fee: data.caddy_fee !== undefined ? String(data.caddy_fee) : '',
-  cart_fee: data.cart_fee !== undefined ? String(data.cart_fee) : '',
-  settlement_method: data.settlement_method || fallback.settlement_method,
-}); }
+function buildRoundingFormFromData({ data, fallback }) {
+  return ({
+    ...fallback,
+    name: data.name ?? '',
+    description: data.description ?? '',
+    location: data.location ?? '',
+    meeting_time: toDateTimeLocalValue(data.meeting_time),
+    application_deadline: toDateTimeLocalValue(data.application_deadline),
+    club_id: data.club_id ?? data.club?.id ?? '',
+    course_name: data.course_name ?? '',
+    reservation_name: data.reservation_name ?? '',
+    hole_count: data.hole_count ? String(data.hole_count) : '18',
+    tee_times: Array.isArray(data.tee_times) ? data.tee_times.join(', ') : data.tee_times ?? '',
+    max_participants: data.max_participants !== undefined ? String(data.max_participants) : '',
+    team_size: data.team_size !== undefined ? String(data.team_size) : '',
+    team_formation_mode: data.team_formation_mode || fallback.team_formation_mode,
+    meeting_subtype: data.meeting_subtype || fallback.meeting_subtype,
+    green_fee: data.green_fee !== undefined ? String(data.green_fee) : '',
+    caddy_fee: data.caddy_fee !== undefined ? String(data.caddy_fee) : '',
+    cart_fee: data.cart_fee !== undefined ? String(data.cart_fee) : '',
+    settlement_method: data.settlement_method || fallback.settlement_method,
+  });
+}
 
-function validateRoundingForm(form)  {
+function validateRoundingForm(form) {
   const errors = {};
   const teeTimes = parseTeeTimes(form.tee_times);
 
@@ -86,7 +88,7 @@ function validateRoundingForm(form)  {
 
 function resolveSettlementMethod(method, settlementMethods) { return settlementMethods.some((item) => item.id === method) ? method : 'EQUAL_SPLIT'; }
 
-function buildRoundingPayload({ form, settlementMethods })  {
+function buildRoundingPayload({ form, settlementMethods }) {
   const teeTimes = parseTeeTimes(form.tee_times);
   const greenFee = normalizeNumber(form.green_fee, 0);
   const caddyFee = normalizeNumber(form.caddy_fee, 0);

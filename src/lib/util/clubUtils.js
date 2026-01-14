@@ -10,7 +10,7 @@ import {
 
 import { responseUtils } from './responseUtils';
 
-function getClubStatusBadgeConfig(status, clubDeletedAt)  {
+function getClubStatusBadgeConfig(status, clubDeletedAt) {
   if (clubDeletedAt) {
     return { text: '삭제됨', bg: colors.error[50], fg: colors.error[700] };
   }
@@ -28,7 +28,7 @@ function getClubStatusBadgeConfig(status, clubDeletedAt)  {
   };
 };
 
-function getClubMembershipStatusBadgeConfig(status)  {
+function getClubMembershipStatusBadgeConfig(status) {
   if (!status || status === 'null' || status === '') return null;
   const normalizedStatus = String(status).toUpperCase().trim();
   const validStatuses = ['APPROVED', 'ACTIVE', 'PENDING', 'REJECTED'];
@@ -37,18 +37,18 @@ function getClubMembershipStatusBadgeConfig(status)  {
   return clubMembershipStatusBadgeConfig[normalizedStatus] || null;
 };
 
-function getClubTypeBadgeConfig(type)  {
+function getClubTypeBadgeConfig(type) {
   const normalizedType = String(type || '').toUpperCase();
   return clubTypeBadgeConfig[normalizedType] || null;
 };
 
-function getClubRoleBadgeConfig(role)  {
+function getClubRoleBadgeConfig(role) {
   if (!role) return null;
   const normalizedRole = String(role).toUpperCase();
   return clubRoleBadgeConfig[normalizedRole] || clubRoleBadgeConfig.MEMBER;
 };
 
-function formatClubDate(dateString)  {
+function formatClubDate(dateString) {
   if (!dateString) return '-';
   try {
     const date = new Date(dateString);
@@ -59,7 +59,7 @@ function formatClubDate(dateString)  {
   }
 };
 
-function normalizePaginatedResponse(payload)  {
+function normalizePaginatedResponse(payload) {
   if (Array.isArray(payload)) return { data: payload, total_pages: 1 };
   if (!payload || typeof payload !== 'object') return { data: [], total_pages: 1 };
   if (Array.isArray(payload.data)) return payload;
@@ -67,7 +67,7 @@ function normalizePaginatedResponse(payload)  {
   const totalPages = payload.total_pages || payload.totalPages || 1;
   return { ...payload, data, total_pages: totalPages };
 };
-function getClubPageNumbers({ currentPage, totalPages })  {
+function getClubPageNumbers({ currentPage, totalPages }) {
   if (totalPages <= 5) {
     return Array.from({ length: totalPages }, (_, index) => index + 1);
   }
@@ -81,7 +81,8 @@ function getClubPageNumbers({ currentPage, totalPages })  {
 };
 
 function getClubCardVariant(activeTab) { return activeTab === 'applications' ? 'applications' : activeTab; }
-function normalizeClubActivities(activities) { return activities.map((item, index) => {
+function normalizeClubActivities(activities) {
+  return activities.map((item, index) => {
     const activityKey = item?.id || item?.activity_id || item?.title || `activity-${index}`;
     const title = item?.title || '활동';
     const detail = item?.description || item?.detail || '-';
@@ -99,9 +100,10 @@ function normalizeClubActivities(activities) { return activities.map((item, inde
       detail,
       date: activityDate,
     };
-  }); }
+  });
+}
 
-function buildClubDetailDisplay(club)  {
+function buildClubDetailDisplay(club) {
   const clubStatus = club?.status || club?.membership_status;
   const clubStatusLabel = clubDetailStatusLabel[clubStatus] || clubStatus || '-';
   const clubType = club?.type;
@@ -129,7 +131,7 @@ function buildClubDetailDisplay(club)  {
     additionalInfo,
   };
 };
-function buildFeeSummary(fees)  {
+function buildFeeSummary(fees) {
   if (fees.length === 0) {
     return { amount: '-', nextDue: '-' };
   }
@@ -148,7 +150,7 @@ function buildFeeSummary(fees)  {
   return { amount, nextDue };
 };
 
-function normalizeFeeItem(fee)  {
+function normalizeFeeItem(fee) {
   const title = fee?.title || fee?.type || '회비';
   const amountValue = fee?.amount;
   const amount =
@@ -164,7 +166,7 @@ function normalizeFeeItem(fee)  {
     status: status || '-',
   };
 };
-function normalizeClubMembers(members)  {
+function normalizeClubMembers(members) {
   let pendingCount = 0;
   const normalizedMembers = members.map((member) => {
     const status = member?.status || member?.membership_status || 'ACTIVE';
@@ -193,12 +195,14 @@ function normalizeClubMembers(members)  {
 };
 
 function buildMemberSummary({ total, pending }) { return `총 ${total}명 · 승인 대기 ${pending}명`; }
-function normalizeClubNotices(notices) { return notices.map((notice) => ({
+function normalizeClubNotices(notices) {
+  return notices.map((notice) => ({
     id: notice?.id || notice?.notice_id || notice?.title,
     title: notice?.title || '공지사항',
     date: notice?.created_at ? notice.created_at.slice(0, 10) : notice?.date || '-',
     pinned: notice?.is_pinned || notice?.is_important || notice?.pinned || false,
-  })); }
+  }));
+}
 
 const defaultClubRegisterErrors = {
   name: '',
@@ -214,26 +218,29 @@ const defaultClubRegisterErrors = {
   general: '',
 };
 
-function buildClubRegisterPayload(formData) { return ({
-  name: formData.name,
-  type: formData.type,
-  description: formData.description,
-  member_count: Number(formData.memberCount) || 1,
-  location: formData.location,
-  contact_info: formData.contact,
-  additional_info: formData.additionalInfo || null,
-  has_regular_fee: formData.hasRegularFee,
-  regular_fee_amount: formData.hasRegularFee
-    ? Number(formData.regularFeeAmount) || 0
-    : null,
-  regular_fee_cycle: formData.hasRegularFee
-    ? formData.regularFeeCycle || null
-    : null,
-  regular_fee_description: formData.hasRegularFee
-    ? formData.regularFeeDescription || null
-    : null,
-}); }
-function normalizeClubRegulations(regulations) { return regulations.map((regulation) => ({
+function buildClubRegisterPayload(formData) {
+  return ({
+    name: formData.name,
+    type: formData.type,
+    description: formData.description,
+    member_count: Number(formData.memberCount) || 1,
+    location: formData.location,
+    contact_info: formData.contact,
+    additional_info: formData.additionalInfo || null,
+    has_regular_fee: formData.hasRegularFee,
+    regular_fee_amount: formData.hasRegularFee
+      ? Number(formData.regularFeeAmount) || 0
+      : null,
+    regular_fee_cycle: formData.hasRegularFee
+      ? formData.regularFeeCycle || null
+      : null,
+    regular_fee_description: formData.hasRegularFee
+      ? formData.regularFeeDescription || null
+      : null,
+  });
+}
+function normalizeClubRegulations(regulations) {
+  return regulations.map((regulation) => ({
     id: regulation?.id || regulation?.regulation_id || regulation?.title,
     title: regulation?.title || '규정',
     updated: regulation?.updated_at
@@ -241,14 +248,17 @@ function normalizeClubRegulations(regulations) { return regulations.map((regulat
       : regulation?.created_at
         ? regulation.created_at.slice(0, 10)
         : '-',
-  })); }
+  }));
+}
 
-function getRegulationUpdatedDate(regulation) { return regulation?.updated_at
+function getRegulationUpdatedDate(regulation) {
+  return regulation?.updated_at
     ? regulation.updated_at.slice(0, 10)
     : regulation?.created_at
       ? regulation.created_at.slice(0, 10)
-      : '-'; }
-function buildClubStats(statsData)  {
+      : '-';
+}
+function buildClubStats(statsData) {
   const activeMembers = statsData?.active_members ?? statsData?.activeMembers ?? '-';
   const totalMeetings = statsData?.total_meetings ?? statsData?.totalMeetings ?? '-';
   const settlementCompleted =
