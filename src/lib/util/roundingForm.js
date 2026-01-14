@@ -1,14 +1,8 @@
-import {
-  convertToKST,
-  normalizeNumber,
-  parseTeeTimes,
-  toDateTimeLocalValue,
-  validateMeetingTimeWithTeeTimes,
-} from '@/lib/meetingUtils';
+import { convertToKST, normalizeNumber, parseTeeTimes, toDateTimeLocalValue, validateMeetingTimeWithTeeTimes } from '../util/meetingUtils';
 
-function getRoundingMeetingTitle(isEditMode) { return isEditMode ? '라운딩 모임 수정' : '라운딩 모임 만들기'; }
+export function getRoundingMeetingTitle(isEditMode) { return isEditMode ? '라운딩 모임 수정' : '라운딩 모임 만들기'; }
 
-function buildRoundingFormFromData({ data, fallback }) {
+export function buildRoundingFormFromData({ data, fallback }) {
   return ({
     ...fallback,
     name: data.name ?? '',
@@ -32,7 +26,7 @@ function buildRoundingFormFromData({ data, fallback }) {
   });
 }
 
-function validateRoundingForm(form) {
+export function validateRoundingForm(form) {
   const errors = {};
   const teeTimes = parseTeeTimes(form.tee_times);
 
@@ -86,9 +80,9 @@ function validateRoundingForm(form) {
   return errors;
 };
 
-function resolveSettlementMethod(method, settlementMethods) { return settlementMethods.some((item) => item.id === method) ? method : 'EQUAL_SPLIT'; }
+export function resolveSettlementMethod(method, settlementMethods) { return settlementMethods.some((item) => item.id === method) ? method : 'EQUAL_SPLIT'; }
 
-function buildRoundingPayload({ form, settlementMethods }) {
+export function buildRoundingPayload({ form, settlementMethods }) {
   const teeTimes = parseTeeTimes(form.tee_times);
   const greenFee = normalizeNumber(form.green_fee, 0);
   const caddyFee = normalizeNumber(form.caddy_fee, 0);
@@ -120,9 +114,9 @@ function buildRoundingPayload({ form, settlementMethods }) {
   };
 };
 
-export const roundingFormUtils = {
-  getRoundingMeetingTitle,
-  buildRoundingFormFromData,
-  validateRoundingForm,
-  buildRoundingPayload,
-};
+// export const roundingFormUtils = {
+//   getRoundingMeetingTitle,
+//   buildRoundingFormFromData,
+//   validateRoundingForm,
+//   buildRoundingPayload,
+// };

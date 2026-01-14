@@ -11,12 +11,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { fetchClubNotices } from '@/lib/api/clubs';
-import { createFetchNoticesHandler } from '@/lib/render/clubs/notices';
-import { extractList } from '@/lib/responseUtils';
-import { normalizeClubNotices } from '@/lib/value/clubNotices';
+import { clubsApi } from '@/lib/api/api';
+import { createFetchNoticesHandler } from '@/lib/render/clubs';
+import { normalizeClubNotices } from '@/lib/util/clubUtils';
+import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
+
+
 
 export default function ClubNoticesScreen() {
   const { clubId } = useLocalSearchParams();
@@ -29,7 +33,7 @@ export default function ClubNoticesScreen() {
     () =>
       createFetchNoticesHandler({
         clubId: resolvedId,
-        fetchClubNotices,
+        fetchClubNotices: clubsApi.getClubNotices,
         extractList,
         setNotices,
         setIsLoading,

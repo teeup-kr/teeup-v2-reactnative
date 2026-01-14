@@ -13,17 +13,19 @@ import {
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Modal from '@/components/ui/Modal';
-import { authApi } from '@/lib/authApi';
+import { authApi } from '@/lib/api/api';
 import {
   createCloseWithdrawModalHandler,
   createConfirmTextChangeHandler,
   createConfirmWithdrawHandler,
   createSubmitWithdrawHandler,
   createToggleAgreedHandler,
-} from '@/lib/render/mypage/withdraw';
-import { getWithdrawValidationError } from '@/lib/value/mypageWithdraw';
+} from '@/lib/render/mypage';
+import { getWithdrawValidationError } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
 
 export default function WithdrawScreen() {
   const router = useRouter();

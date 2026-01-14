@@ -1,12 +1,8 @@
-import {
-  convertToKST,
-  normalizeNumber,
-  toDateTimeLocalValue,
-} from '@/lib/meetingUtils';
+import { convertToKST, normalizeNumber, toDateTimeLocalValue } from "./meetingUtils";
 
-function getSocialMeetingTitle(isEditMode) { return isEditMode ? '소셜 모임 수정' : '소셜 모임 만들기'; }
+export function getSocialMeetingTitle(isEditMode) { return isEditMode ? '소셜 모임 수정' : '소셜 모임 만들기'; }
 
-function buildSocialFormFromData({ data, fallback }) {
+export function buildSocialFormFromData({ data, fallback }) {
   return ({
     ...fallback,
     name: data.name ?? '',
@@ -22,9 +18,9 @@ function buildSocialFormFromData({ data, fallback }) {
   });
 }
 
-function getParticipantTypeFromData(data) { return data.max_participants && Number(data.max_participants) > 0 ? 'LIMITED' : 'ALL'; }
+export function getParticipantTypeFromData(data) { return data.max_participants && Number(data.max_participants) > 0 ? 'LIMITED' : 'ALL'; }
 
-function validateSocialForm({ form, participantType }) {
+export function validateSocialForm({ form, participantType }) {
   const errors = {};
 
   if (!form.name.trim()) errors.name = '모임명을 입력해주세요.';
@@ -57,9 +53,9 @@ function validateSocialForm({ form, participantType }) {
   return errors;
 };
 
-function resolveSocialSettlementMethod(method, settlementMethods) { return settlementMethods.some((item) => item.id === method) ? method : 'EQUAL_SPLIT'; }
+export function resolveSocialSettlementMethod(method, settlementMethods) { return settlementMethods.some((item) => item.id === method) ? method : 'EQUAL_SPLIT'; }
 
-function buildSocialPayload({ form, participantType, settlementMethods }) {
+export function buildSocialPayload({ form, participantType, settlementMethods }) {
   return ({
     name: form.name.trim(),
     description: form.description.trim() || undefined,
@@ -78,9 +74,9 @@ function buildSocialPayload({ form, participantType, settlementMethods }) {
   });
 }
 
-export const socialFormUtils = {
-  getSocialMeetingTitle,
-  buildSocialFormFromData,
-  validateSocialForm,
-  buildSocialPayload,
-};
+// export const socialFormUtils = {
+//   getSocialMeetingTitle,
+//   buildSocialFormFromData,
+//   validateSocialForm,
+//   buildSocialPayload,
+// };

@@ -18,8 +18,7 @@ import MeetingDateField from '@/components/meetings/MeetingDateField';
 import Button from '@/components/ui/Button';
 import { meetingTabs, meetingValidTabs } from '@/constants/meetingConstants';
 import { useAuth } from '@/context/AuthContext';
-import { fetchMyClubs, fetchRounds, fetchSocials } from '@/lib/api/meetings';
-import { extractList, filterByDate, filterByStatus, getDateRange } from '@/lib/meetingUtils';
+import { meetingsApi } from '@/lib/api/api';
 import {
   createCreateMeetingHandler,
   createDateChangeHandler,
@@ -37,9 +36,17 @@ import {
   createTabChangeHandler,
   createTabPressHandler,
 } from '@/lib/render/meetings';
-import { getActiveFilters, getPageNumbers } from '@/lib/value/meetings';
+import {
+  extractList,
+  filterByDate,
+  filterByStatus,
+  getActiveFilters,
+  getDateRange,
+  getPageNumbers,
+} from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
 
 export default function MeetingsScreen() {
   const router = useRouter();
@@ -85,7 +92,7 @@ export default function MeetingsScreen() {
   const fetchClubs = useMemo(
     () =>
       createFetchClubsHandler({
-        fetchMyClubs,
+        fetchMyClubs: meetingsApi.fetchMyClubs,
         extractList,
         setHasClubs,
         setError,
@@ -96,7 +103,7 @@ export default function MeetingsScreen() {
   const fetchRoundingMeetings = useMemo(
     () =>
       createFetchRoundingMeetingsHandler({
-        fetchRounds,
+        fetchRounds: meetingsApi.fetchRounds,
         extractList,
         filterByDate,
         filterByStatus,
@@ -123,7 +130,7 @@ export default function MeetingsScreen() {
   const fetchSocialMeetings = useMemo(
     () =>
       createFetchSocialMeetingsHandler({
-        fetchSocials,
+        fetchSocials: meetingsApi.fetchSocials,
         extractList,
         filterByDate,
         filterByStatus,

@@ -11,15 +11,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { fetchClubRegulation } from '@/lib/api/clubs';
+import { clubsApi } from '@/lib/api/api';
 import {
   createFetchRegulationDetailHandler,
   createRegulationEditHandler,
-} from '@/lib/render/clubs/regulations';
-import { extractData } from '@/lib/responseUtils';
-import { getRegulationUpdatedDate } from '@/lib/value/clubRegulations';
+} from '@/lib/render/clubs';
+import { getRegulationUpdatedDate } from '@/lib/util/clubUtils';
+import { extractData } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
+
+
 
 export default function ClubRegulationDetailScreen() {
   const router = useRouter();
@@ -35,7 +39,7 @@ export default function ClubRegulationDetailScreen() {
       createFetchRegulationDetailHandler({
         clubId: resolvedClubId,
         regulationId: resolvedRegulationId,
-        fetchClubRegulation,
+        fetchClubRegulation: clubsApi.getClubRegulation,
         extractData,
         setRegulation,
         setIsLoading,

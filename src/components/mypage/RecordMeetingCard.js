@@ -2,8 +2,9 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { asNumber, formatKoreanDate } from '@/lib/value/mypageRecords';
+import { asNumber, formatKoreanDate } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
+
 
 export default function RecordMeetingCard({
   meeting,

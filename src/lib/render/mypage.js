@@ -1,7 +1,8 @@
-import { getChangePasswordScreenError, validateChangePasswordForm } from '@/lib/value/mypage';
 import { Platform } from 'react-native';
 
-function createPasswordFieldChangeHandler({
+import { buildProfilePayload, formatDateYYYYMMDD, getChangePasswordScreenError, validateChangePasswordForm, validateProfileForm } from '../util/mypageUtils';
+
+export function createPasswordFieldChangeHandler({
     setForm,
     setError,
     setSuccess,
@@ -14,7 +15,7 @@ function createPasswordFieldChangeHandler({
     };
 }
 
-function createSubmitChangePasswordHandler({
+export function createSubmitChangePasswordHandler({
     form,
     isSubmitting,
     setError,
@@ -51,7 +52,7 @@ function createSubmitChangePasswordHandler({
     };
 }
 
-function createResetPasswordModalHandler({
+export function createResetPasswordModalHandler({
     setFormData,
     setValidationErrors,
     setError,
@@ -69,7 +70,7 @@ function createResetPasswordModalHandler({
     };
 }
 
-function createValidatePasswordModalHandler({
+export function createValidatePasswordModalHandler({
     formData,
     setValidationErrors,
 }) {
@@ -80,7 +81,7 @@ function createValidatePasswordModalHandler({
     };
 }
 
-function createSubmitPasswordModalHandler({
+export function createSubmitPasswordModalHandler({
     formData,
     validateForm,
     changePassword,
@@ -117,9 +118,7 @@ function createSubmitPasswordModalHandler({
     };
 }
 
-import { buildProfilePayload, formatDateYYYYMMDD, validateProfileForm } from '@/lib/value/mypage';
-
-function createInputChangeHandler({
+export function createInputChangeHandler({
     setFormData,
     setErrors,
     setNicknameChecked,
@@ -142,7 +141,7 @@ function createInputChangeHandler({
     };
 }
 
-function createCheckNicknameDuplicateHandler({
+export function createCheckNicknameDuplicateHandler({
     nickname,
     isNicknameSame,
     setErrors,
@@ -205,7 +204,7 @@ function createCheckNicknameDuplicateHandler({
     };
 }
 
-function createBirthPickerChangeHandler({ setShowBirthPicker, handleInputChange }) {
+export function createBirthPickerChangeHandler({ setShowBirthPicker, handleInputChange }) {
     return (event, selected) => {
         if (Platform.OS !== 'ios') {
             setShowBirthPicker(false);
@@ -217,7 +216,7 @@ function createBirthPickerChangeHandler({ setShowBirthPicker, handleInputChange 
     };
 }
 
-function createValidateProfileFormHandler({
+export function createValidateProfileFormHandler({
     formData,
     isSocialLogin,
     isNicknameSame,
@@ -236,7 +235,7 @@ function createValidateProfileFormHandler({
     };
 }
 
-function createSaveProfileHandler({
+export function createSaveProfileHandler({
     formData,
     profile,
     isSocialLogin,
@@ -267,50 +266,50 @@ function createSaveProfileHandler({
     };
 }
 
-function createPasswordModalOpenHandler(setShowPasswordModal) {
+export function createPasswordModalOpenHandler(setShowPasswordModal) {
     return () => {
         setShowPasswordModal(true);
     };
 }
 
-function createPasswordModalCloseHandler(setShowPasswordModal) {
+export function createPasswordModalCloseHandler(setShowPasswordModal) {
     return () => {
         setShowPasswordModal(false);
     };
 }
 
-function createBirthPickerOpenHandler(setShowBirthPicker) {
+export function createBirthPickerOpenHandler(setShowBirthPicker) {
     return () => {
         setShowBirthPicker(true);
     };
 }
 
-function createCompositionStartHandler(setIsNameComposing) {
+export function createCompositionStartHandler(setIsNameComposing) {
     return () => {
         setIsNameComposing(true);
     };
 }
 
-function createCompositionEndHandler({ setIsNameComposing, handleInputChange, fallbackValue }) {
+export function createCompositionEndHandler({ setIsNameComposing, handleInputChange, fallbackValue }) {
     return (event) => {
         setIsNameComposing(false);
         handleInputChange('realname', event?.nativeEvent?.text ?? fallbackValue);
     };
 }
 
-function createShowToastHandler(setToast) {
+export function createShowToastHandler(setToast) {
     return (tone, message) => {
         setToast({ open: true, tone, message });
     };
 }
 
-function createFieldChangeHandler(handleInputChange, field) {
+export function createFieldChangeHandler(handleInputChange, field) {
     return (value) => {
         handleInputChange(field, value);
     };
 }
 
-function createConditionalFieldChangeHandler({
+export function createConditionalFieldChangeHandler({
     handleInputChange,
     field,
     shouldBlock,
@@ -320,14 +319,14 @@ function createConditionalFieldChangeHandler({
         handleInputChange(field, value);
     };
 }
-function createTabPressHandler({ setActiveTab }) {
+export function createTabPressHandler({ setActiveTab }) {
     return (tabId) =>
         () => {
             setActiveTab(tabId);
         };
 }
 
-function getMyPageTabContent({ activeTab, tabs }) {
+export function getMyPageTabContent({ activeTab, tabs }) {
     switch (activeTab) {
         case 'overview':
             return tabs.overview;
@@ -345,7 +344,7 @@ function getMyPageTabContent({ activeTab, tabs }) {
             return tabs.overview;
     }
 };
-function openWebDateInput({ value, onChange }) {
+export function openWebDateInput({ value, onChange }) {
     const doc = globalThis?.document;
     if (!doc || typeof doc.createElement !== 'function') return false;
 
@@ -359,7 +358,7 @@ function openWebDateInput({ value, onChange }) {
     return true;
 };
 
-function createDatePickerChangeHandler({ setValue, setPage, toYmd }) {
+export function createDatePickerChangeHandler({ setValue, setPage, toYmd }) {
     return (event, date) => {
         if (event?.type === 'dismissed') return;
         if (!date) return;
@@ -368,7 +367,7 @@ function createDatePickerChangeHandler({ setValue, setPage, toYmd }) {
     };
 }
 
-function createOpenDatePickerHandler({
+export function createOpenDatePickerHandler({
     platform,
     value,
     setValue,
@@ -404,21 +403,21 @@ function createOpenDatePickerHandler({
     };
 }
 
-function createTypeFilterHandler({ setTypeFilter, setPage }) {
+export function createTypeFilterHandler({ setTypeFilter, setPage }) {
     return (nextType) => {
         setTypeFilter(nextType);
         setPage(1);
     };
 }
 
-function createTypeTabPressHandler({ onSelect }) {
+export function createTypeTabPressHandler({ onSelect }) {
     return (tabId) =>
         () => {
             onSelect(tabId);
         };
 }
 
-function createResetFiltersHandler({ setTypeFilter, setStatusFilter, setStartDate, setEndDate, setPage }) {
+export function createResetFiltersHandler({ setTypeFilter, setStatusFilter, setStartDate, setEndDate, setPage }) {
     return () => {
         setTypeFilter('all');
         setStatusFilter('all');
@@ -428,20 +427,20 @@ function createResetFiltersHandler({ setTypeFilter, setStatusFilter, setStartDat
     };
 }
 
-function createMeetingDetailHandler({ router }) {
+export function createMeetingDetailHandler({ router }) {
     return (meetingId, slug) =>
         () => {
             router.push(`/meetings/${slug}/${meetingId}`);
         };
 }
 
-function createNextPageHandler({ setPage, totalPages }) {
+export function createNextPageHandler({ setPage, totalPages }) {
     return () => {
         setPage((prev) => Math.min(totalPages, prev + 1));
     };
 }
 
-function createLoadNotificationsHandler({
+export function createLoadNotificationsHandler({
     notificationsApi,
     filter,
     typeFilter,
@@ -468,7 +467,7 @@ function createLoadNotificationsHandler({
     };
 }
 
-function createMarkAsReadHandler({ notificationsApi, setNotifications, alert }) {
+export function createMarkAsReadHandler({ notificationsApi, setNotifications, alert }) {
     return async function (id) {
         try {
             await notificationsApi.markAsRead(id);
@@ -486,7 +485,7 @@ function createMarkAsReadHandler({ notificationsApi, setNotifications, alert }) 
     };
 }
 
-function createMarkAllAsReadHandler({ notificationsApi, setNotifications, setToast, alert }) {
+export function createMarkAllAsReadHandler({ notificationsApi, setNotifications, setToast, alert }) {
     return async function () {
         try {
             await notificationsApi.markAllAsRead();
@@ -501,7 +500,7 @@ function createMarkAllAsReadHandler({ notificationsApi, setNotifications, setToa
     };
 }
 
-function createDeleteNotificationHandler({ notificationsApi, setNotifications, setToast, alert }) {
+export function createDeleteNotificationHandler({ notificationsApi, setNotifications, setToast, alert }) {
     return async function (id) {
         try {
             await notificationsApi.deleteNotification(id);
@@ -513,7 +512,7 @@ function createDeleteNotificationHandler({ notificationsApi, setNotifications, s
     };
 }
 
-function createToggleSelectHandler({ setSelected }) {
+export function createToggleSelectHandler({ setSelected }) {
     return (id) => {
         setSelected((prev) =>
             prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id]
@@ -521,35 +520,35 @@ function createToggleSelectHandler({ setSelected }) {
     };
 }
 
-function createToggleSelectPressHandler({ onToggle }) {
+export function createToggleSelectPressHandler({ onToggle }) {
     return (id) =>
         () => {
             onToggle(id);
         };
 }
 
-function createSelectAllHandler({ notifications, selected, setSelected }) {
+export function createSelectAllHandler({ notifications, selected, setSelected }) {
     return () => {
         if (selected.length === notifications.length) setSelected([]);
         else setSelected(notifications.map((item) => item.id));
     };
 }
 
-function createBulkReadHandler({ selected, markAsRead, setSelected }) {
+export function createBulkReadHandler({ selected, markAsRead, setSelected }) {
     return async function () {
         for (const id of selected) await markAsRead(id);
         setSelected([]);
     };
 }
 
-function createBulkDeleteHandler({ selected, deleteOne, setSelected }) {
+export function createBulkDeleteHandler({ selected, deleteOne, setSelected }) {
     return async function () {
         for (const id of selected) await deleteOne(id);
         setSelected([]);
     };
 }
 
-function createOpenNotificationHandler({ isUnreadNotification, markAsRead, router }) {
+export function createOpenNotificationHandler({ isUnreadNotification, markAsRead, router }) {
     return async function (notification) {
         if (isUnreadNotification(notification)) await markAsRead(notification.id);
 
@@ -567,41 +566,41 @@ function createOpenNotificationHandler({ isUnreadNotification, markAsRead, route
     };
 }
 
-function createOpenNotificationPressHandler({ onOpen }) {
+export function createOpenNotificationPressHandler({ onOpen }) {
     return (notification) =>
         () => {
             onOpen(notification);
         };
 }
 
-function createFilterPressHandler({ setFilter }) {
+export function createFilterPressHandler({ setFilter }) {
     return (nextFilter) =>
         () => {
             setFilter(nextFilter);
         };
 }
 
-function createDeleteTargetHandler({ setDeleteTarget }) {
+export function createDeleteTargetHandler({ setDeleteTarget }) {
     return (id) =>
         () => {
             setDeleteTarget(id);
         };
 }
 
-function createClearDeleteTargetHandler({ setDeleteTarget }) {
+export function createClearDeleteTargetHandler({ setDeleteTarget }) {
     return () => {
         setDeleteTarget(null);
     };
 }
 
-function createConfirmDeleteHandler({ deleteTarget, deleteOne, setDeleteTarget }) {
+export function createConfirmDeleteHandler({ deleteTarget, deleteOne, setDeleteTarget }) {
     return () => {
         if (!deleteTarget) return;
         deleteOne(deleteTarget);
         setDeleteTarget(null);
     };
 }
-function createFetchProfileHandler({
+export function createFetchProfileHandler({
     fetchMyProfile,
     fetchUserHandicap,
     extractData,
@@ -630,7 +629,7 @@ function createFetchProfileHandler({
     };
 }
 
-function createFetchClubsHandler({
+export function createFetchClubsHandler({
     fetchMyClubs,
     extractList,
     setClubs,
@@ -647,45 +646,45 @@ function createFetchClubsHandler({
     };
 }
 
-function createOpenClubsHandler(router) {
+export function createOpenClubsHandler(router) {
     return () => {
         router.push('/clubs');
     };
 }
 
-function createOpenClubDetailHandler(router, clubId) {
+export function createOpenClubDetailHandler(router, clubId) {
     return () => {
         router.push(`/clubs/${clubId}`);
     };
 }
-function createScoreStatusHandler({ setScoreStatus, setPage }) {
+export function createScoreStatusHandler({ setScoreStatus, setPage }) {
     return (nextStatus) => {
         setScoreStatus(nextStatus);
         setPage(1);
     };
 }
 
-function createScoreStatusPressHandler({ onSelect }) {
+export function createScoreStatusPressHandler({ onSelect }) {
     return (status) =>
         () => {
             onSelect(status);
         };
 }
 
-function createPrevPageHandler({ setPage }) {
+export function createPrevPageHandler({ setPage }) {
     return () => {
         setPage((prev) => Math.max(1, prev - 1));
     };
 }
 
-function createGoToDetailHandler({ router }) {
+export function createGoToDetailHandler({ router }) {
     return (meetingId) =>
         () => {
             router.push(`/meetings/rounding/${meetingId}`);
         };
 }
 
-function createCloseScoreModalHandler({ setShowScoreModal, setSelectedMeeting, setSelectedParticipantId }) {
+export function createCloseScoreModalHandler({ setShowScoreModal, setSelectedMeeting, setSelectedParticipantId }) {
     return () => {
         setShowScoreModal(false);
         setSelectedMeeting(null);
@@ -693,19 +692,19 @@ function createCloseScoreModalHandler({ setShowScoreModal, setSelectedMeeting, s
     };
 }
 
-function createOpenComingSoonHandler({ setShowComingSoonModal }) {
+export function createOpenComingSoonHandler({ setShowComingSoonModal }) {
     return () => {
         setShowComingSoonModal(true);
     };
 }
 
-function createCloseComingSoonHandler({ setShowComingSoonModal }) {
+export function createCloseComingSoonHandler({ setShowComingSoonModal }) {
     return () => {
         setShowComingSoonModal(false);
     };
 }
 
-function createFetchStatsHandler({ fetchRoundingStats, pickData, setStatsLoading, setStatsError, setStats }) {
+export function createFetchStatsHandler({ fetchRoundingStats, pickData, setStatsLoading, setStatsError, setStats }) {
     return async function () {
         try {
             setStatsLoading(true);
@@ -722,7 +721,7 @@ function createFetchStatsHandler({ fetchRoundingStats, pickData, setStatsLoading
     };
 }
 
-function createFetchMeetingsHandler({
+export function createFetchMeetingsHandler({
     fetchMyRoundingMeetings,
     scoreStatus,
     page,
@@ -757,7 +756,7 @@ function createFetchMeetingsHandler({
     };
 }
 
-function createFetchHandicapHandler({ fetchMyProfile, fetchUserHandicap, pickData, setCurrentHandicap }) {
+export function createFetchHandicapHandler({ fetchMyProfile, fetchUserHandicap, pickData, setCurrentHandicap }) {
     return async function () {
         try {
             const profileResp = await fetchMyProfile?.();
@@ -781,7 +780,7 @@ function createFetchHandicapHandler({ fetchMyProfile, fetchUserHandicap, pickDat
     };
 }
 
-function createOpenScoreModalHandler({
+export function createOpenScoreModalHandler({
     fetchRoundParticipants,
     fetchMyProfile,
     pickData,
@@ -819,7 +818,7 @@ function createOpenScoreModalHandler({
     };
 }
 
-function createScoreSuccessHandler({
+export function createScoreSuccessHandler({
     setShowScoreModal,
     setSelectedMeeting,
     setSelectedParticipantId,
@@ -837,7 +836,7 @@ function createScoreSuccessHandler({
     };
 }
 
-function createGrossScoreChangeHandler({ setGrossScore }) {
+export function createGrossScoreChangeHandler({ setGrossScore }) {
     return (value) => {
         if (value === '') {
             setGrossScore('');
@@ -859,7 +858,7 @@ function createGrossScoreChangeHandler({ setGrossScore }) {
     };
 }
 
-function createScoreValidationHandler({ grossScore, setErrors }) {
+export function createScoreValidationHandler({ grossScore, setErrors }) {
     return () => {
         const nextErrors = {};
         if (!grossScore || grossScore.trim() === '') {
@@ -876,7 +875,7 @@ function createScoreValidationHandler({ grossScore, setErrors }) {
     };
 }
 
-function createScoreSubmitHandler({
+export function createScoreSubmitHandler({
     validate,
     shouldCompleteRounding,
     meetingId,
@@ -918,7 +917,7 @@ function createScoreSubmitHandler({
     };
 }
 
-function createResetScoreEntryHandler({ setGrossScore, setIsSubmitting, setErrors }) {
+export function createResetScoreEntryHandler({ setGrossScore, setIsSubmitting, setErrors }) {
     return () => {
         setGrossScore('');
         setIsSubmitting(false);
@@ -926,26 +925,26 @@ function createResetScoreEntryHandler({ setGrossScore, setIsSubmitting, setError
     };
 }
 
-function createCloseScoreEntryHandler({ isSubmitting, onClose, resetLocal }) {
+export function createCloseScoreEntryHandler({ isSubmitting, onClose, resetLocal }) {
     return () => {
         if (isSubmitting) return;
         onClose?.();
         resetLocal();
     };
 }
-function createToggleAgreedHandler({ setAgreed }) {
+export function createToggleAgreedHandler({ setAgreed }) {
     return () => {
         setAgreed((prev) => !prev);
     };
 }
 
-function createConfirmTextChangeHandler({ setConfirmText }) {
+export function createConfirmTextChangeHandler({ setConfirmText }) {
     return (value) => {
         setConfirmText(value);
     };
 }
 
-function createSubmitWithdrawHandler({ agreed, confirmText, setError, setModalOpen, getWithdrawValidationError }) {
+export function createSubmitWithdrawHandler({ agreed, confirmText, setError, setModalOpen, getWithdrawValidationError }) {
     return () => {
         const message = getWithdrawValidationError({ agreed, confirmText });
         if (message) {
@@ -957,13 +956,13 @@ function createSubmitWithdrawHandler({ agreed, confirmText, setError, setModalOp
     };
 }
 
-function createCloseWithdrawModalHandler({ setModalOpen }) {
+export function createCloseWithdrawModalHandler({ setModalOpen }) {
     return () => {
         setModalOpen(false);
     };
 }
 
-function createConfirmWithdrawHandler({
+export function createConfirmWithdrawHandler({
     deleteAccount,
     setIsSubmitting,
     setResultMessage,
@@ -986,72 +985,72 @@ function createConfirmWithdrawHandler({
     };
 }
 
-export const mypageRenderUtils = {
-    createPasswordFieldChangeHandler,
-    createSubmitChangePasswordHandler,
-    createResetPasswordModalHandler,
-    createValidatePasswordModalHandler,
-    createSubmitPasswordModalHandler,
-    createInputChangeHandler,
-    createCheckNicknameDuplicateHandler,
-    createBirthPickerChangeHandler,
-    createValidateProfileFormHandler,
-    createSaveProfileHandler,
-    createPasswordModalOpenHandler,
-    createPasswordModalCloseHandler,
-    createBirthPickerOpenHandler,
-    createCompositionStartHandler,
-    createCompositionEndHandler,
-    createShowToastHandler,
-    createFieldChangeHandler,
-    createConditionalFieldChangeHandler,
-    createTabPressHandler,
-    getMyPageTabContent,
-    createOpenDatePickerHandler,
-    createTypeFilterHandler,
-    createTypeTabPressHandler,
-    createResetFiltersHandler,
-    createMeetingDetailHandler,
-    createNextPageHandler,
-    createLoadNotificationsHandler,
-    createMarkAsReadHandler,
-    createMarkAllAsReadHandler,
-    createDeleteNotificationHandler,
-    createToggleSelectHandler,
-    createToggleSelectPressHandler,
-    createSelectAllHandler,
-    createBulkReadHandler,
-    createBulkDeleteHandler,
-    createOpenNotificationHandler,
-    createOpenNotificationPressHandler,
-    createFilterPressHandler,
-    createDeleteTargetHandler,
-    createClearDeleteTargetHandler,
-    createConfirmDeleteHandler,
-    createFetchProfileHandler,
-    createFetchClubsHandler,
-    createOpenClubsHandler,
-    createOpenClubDetailHandler,
-    createScoreStatusHandler,
-    createScoreStatusPressHandler,
-    createPrevPageHandler,
-    createGoToDetailHandler,
-    createCloseScoreModalHandler,
-    createOpenComingSoonHandler,
-    createCloseComingSoonHandler,
-    createFetchStatsHandler,
-    createFetchMeetingsHandler,
-    createFetchHandicapHandler,
-    createOpenScoreModalHandler,
-    createScoreSuccessHandler,
-    createGrossScoreChangeHandler,
-    createScoreValidationHandler,
-    createScoreSubmitHandler,
-    createResetScoreEntryHandler,
-    createCloseScoreEntryHandler,
-    createToggleAgreedHandler,
-    createConfirmTextChangeHandler,
-    createSubmitWithdrawHandler,
-    createCloseWithdrawModalHandler,
-    createConfirmWithdrawHandler,
-}
+// export const mypageRenderUtils = {
+//     createPasswordFieldChangeHandler,
+//     createSubmitChangePasswordHandler,
+//     createResetPasswordModalHandler,
+//     createValidatePasswordModalHandler,
+//     createSubmitPasswordModalHandler,
+//     createInputChangeHandler,
+//     createCheckNicknameDuplicateHandler,
+//     createBirthPickerChangeHandler,
+//     createValidateProfileFormHandler,
+//     createSaveProfileHandler,
+//     createPasswordModalOpenHandler,
+//     createPasswordModalCloseHandler,
+//     createBirthPickerOpenHandler,
+//     createCompositionStartHandler,
+//     createCompositionEndHandler,
+//     createShowToastHandler,
+//     createFieldChangeHandler,
+//     createConditionalFieldChangeHandler,
+//     createTabPressHandler,
+//     getMyPageTabContent,
+//     createOpenDatePickerHandler,
+//     createTypeFilterHandler,
+//     createTypeTabPressHandler,
+//     createResetFiltersHandler,
+//     createMeetingDetailHandler,
+//     createNextPageHandler,
+//     createLoadNotificationsHandler,
+//     createMarkAsReadHandler,
+//     createMarkAllAsReadHandler,
+//     createDeleteNotificationHandler,
+//     createToggleSelectHandler,
+//     createToggleSelectPressHandler,
+//     createSelectAllHandler,
+//     createBulkReadHandler,
+//     createBulkDeleteHandler,
+//     createOpenNotificationHandler,
+//     createOpenNotificationPressHandler,
+//     createFilterPressHandler,
+//     createDeleteTargetHandler,
+//     createClearDeleteTargetHandler,
+//     createConfirmDeleteHandler,
+//     createFetchProfileHandler,
+//     createFetchClubsHandler,
+//     createOpenClubsHandler,
+//     createOpenClubDetailHandler,
+//     createScoreStatusHandler,
+//     createScoreStatusPressHandler,
+//     createPrevPageHandler,
+//     createGoToDetailHandler,
+//     createCloseScoreModalHandler,
+//     createOpenComingSoonHandler,
+//     createCloseComingSoonHandler,
+//     createFetchStatsHandler,
+//     createFetchMeetingsHandler,
+//     createFetchHandicapHandler,
+//     createOpenScoreModalHandler,
+//     createScoreSuccessHandler,
+//     createGrossScoreChangeHandler,
+//     createScoreValidationHandler,
+//     createScoreSubmitHandler,
+//     createResetScoreEntryHandler,
+//     createCloseScoreEntryHandler,
+//     createToggleAgreedHandler,
+//     createConfirmTextChangeHandler,
+//     createSubmitWithdrawHandler,
+//     createCloseWithdrawModalHandler,
+//     createConfirmWithdrawHandler,
+// }

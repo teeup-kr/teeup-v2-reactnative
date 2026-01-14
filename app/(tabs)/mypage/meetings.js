@@ -19,12 +19,7 @@ import {
   myMeetingsTypeConfig,
   myMeetingsTypeTabs
 } from '@/constants/mypageConstants';
-import { fetchMyMeetings } from '@/lib/api/mypage';
-import {
-  extractList,
-  formatMeetingTimeShort,
-  getMeetingStatusKey,
-} from '@/lib/meetingUtils';
+import { mypageApi } from '@/lib/api/api';
 import {
   createDatePickerChangeHandler,
   createFetchMeetingsHandler,
@@ -35,10 +30,19 @@ import {
   createResetFiltersHandler,
   createTypeFilterHandler,
   createTypeTabPressHandler,
-} from '@/lib/render/mypage/meetings';
-import { fromYmd, hasMeetingFilters, toYmd } from '@/lib/value/mypageMeetings';
+} from '@/lib/render/mypage';
+import {
+  extractList,
+  formatMeetingTimeShort,
+  getMeetingStatusKey,
+} from '@/lib/util/meetingUtils';
+import { fromYmd, hasMeetingFilters, toYmd } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
+
+
 
 export default function MyMeetingsScreen() {
   const router = useRouter();
@@ -110,7 +114,7 @@ export default function MyMeetingsScreen() {
   const fetchMeetings = useMemo(
     () =>
       createFetchMeetingsHandler({
-        fetchMyMeetings,
+        fetchMyMeetings: mypageApi.fetchMyMeetings,
         extractList,
         page,
         typeFilter,

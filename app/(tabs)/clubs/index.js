@@ -24,8 +24,7 @@ import {
   clubValidTabs,
 } from '@/constants/clubConstants';
 import { useAuth } from '@/context/AuthContext';
-import { fetchClubs, fetchMyClubApplications, fetchMyClubs } from '@/lib/api/clubs';
-import { normalizePaginatedResponse } from '@/lib/clubUtils';
+import { clubsApi } from '@/lib/api/api';
 import {
   createBrowseClubsHandler,
   createCardPressHandler,
@@ -41,10 +40,15 @@ import {
   createStatusFilterSelectHandler,
   createTabChangeHandler,
   createToggleStatusFilterHandler,
-} from '@/lib/render/clubs/index';
-import { getClubCardVariant, getClubPageNumbers } from '@/lib/value/clubs';
+} from '@/lib/render/clubs';
+import {
+  getClubCardVariant,
+  getClubPageNumbers,
+  normalizePaginatedResponse,
+} from '@/lib/util/clubUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
 
 const logoImage = require('../../../public/icons/icon-512-transparent.png');
 
@@ -101,9 +105,9 @@ export default function ClubsScreen() {
         myClubStatusFilter,
         statusFilter,
         userId: user?.id,
-        fetchMyClubs,
-        fetchMyClubApplications,
-        fetchClubs,
+        fetchMyClubs: clubsApi.getMyClubs,
+        fetchMyClubApplications: clubsApi.getMyClubApplications,
+        fetchClubs: clubsApi.getClubs,
         normalizePaginatedResponse,
         setClubs,
         setTotalPages,

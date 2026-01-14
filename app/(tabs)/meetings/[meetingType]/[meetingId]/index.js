@@ -26,25 +26,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { meetingDetailTabs } from '@/constants/meetingConstants';
-import {
-  autoFormTeams,
-  closeApplicationEarly,
-  completeRounding,
-  confirmSettlement,
-  confirmTeamFormation,
-  fetchApplicationStatus,
-  fetchRound,
-  fetchRoundParticipants,
-  fetchRoundTeams,
-  fetchSocial,
-  joinRound,
-  joinSocial,
-  leaveRound,
-  leaveSocial,
-  startRounding,
-} from '@/lib/api/meetings';
-import { fetchMyProfile, fetchUserHandicap, updateMyProfile } from '@/lib/api/mypage';
-import { extractData, extractList, formatDateTime } from '@/lib/meetingUtils';
+import { meetingsApi, mypageApi } from '@/lib/api/api';
 import {
   createAutoFormTeamsHandler,
   createCompleteRoundingHandler,
@@ -63,18 +45,22 @@ import {
   createStartRoundingHandler,
   createTabPressHandler,
   createUpdateUserInfoHandler,
-} from '@/lib/render/meetings/detail';
+} from '@/lib/render/meetings';
 import {
   buildUserInfoFromProfile,
+  extractData,
+  extractList,
+  formatDateTime,
   getCurrentHandicap,
   getIsJoined,
   getMeetingDomainType,
   getMyParticipantId,
   getTypeSlug,
   getUserRole,
-} from '@/lib/value/meetingDetail';
+} from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
 
 export default function MeetingDetailScreen() {
   const { meetingType, meetingId } = useLocalSearchParams();
@@ -124,8 +110,8 @@ export default function MeetingDetailScreen() {
   const fetchUserInfo = useMemo(
     () =>
       createFetchUserInfoHandler({
-        fetchMyProfile,
-        fetchUserHandicap,
+        fetchMyProfile: mypageApi.fetchMyProfile,
+        fetchUserHandicap: mypageApi.fetchUserHandicap,
         extractData,
         setUser,
         setUserInfo,
@@ -148,8 +134,8 @@ export default function MeetingDetailScreen() {
       createFetchMeetingHandler({
         meetingIdValue,
         typeSlug,
-        fetchSocial,
-        fetchRound,
+        fetchSocial: meetingsApi.fetchSocial,
+        fetchRound: meetingsApi.fetchRound,
         extractData,
         setMeeting,
         setLoading,
@@ -164,7 +150,7 @@ export default function MeetingDetailScreen() {
         meetingIdValue,
         typeSlug,
         meeting,
-        fetchRoundParticipants,
+        fetchRoundParticipants: meetingsApi.fetchRoundParticipants,
         extractList,
         setParticipants,
         setConfirmedParticipants,
@@ -177,7 +163,7 @@ export default function MeetingDetailScreen() {
       createFetchTeamsHandler({
         meetingIdValue,
         isRoundingMeeting,
-        fetchRoundTeams,
+        fetchRoundTeams: meetingsApi.fetchRoundTeams,
         extractList,
         setTeams,
       }),
@@ -189,7 +175,7 @@ export default function MeetingDetailScreen() {
       createFetchApplicationStatusHandler({
         meetingIdValue,
         isRoundingMeeting,
-        fetchApplicationStatus,
+        fetchApplicationStatus: meetingsApi.fetchApplicationStatus,
         extractData,
         setApplicationStatus,
       }),
@@ -211,7 +197,7 @@ export default function MeetingDetailScreen() {
     () =>
       createUpdateUserInfoHandler({
         userInfo,
-        updateMyProfile,
+        updateMyProfile: mypageApi.updateMyProfile,
         setProcessingAction,
         setIsEditingUserInfo,
         fetchUserInfo,
@@ -225,8 +211,8 @@ export default function MeetingDetailScreen() {
       createJoinHandler({
         typeSlug,
         meetingIdValue,
-        joinSocial,
-        joinRound,
+        joinSocial: meetingsApi.joinSocial,
+        joinRound: meetingsApi.joinRound,
         setJoinModalOpen,
         setProcessingAction,
         fetchParticipants,
@@ -241,8 +227,8 @@ export default function MeetingDetailScreen() {
       createLeaveHandler({
         typeSlug,
         meetingIdValue,
-        leaveSocial,
-        leaveRound,
+        leaveSocial: meetingsApi.leaveSocial,
+        leaveRound: meetingsApi.leaveRound,
         setProcessingAction,
         fetchParticipants,
         fetchMeeting,
@@ -255,7 +241,7 @@ export default function MeetingDetailScreen() {
     () =>
       createAutoFormTeamsHandler({
         meetingIdValue,
-        autoFormTeams,
+        autoFormTeams: meetingsApi.autoFormTeams,
         extractList,
         setProcessingAction,
         setPreviewTeams,
@@ -270,7 +256,7 @@ export default function MeetingDetailScreen() {
     () =>
       createConfirmTeamsHandler({
         meetingIdValue,
-        confirmTeamFormation,
+        confirmTeamFormation: meetingsApi.confirmTeamFormation,
         setProcessingAction,
         setTeamPreviewOpen,
         fetchTeams,
@@ -284,7 +270,7 @@ export default function MeetingDetailScreen() {
     () =>
       createStartRoundingHandler({
         meetingIdValue,
-        startRounding,
+        startRounding: meetingsApi.startRounding,
         setProcessingAction,
         fetchMeeting,
         alert: Alert.alert,
@@ -296,7 +282,7 @@ export default function MeetingDetailScreen() {
     () =>
       createCompleteRoundingHandler({
         meetingIdValue,
-        completeRounding,
+        completeRounding: meetingsApi.completeRounding,
         setProcessingAction,
         setRoundingCompleteOpen,
         fetchMeeting,
@@ -309,7 +295,7 @@ export default function MeetingDetailScreen() {
     () =>
       createConfirmSettlementHandler({
         meetingIdValue,
-        confirmSettlement,
+        confirmSettlement: meetingsApi.confirmSettlement,
         setProcessingAction,
         fetchMeeting,
         alert: Alert.alert,
@@ -343,7 +329,7 @@ export default function MeetingDetailScreen() {
   );
 
   const handleCloseApplicationEarly = useMemo(
-    () => () => closeApplicationEarly(meetingIdValue),
+    () => () => meetingsApi.closeApplicationEarly(meetingIdValue),
     [meetingIdValue]
   );
 

@@ -21,9 +21,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { registerInitialErrors, registerInitialForm } from '@/constants/authConstants';
-import { authApi } from '@/lib/authApi';
+import { authApi } from '@/lib/api/api';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
 
 const logoImage = require('../public/icons/icon-512-transparent.png');
 

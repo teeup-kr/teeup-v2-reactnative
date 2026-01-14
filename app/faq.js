@@ -14,10 +14,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { faqApi } from '@/lib/api';
-import { normalizeFaqList } from '@/lib/faqUtils';
+import { faqApi } from '@/lib/api/api';
+import { normalizeFaqList } from '@/lib/util/faqUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
 export default function FaqScreen() {
   const [items, setItems] = useState([]);
   const [openId, setOpenId] = useState(null);

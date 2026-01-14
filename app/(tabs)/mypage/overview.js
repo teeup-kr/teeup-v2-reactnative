@@ -16,26 +16,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppFooter from '@/components/layout/AppFooter';
 import Card from '@/components/ui/Card';
-import {
-  fetchMyClubs,
-  fetchMyProfile,
-  fetchUserHandicap,
-} from '@/lib/api/mypage';
-import { formatProfileDate, getGenderLabel } from '@/lib/mypageUtils';
+import { mypageApi } from '@/lib/api/api';
 import {
   createFetchClubsHandler,
   createFetchProfileHandler,
   createOpenClubDetailHandler,
   createOpenClubsHandler,
-} from '@/lib/render/mypage/overview';
-import { extractData, extractList } from '@/lib/responseUtils';
+} from '@/lib/render/mypage';
 import {
   buildProfileInfoItems,
+  formatProfileDate,
+  getGenderLabel,
   getHandicapDisplay,
   getProfileInfoIconName,
-} from '@/lib/value/mypage';
+} from '@/lib/util/mypageUtils';
+import { extractData, extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
 export default function OverviewScreen() {
   const router = useRouter();
   const [profile, setProfile] = useState(null);
@@ -47,8 +45,8 @@ export default function OverviewScreen() {
   const fetchProfile = useMemo(
     () =>
       createFetchProfileHandler({
-        fetchMyProfile,
-        fetchUserHandicap,
+        fetchMyProfile: mypageApi.fetchMyProfile,
+        fetchUserHandicap: mypageApi.fetchUserHandicap,
         extractData,
         setProfile,
         setHandicapInfo,
@@ -61,7 +59,7 @@ export default function OverviewScreen() {
   const fetchClubs = useMemo(
     () =>
       createFetchClubsHandler({
-        fetchMyClubs,
+        fetchMyClubs: mypageApi.fetchMyClubs,
         extractList,
         setClubs,
       }),

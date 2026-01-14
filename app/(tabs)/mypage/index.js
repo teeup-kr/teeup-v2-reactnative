@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LoginRequired from '@/components/auth/LoginRequired';
 import AppHeader from '@/components/layout/AppHeader';
 import { useAuth } from '@/context/AuthContext';
-import { createTabPressHandler, getMyPageTabContent } from '@/lib/render/mypage/index';
+import { createTabPressHandler, getMyPageTabContent } from '@/lib/render/mypage';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
@@ -15,6 +15,8 @@ import NotificationsScreen from './notifications';
 import OverviewScreen from './overview';
 import RecordsScreen from './records';
 import WithdrawScreen from './withdraw';
+
+
 
 const TABS = [
   { id: 'overview', label: '개요' },

@@ -6,16 +6,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { fetchRoundExpenses } from '@/lib/api/meetings';
-import { createFetchExpensesHandler } from '@/lib/render/meetings/expense';
-import { extractList } from '@/lib/responseUtils';
+import { meetingsApi } from '@/lib/api/api';
+import { createFetchExpensesHandler } from '@/lib/render/meetings';
 import {
   formatExpenseAmount,
   getExpenseLabel,
   getTotalExpenseAmount,
-} from '@/lib/value/meetingsExpense';
+} from '@/lib/util/meetingUtils';
+import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
+
+
 
 export default function ExpenseScreen() {
   const { meetingId } = useLocalSearchParams();
@@ -28,7 +32,7 @@ export default function ExpenseScreen() {
     () =>
       createFetchExpensesHandler({
         meetingId: resolvedId,
-        fetchRoundExpenses,
+        fetchRoundExpenses: meetingsApi.fetchRoundExpenses,
         extractList,
         setExpenses,
         setIsLoading,

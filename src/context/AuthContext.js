@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import { authApi } from '../lib/authApi';
-import { tokenStorage } from '../lib/tokenStorage';
+import { authApi } from '@/lib/api/api';
+import { tokenStorage } from '@/lib/tokenStorage';
+
+
 
 const AuthContext = createContext(null);
 
@@ -44,7 +46,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await authApi.logout();
+    await logout();
     setUser(null);
   }, []);
 

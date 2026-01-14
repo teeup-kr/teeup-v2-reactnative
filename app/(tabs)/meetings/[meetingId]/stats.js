@@ -5,11 +5,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { fetchRound, fetchRoundParticipants } from '@/lib/api/meetings';
-import { createFetchMeetingStatsHandler } from '@/lib/render/meetings/stats';
-import { buildMeetingStats, getParticipantsFromResponse } from '@/lib/value/meetingsStats';
+import { meetingsApi } from '@/lib/api/api';
+import { createFetchMeetingStatsHandler } from '@/lib/render/meetings';
+import { buildMeetingStats, getParticipantsFromResponse } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
 
 export default function MeetingStatsScreen() {
   const { meetingId } = useLocalSearchParams();
@@ -23,8 +25,8 @@ export default function MeetingStatsScreen() {
     () =>
       createFetchMeetingStatsHandler({
         meetingId: resolvedId,
-        fetchRound,
-        fetchRoundParticipants,
+        fetchRound: meetingsApi.fetchRound,
+        fetchRoundParticipants: meetingsApi.fetchRoundParticipants,
         getParticipantsFromResponse,
         setMeeting,
         setParticipants,

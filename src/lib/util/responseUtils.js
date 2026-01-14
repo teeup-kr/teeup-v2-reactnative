@@ -1,10 +1,10 @@
-function extractData(payload) {
+export function extractData(payload) {
   if (!payload) return null;
   if (payload.data && Object.keys(payload).length === 1) return payload.data;
   return payload.data ?? payload;
 };
 
-function extractList(payload) {
+export function extractList(payload) {
   if (!payload) return [];
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload.data)) return payload.data;
@@ -15,7 +15,7 @@ function extractList(payload) {
   return [];
 };
 
-export const responseUtils = {
-  extractData,
-  extractList,
-};
+// export const responseUtils = {
+//   extractData,
+//   extractList,
+// };

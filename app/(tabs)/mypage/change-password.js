@@ -6,11 +6,11 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { changePassword } from '@/lib/api/mypage';
+import { mypageApi } from '@/lib/api/api';
 import {
   createPasswordFieldChangeHandler,
   createSubmitChangePasswordHandler,
-} from '@/lib/render/mypage/changePassword';
+} from '@/lib/render/mypage';
 import { base, tokens } from '@/styles/style';
 
 export default function ChangePasswordScreen() {
@@ -66,7 +66,7 @@ export default function ChangePasswordScreen() {
         setError,
         setSuccess,
         setIsSubmitting,
-        changePassword,
+        changePassword: mypageApi.changePassword,
       }),
     [form, isSubmitting, setError, setIsSubmitting, setSuccess],
   );

@@ -12,12 +12,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubMemberStatusColors } from '@/constants/clubConstants';
-import { fetchClubMembers } from '@/lib/api/clubs';
-import { createFetchMembersHandler } from '@/lib/render/clubs/members';
-import { extractList } from '@/lib/responseUtils';
-import { buildMemberSummary, normalizeClubMembers } from '@/lib/value/clubMembers';
+import { clubsApi } from '@/lib/api/api';
+import { createFetchMembersHandler } from '@/lib/render/clubs';
+import { buildMemberSummary, normalizeClubMembers } from '@/lib/util/clubUtils';
+import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
+
+
 
 export default function ClubMemberManageScreen() {
   const { clubId } = useLocalSearchParams();
@@ -30,7 +34,7 @@ export default function ClubMemberManageScreen() {
     () =>
       createFetchMembersHandler({
         clubId: resolvedId,
-        fetchClubMembers,
+        fetchClubMembers: clubsApi.getClubMembers,
         extractList,
         setMembers,
         setIsLoading,

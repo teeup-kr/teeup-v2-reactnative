@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
-import { extractList } from '../../lib/util/responseUtils';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
+
 
 const formationModeOptions = [
   { value: 'GENDER_SEPARATED_HANDICAP', label: '성별 분리 + 핸디캡 기준' },

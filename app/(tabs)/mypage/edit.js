@@ -10,12 +10,7 @@ import {
   View
 } from 'react-native';
 
-import {
-  checkNicknameAvailability,
-  fetchMyProfile,
-  fetchUserHandicap,
-  updateMyProfile,
-} from '@/lib/api/mypage';
+import { mypageApi } from '@/lib/api/api';
 import {
   createBirthPickerChangeHandler,
   createBirthPickerOpenHandler,
@@ -30,19 +25,23 @@ import {
   createSaveProfileHandler,
   createShowToastHandler,
   createValidateProfileFormHandler,
-} from '@/lib/render/mypage/edit';
-import { extractData } from '@/lib/responseUtils';
+} from '@/lib/render/mypage';
 import {
   buildProfileFormData,
   calcHandicapFromAvg,
   getBirthDateValue,
   isNicknameSame as isNicknameSameValue,
   isSocialLoginUser,
-} from '@/lib/value/mypage';
+} from '@/lib/util/mypageUtils';
+import { extractData } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
 import ChangePasswordModal from './change-password-modal';
+
+
+
+
 /* ===========================
    Component
 =========================== */
@@ -186,7 +185,7 @@ export default function UserProfileEditForm() {
       setIsCheckingNickname,
       setNicknameChecked,
       setNicknameMessage,
-      checkNicknameAvailability,
+      checkNicknameAvailability: mypageApi.checkNicknameAvailability,
     }),
     [
       formData.nickname,
@@ -212,7 +211,7 @@ export default function UserProfileEditForm() {
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetchMyProfile();
+      const response = await mypageApi.fetchMyProfile();
       const user = extractData(response);
       setProfile(user || {});
       setFormData((prev) => buildProfileFormData(user, prev));
@@ -221,7 +220,7 @@ export default function UserProfileEditForm() {
       if (user?.id) {
         setHandicapLoading(true);
         try {
-          const handicapResponse = await fetchUserHandicap(user.id);
+          const handicapResponse = await mypageApi.fetchUserHandicap(user.id);
           setHandicapInfo(extractData(handicapResponse));
         } catch (handicapError) {
           console.error('핸디캡 조회 실패:', handicapError);
@@ -250,7 +249,7 @@ export default function UserProfileEditForm() {
       profile,
       isSocialLogin,
       validateForm,
-      updateMyProfile,
+      updateMyProfile: mypageApi.updateMyProfile,
       showToast,
       setNicknameChecked,
       fetchProfile,

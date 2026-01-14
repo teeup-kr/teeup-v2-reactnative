@@ -12,15 +12,17 @@ import {
 } from 'react-native';
 
 import FormField from '@/components/mypage/FormField';
-import { changePassword } from '@/lib/api/mypage';
+import { mypageApi } from '@/lib/api/api';
 import {
     createPasswordFieldChangeHandler,
     createResetPasswordModalHandler,
     createSubmitPasswordModalHandler,
     createValidatePasswordModalHandler,
-} from '@/lib/render/mypage/changePasswordModal';
+} from '@/lib/render/mypage';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
 export default function ChangePasswordModal({ isOpen, onClose, onLogout }) {
     /* =========================
        State
@@ -72,7 +74,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onLogout }) {
             createSubmitPasswordModalHandler({
                 formData,
                 validateForm,
-                changePassword,
+                changePassword: mypageApi.changePassword,
                 setLoading,
                 setError,
                 setSuccess,

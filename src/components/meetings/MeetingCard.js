@@ -7,10 +7,11 @@ import {
   formatMeetingTime,
   getMeetingStatusBadgeConfigs,
   getMeetingTypeBadgeConfig,
-} from '@/lib/meetingUtils';
+} from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 
 import MeetingBadge from './MeetingBadge';
+
 
 export default function MeetingCard({ meeting, onPress, styles }) {
   const meetingType = meeting?.meeting_type || meeting?.type || 'ROUND';

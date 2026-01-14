@@ -9,12 +9,12 @@ import LoginRequired from '@/components/auth/LoginRequired';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { useAuth } from '@/context/AuthContext';
-import { fetchMyMeetings } from '@/lib/api/mypage';
-import { extractList } from '@/lib/meetingUtils';
-import { createFetchMyMeetingsHandler, createOpenMeetingHandler } from '@/lib/render/meetings/my';
-import { normalizeMyMeetings } from '@/lib/value/meetingsMy';
+import { mypageApi } from '@/lib/api/api';
+import { createFetchMyMeetingsHandler, createOpenMeetingHandler } from '@/lib/render/meetings';
+import { extractList, normalizeMyMeetings } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
 export default function MyMeetingsScreen() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -25,7 +25,7 @@ export default function MyMeetingsScreen() {
   const loadMeetings = useMemo(
     () =>
       createFetchMyMeetingsHandler({
-        fetchMyMeetings,
+        fetchMyMeetings: mypageApi.fetchMyMeetings,
         extractList,
         setMeetings,
         setIsLoading,

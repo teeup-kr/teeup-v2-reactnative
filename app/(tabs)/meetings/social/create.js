@@ -15,8 +15,7 @@ import Card from '@/components/ui/Card';
 import DateTimeField from '@/components/ui/DateTimeField';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { socialSettlementMethods, socialTypeOptions } from '@/constants/meetingConstants';
-import { createSocial, fetchMyClubs, fetchSocial, updateSocial } from '@/lib/api/meetings';
-import { extractData, extractList } from '@/lib/meetingUtils';
+import { meetingsApi } from '@/lib/api/api';
 import {
   createFetchClubsHandler,
   createFetchMeetingHandler,
@@ -24,16 +23,21 @@ import {
   createOptionPressHandler,
   createParticipantTypeHandler,
   createSubmitHandler,
-} from '@/lib/render/meetings/socialForm';
+} from '@/lib/render/meetings';
+import { extractData, extractList } from '@/lib/util/meetingUtils';
 import {
   buildSocialFormFromData,
   buildSocialPayload,
   getParticipantTypeFromData,
   getSocialMeetingTitle,
   validateSocialForm,
-} from '@/lib/value/socialForm';
+} from '@/lib/util/socialForm';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
+
+
 
 export function SocialForm({ mode = 'create' }) {
   const router = useRouter();
@@ -89,7 +93,7 @@ export function SocialForm({ mode = 'create' }) {
   const fetchClubs = useMemo(
     () =>
       createFetchClubsHandler({
-        fetchMyClubs,
+        fetchMyClubs: meetingsApi.fetchMyClubs,
         extractList,
         isEditMode,
         setClubs,
@@ -104,7 +108,7 @@ export function SocialForm({ mode = 'create' }) {
       createFetchMeetingHandler({
         isEditMode,
         meetingIdValue,
-        fetchSocial,
+        fetchSocial: meetingsApi.fetchSocial,
         extractData,
         setForm,
         setLoading,
@@ -131,8 +135,8 @@ export function SocialForm({ mode = 'create' }) {
         participantType,
         isEditMode,
         meetingIdValue,
-        createSocial,
-        updateSocial,
+        createSocial: meetingsApi.createSocial,
+        updateSocial: meetingsApi.updateSocial,
         extractData,
         router,
         alert: Alert.alert,

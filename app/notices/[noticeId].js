@@ -15,10 +15,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { noticeCategoryLabel } from '@/constants/noticesConstants';
-import { noticesApi } from '@/lib/api';
-import { normalizeNotice } from '@/lib/noticeUtils';
+import { noticesApi } from '@/lib/api/api';
+import { normalizeNotice } from '@/lib/util/noticeUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
 export default function NoticeDetailScreen() {
   const { noticeId } = useLocalSearchParams();
   const resolvedId = Array.isArray(noticeId) ? noticeId[0] : noticeId;

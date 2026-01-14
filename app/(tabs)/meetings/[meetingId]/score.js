@@ -6,12 +6,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { fetchRoundParticipants } from '@/lib/api/meetings';
-import { createFetchParticipantsHandler } from '@/lib/render/meetings/score';
-import { extractList } from '@/lib/responseUtils';
-import { normalizePlayers } from '@/lib/value/meetingsScore';
+import { meetingsApi } from '@/lib/api/api';
+import { createFetchParticipantsHandler } from '@/lib/render/meetings';
+import { normalizePlayers } from '@/lib/util/meetingUtils';
+import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
+
+
 
 export default function ScoreInputScreen() {
   const { meetingId } = useLocalSearchParams();
@@ -24,7 +28,7 @@ export default function ScoreInputScreen() {
     () =>
       createFetchParticipantsHandler({
         meetingId: resolvedId,
-        fetchRoundParticipants,
+        fetchRoundParticipants: meetingsApi.fetchRoundParticipants,
         extractList,
         setParticipants,
         setIsLoading,

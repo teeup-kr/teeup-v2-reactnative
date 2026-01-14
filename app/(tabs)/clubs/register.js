@@ -14,16 +14,18 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubFeeCycles, clubRegisterTypes } from '@/constants/clubConstants';
-import { registerClubApplication } from '@/lib/api/clubs';
+import { clubsApi } from '@/lib/api/api';
 import {
   createFieldChangeHandler,
   createSelectRegularFeeCycleHandler,
   createSubmitClubRegisterHandler,
   createToggleRegularFeeHandler,
-} from '@/lib/render/clubs/register';
-import { buildClubRegisterPayload, defaultClubRegisterErrors } from '@/lib/value/clubRegister';
+} from '@/lib/render/clubs';
+import { buildClubRegisterPayload, defaultClubRegisterErrors } from '@/lib/util/clubUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
 
 export default function ClubRegisterScreen() {
   const router = useRouter();
@@ -64,7 +66,7 @@ export default function ClubRegisterScreen() {
       createSubmitClubRegisterHandler({
         formData,
         buildPayload: buildClubRegisterPayload,
-        registerClubApplication,
+        registerClubApplication: clubsApi.registerClubApplication,
         setErrors,
         setIsSubmitting,
         defaultErrors: defaultClubRegisterErrors,

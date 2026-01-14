@@ -1,7 +1,7 @@
-import { responseUtils } from './responseUtils';
+import { extractData } from './responseUtils';
 
-function normalizeNotice(payload) {
-  const notice = responseUtils.extractData(payload) || {};
+export function normalizeNotice(payload) {
+  const notice = extractData(payload) || {};
   return {
     id: notice?.id || notice?.notice_id || notice?.title,
     title: notice?.title || '공지사항',
@@ -13,6 +13,6 @@ function normalizeNotice(payload) {
   };
 };
 
-export const noticeUtils = {
-  normalizeNotice,
-};
+// export const noticeUtils = {
+//   normalizeNotice,
+// };

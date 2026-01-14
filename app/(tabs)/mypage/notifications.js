@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 
 import Card from '@/components/ui/Card';
-import { notificationsApi } from '@/lib/api';
+import { notificationsApi } from '@/lib/api/api';
 import {
   createBulkDeleteHandler,
   createBulkReadHandler,
@@ -29,16 +29,18 @@ import {
   createSelectAllHandler,
   createToggleSelectHandler,
   createToggleSelectPressHandler,
-} from '@/lib/render/mypage/notifications';
+} from '@/lib/render/mypage';
 import {
   formatNotificationDate,
   getNotificationIcon,
   isUnreadNotification,
   notificationTypeLabels,
   pickData,
-} from '@/lib/value/mypageNotifications';
+} from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
 
 export default function NotificationsTab() {
   const router = useRouter();

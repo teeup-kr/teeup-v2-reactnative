@@ -1,4 +1,4 @@
-function createFetchActivitiesHandler({ clubId, fetchClubActivities, extractList, setActivities, setIsLoading, setError }) {
+export function createFetchActivitiesHandler({ clubId, fetchClubActivities, extractList, setActivities, setIsLoading, setError }) {
     return async function () {
         setError('');
         if (!clubId) {
@@ -20,7 +20,7 @@ function createFetchActivitiesHandler({ clubId, fetchClubActivities, extractList
         }
     };
 }
-function createFetchClubApplicationHandler({ applicationId, fetchClubApplication, extractData, setApplication, setIsLoading, setError }) {
+export function createFetchClubApplicationHandler({ applicationId, fetchClubApplication, extractData, setApplication, setIsLoading, setError }) {
     return async function () {
         if (!applicationId) {
             setIsLoading(false);
@@ -40,7 +40,7 @@ function createFetchClubApplicationHandler({ applicationId, fetchClubApplication
         }
     };
 }
-function createFetchClubDetailHandler({ clubId, fetchClubDetail, extractData, setClub, setIsLoading, setError }) {
+export function createFetchClubDetailHandler({ clubId, fetchClubDetail, extractData, setClub, setIsLoading, setError }) {
     return async function () {
         setError('');
         if (!clubId) {
@@ -62,20 +62,20 @@ function createFetchClubDetailHandler({ clubId, fetchClubDetail, extractData, se
     };
 }
 
-function createOpenManageHandler({ clubId, router }) {
+export function createOpenManageHandler({ clubId, router }) {
     return () => {
         if (!clubId) return;
         router.push(`/clubs/${clubId}/manage`);
     };
 }
 
-function createJoinRequestHandler({ clubId, router }) {
+export function createJoinRequestHandler({ clubId, router }) {
     return () => {
         if (!clubId) return;
         router.push(`/clubs/${clubId}/members`);
     };
 }
-function createFetchFeesHandler({ clubId, fetchClubFees, extractList, setFees, setIsLoading, setError }) {
+export function createFetchFeesHandler({ clubId, fetchClubFees, extractList, setFees, setIsLoading, setError }) {
     return async function () {
         if (!clubId) {
             setIsLoading(false);
@@ -96,14 +96,14 @@ function createFetchFeesHandler({ clubId, fetchClubFees, extractList, setFees, s
         }
     };
 }
-function createDebouncedSearchHandler({ searchTerm, setDebouncedSearchTerm, setCurrentPage }) {
+export function createDebouncedSearchHandler({ searchTerm, setDebouncedSearchTerm, setCurrentPage }) {
     return () => {
         setDebouncedSearchTerm(searchTerm);
         setCurrentPage(1);
     };
 }
 
-function createFetchClubsHandler({
+export function createFetchClubsHandler({
     activeTab,
     currentPage,
     debouncedSearchTerm,
@@ -200,7 +200,7 @@ function createFetchClubsHandler({
     };
 }
 
-function createTabChangeHandler({ router, setActiveTab, setIsStatusFilterOpen, setCurrentPage }) {
+export function createTabChangeHandler({ router, setActiveTab, setIsStatusFilterOpen, setCurrentPage }) {
     return (tabId) =>
         () => {
             setActiveTab(tabId);
@@ -210,7 +210,7 @@ function createTabChangeHandler({ router, setActiveTab, setIsStatusFilterOpen, s
         };
 }
 
-function createClubPressHandler({ router, alert }) {
+export function createClubPressHandler({ router, alert }) {
     return (club) => {
         if (club?.status === 'INACTIVE') {
             alert('비공개 클럽', '해당 클럽은 비공개 상태입니다.');
@@ -220,7 +220,7 @@ function createClubPressHandler({ router, alert }) {
     };
 }
 
-function createCardPressHandler({ activeTab, router, onClubPress }) {
+export function createCardPressHandler({ activeTab, router, onClubPress }) {
     return (club) =>
         () => {
             if (activeTab === 'applications') {
@@ -231,19 +231,19 @@ function createCardPressHandler({ activeTab, router, onClubPress }) {
         };
 }
 
-function createSearchTermChangeHandler({ setSearchTerm }) {
+export function createSearchTermChangeHandler({ setSearchTerm }) {
     return (value) => {
         setSearchTerm(value);
     };
 }
 
-function createToggleStatusFilterHandler({ setIsStatusFilterOpen }) {
+export function createToggleStatusFilterHandler({ setIsStatusFilterOpen }) {
     return () => {
         setIsStatusFilterOpen((prev) => !prev);
     };
 }
 
-function createStatusFilterSelectHandler({ setStatusFilter, setIsStatusFilterOpen, setCurrentPage }) {
+export function createStatusFilterSelectHandler({ setStatusFilter, setIsStatusFilterOpen, setCurrentPage }) {
     return (value) =>
         () => {
             setStatusFilter(value);
@@ -252,7 +252,7 @@ function createStatusFilterSelectHandler({ setStatusFilter, setIsStatusFilterOpe
         };
 }
 
-function createMyStatusFilterHandler({ setMyClubStatusFilter, setCurrentPage }) {
+export function createMyStatusFilterHandler({ setMyClubStatusFilter, setCurrentPage }) {
     return (value) =>
         () => {
             setMyClubStatusFilter(value);
@@ -260,44 +260,44 @@ function createMyStatusFilterHandler({ setMyClubStatusFilter, setCurrentPage }) 
         };
 }
 
-function createCreateClubHandler({ router }) {
+export function createCreateClubHandler({ router }) {
     return () => {
         router.push('/clubs/register');
     };
 }
 
-function createBrowseClubsHandler({ onTabChange }) {
+export function createBrowseClubsHandler({ onTabChange }) {
     return () => {
         onTabChange('all')();
     };
 }
 
-function createPageChangeHandler({ setCurrentPage }) {
+export function createPageChangeHandler({ setCurrentPage }) {
     return (pageNum) =>
         () => {
             setCurrentPage(pageNum);
         };
 }
 
-function createPrevPageHandler({ setCurrentPage }) {
+export function createPrevPageHandler({ setCurrentPage }) {
     return () => {
         setCurrentPage((prev) => Math.max(1, prev - 1));
     };
 }
 
-function createNextPageHandler({ setCurrentPage, totalPages }) {
+export function createNextPageHandler({ setCurrentPage, totalPages }) {
     return () => {
         setCurrentPage((prev) => Math.min(totalPages, prev + 1));
     };
 }
-function createManageSectionHandler({ clubId, router }) {
+export function createManageSectionHandler({ clubId, router }) {
     return (route) =>
         () => {
             if (!clubId) return;
             router.push(`/clubs/${clubId}/${route}`);
         };
 }
-function createFetchMembersHandler({ clubId, fetchClubMembers, extractList, setMembers, setIsLoading, setError }) {
+export function createFetchMembersHandler({ clubId, fetchClubMembers, extractList, setMembers, setIsLoading, setError }) {
     return async function () {
         setError('');
         if (!clubId) {
@@ -319,7 +319,7 @@ function createFetchMembersHandler({ clubId, fetchClubMembers, extractList, setM
         }
     };
 }
-function createFetchNoticesHandler({ clubId, fetchClubNotices, extractList, setNotices, setIsLoading, setError }) {
+export function createFetchNoticesHandler({ clubId, fetchClubNotices, extractList, setNotices, setIsLoading, setError }) {
     return async function () {
         if (!clubId) {
             setIsLoading(false);
@@ -340,14 +340,14 @@ function createFetchNoticesHandler({ clubId, fetchClubNotices, extractList, setN
         }
     };
 }
-function createFieldChangeHandler({ setFormData }) {
+export function createFieldChangeHandler({ setFormData }) {
     return (field) =>
         (value) => {
             setFormData((prev) => ({ ...prev, [field]: value }));
         };
 }
 
-function createToggleRegularFeeHandler({ setFormData }) {
+export function createToggleRegularFeeHandler({ setFormData }) {
     return () => {
         setFormData((prev) => ({
             ...prev,
@@ -359,7 +359,7 @@ function createToggleRegularFeeHandler({ setFormData }) {
     };
 }
 
-function createSelectRegularFeeCycleHandler({ setFormData }) {
+export function createSelectRegularFeeCycleHandler({ setFormData }) {
     return (cycleId) =>
         () => {
             setFormData((prev) => ({
@@ -369,7 +369,7 @@ function createSelectRegularFeeCycleHandler({ setFormData }) {
         };
 }
 
-function createSubmitClubRegisterHandler({
+export function createSubmitClubRegisterHandler({
     formData,
     buildPayload,
     registerClubApplication,
@@ -394,7 +394,7 @@ function createSubmitClubRegisterHandler({
         }
     };
 }
-function createFetchRegulationsHandler({
+export function createFetchRegulationsHandler({
     clubId,
     fetchClubRegulations,
     extractList,
@@ -423,7 +423,7 @@ function createFetchRegulationsHandler({
     };
 }
 
-function createFetchRegulationDetailHandler({
+export function createFetchRegulationDetailHandler({
     clubId,
     regulationId,
     fetchClubRegulation,
@@ -452,18 +452,18 @@ function createFetchRegulationDetailHandler({
     };
 }
 
-function createRegulationPressHandler({ router, clubId }) {
+export function createRegulationPressHandler({ router, clubId }) {
     return (regulationId) => {
         router.push(`/clubs/${clubId}/regulations/${regulationId}`);
     };
 }
 
-function createRegulationEditHandler({ router, clubId }) {
+export function createRegulationEditHandler({ router, clubId }) {
     return () => {
         router.push(`/clubs/${clubId}/regulations/create`);
     };
 }
-function createFetchStatsHandler({ clubId, fetchClubStats, extractData, setStatsData, setIsLoading, setError }) {
+export function createFetchStatsHandler({ clubId, fetchClubStats, extractData, setStatsData, setIsLoading, setError }) {
     return async function () {
         setError('');
         if (!clubId) {
@@ -485,10 +485,10 @@ function createFetchStatsHandler({ clubId, fetchClubStats, extractData, setStats
     };
 }
 
-export const clubRenderUtils = {
-    createBrowseClubsHandler, createCardPressHandler, createClubPressHandler, createCreateClubHandler, createDebouncedSearchHandler, createFetchActivitiesHandler,
-    createFetchClubApplicationHandler,
-    createFetchClubDetailHandler, createFetchClubsHandler, createFetchFeesHandler, createFetchMembersHandler,
-    createFetchNoticesHandler, createFetchRegulationDetailHandler, createFetchRegulationsHandler, createFetchStatsHandler, createFieldChangeHandler, createJoinRequestHandler, createManageSectionHandler, createMyStatusFilterHandler, createNextPageHandler, createOpenManageHandler, createPageChangeHandler,
-    createPrevPageHandler, createRegulationEditHandler, createRegulationPressHandler, createSearchTermChangeHandler, createSelectRegularFeeCycleHandler, createStatusFilterSelectHandler, createSubmitClubRegisterHandler, createTabChangeHandler, createToggleRegularFeeHandler, createToggleStatusFilterHandler
-};
+// export const clubRenderUtils = {
+//     createBrowseClubsHandler, createCardPressHandler, createClubPressHandler, createCreateClubHandler, createDebouncedSearchHandler, createFetchActivitiesHandler,
+//     createFetchClubApplicationHandler,
+//     createFetchClubDetailHandler, createFetchClubsHandler, createFetchFeesHandler, createFetchMembersHandler,
+//     createFetchNoticesHandler, createFetchRegulationDetailHandler, createFetchRegulationsHandler, createFetchStatsHandler, createFieldChangeHandler, createJoinRequestHandler, createManageSectionHandler, createMyStatusFilterHandler, createNextPageHandler, createOpenManageHandler, createPageChangeHandler,
+//     createPrevPageHandler, createRegulationEditHandler, createRegulationPressHandler, createSearchTermChangeHandler, createSelectRegularFeeCycleHandler, createStatusFilterSelectHandler, createSubmitClubRegisterHandler, createTabChangeHandler, createToggleRegularFeeHandler, createToggleStatusFilterHandler
+// };

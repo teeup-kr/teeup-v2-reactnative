@@ -19,23 +19,27 @@ import {
   roundingSettlementMethods,
   roundingTeamModes,
 } from '@/constants/meetingConstants';
-import { createRound, fetchMyClubs, fetchRound, updateRound } from '@/lib/api/meetings';
-import { extractData, extractList } from '@/lib/meetingUtils';
+import { meetingsApi } from '@/lib/api/api';
 import {
   createFetchClubsHandler,
   createFetchMeetingHandler,
   createFieldChangeHandler,
   createOptionPressHandler,
   createSubmitHandler,
-} from '@/lib/render/meetings/roundingForm';
+} from '@/lib/render/meetings';
+import { extractData, extractList } from '@/lib/util/meetingUtils';
 import {
   buildRoundingFormFromData,
   buildRoundingPayload,
   getRoundingMeetingTitle,
   validateRoundingForm,
-} from '@/lib/value/roundingForm';
+} from '@/lib/util/roundingForm';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
+
+
 
 export function RoundingForm({ mode = 'create' }) {
   const router = useRouter();
@@ -98,7 +102,7 @@ export function RoundingForm({ mode = 'create' }) {
   const fetchClubs = useMemo(
     () =>
       createFetchClubsHandler({
-        fetchMyClubs,
+        fetchMyClubs: meetingsApi.fetchMyClubs,
         extractList,
         isEditMode,
         setClubs,
@@ -113,7 +117,7 @@ export function RoundingForm({ mode = 'create' }) {
       createFetchMeetingHandler({
         isEditMode,
         meetingIdValue,
-        fetchRound,
+        fetchRound: meetingsApi.fetchRound,
         extractData,
         setForm,
         setLoading,
@@ -137,8 +141,8 @@ export function RoundingForm({ mode = 'create' }) {
         form,
         isEditMode,
         meetingIdValue,
-        createRound,
-        updateRound,
+        createRound: meetingsApi.createRound,
+        updateRound: meetingsApi.updateRound,
         extractData,
         router,
         alert: Alert.alert,

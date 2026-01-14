@@ -2,9 +2,10 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import Card from '@/components/ui/Card';
-import { asNumber } from '@/lib/value/mypageRecords';
+import { asNumber } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
+
 
 export default function RoundingStatsCard({ stats, isLoading, error }) {
   if (isLoading) {

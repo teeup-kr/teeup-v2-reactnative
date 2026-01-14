@@ -7,10 +7,12 @@ import {
   getClubRoleBadgeConfig,
   getClubStatusBadgeConfig,
   getClubTypeBadgeConfig,
-} from '@/lib/clubUtils';
+} from '@/lib/util/clubUtils';
 import { colors } from '@/styles/colors';
 
 import ClubBadge from './ClubBadge';
+
+
 
 export default function ClubCard({ club, variant, onPress, styles, logoImage }) {
   const showStatus = variant === 'all' || variant === 'my' || variant === 'applications';

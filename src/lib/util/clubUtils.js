@@ -1,16 +1,16 @@
-import { clubDetailStatusLabel, clubDetailTypeLabel } from '@/constants/clubConstants';
-import { colors } from '@/styles/colors';
-
+import { clubDetailStatusLabel, clubDetailTypeLabel } from '../../constants/clubConstants';
 import {
   clubMembershipStatusBadgeConfig,
   clubRoleBadgeConfig,
   clubStatusBadgeConfig,
   clubTypeBadgeConfig,
 } from '../../constants/clubConstants';
+import { colors } from '../../styles/colors';
 
-import { responseUtils } from './responseUtils';
 
-function getClubStatusBadgeConfig(status, clubDeletedAt) {
+import { extractList } from './responseUtils';
+
+export function getClubStatusBadgeConfig(status, clubDeletedAt) {
   if (clubDeletedAt) {
     return { text: '삭제됨', bg: colors.error[50], fg: colors.error[700] };
   }
@@ -28,7 +28,7 @@ function getClubStatusBadgeConfig(status, clubDeletedAt) {
   };
 };
 
-function getClubMembershipStatusBadgeConfig(status) {
+export function getClubMembershipStatusBadgeConfig(status) {
   if (!status || status === 'null' || status === '') return null;
   const normalizedStatus = String(status).toUpperCase().trim();
   const validStatuses = ['APPROVED', 'ACTIVE', 'PENDING', 'REJECTED'];
@@ -37,18 +37,18 @@ function getClubMembershipStatusBadgeConfig(status) {
   return clubMembershipStatusBadgeConfig[normalizedStatus] || null;
 };
 
-function getClubTypeBadgeConfig(type) {
+export function getClubTypeBadgeConfig(type) {
   const normalizedType = String(type || '').toUpperCase();
   return clubTypeBadgeConfig[normalizedType] || null;
 };
 
-function getClubRoleBadgeConfig(role) {
+export function getClubRoleBadgeConfig(role) {
   if (!role) return null;
   const normalizedRole = String(role).toUpperCase();
   return clubRoleBadgeConfig[normalizedRole] || clubRoleBadgeConfig.MEMBER;
 };
 
-function formatClubDate(dateString) {
+export function formatClubDate(dateString) {
   if (!dateString) return '-';
   try {
     const date = new Date(dateString);
@@ -59,15 +59,15 @@ function formatClubDate(dateString) {
   }
 };
 
-function normalizePaginatedResponse(payload) {
+export function normalizePaginatedResponse(payload) {
   if (Array.isArray(payload)) return { data: payload, total_pages: 1 };
   if (!payload || typeof payload !== 'object') return { data: [], total_pages: 1 };
   if (Array.isArray(payload.data)) return payload;
-  const data = responseUtils.extractList(payload);
+  const data = extractList(payload);
   const totalPages = payload.total_pages || payload.totalPages || 1;
   return { ...payload, data, total_pages: totalPages };
 };
-function getClubPageNumbers({ currentPage, totalPages }) {
+export function getClubPageNumbers({ currentPage, totalPages }) {
   if (totalPages <= 5) {
     return Array.from({ length: totalPages }, (_, index) => index + 1);
   }
@@ -80,8 +80,8 @@ function getClubPageNumbers({ currentPage, totalPages }) {
   return numbers;
 };
 
-function getClubCardVariant(activeTab) { return activeTab === 'applications' ? 'applications' : activeTab; }
-function normalizeClubActivities(activities) {
+export function getClubCardVariant(activeTab) { return activeTab === 'applications' ? 'applications' : activeTab; }
+export function normalizeClubActivities(activities) {
   return activities.map((item, index) => {
     const activityKey = item?.id || item?.activity_id || item?.title || `activity-${index}`;
     const title = item?.title || '활동';
@@ -103,7 +103,7 @@ function normalizeClubActivities(activities) {
   });
 }
 
-function buildClubDetailDisplay(club) {
+export function buildClubDetailDisplay(club) {
   const clubStatus = club?.status || club?.membership_status;
   const clubStatusLabel = clubDetailStatusLabel[clubStatus] || clubStatus || '-';
   const clubType = club?.type;
@@ -131,7 +131,7 @@ function buildClubDetailDisplay(club) {
     additionalInfo,
   };
 };
-function buildFeeSummary(fees) {
+export function buildFeeSummary(fees) {
   if (fees.length === 0) {
     return { amount: '-', nextDue: '-' };
   }
@@ -150,7 +150,7 @@ function buildFeeSummary(fees) {
   return { amount, nextDue };
 };
 
-function normalizeFeeItem(fee) {
+export function normalizeFeeItem(fee) {
   const title = fee?.title || fee?.type || '회비';
   const amountValue = fee?.amount;
   const amount =
@@ -166,7 +166,7 @@ function normalizeFeeItem(fee) {
     status: status || '-',
   };
 };
-function normalizeClubMembers(members) {
+export function normalizeClubMembers(members) {
   let pendingCount = 0;
   const normalizedMembers = members.map((member) => {
     const status = member?.status || member?.membership_status || 'ACTIVE';
@@ -194,8 +194,8 @@ function normalizeClubMembers(members) {
   };
 };
 
-function buildMemberSummary({ total, pending }) { return `총 ${total}명 · 승인 대기 ${pending}명`; }
-function normalizeClubNotices(notices) {
+export function buildMemberSummary({ total, pending }) { return `총 ${total}명 · 승인 대기 ${pending}명`; }
+export function normalizeClubNotices(notices) {
   return notices.map((notice) => ({
     id: notice?.id || notice?.notice_id || notice?.title,
     title: notice?.title || '공지사항',
@@ -204,7 +204,7 @@ function normalizeClubNotices(notices) {
   }));
 }
 
-const defaultClubRegisterErrors = {
+export const defaultClubRegisterErrors = {
   name: '',
   description: '',
   member_count: '',
@@ -218,7 +218,7 @@ const defaultClubRegisterErrors = {
   general: '',
 };
 
-function buildClubRegisterPayload(formData) {
+export function buildClubRegisterPayload(formData) {
   return ({
     name: formData.name,
     type: formData.type,
@@ -239,7 +239,7 @@ function buildClubRegisterPayload(formData) {
       : null,
   });
 }
-function normalizeClubRegulations(regulations) {
+export function normalizeClubRegulations(regulations) {
   return regulations.map((regulation) => ({
     id: regulation?.id || regulation?.regulation_id || regulation?.title,
     title: regulation?.title || '규정',
@@ -251,14 +251,14 @@ function normalizeClubRegulations(regulations) {
   }));
 }
 
-function getRegulationUpdatedDate(regulation) {
+export function getRegulationUpdatedDate(regulation) {
   return regulation?.updated_at
     ? regulation.updated_at.slice(0, 10)
     : regulation?.created_at
       ? regulation.created_at.slice(0, 10)
       : '-';
 }
-function buildClubStats(statsData) {
+export function buildClubStats(statsData) {
   const activeMembers = statsData?.active_members ?? statsData?.activeMembers ?? '-';
   const totalMeetings = statsData?.total_meetings ?? statsData?.totalMeetings ?? '-';
   const settlementCompleted =
@@ -271,25 +271,25 @@ function buildClubStats(statsData) {
   ];
 };
 
-export const clubUtils = {
-  getClubStatusBadgeConfig,
-  getClubMembershipStatusBadgeConfig,
-  getClubTypeBadgeConfig,
-  getClubRoleBadgeConfig,
-  formatClubDate,
-  normalizePaginatedResponse,
-  getClubPageNumbers,
-  getClubCardVariant,
-  normalizeClubActivities,
-  buildClubDetailDisplay,
-  buildFeeSummary,
-  normalizeFeeItem,
-  normalizeClubMembers,
-  buildMemberSummary,
-  normalizeClubNotices,
-  defaultClubRegisterErrors,
-  buildClubRegisterPayload,
-  normalizeClubRegulations,
-  getRegulationUpdatedDate,
-  buildClubStats,
-};
+// export const clubUtils = {
+//   getClubStatusBadgeConfig,
+//   getClubMembershipStatusBadgeConfig,
+//   getClubTypeBadgeConfig,
+//   getClubRoleBadgeConfig,
+//   formatClubDate,
+//   normalizePaginatedResponse,
+//   getClubPageNumbers,
+//   getClubCardVariant,
+//   normalizeClubActivities,
+//   buildClubDetailDisplay,
+//   buildFeeSummary,
+//   normalizeFeeItem,
+//   normalizeClubMembers,
+//   buildMemberSummary,
+//   normalizeClubNotices,
+//   defaultClubRegisterErrors,
+//   buildClubRegisterPayload,
+//   normalizeClubRegulations,
+//   getRegulationUpdatedDate,
+//   buildClubStats,
+// };

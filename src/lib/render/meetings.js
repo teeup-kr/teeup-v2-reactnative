@@ -1,4 +1,5 @@
-function createFetchUserInfoHandler({
+
+export function createFetchUserInfoHandler({
     fetchMyProfile,
     fetchUserHandicap,
     extractData,
@@ -31,7 +32,7 @@ function createFetchUserInfoHandler({
     };
 }
 
-function createFetchParticipantsHandler({
+export function createFetchParticipantsHandler({
     meetingIdValue,
     typeSlug,
     meeting,
@@ -62,7 +63,7 @@ function createFetchParticipantsHandler({
     };
 }
 
-function createFetchTeamsHandler({ meetingIdValue, isRoundingMeeting, fetchRoundTeams, extractList, setTeams }) {
+export function createFetchTeamsHandler({ meetingIdValue, isRoundingMeeting, fetchRoundTeams, extractList, setTeams }) {
     return async function () {
         if (!meetingIdValue || !isRoundingMeeting) return;
 
@@ -75,7 +76,7 @@ function createFetchTeamsHandler({ meetingIdValue, isRoundingMeeting, fetchRound
     };
 }
 
-function createFetchApplicationStatusHandler({ meetingIdValue, isRoundingMeeting, fetchApplicationStatus, extractData, setApplicationStatus }) {
+export function createFetchApplicationStatusHandler({ meetingIdValue, isRoundingMeeting, fetchApplicationStatus, extractData, setApplicationStatus }) {
     return async function () {
         if (!meetingIdValue || !isRoundingMeeting) return;
         try {
@@ -87,7 +88,7 @@ function createFetchApplicationStatusHandler({ meetingIdValue, isRoundingMeeting
     };
 }
 
-function createUpdateUserInfoHandler({ userInfo, updateMyProfile, setProcessingAction, setIsEditingUserInfo, fetchUserInfo, alert }) {
+export function createUpdateUserInfoHandler({ userInfo, updateMyProfile, setProcessingAction, setIsEditingUserInfo, fetchUserInfo, alert }) {
     return async function () {
         try {
             setProcessingAction(true);
@@ -108,7 +109,7 @@ function createUpdateUserInfoHandler({ userInfo, updateMyProfile, setProcessingA
     };
 }
 
-function createJoinHandler({
+export function createJoinHandler({
     typeSlug,
     meetingIdValue,
     joinSocial,
@@ -138,7 +139,7 @@ function createJoinHandler({
     };
 }
 
-function createLeaveHandler({
+export function createLeaveHandler({
     typeSlug,
     meetingIdValue,
     leaveSocial,
@@ -174,7 +175,7 @@ function createLeaveHandler({
     };
 }
 
-function createAutoFormTeamsHandler({
+export function createAutoFormTeamsHandler({
     meetingIdValue,
     autoFormTeams,
     extractList,
@@ -206,7 +207,7 @@ function createAutoFormTeamsHandler({
     };
 }
 
-function createConfirmTeamsHandler({
+export function createConfirmTeamsHandler({
     meetingIdValue,
     confirmTeamFormation,
     setProcessingAction,
@@ -231,7 +232,7 @@ function createConfirmTeamsHandler({
     };
 }
 
-function createStartRoundingHandler({ meetingIdValue, startRounding, setProcessingAction, fetchMeeting, alert }) {
+export function createStartRoundingHandler({ meetingIdValue, startRounding, setProcessingAction, fetchMeeting, alert }) {
     return async function () {
         if (!meetingIdValue) return;
         try {
@@ -246,7 +247,7 @@ function createStartRoundingHandler({ meetingIdValue, startRounding, setProcessi
     };
 }
 
-function createCompleteRoundingHandler({
+export function createCompleteRoundingHandler({
     meetingIdValue,
     completeRounding,
     setProcessingAction,
@@ -269,7 +270,7 @@ function createCompleteRoundingHandler({
     };
 }
 
-function createConfirmSettlementHandler({ meetingIdValue, confirmSettlement, setProcessingAction, fetchMeeting, alert }) {
+export function createConfirmSettlementHandler({ meetingIdValue, confirmSettlement, setProcessingAction, fetchMeeting, alert }) {
     return async function () {
         if (!meetingIdValue) return;
         try {
@@ -284,7 +285,7 @@ function createConfirmSettlementHandler({ meetingIdValue, confirmSettlement, set
     };
 }
 
-function createSaveHistoryHandler({ previewTeams, setFormationHistory }) {
+export function createSaveHistoryHandler({ previewTeams, setFormationHistory }) {
     return () => {
         if (!previewTeams.length) return;
         setFormationHistory((prev) => [
@@ -299,7 +300,7 @@ function createSaveHistoryHandler({ previewTeams, setFormationHistory }) {
     };
 }
 
-function createRestoreHistoryHandler({ setTeams }) {
+export function createRestoreHistoryHandler({ setTeams }) {
     return (item) => {
         if (item?.teams) {
             setTeams(item.teams);
@@ -307,7 +308,7 @@ function createRestoreHistoryHandler({ setTeams }) {
     };
 }
 
-function createScoreSuccessHandler({ setScoreModalOpen, fetchMeeting, fetchParticipants }) {
+export function createScoreSuccessHandler({ setScoreModalOpen, fetchMeeting, fetchParticipants }) {
     return () => {
         setScoreModalOpen(false);
         fetchMeeting();
@@ -315,7 +316,7 @@ function createScoreSuccessHandler({ setScoreModalOpen, fetchMeeting, fetchParti
     };
 }
 
-function createFetchExpensesHandler({ meetingId, fetchRoundExpenses, extractList, setExpenses, setIsLoading, setError }) {
+export function createFetchExpensesHandler({ meetingId, fetchRoundExpenses, extractList, setExpenses, setIsLoading, setError }) {
     return async function () {
         if (!meetingId) {
             setIsLoading(false);
@@ -336,7 +337,7 @@ function createFetchExpensesHandler({ meetingId, fetchRoundExpenses, extractList
         }
     };
 }
-function createFetchRoundingMeetingsHandler({
+export function createFetchRoundingMeetingsHandler({
     fetchRounds,
     extractList,
     filterByDate,
@@ -404,7 +405,7 @@ function createFetchRoundingMeetingsHandler({
     };
 }
 
-function createFetchSocialMeetingsHandler({
+export function createFetchSocialMeetingsHandler({
     fetchSocials,
     extractList,
     filterByDate,
@@ -456,7 +457,7 @@ function createFetchSocialMeetingsHandler({
     };
 }
 
-function createTabChangeHandler({ setActiveTab, setRoundingPage, setSocialPage, router }) {
+export function createTabChangeHandler({ setActiveTab, setRoundingPage, setSocialPage, router }) {
     return (tab) => {
         const nextTab = tab === 'social' ? 'social' : 'rounding';
         setActiveTab(nextTab);
@@ -470,7 +471,7 @@ function createTabChangeHandler({ setActiveTab, setRoundingPage, setSocialPage, 
     };
 }
 
-function createSearchHandler({
+export function createSearchHandler({
     activeTab,
     roundingSearchInput,
     socialSearchInput,
@@ -490,7 +491,7 @@ function createSearchHandler({
     };
 }
 
-function createCreateMeetingHandler({ router }) {
+export function createCreateMeetingHandler({ router }) {
     return (type) =>
         () => {
             if (type === 'rounding') {
@@ -501,7 +502,7 @@ function createCreateMeetingHandler({ router }) {
         };
 }
 
-function createMeetingPressHandler({ router }) {
+export function createMeetingPressHandler({ router }) {
     return (meeting) =>
         () => {
             const meetingType = meeting?.meeting_type || meeting?.type;
@@ -512,7 +513,7 @@ function createMeetingPressHandler({ router }) {
         };
 }
 
-function createDateChangeHandler({ activeTab, setRoundingDate, setSocialDate, setRoundingPage, setSocialPage }) {
+export function createDateChangeHandler({ activeTab, setRoundingDate, setSocialDate, setRoundingPage, setSocialPage }) {
     return (value) => {
         if (activeTab === 'rounding') {
             setRoundingDate(value);
@@ -524,7 +525,7 @@ function createDateChangeHandler({ activeTab, setRoundingDate, setSocialDate, se
     };
 }
 
-function createResetDatesHandler({ activeTab, setRoundingStartDate, setRoundingEndDate, setSocialStartDate, setSocialEndDate, setRoundingPage, setSocialPage }) {
+export function createResetDatesHandler({ activeTab, setRoundingStartDate, setRoundingEndDate, setSocialStartDate, setSocialEndDate, setRoundingPage, setSocialPage }) {
     return () => {
         if (activeTab === 'rounding') {
             setRoundingStartDate('');
@@ -538,7 +539,7 @@ function createResetDatesHandler({ activeTab, setRoundingStartDate, setRoundingE
     };
 }
 
-function createSearchInputChangeHandler({ activeTab, setRoundingSearchInput, setSocialSearchInput }) {
+export function createSearchInputChangeHandler({ activeTab, setRoundingSearchInput, setSocialSearchInput }) {
     return (value) => {
         if (activeTab === 'rounding') {
             setRoundingSearchInput(value);
@@ -548,7 +549,7 @@ function createSearchInputChangeHandler({ activeTab, setRoundingSearchInput, set
     };
 }
 
-function createStatusFilterHandler({ activeTab, setRoundingStatusFilter, setSocialStatusFilter, setRoundingPage, setSocialPage }) {
+export function createStatusFilterHandler({ activeTab, setRoundingStatusFilter, setSocialStatusFilter, setRoundingPage, setSocialPage }) {
     return (nextStatus) =>
         () => {
             if (activeTab === 'rounding') {
@@ -561,7 +562,7 @@ function createStatusFilterHandler({ activeTab, setRoundingStatusFilter, setSoci
         };
 }
 
-function createPrevPageHandler({ activeTab, roundingPage, socialPage, setRoundingPage, setSocialPage }) {
+export function createPrevPageHandler({ activeTab, roundingPage, socialPage, setRoundingPage, setSocialPage }) {
     return () => {
         if (activeTab === 'rounding') {
             setRoundingPage(Math.max(1, roundingPage - 1));
@@ -571,7 +572,7 @@ function createPrevPageHandler({ activeTab, roundingPage, socialPage, setRoundin
     };
 }
 
-function createNextPageHandler({
+export function createNextPageHandler({
     activeTab,
     roundingPage,
     socialPage,
@@ -589,7 +590,7 @@ function createNextPageHandler({
     };
 }
 
-function createPageNumberHandler({ activeTab, setRoundingPage, setSocialPage }) {
+export function createPageNumberHandler({ activeTab, setRoundingPage, setSocialPage }) {
     return (pageNum) =>
         () => {
             if (activeTab === 'rounding') {
@@ -600,13 +601,13 @@ function createPageNumberHandler({ activeTab, setRoundingPage, setSocialPage }) 
         };
 }
 
-function createTabPressHandler({ onTabChange }) {
+export function createTabPressHandler({ onTabChange }) {
     return (tabId) =>
         () => {
             onTabChange(tabId);
         };
 }
-function createFetchMyMeetingsHandler({ fetchMyMeetings, extractList, setMeetings, setIsLoading, setError }) {
+export function createFetchMyMeetingsHandler({ fetchMyMeetings, extractList, setMeetings, setIsLoading, setError }) {
     return async function () {
         try {
             setIsLoading(true);
@@ -624,27 +625,27 @@ function createFetchMyMeetingsHandler({ fetchMyMeetings, extractList, setMeeting
     };
 }
 
-function createOpenMeetingHandler({ router }) {
+export function createOpenMeetingHandler({ router }) {
     return (meeting) =>
         () => {
             router.push(`/meetings/${meeting.type}/${meeting.id}`);
         };
 }
-function createFieldChangeHandler({ setForm }) {
+export function createFieldChangeHandler({ setForm }) {
     return (field) =>
         (value) => {
             setForm((prev) => ({ ...prev, [field]: value }));
         };
 }
 
-function createOptionPressHandler({ onChange, field }) {
+export function createOptionPressHandler({ onChange, field }) {
     return (value) =>
         () => {
             onChange(field)(value);
         };
 }
 
-function createFetchClubsHandler({ fetchMyClubs, extractList, isEditMode, setClubs, setClubsLoading, setForm }) {
+export function createFetchClubsHandler({ fetchMyClubs, extractList, isEditMode, setClubs, setClubsLoading, setForm }) {
     return async function () {
         try {
             setClubsLoading(true);
@@ -666,7 +667,7 @@ function createFetchClubsHandler({ fetchMyClubs, extractList, isEditMode, setClu
     };
 }
 
-function createFetchMeetingHandler({
+export function createFetchMeetingHandler({
     isEditMode,
     meetingIdValue,
     fetchSocial,
@@ -696,7 +697,7 @@ function createFetchMeetingHandler({
     };
 }
 
-function createParticipantTypeHandler({ setParticipantType, onChange }) {
+export function createParticipantTypeHandler({ setParticipantType, onChange }) {
     return (type) =>
         () => {
             setParticipantType(type);
@@ -706,7 +707,7 @@ function createParticipantTypeHandler({ setParticipantType, onChange }) {
         };
 }
 
-function createSubmitHandler({
+export function createSubmitHandler({
     form,
     participantType,
     isEditMode,
@@ -753,7 +754,7 @@ function createSubmitHandler({
         }
     };
 }
-function createFetchMeetingStatsHandler({
+export function createFetchMeetingStatsHandler({
     meetingId,
     fetchRound,
     fetchRoundParticipants,
@@ -788,44 +789,44 @@ function createFetchMeetingStatsHandler({
     };
 }
 
-export const meetingRenderUtils = {
-    createFetchUserInfoHandler,
-    createFetchParticipantsHandler,
-    createFetchTeamsHandler,
-    createFetchApplicationStatusHandler,
-    createUpdateUserInfoHandler,
-    createJoinHandler,
-    createLeaveHandler,
-    createAutoFormTeamsHandler,
-    createConfirmTeamsHandler,
-    createStartRoundingHandler,
-    createCompleteRoundingHandler,
-    createConfirmSettlementHandler,
-    createSaveHistoryHandler,
-    createRestoreHistoryHandler,
-    createScoreSuccessHandler,
-    createFetchExpensesHandler,
-    createFetchRoundingMeetingsHandler,
-    createFetchSocialMeetingsHandler,
-    createTabChangeHandler,
-    createSearchHandler,
-    createCreateMeetingHandler,
-    createMeetingPressHandler,
-    createDateChangeHandler,
-    createResetDatesHandler,
-    createSearchInputChangeHandler,
-    createStatusFilterHandler,
-    createPrevPageHandler,
-    createNextPageHandler,
-    createPageNumberHandler,
-    createTabPressHandler,
-    createFetchMyMeetingsHandler,
-    createOpenMeetingHandler,
-    createFieldChangeHandler,
-    createOptionPressHandler,
-    createFetchClubsHandler,
-    createFetchMeetingHandler,
-    createParticipantTypeHandler,
-    createSubmitHandler,
-    createFetchMeetingStatsHandler,
-};
+// export const meetingRenderUtils = {
+//     createFetchUserInfoHandler,
+//     createFetchParticipantsHandler,
+//     createFetchTeamsHandler,
+//     createFetchApplicationStatusHandler,
+//     createUpdateUserInfoHandler,
+//     createJoinHandler,
+//     createLeaveHandler,
+//     createAutoFormTeamsHandler,
+//     createConfirmTeamsHandler,
+//     createStartRoundingHandler,
+//     createCompleteRoundingHandler,
+//     createConfirmSettlementHandler,
+//     createSaveHistoryHandler,
+//     createRestoreHistoryHandler,
+//     createScoreSuccessHandler,
+//     createFetchExpensesHandler,
+//     createFetchRoundingMeetingsHandler,
+//     createFetchSocialMeetingsHandler,
+//     createTabChangeHandler,
+//     createSearchHandler,
+//     createCreateMeetingHandler,
+//     createMeetingPressHandler,
+//     createDateChangeHandler,
+//     createResetDatesHandler,
+//     createSearchInputChangeHandler,
+//     createStatusFilterHandler,
+//     createPrevPageHandler,
+//     createNextPageHandler,
+//     createPageNumberHandler,
+//     createTabPressHandler,
+//     createFetchMyMeetingsHandler,
+//     createOpenMeetingHandler,
+//     createFieldChangeHandler,
+//     createOptionPressHandler,
+//     createFetchClubsHandler,
+//     createFetchMeetingHandler,
+//     createParticipantTypeHandler,
+//     createSubmitHandler,
+//     createFetchMeetingStatsHandler,
+// };

@@ -17,11 +17,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { noticeCategoryLabel } from '@/constants/noticesConstants';
-import { noticesApi } from '@/lib/api';
-import { normalizeNotice } from '@/lib/noticeUtils';
-import { extractList } from '@/lib/responseUtils';
+import { noticesApi } from '@/lib/api/api';
+import { normalizeNotice } from '@/lib/util/noticeUtils';
+import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
 export default function NoticeListScreen() {
   const router = useRouter();
   const [notices, setNotices] = useState([]);

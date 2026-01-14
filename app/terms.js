@@ -17,9 +17,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { termsTabs } from '@/constants/termsConstants';
-import { termsApi } from '@/lib/termsApi';
+import { termsApi } from '@/lib/api/api';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
 const TabButton = ({ label, selected, onPress }) => (
   <Pressable
     onPress={onPress}

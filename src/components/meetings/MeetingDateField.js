@@ -2,7 +2,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { formatYmd, parseYmd } from '@/lib/meetingUtils';
+import { formatYmd, parseYmd } from '@/lib/util/meetingUtils';
 
 export default function MeetingDateField({ value, onChange, styles }) {
   const [open, setOpen] = useState(false);

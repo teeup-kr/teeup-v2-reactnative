@@ -20,11 +20,13 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import { useAuth } from '@/context/AuthContext';
-import { authApi } from '@/lib/authApi';
-import { buildGoogleAuthConfig, generateOauthState } from '@/lib/authUtils';
+import { authApi } from '@/lib/api/api';
 import { tokenStorage } from '@/lib/tokenStorage';
+import { buildGoogleAuthConfig, generateOauthState } from '@/lib/util/authUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
 
 const logoImage = require('../public/icons/icon-512-transparent.png');
 

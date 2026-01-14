@@ -1,11 +1,20 @@
-function formatProfileDate(value) {
+import { colors } from '../../styles/colors';
+import {
+  convertToKST,
+  normalizeNumber,
+  parseTeeTimes,
+  toDateTimeLocalValue,
+  validateMeetingTimeWithTeeTimes,
+} from '../util/meetingUtils';
+
+export function formatProfileDate(value) {
   if (!value) return '-';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
   return date.toLocaleDateString('ko-KR');
 };
 
-function getGenderLabel(gender) {
+export function getGenderLabel(gender) {
   if (!gender) return '-';
   const normalized = String(gender).toUpperCase();
   if (['M', 'MALE', '남성'].includes(normalized)) return '남성';
@@ -13,7 +22,7 @@ function getGenderLabel(gender) {
   return gender;
 };
 
-function normalizeGender(gender) {
+export function normalizeGender(gender) {
   if (!gender) return 'none';
   const normalized = String(gender).toUpperCase();
   if (normalized === 'M' || normalized === 'MALE' || normalized === '남성') return 'male';
@@ -21,14 +30,14 @@ function normalizeGender(gender) {
   return 'none';
 };
 
-function formatBirthdate(value) {
+export function formatBirthdate(value) {
   if (!value) return '';
   if (typeof value === 'string' && value.includes('T')) {
     return value.split('T')[0];
   }
   return value;
 };
-function isSocialLoginUser(profile) {
+export function isSocialLoginUser(profile) {
   if (profile?.is_social_login != null) return profile.is_social_login;
   if (profile?.is_social != null) return profile.is_social;
   const provider =
@@ -39,14 +48,14 @@ function isSocialLoginUser(profile) {
   return Boolean(provider && provider !== 'LOCAL' && provider !== 'local');
 };
 
-function calcHandicapFromAvg(avgStr) {
+export function calcHandicapFromAvg(avgStr) {
   const num = Number(avgStr);
   if (!avgStr || Number.isNaN(num)) return null;
   if (num < 55 || num > 144) return null;
   return Math.max(0, Math.min(72, Math.round(num - 72)));
 };
 
-function formatDateYYYYMMDD(date) {
+export function formatDateYYYYMMDD(date) {
   if (!date) return '';
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -54,7 +63,7 @@ function formatDateYYYYMMDD(date) {
   return `${year}-${month}-${day}`;
 };
 
-function parseBirthdate(value) {
+export function parseBirthdate(value) {
   if (!value) return null;
   if (value instanceof Date) return value;
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -65,7 +74,7 @@ function parseBirthdate(value) {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
-function normalizeBirthdate(value) {
+export function normalizeBirthdate(value) {
   if (!value) return '';
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
     return value.slice(0, 10);
@@ -74,17 +83,17 @@ function normalizeBirthdate(value) {
   return parsed ? formatDateYYYYMMDD(parsed) : '';
 };
 
-function getBirthDateValue(birthdate, fallback) {
+export function getBirthDateValue(birthdate, fallback) {
   const parsed = parseBirthdate(birthdate);
   return parsed || fallback;
 };
 
-function isNicknameSame(profileNickname, formNickname) {
+export function isNicknameSame(profileNickname, formNickname) {
   if (!profileNickname) return false;
   return profileNickname === (formNickname || '').trim();
 };
 
-function buildProfileFormData(user, prevFormData) {
+export function buildProfileFormData(user, prevFormData) {
   const averageScore = user?.average_score != null ? String(user.average_score) : '';
   return {
     ...prevFormData,
@@ -98,7 +107,7 @@ function buildProfileFormData(user, prevFormData) {
   };
 };
 
-function buildProfilePayload(formData, profile, isSocialLogin) {
+export function buildProfilePayload(formData, profile, isSocialLogin) {
   const payload = {
     nickname: formData.nickname.trim(),
     realname: formData.realname.trim(),
@@ -114,7 +123,7 @@ function buildProfilePayload(formData, profile, isSocialLogin) {
   return payload;
 };
 
-function validateProfileForm({
+export function validateProfileForm({
   formData,
   isSocialLogin,
   isNicknameSameValue,
@@ -157,7 +166,7 @@ function validateProfileForm({
   return nextErrors;
 };
 
-function validateChangePasswordForm(formData) {
+export function validateChangePasswordForm(formData) {
   const errors = {};
 
   if (!formData.currentPassword) {
@@ -192,7 +201,7 @@ function validateChangePasswordForm(formData) {
   return errors;
 };
 
-function getChangePasswordScreenError(formData) {
+export function getChangePasswordScreenError(formData) {
   if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
     return '모든 항목을 입력해주세요.';
   }
@@ -202,7 +211,7 @@ function getChangePasswordScreenError(formData) {
   return '';
 };
 
-function getHandicapDisplay(profile, handicapInfo) {
+export function getHandicapDisplay(profile, handicapInfo) {
   if (!profile) {
     return { value: '-', badge: null, description: null, type: 'none' };
   }
@@ -241,7 +250,7 @@ function getHandicapDisplay(profile, handicapInfo) {
   return { value: '-', badge: null, description: null, type: 'none' };
 };
 
-function buildProfileInfoItems(profile, { formatProfileDate, getGenderLabel }) {
+export function buildProfileInfoItems(profile, { formatProfileDate, getGenderLabel }) {
   return [
     { label: '실명', value: profile?.realname || '-' },
     { label: '닉네임', value: profile?.nickname || '-' },
@@ -252,33 +261,25 @@ function buildProfileInfoItems(profile, { formatProfileDate, getGenderLabel }) {
   ];
 }
 
-function getProfileInfoIconName(label) {
+export function getProfileInfoIconName(label) {
   if (label === '이메일') return 'envelope';
   if (label === '성별') return 'venus-mars';
   if (label === '생년월일') return 'calendar-alt';
   if (label === '가입일') return 'calendar-check';
   return 'user-alt';
 };
-function toYmd(date) {
+export function toYmd(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
-function fromYmd(value) { return (value ? new Date(`${value}T00:00:00`) : new Date()); }
+export function fromYmd(value) { return (value ? new Date(`${value}T00:00:00`) : new Date()); }
 
-function hasMeetingFilters({ typeFilter, startDate, endDate }) { return typeFilter !== 'all' || startDate !== '' || endDate !== ''; }
-import {
-  convertToKST,
-  normalizeNumber,
-  parseTeeTimes,
-  toDateTimeLocalValue,
-  validateMeetingTimeWithTeeTimes,
-} from '@/lib/meetingUtils';
-import { colors } from '@/styles/colors';
+export function hasMeetingFilters({ typeFilter, startDate, endDate }) { return typeFilter !== 'all' || startDate !== '' || endDate !== ''; }
 
-function formatNotificationDate(dateString) {
+export function formatNotificationDate(dateString) {
   try {
     if (!dateString) return '날짜 정보 없음';
     const date = new Date(dateString);
@@ -305,9 +306,9 @@ function formatNotificationDate(dateString) {
   }
 };
 
-function isUnreadNotification(notification) { return notification.status === 'UNREAD' || !notification.read_at; }
+export function isUnreadNotification(notification) { return notification.status === 'UNREAD' || !notification.read_at; }
 
-function getNotificationIcon(type) {
+export function getNotificationIcon(type) {
   switch (type) {
     case 'CLUB_MEMBERSHIP_APPROVED':
     case 'CLUB_MEMBERSHIP_REJECTED':
@@ -329,7 +330,7 @@ function getNotificationIcon(type) {
   }
 };
 
-const notificationTypeLabels = {
+export const notificationTypeLabels = {
   all: '전체 타입',
   CLUB_MEMBERSHIP_APPROVED: '클럽 가입 승인',
   CLUB_MEMBERSHIP_REJECTED: '클럽 가입 거절',
@@ -340,18 +341,18 @@ const notificationTypeLabels = {
   MEETING_SETTLEMENT_COMPLETED: '정산 완료',
   SOCIAL_SETTLEMENT_COMPLETED: '소셜 정산 완료',
 };
-function asNumber(value, fallback = 0) {
+export function asNumber(value, fallback = 0) {
   const number = typeof value === 'string' ? parseFloat(value) : value;
   return Number.isFinite(number) ? number : fallback;
 };
 
-function pickData(response) {
+export function pickData(response) {
   if (!response) return null;
   if (response.data !== undefined) return response.data;
   return response;
 };
 
-function formatKoreanDate(dateLike) {
+export function formatKoreanDate(dateLike) {
   if (!dateLike) return '-';
   const date = new Date(dateLike);
   if (Number.isNaN(date.getTime())) return '-';
@@ -361,7 +362,7 @@ function formatKoreanDate(dateLike) {
   return `${year}년 ${month}월 ${day}일`;
 };
 
-function getGrossScoreHandicap(grossScore) {
+export function getGrossScoreHandicap(grossScore) {
   if (!grossScore) return null;
   const gross = parseInt(grossScore, 10);
   if (Number.isNaN(gross)) return null;
@@ -370,16 +371,16 @@ function getGrossScoreHandicap(grossScore) {
   return clamped.toFixed(1);
 };
 
-function getRecordErrorMessage(error) { return error?.response?.data?.detail || error?.message || '알 수 없는 오류가 발생했습니다.'; }
-function getWithdrawValidationError({ agreed, confirmText }) {
+export function getRecordErrorMessage(error) { return error?.response?.data?.detail || error?.message || '알 수 없는 오류가 발생했습니다.'; }
+export function getWithdrawValidationError({ agreed, confirmText }) {
   if (!agreed) return '안내사항에 동의해주세요.';
   if (confirmText !== '회원탈퇴') return '정확히 \"회원탈퇴\"를 입력해주세요.';
   return '';
 };
 
-function getRoundingMeetingTitle(isEditMode) { return isEditMode ? '라운딩 모임 수정' : '라운딩 모임 만들기'; }
+export function getRoundingMeetingTitle(isEditMode) { return isEditMode ? '라운딩 모임 수정' : '라운딩 모임 만들기'; }
 
-function buildRoundingFormFromData({ data, fallback }) {
+export function buildRoundingFormFromData({ data, fallback }) {
   return ({
     ...fallback,
     name: data.name ?? '',
@@ -403,7 +404,7 @@ function buildRoundingFormFromData({ data, fallback }) {
   });
 }
 
-function validateRoundingForm(form) {
+export function validateRoundingForm(form) {
   const errors = {};
   const teeTimes = parseTeeTimes(form.tee_times);
 
@@ -457,9 +458,9 @@ function validateRoundingForm(form) {
   return errors;
 };
 
-function resolveSettlementMethod(method, settlementMethods) { return settlementMethods.some((item) => item.id === method) ? method : 'EQUAL_SPLIT'; }
+export function resolveSettlementMethod(method, settlementMethods) { return settlementMethods.some((item) => item.id === method) ? method : 'EQUAL_SPLIT'; }
 
-function buildRoundingPayload({ form, settlementMethods }) {
+export function buildRoundingPayload({ form, settlementMethods }) {
   const teeTimes = parseTeeTimes(form.tee_times);
   const greenFee = normalizeNumber(form.green_fee, 0);
   const caddyFee = normalizeNumber(form.caddy_fee, 0);
@@ -491,42 +492,42 @@ function buildRoundingPayload({ form, settlementMethods }) {
   };
 };
 
-export const mypageUtils = {
-  formatProfileDate,
-  getGenderLabel,
-  normalizeGender,
-  formatBirthdate,
-  isSocialLoginUser,
-  calcHandicapFromAvg,
-  formatDateYYYYMMDD,
-  parseBirthdate,
-  normalizeBirthdate,
-  getBirthDateValue,
-  isNicknameSame,
-  buildProfileFormData,
-  buildProfilePayload,
-  validateProfileForm,
-  validateChangePasswordForm,
-  getChangePasswordScreenError,
-  getHandicapDisplay,
-  buildProfileInfoItems,
-  getProfileInfoIconName,
-  toYmd,
-  fromYmd,
-  hasMeetingFilters,
-  formatNotificationDate,
-  isUnreadNotification,
-  getNotificationIcon,
-  notificationTypeLabels,
-  asNumber,
-  pickData,
-  formatKoreanDate,
-  getGrossScoreHandicap,
-  getRecordErrorMessage,
-  getWithdrawValidationError,
-  getRoundingMeetingTitle,
-  buildRoundingFormFromData,
-  validateRoundingForm,
-  resolveSettlementMethod,
-  buildRoundingPayload,
-};
+// export const mypageUtils = {
+//   formatProfileDate,
+//   getGenderLabel,
+//   normalizeGender,
+//   formatBirthdate,
+//   isSocialLoginUser,
+//   calcHandicapFromAvg,
+//   formatDateYYYYMMDD,
+//   parseBirthdate,
+//   normalizeBirthdate,
+//   getBirthDateValue,
+//   isNicknameSame,
+//   buildProfileFormData,
+//   buildProfilePayload,
+//   validateProfileForm,
+//   validateChangePasswordForm,
+//   getChangePasswordScreenError,
+//   getHandicapDisplay,
+//   buildProfileInfoItems,
+//   getProfileInfoIconName,
+//   toYmd,
+//   fromYmd,
+//   hasMeetingFilters,
+//   formatNotificationDate,
+//   isUnreadNotification,
+//   getNotificationIcon,
+//   notificationTypeLabels,
+//   asNumber,
+//   pickData,
+//   formatKoreanDate,
+//   getGrossScoreHandicap,
+//   getRecordErrorMessage,
+//   getWithdrawValidationError,
+//   getRoundingMeetingTitle,
+//   buildRoundingFormFromData,
+//   validateRoundingForm,
+//   resolveSettlementMethod,
+//   buildRoundingPayload,
+// };

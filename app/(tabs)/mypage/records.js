@@ -14,13 +14,7 @@ import RecordMeetingCard from '@/components/mypage/RecordMeetingCard';
 import RoundingStatsCard from '@/components/mypage/RoundingStatsCard';
 import SimpleScoreInputModal from '@/components/mypage/SimpleScoreInputModal';
 import Card from '@/components/ui/Card';
-import {
-  fetchMyProfile,
-  fetchMyRoundingMeetings,
-  fetchRoundingStats,
-  fetchRoundParticipants,
-  fetchUserHandicap,
-} from '@/lib/api/mypage';
+import { mypageApi } from '@/lib/api/api';
 import {
   createCloseComingSoonHandler,
   createCloseScoreModalHandler,
@@ -35,10 +29,12 @@ import {
   createScoreStatusHandler,
   createScoreStatusPressHandler,
   createScoreSuccessHandler,
-} from '@/lib/render/mypage/records';
-import { getRecordErrorMessage, pickData } from '@/lib/value/mypageRecords';
+} from '@/lib/render/mypage';
+import { getRecordErrorMessage, pickData } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
 
 export default function RecordsTab() {
   const router = useRouter();
@@ -68,7 +64,7 @@ export default function RecordsTab() {
   const fetchStats = useMemo(
     () =>
       createFetchStatsHandler({
-        fetchRoundingStats,
+        fetchRoundingStats: mypageApi.fetchRoundingStats,
         pickData,
         setStatsLoading,
         setStatsError,
@@ -80,7 +76,7 @@ export default function RecordsTab() {
   const fetchMeetings = useMemo(
     () =>
       createFetchMeetingsHandler({
-        fetchMyRoundingMeetings,
+        fetchMyRoundingMeetings: mypageApi.fetchMyRoundingMeetings,
         scoreStatus,
         page,
         limit,
@@ -96,8 +92,8 @@ export default function RecordsTab() {
   const fetchHandicap = useMemo(
     () =>
       createFetchHandicapHandler({
-        fetchMyProfile,
-        fetchUserHandicap,
+        fetchMyProfile: mypageApi.fetchMyProfile,
+        fetchUserHandicap: mypageApi.fetchUserHandicap,
         pickData,
         setCurrentHandicap,
       }),
@@ -161,8 +157,8 @@ export default function RecordsTab() {
   const handleOpenScoreModal = useMemo(
     () =>
       createOpenScoreModalHandler({
-        fetchRoundParticipants,
-        fetchMyProfile,
+        fetchRoundParticipants: mypageApi.fetchRoundParticipants,
+        fetchMyProfile: mypageApi.fetchMyProfile,
         pickData,
         setSelectedParticipantId,
         setSelectedMeeting,

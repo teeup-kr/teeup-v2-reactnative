@@ -6,12 +6,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { fetchClubFees } from '@/lib/api/clubs';
-import { createFetchFeesHandler } from '@/lib/render/clubs/fees';
-import { extractList } from '@/lib/responseUtils';
-import { buildFeeSummary, normalizeFeeItem } from '@/lib/value/clubFees';
+import { clubsApi } from '@/lib/api/api';
+import { createFetchFeesHandler } from '@/lib/render/clubs';
+import { buildFeeSummary, normalizeFeeItem } from '@/lib/util/clubUtils';
+import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
+
+
 
 export default function ClubFeesScreen() {
   const { clubId } = useLocalSearchParams();
@@ -24,7 +28,7 @@ export default function ClubFeesScreen() {
     () =>
       createFetchFeesHandler({
         clubId: resolvedId,
-        fetchClubFees,
+        fetchClubFees: clubsApi.getClubFees,
         extractList,
         setFees,
         setIsLoading,

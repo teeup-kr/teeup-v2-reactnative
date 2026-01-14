@@ -10,17 +10,19 @@ import {
   View,
 } from 'react-native';
 
-import { completeRounding, submitSimpleScore } from '@/lib/api/mypage';
+import { mypageApi } from '@/lib/api/api';
 import {
   createCloseScoreEntryHandler,
   createGrossScoreChangeHandler,
   createResetScoreEntryHandler,
   createScoreSubmitHandler,
   createScoreValidationHandler,
-} from '@/lib/render/mypage/records';
-import { asNumber, getGrossScoreHandicap } from '@/lib/value/mypageRecords';
+} from '@/lib/render/mypage';
+import { asNumber, getGrossScoreHandicap } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+
 
 export default function SimpleScoreInputModal({
   visible,
@@ -56,8 +58,8 @@ export default function SimpleScoreInputModal({
         meetingId,
         participantId,
         grossScore,
-        submitSimpleScore,
-        completeRounding,
+        submitSimpleScore: mypageApi.submitSimpleScore,
+        completeRounding: mypageApi.completeRounding,
         onSuccess,
         onClose,
         resetLocal,
