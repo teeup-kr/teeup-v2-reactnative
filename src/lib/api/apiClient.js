@@ -140,50 +140,44 @@ async function apiRequest(path, options = {}) {
 };
 
 async function get(url, config = {}) {
-  const response = await apiRequest(url, { method: 'GET', ...buildRequestConfig(config) });
-  return { data: response };
+  return apiRequest(url, { method: 'GET', ...buildRequestConfig(config) });
 }
 
 async function post(url, data, config = {}) {
-  const response = await apiRequest(url, {
+  return apiRequest(url, {
     method: 'POST',
     body: data,
     ...buildRequestConfig(config),
   });
-  return { data: response };
 }
 
 async function put(url, data, config = {}) {
-  const response = await apiRequest(url, {
+  return apiRequest(url, {
     method: 'PUT',
     body: data,
     ...buildRequestConfig(config),
   });
-  return { data: response };
 }
 
 async function patch(url, data, config = {}) {
-  const response = await apiRequest(url, {
+  return apiRequest(url, {
     method: 'PATCH',
     body: data,
     ...buildRequestConfig(config),
   });
-  return { data: response };
 }
 
 // 예약어 delete -> deleteRequest
 async function deleteRequest(url, config = {}) {
-  const response = await apiRequest(url, { method: 'DELETE', ...buildRequestConfig(config) });
-  return { data: response };
+  return apiRequest(url, { method: 'DELETE', ...buildRequestConfig(config) });
 }
 
 async function upload(url, formData, config = {}) {
-  const response = await apiRequest(url, {
+  return apiRequest(url, {
     method: config.method || 'POST',
     formData,
     ...buildRequestConfig(config),
   });
-  return { data: response };
 }
 
 export const apiClient = {

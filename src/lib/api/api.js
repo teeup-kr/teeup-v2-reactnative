@@ -37,70 +37,60 @@ function buildClubStatusParams(params = {}) {
 
 async function login(credentials) {
   const response = await apiClient.post('/auth/login', credentials, { auth: false });
-  await saveAuthData(response.data);
-  return response.data;
+  await saveAuthData(response);
+  return response;
 }
 
 async function register(userData) {
-  const response = await apiClient.post('/auth/register', userData, { auth: false });
-  return response.data;
+  return apiClient.post('/auth/register', userData, { auth: false });
 }
 
 async function refreshToken(refreshToken) {
-  const response = await apiClient.post('/auth/refresh', { refresh_token: refreshToken }, { auth: false });
-  return response.data;
+  return apiClient.post('/auth/refresh', { refresh_token: refreshToken }, { auth: false });
 }
 
 async function getCurrentUser() {
-  const response = await apiClient.get('/auth/me');
-  return response.data;
+  return apiClient.get('/auth/me');
 }
 
 async function changePassword(passwordData) {
-  const response = await apiClient.put('/auth/change-password', null, {
+  return apiClient.put('/auth/change-password', null, {
     params: {
       current_password: passwordData.current_password,
       new_password: passwordData.new_password,
       confirm_password: passwordData.confirm_password,
     },
   });
-  return response.data;
 }
 
 async function requestPasswordReset(data) {
-  const response = await apiClient.post('/auth/request-password-reset', data, { auth: false });
-  return response.data;
+  return apiClient.post('/auth/request-password-reset', data, { auth: false });
 }
 
 async function resetPassword(token, newPassword) {
-  const response = await apiClient.post('/auth/reset-password', { token, new_password: newPassword }, { auth: false });
-  return response.data;
+  return apiClient.post('/auth/reset-password', { token, new_password: newPassword }, { auth: false });
 }
 
 async function verifyEmail(token) {
-  const response = await apiClient.post('/auth/verify-email', { token }, { auth: false });
-  return response.data;
+  return apiClient.post('/auth/verify-email', { token }, { auth: false });
 }
 
 async function resendVerification() {
-  const response = await apiClient.post('/auth/resend-verification', null, { auth: false });
-  return response.data;
+  return apiClient.post('/auth/resend-verification', null, { auth: false });
 }
 
 async function checkEmail(email) {
-  const response = await apiClient.get('/auth/check-email', { params: { email }, auth: false });
-  return response.data;
+  return apiClient.get('/auth/check-email', { params: { email }, auth: false });
 }
 
 async function checkNickname(nickname) {
-  const response = await apiClient.get('/auth/check-nickname', { params: { nickname }, auth: false });
-  return response.data;
+  return apiClient.get('/auth/check-nickname', { params: { nickname }, auth: false });
 }
 
 async function googleLogin(oauthData) {
   const response = await apiClient.post('/auth/oauth/google/callback', oauthData, { auth: false });
-  await saveAuthData(response.data);
-  return response.data;
+  await saveAuthData(response);
+  return response;
 }
 
 async function logout() {
@@ -109,8 +99,7 @@ async function logout() {
 }
 
 async function deleteAccount() {
-  const response = await apiClient.delete('/auth/withdraw');
-  return response.data;
+  return apiClient.delete('/auth/withdraw');
 }
 
 export const authApi = {
@@ -131,301 +120,244 @@ export const authApi = {
 };
 
 async function getRounds(params) {
-  const response = await apiClient.get('/rounds', { params });
-  return response.data;
+  return apiClient.get('/rounds', { params });
 }
 
 async function getRound(id) {
-  const response = await apiClient.get(`/rounds/${id}`);
-  return response.data;
+  return apiClient.get(`/rounds/${id}`);
 }
 
 async function createRound(data, config = {}) {
-  const response = await apiClient.post('/rounds/', data, config);
-  return response.data;
+  return apiClient.post('/rounds/', data, config);
 }
 
 async function updateRound(id, data) {
-  const response = await apiClient.put(`/rounds/${id}`, data);
-  return response.data;
+  return apiClient.put(`/rounds/${id}`, data);
 }
 
 async function deleteRound(id) {
-  const response = await apiClient.delete(`/rounds/${id}`);
-  return response.data;
+  return apiClient.delete(`/rounds/${id}`);
 }
 
 async function joinRound(id) {
-  const response = await apiClient.post(`/rounds/${id}/join`);
-  return response.data;
+  return apiClient.post(`/rounds/${id}/join`);
 }
 
 async function leaveRound(id) {
-  const response = await apiClient.delete(`/rounds/${id}/leave`);
-  return response.data;
+  return apiClient.delete(`/rounds/${id}/leave`);
 }
 
 async function cancelRound(id, reason) {
-  const response = await apiClient.post(`/meetings/${id}/cancel`, { reason });
-  return response.data;
+  return apiClient.post(`/meetings/${id}/cancel`, { reason });
 }
 
 async function getRoundParticipants(id) {
-  const response = await apiClient.get(`/rounds/${id}/participants`);
-  return response.data;
+  return apiClient.get(`/rounds/${id}/participants`);
 }
 
 async function updateParticipantStatus(roundId, participantId, data) {
-  const response = await apiClient.patch(
+  return apiClient.patch(
     `/rounds/${roundId}/participants/${participantId}/status`,
     data
   );
-  return response.data;
 }
 
 async function updateParticipantRole(roundId, participantId, data) {
-  const response = await apiClient.patch(
+  return apiClient.patch(
     `/rounds/${roundId}/participants/${participantId}/role`,
     data
   );
-  return response.data;
 }
 
 async function removeParticipant(roundId, participantId) {
-  const response = await apiClient.delete(`/rounds/${roundId}/participants/${participantId}`);
-  return response.data;
+  return apiClient.delete(`/rounds/${roundId}/participants/${participantId}`);
 }
 
 async function getRoundTeams(id) {
-  const response = await apiClient.get(`/rounds/${id}/teams`);
-  return response.data;
+  return apiClient.get(`/rounds/${id}/teams`);
 }
 
 async function createTeam(roundId, data) {
-  const response = await apiClient.post(`/rounds/${roundId}/teams`, data);
-  return response.data;
+  return apiClient.post(`/rounds/${roundId}/teams`, data);
 }
 
 async function deleteTeam(roundId, teamId) {
-  const response = await apiClient.delete(`/rounds/${roundId}/teams/${teamId}`);
-  return response.data;
+  return apiClient.delete(`/rounds/${roundId}/teams/${teamId}`);
 }
 
 async function addTeamMember(roundId, teamId, userId) {
-  const response = await apiClient.post(`/rounds/${roundId}/teams/${teamId}/members`, {
+  return apiClient.post(`/rounds/${roundId}/teams/${teamId}/members`, {
     user_id: userId,
   });
-  return response.data;
 }
 
 async function removeTeamMember(roundId, teamId, memberId) {
-  const response = await apiClient.delete(`/rounds/${roundId}/teams/${teamId}/members/${memberId}`);
-  return response.data;
+  return apiClient.delete(`/rounds/${roundId}/teams/${teamId}/members/${memberId}`);
 }
 
 async function autoFormTeams(meetingId, data) {
-  const response = await apiClient.post(`/meetings/${meetingId}/teams/auto-formation`, data);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/teams/auto-formation`, data);
 }
 
 async function getTeamsByMeeting(meetingId) {
-  const response = await apiClient.get('/teams', { params: { meeting_id: meetingId } });
-  return response.data;
+  return apiClient.get('/teams', { params: { meeting_id: meetingId } });
 }
 
 async function createTeamByMeeting(meetingId, data) {
-  const response = await apiClient.post('/teams', data, { params: { meeting_id: meetingId } });
-  return response.data;
+  return apiClient.post('/teams', data, { params: { meeting_id: meetingId } });
 }
 
 async function updateTeam(teamId, data) {
-  const response = await apiClient.put(`/teams/${teamId}`, data);
-  return response.data;
+  return apiClient.put(`/teams/${teamId}`, data);
 }
 
 async function deleteTeamByMeeting(teamId) {
-  const response = await apiClient.delete(`/teams/${teamId}`);
-  return response.data;
+  return apiClient.delete(`/teams/${teamId}`);
 }
 
 async function getParticipantScores(roundId, participantId, params) {
-  const response = await apiClient.get(`/rounds/${roundId}/participants/${participantId}/scores`, { params });
-  return response.data;
+  return apiClient.get(`/rounds/${roundId}/participants/${participantId}/scores`, { params });
 }
 
 async function getParticipantScoreStats(roundId, participantId) {
-  const response = await apiClient.get(`/rounds/${roundId}/participants/${participantId}/scores/stats`);
-  return response.data;
+  return apiClient.get(`/rounds/${roundId}/participants/${participantId}/scores/stats`);
 }
 
 async function createScore(roundId, participantId, data) {
-  const response = await apiClient.post(`/rounds/${roundId}/participants/${participantId}/scores`, data);
-  return response.data;
+  return apiClient.post(`/rounds/${roundId}/participants/${participantId}/scores`, data);
 }
 
 async function updateScore(roundId, participantId, scoreId, data) {
-  const response = await apiClient.put(
+  return apiClient.put(
     `/rounds/${roundId}/participants/${participantId}/scores/${scoreId}`,
     data
   );
-  return response.data;
 }
 
 async function deleteScore(roundId, participantId, scoreId) {
-  const response = await apiClient.delete(
+  return apiClient.delete(
     `/rounds/${roundId}/participants/${participantId}/scores/${scoreId}`
   );
-  return response.data;
 }
 
 async function getRoundExpenses(id, params) {
-  const response = await apiClient.get(`/rounds/${id}/expenses`, { params });
-  return response.data;
+  return apiClient.get(`/rounds/${id}/expenses`, { params });
 }
 
 async function createRoundExpense(roundId, data) {
-  const response = await apiClient.post(`/rounds/${roundId}/expenses`, data);
-  return response.data;
+  return apiClient.post(`/rounds/${roundId}/expenses`, data);
 }
 
 async function updateExpense(roundId, expenseId, data) {
-  const response = await apiClient.put(`/rounds/${roundId}/expenses/${expenseId}`, data);
-  return response.data;
+  return apiClient.put(`/rounds/${roundId}/expenses/${expenseId}`, data);
 }
 
 async function deleteExpense(roundId, expenseId) {
-  const response = await apiClient.delete(`/rounds/${roundId}/expenses/${expenseId}`);
-  return response.data;
+  return apiClient.delete(`/rounds/${roundId}/expenses/${expenseId}`);
 }
 
 async function sendMeetingNotification(meetingId, data) {
-  const response = await apiClient.post(`/rounds/${meetingId}/notifications`, data);
-  return response.data;
+  return apiClient.post(`/rounds/${meetingId}/notifications`, data);
 }
 
 async function sendMeetingReminder(meetingId) {
-  const response = await apiClient.post(`/rounds/${meetingId}/reminder`);
-  return response.data;
+  return apiClient.post(`/rounds/${meetingId}/reminder`);
 }
 
 async function getNotifications(params) {
-  const response = await apiClient.get('/users/notifications', { params });
-  return response.data;
+  return apiClient.get('/users/notifications', { params });
 }
 
 async function markNotificationAsRead(notificationId) {
-  const response = await apiClient.put(`/users/notifications/${notificationId}/read`);
-  return response.data;
+  return apiClient.put(`/users/notifications/${notificationId}/read`);
 }
 
 async function markAllNotificationsAsRead() {
-  const response = await apiClient.put('/users/notifications/read-all');
-  return response.data;
+  return apiClient.put('/users/notifications/read-all');
 }
 
 async function applyToMeeting(meetingId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/apply`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/apply`);
 }
 
 async function approveParticipant(meetingId, participantId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/participants/${participantId}/approve`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/participants/${participantId}/approve`);
 }
 
 async function rejectParticipant(meetingId, participantId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/participants/${participantId}/reject`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/participants/${participantId}/reject`);
 }
 
 async function closeApplicationEarly(meetingId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/close-application`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/close-application`);
 }
 
 async function getApplicationStatus(meetingId) {
-  const response = await apiClient.get(`/meetings/${meetingId}/application-status`);
-  return response.data;
+  return apiClient.get(`/meetings/${meetingId}/application-status`);
 }
 
 async function startTeamFormation(meetingId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/start-team-formation`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/start-team-formation`);
 }
 
 async function confirmTeamFormation(meetingId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/teams/confirm`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/teams/confirm`);
 }
 
 async function startRounding(meetingId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/start-rounding`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/start-rounding`);
 }
 
 async function completeRounding(meetingId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/complete-rounding`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/complete-rounding`);
 }
 
 async function submitSimpleScore(meetingId, participantId, data) {
-  const response = await apiClient.post(`/meetings/${meetingId}/participants/${participantId}/simple-score`, data);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/participants/${participantId}/simple-score`, data);
 }
 
 async function updateSimpleScore(meetingId, participantId, data) {
-  const response = await apiClient.put(`/meetings/${meetingId}/participants/${participantId}/simple-score`, data);
-  return response.data;
+  return apiClient.put(`/meetings/${meetingId}/participants/${participantId}/simple-score`, data);
 }
 
 async function confirmTeamMember(meetingId, teamId, memberId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/teams/${teamId}/members/${memberId}/confirm`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/teams/${teamId}/members/${memberId}/confirm`);
 }
 
 async function completeMeeting(meetingId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/complete`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/complete`);
 }
 
 async function confirmSettlement(meetingId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/settlement/confirm`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/settlement/confirm`);
 }
 
 async function createRoundingSettlement(meetingId, data) {
-  const response = await apiClient.post(`/meetings/${meetingId}/settlement/rounding`, data);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/settlement/rounding`, data);
 }
 
 async function getMySettlement(meetingId) {
-  const response = await apiClient.get(`/meetings/${meetingId}/settlement/my`);
-  return response.data;
+  return apiClient.get(`/meetings/${meetingId}/settlement/my`);
 }
 
 async function createEventSettlement(meetingId, data) {
-  const response = await apiClient.post(`/meetings/${meetingId}/settlement/social`, data);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/settlement/social`, data);
 }
 
 async function getMeetingSettlement(meetingId) {
-  const response = await apiClient.get(`/meetings/${meetingId}/settlement`);
-  return response.data;
+  return apiClient.get(`/meetings/${meetingId}/settlement`);
 }
 
 async function getAvailableParticipants(meetingId) {
-  const response = await apiClient.get(`/meetings/${meetingId}/settlement/available-participants`);
-  return response.data;
+  return apiClient.get(`/meetings/${meetingId}/settlement/available-participants`);
 }
 
 async function addGuest(meetingId, guestData) {
-  const response = await apiClient.post(`/meetings/${meetingId}/guests`, guestData);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/guests`, guestData);
 }
 
 async function getGuests(meetingId) {
-  const response = await apiClient.get(`/meetings/${meetingId}/guests`);
-  return response.data;
+  return apiClient.get(`/meetings/${meetingId}/guests`);
 }
 
 export const roundsApi = {
@@ -489,43 +421,35 @@ export const roundsApi = {
 };
 
 async function createSocial(data, config = {}) {
-  const response = await apiClient.post('/socials/', data, config);
-  return response.data;
+  return apiClient.post('/socials/', data, config);
 }
 
 async function getSocials(params) {
-  const response = await apiClient.get('/socials', { params });
-  return response.data;
+  return apiClient.get('/socials', { params });
 }
 
 async function getSocial(id) {
-  const response = await apiClient.get(`/socials/${id}`);
-  return response.data;
+  return apiClient.get(`/socials/${id}`);
 }
 
 async function updateSocial(id, data) {
-  const response = await apiClient.put(`/socials/${id}`, data);
-  return response.data;
+  return apiClient.put(`/socials/${id}`, data);
 }
 
 async function deleteSocial(id) {
-  const response = await apiClient.delete(`/socials/${id}`);
-  return response.data;
+  return apiClient.delete(`/socials/${id}`);
 }
 
 async function joinSocial(id) {
-  const response = await apiClient.post(`/socials/${id}/join`);
-  return response.data;
+  return apiClient.post(`/socials/${id}/join`);
 }
 
 async function leaveSocial(id) {
-  const response = await apiClient.delete(`/socials/${id}/leave`);
-  return response.data;
+  return apiClient.delete(`/socials/${id}/leave`);
 }
 
 async function cancelSocial(id, reason) {
-  const response = await apiClient.post(`/socials/${id}/cancel`, { reason });
-  return response.data;
+  return apiClient.post(`/socials/${id}/cancel`, { reason });
 }
 
 export const socialsApi = {
@@ -540,23 +464,19 @@ export const socialsApi = {
 };
 
 async function getUserNotifications(params = {}) {
-  const response = await apiClient.get('/users/notifications', { params: buildNotificationParams(params) });
-  return response.data;
+  return apiClient.get('/users/notifications', { params: buildNotificationParams(params) });
 }
 
 async function markAsRead(notificationId) {
-  const response = await apiClient.put(`/users/notifications/${notificationId}/read`);
-  return response.data;
+  return apiClient.put(`/users/notifications/${notificationId}/read`);
 }
 
 async function markAllAsRead() {
-  const response = await apiClient.put('/users/notifications/read-all');
-  return response.data;
+  return apiClient.put('/users/notifications/read-all');
 }
 
 async function deleteNotification(notificationId) {
-  const response = await apiClient.delete(`/users/notifications/${notificationId}`);
-  return response.data;
+  return apiClient.delete(`/users/notifications/${notificationId}`);
 }
 
 export const notificationsApi = {
@@ -567,83 +487,67 @@ export const notificationsApi = {
 };
 
 async function getMyProfile() {
-  const response = await apiClient.get('/users/profile');
-  return response.data;
+  return apiClient.get('/users/profile');
 }
 
 async function updateMyProfile(data) {
-  const response = await apiClient.put('/users/me', data);
-  return response.data;
+  return apiClient.put('/users/me', data);
 }
 
 async function getUsers(params) {
-  const response = await apiClient.get('/users', { params });
-  return response.data;
+  return apiClient.get('/users', { params });
 }
 
 async function getUser(id) {
-  const response = await apiClient.get(`/users/${id}`);
-  return response.data;
+  return apiClient.get(`/users/${id}`);
 }
 
 async function createUser(data) {
-  const response = await apiClient.post('/users', data);
-  return response.data;
+  return apiClient.post('/users', data);
 }
 
 async function updateUser(id, data) {
-  const response = await apiClient.put(`/users/${id}`, data);
-  return response.data;
+  return apiClient.put(`/users/${id}`, data);
 }
 
 async function deleteUser(id) {
-  const response = await apiClient.delete(`/users/${id}`);
-  return response.data;
+  return apiClient.delete(`/users/${id}`);
 }
 
 async function getUserHandicap(id) {
-  const response = await apiClient.get(`/users/${id}/handicap`);
-  return response.data;
+  return apiClient.get(`/users/${id}/handicap`);
 }
 
 async function updateUserHandicap(id, data) {
-  const response = await apiClient.put(`/users/${id}/handicap`, data);
-  return response.data;
+  return apiClient.put(`/users/${id}/handicap`, data);
 }
 
 async function calculateHandicap(id) {
-  const response = await apiClient.get(`/users/handicap/calculate/${id}`);
-  return response.data;
+  return apiClient.get(`/users/handicap/calculate/${id}`);
 }
 
 async function getUserScoreHistory(id, limit = 10) {
-  const response = await apiClient.get(`/users/${id}/score-history`, { params: { limit } });
-  return response.data;
+  return apiClient.get(`/users/${id}/score-history`, { params: { limit } });
 }
 
 async function getLastMeetingResult(id) {
-  const response = await apiClient.get(`/users/${id}/last-meeting-result`);
-  return response.data;
+  return apiClient.get(`/users/${id}/last-meeting-result`);
 }
 
 async function getMyRoundingMeetings(params) {
-  const response = await apiClient.get('/users/me/rounding-meetings', { params });
-  return response.data;
+  return apiClient.get('/users/me/rounding-meetings', { params });
 }
 
 async function getRoundingStats() {
-  const response = await apiClient.get('/users/me/rounding-stats');
-  return response.data;
+  return apiClient.get('/users/me/rounding-stats');
 }
 
 async function getMyMeetings(params) {
-  const response = await apiClient.get('/users/my-meetings', { params });
-  return response.data;
+  return apiClient.get('/users/my-meetings', { params });
 }
 
 async function getUserStats() {
-  const response = await apiClient.get('/users/stats');
-  return response.data;
+  return apiClient.get('/users/stats');
 }
 
 export const usersApi = {
@@ -666,18 +570,15 @@ export const usersApi = {
 };
 
 async function getTerms(type) {
-  const response = await apiClient.get(`/auth/terms/${type}`, { auth: false });
-  return response.data;
+  return apiClient.get(`/auth/terms/${type}`, { auth: false });
 }
 
 async function getNotices(params = {}) {
-  const response = await apiClient.get('/notices', { params });
-  return response.data;
+  return apiClient.get('/notices', { params });
 }
 
 async function getNotice(id) {
-  const response = await apiClient.get(`/notices/${id}`);
-  return response.data;
+  return apiClient.get(`/notices/${id}`);
 }
 
 export const noticesApi = {
@@ -686,18 +587,15 @@ export const noticesApi = {
 };
 
 async function getFaqs(params = {}) {
-  const response = await apiClient.get('/faq', { params });
-  return response.data;
+  return apiClient.get('/faq', { params });
 }
 
 async function getFaq(id) {
-  const response = await apiClient.get(`/faq/${id}`);
-  return response.data;
+  return apiClient.get(`/faq/${id}`);
 }
 
 async function getCategories() {
-  const response = await apiClient.get('/faq-categories');
-  return response.data;
+  return apiClient.get('/faq-categories');
 }
 
 export const faqApi = {
@@ -707,197 +605,159 @@ export const faqApi = {
 };
 
 async function registerClubApplication(applicationData) {
-  const response = await apiClient.post('/clubs/register', applicationData);
-  return response.data;
+  return apiClient.post('/clubs/register', applicationData);
 }
 
 async function createClub(data) {
-  const response = await apiClient.post('/clubs', data);
-  return response.data;
+  return apiClient.post('/clubs', data);
 }
 
 async function updateClub(clubId, data) {
-  const response = await apiClient.put(`/clubs/${clubId}`, data);
-  return response.data;
+  return apiClient.put(`/clubs/${clubId}`, data);
 }
 
 async function deleteClub(clubId) {
-  const response = await apiClient.delete(`/clubs/${clubId}`);
-  return response.data;
+  return apiClient.delete(`/clubs/${clubId}`);
 }
 
 async function getClubApplications(params = {}) {
-  const response = await apiClient.get('/clubs/applications', { params });
-  return response.data;
+  return apiClient.get('/clubs/applications', { params });
 }
 
 async function getMyClubApplications(params = {}) {
-  const response = await apiClient.get('/clubs/applications/my', { params });
-  return response.data;
+  return apiClient.get('/clubs/applications/my', { params });
 }
 
 async function getClubApplication(applicationId) {
-  const response = await apiClient.get(`/clubs/applications/${applicationId}`);
-  return response.data;
+  return apiClient.get(`/clubs/applications/${applicationId}`);
 }
 
 async function updateClubApplication(applicationId, data) {
-  const response = await apiClient.put(`/clubs/applications/${applicationId}`, data);
-  return response.data;
+  return apiClient.put(`/clubs/applications/${applicationId}`, data);
 }
 
 async function cancelClubApplication(applicationId) {
-  const response = await apiClient.put(`/clubs/applications/${applicationId}/cancel`, null);
-  return response.data;
+  return apiClient.put(`/clubs/applications/${applicationId}/cancel`, null);
 }
 
 async function getClubs(params = {}) {
-  const response = await apiClient.get('/clubs/', { params: buildClubStatusParams(params) });
-  return response.data;
+  return apiClient.get('/clubs/', { params: buildClubStatusParams(params) });
 }
 
 async function getMyClubs(params = {}) {
-  const response = await apiClient.get('/clubs/my', { params: buildClubStatusParams(params) });
-  return response.data;
+  return apiClient.get('/clubs/my', { params: buildClubStatusParams(params) });
 }
 
 async function getClub(clubId) {
-  const response = await apiClient.get(`/clubs/${clubId}`);
-  return response.data;
+  return apiClient.get(`/clubs/${clubId}`);
 }
 
 async function getClubMembership(clubId) {
-  const response = await apiClient.get(`/clubs/${clubId}/membership`);
-  return response.data;
+  return apiClient.get(`/clubs/${clubId}/membership`);
 }
 
 async function joinClub(clubId) {
-  const response = await apiClient.post(`/clubs/${clubId}/join`);
-  return response.data;
+  return apiClient.post(`/clubs/${clubId}/join`);
 }
 
 async function leaveClub(clubId) {
-  const response = await apiClient.delete(`/clubs/${clubId}/leave`);
-  return response.data;
+  return apiClient.delete(`/clubs/${clubId}/leave`);
 }
 
 async function getClubMembers(clubId, params = {}) {
-  const response = await apiClient.get(`/clubs/${clubId}/members`, { params });
-  return response.data;
+  return apiClient.get(`/clubs/${clubId}/members`, { params });
 }
 
 async function updateClubMemberRole(clubId, memberId, data) {
-  const response = await apiClient.put(`/clubs/${clubId}/members/${memberId}/role`, data);
-  return response.data;
+  return apiClient.put(`/clubs/${clubId}/members/${memberId}/role`, data);
 }
 
 async function removeClubMember(clubId, memberId) {
-  const response = await apiClient.delete(`/clubs/${clubId}/members/${memberId}`);
-  return response.data;
+  return apiClient.delete(`/clubs/${clubId}/members/${memberId}`);
 }
 
 async function getClubNotices(clubId, params = {}) {
-  const response = await apiClient.get(`/clubs/${clubId}/notices`, { params });
-  return response.data;
+  return apiClient.get(`/clubs/${clubId}/notices`, { params });
 }
 
 async function createClubNotice(clubId, data) {
-  const response = await apiClient.post(`/clubs/${clubId}/notices`, data);
-  return response.data;
+  return apiClient.post(`/clubs/${clubId}/notices`, data);
 }
 
 async function updateClubNotice(clubId, noticeId, data) {
-  const response = await apiClient.put(`/clubs/${clubId}/notices/${noticeId}`, data);
-  return response.data;
+  return apiClient.put(`/clubs/${clubId}/notices/${noticeId}`, data);
 }
 
 async function deleteClubNotice(clubId, noticeId) {
-  const response = await apiClient.delete(`/clubs/${clubId}/notices/${noticeId}`);
-  return response.data;
+  return apiClient.delete(`/clubs/${clubId}/notices/${noticeId}`);
 }
 
 async function getClubRegulations(clubId, params = {}) {
-  const response = await apiClient.get(`/clubs/${clubId}/regulations`, { params });
-  return response.data;
+  return apiClient.get(`/clubs/${clubId}/regulations`, { params });
 }
 
 async function getClubRegulation(clubId, regulationId) {
-  const response = await apiClient.get(`/clubs/${clubId}/regulations/${regulationId}`);
-  return response.data;
+  return apiClient.get(`/clubs/${clubId}/regulations/${regulationId}`);
 }
 
 async function createClubRegulation(clubId, data) {
-  const response = await apiClient.post(`/clubs/${clubId}/regulations`, data);
-  return response.data;
+  return apiClient.post(`/clubs/${clubId}/regulations`, data);
 }
 
 async function updateClubRegulation(clubId, regulationId, data) {
-  const response = await apiClient.put(`/clubs/${clubId}/regulations/${regulationId}`, data);
-  return response.data;
+  return apiClient.put(`/clubs/${clubId}/regulations/${regulationId}`, data);
 }
 
 async function deleteClubRegulation(clubId, regulationId) {
-  const response = await apiClient.delete(`/clubs/${clubId}/regulations/${regulationId}`);
-  return response.data;
+  return apiClient.delete(`/clubs/${clubId}/regulations/${regulationId}`);
 }
 
 async function getClubMeetings(clubId, params = {}) {
-  const response = await apiClient.get(`/clubs/${clubId}/meetings`, { params });
-  return response.data;
+  return apiClient.get(`/clubs/${clubId}/meetings`, { params });
 }
 
 async function getClubFees(clubId, params = {}) {
-  const response = await apiClient.get(`/clubs/${clubId}/fees`, { params });
-  return response.data;
+  return apiClient.get(`/clubs/${clubId}/fees`, { params });
 }
 
 async function createClubFee(clubId, data) {
-  const response = await apiClient.post(`/clubs/${clubId}/fees`, data);
-  return response.data;
+  return apiClient.post(`/clubs/${clubId}/fees`, data);
 }
 
 async function updateClubFee(clubId, feeId, data) {
-  const response = await apiClient.put(`/clubs/${clubId}/fees/${feeId}`, data);
-  return response.data;
+  return apiClient.put(`/clubs/${clubId}/fees/${feeId}`, data);
 }
 
 async function deleteClubFee(clubId, feeId) {
-  const response = await apiClient.delete(`/clubs/${clubId}/fees/${feeId}`);
-  return response.data;
+  return apiClient.delete(`/clubs/${clubId}/fees/${feeId}`);
 }
 
 async function getClubActivities(clubId, params = {}) {
-  const response = await apiClient.get(`/clubs/${clubId}/activities`, { params });
-  return response.data;
+  return apiClient.get(`/clubs/${clubId}/activities`, { params });
 }
 
 async function createClubActivity(clubId, data) {
-  const response = await apiClient.post(`/clubs/${clubId}/activities`, data);
-  return response.data;
+  return apiClient.post(`/clubs/${clubId}/activities`, data);
 }
 
 async function updateClubActivity(clubId, activityId, data) {
-  const response = await apiClient.put(`/clubs/${clubId}/activities/${activityId}`, data);
-  return response.data;
+  return apiClient.put(`/clubs/${clubId}/activities/${activityId}`, data);
 }
 
 async function deleteClubActivity(clubId, activityId) {
-  const response = await apiClient.delete(`/clubs/${clubId}/activities/${activityId}`);
-  return response.data;
+  return apiClient.delete(`/clubs/${clubId}/activities/${activityId}`);
 }
 
 async function getClubStats(clubId) {
-  const response = await apiClient.get(`/clubs/${clubId}/stats`);
-  return response.data;
+  return apiClient.get(`/clubs/${clubId}/stats`);
 }
 
 async function uploadClubFile(clubId, formData) {
-  const response = await apiClient.upload(`/clubs/${clubId}/upload`, formData, {
+  return apiClient.upload(`/clubs/${clubId}/upload`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
-  return response.data;
 }
 
 export const clubsApi = {
@@ -943,7 +803,7 @@ export const clubsApi = {
 
 async function getActiveTerms() {
   const response = await apiClient.get('/terms/active/', { auth: false });
-  const data = response?.data;
+  const data = response;
   return data?.value || data || [];
 }
 
@@ -953,7 +813,7 @@ async function getActiveTermsByType(type) {
       params: { type_filter: type },
       auth: false,
     });
-    const data = response?.data;
+    const data = response;
     if (Array.isArray(data)) {
       return data;
     }
@@ -1068,138 +928,111 @@ export const termsApi = {
 };
 
 async function fetchMyClubs(params) {
-  const response = await apiClient.get('/clubs/my', { params: buildClubStatusParams(params || {}) });
-  return response.data;
+  return apiClient.get('/clubs/my', { params: buildClubStatusParams(params || {}) });
 }
 
 async function fetchRounds(params) {
-  const response = await apiClient.get('/rounds', { params });
-  return response.data;
+  return apiClient.get('/rounds', { params });
 }
 
 async function fetchSocials(params) {
-  const response = await apiClient.get('/socials', { params });
-  return response.data;
+  return apiClient.get('/socials', { params });
 }
 
 async function fetchRound(meetingId) {
-  const response = await apiClient.get(`/rounds/${meetingId}`);
-  return response.data;
+  return apiClient.get(`/rounds/${meetingId}`);
 }
 
 async function updateRoundById(meetingId, payload) {
-  const response = await apiClient.put(`/rounds/${meetingId}`, payload);
-  return response.data;
+  return apiClient.put(`/rounds/${meetingId}`, payload);
 }
 
 async function fetchSocial(meetingId) {
-  const response = await apiClient.get(`/socials/${meetingId}`);
-  return response.data;
+  return apiClient.get(`/socials/${meetingId}`);
 }
 
 async function updateSocialById(meetingId, payload) {
-  const response = await apiClient.put(`/socials/${meetingId}`, payload);
-  return response.data;
+  return apiClient.put(`/socials/${meetingId}`, payload);
 }
 
 async function fetchRoundExpenses(meetingId) {
-  const response = await apiClient.get(`/rounds/${meetingId}/expenses`);
-  return response.data;
+  return apiClient.get(`/rounds/${meetingId}/expenses`);
 }
 
 async function fetchRoundParticipants(meetingId) {
-  const response = await apiClient.get(`/rounds/${meetingId}/participants`);
-  return response.data;
+  return apiClient.get(`/rounds/${meetingId}/participants`);
 }
 
 async function fetchRoundTeams(meetingId) {
-  const response = await apiClient.get(`/rounds/${meetingId}/teams`);
-  return response.data;
+  return apiClient.get(`/rounds/${meetingId}/teams`);
 }
 
 async function fetchApplicationStatus(meetingId) {
-  const response = await apiClient.get(`/meetings/${meetingId}/application-status`);
-  return response.data;
+  return apiClient.get(`/meetings/${meetingId}/application-status`);
 }
 
 async function closeApplicationEarlyByMeeting(meetingId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/close-application`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/close-application`);
 }
 
 async function autoFormTeamsByMeeting(meetingId, payload) {
-  const response = await apiClient.post(`/meetings/${meetingId}/teams/auto-formation`, payload);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/teams/auto-formation`, payload);
 }
 
 async function confirmTeamFormationByMeeting(meetingId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/teams/confirm`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/teams/confirm`);
 }
 
 async function startRoundingByMeeting(meetingId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/start-rounding`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/start-rounding`);
 }
 
 async function completeRoundingByMeeting(meetingId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/complete-rounding`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/complete-rounding`);
 }
 
 async function confirmSettlementByMeeting(meetingId) {
-  const response = await apiClient.post(`/meetings/${meetingId}/settlement/confirm`);
-  return response.data;
+  return apiClient.post(`/meetings/${meetingId}/settlement/confirm`);
 }
 
 async function joinRoundByMeeting(meetingId) {
-  const response = await apiClient.post(`/rounds/${meetingId}/join`);
-  return response.data;
+  return apiClient.post(`/rounds/${meetingId}/join`);
 }
 
 async function leaveRoundByMeeting(meetingId) {
-  const response = await apiClient.delete(`/rounds/${meetingId}/leave`);
-  return response.data;
+  return apiClient.delete(`/rounds/${meetingId}/leave`);
 }
 
 async function joinSocialByMeeting(meetingId) {
-  const response = await apiClient.post(`/socials/${meetingId}/join`);
-  return response.data;
+  return apiClient.post(`/socials/${meetingId}/join`);
 }
 
 async function leaveSocialByMeeting(meetingId) {
-  const response = await apiClient.delete(`/socials/${meetingId}/leave`);
-  return response.data;
+  return apiClient.delete(`/socials/${meetingId}/leave`);
 }
 
 async function fetchMyProfile() {
-  const response = await apiClient.get('/users/profile');
-  return response.data;
+  return apiClient.get('/users/profile');
 }
 
 async function fetchUserHandicap(userId) {
-  const response = await apiClient.get(`/users/${userId}/handicap`);
-  return response.data;
+  return apiClient.get(`/users/${userId}/handicap`);
 }
 
 async function fetchMyMeetings(params) {
-  const response = await apiClient.get('/users/my-meetings', { params });
-  return response.data;
+  return apiClient.get('/users/my-meetings', { params });
 }
 
 async function fetchMyRoundingMeetings(params) {
-  const response = await apiClient.get('/users/me/rounding-meetings', { params });
-  return response.data;
+  return apiClient.get('/users/me/rounding-meetings', { params });
 }
 
 async function fetchRoundingStats() {
-  const response = await apiClient.get('/users/me/rounding-stats');
-  return response.data;
+  return apiClient.get('/users/me/rounding-stats');
 }
 
 async function checkNicknameAvailability(nickname) {
-  const response = await apiClient.get('/auth/check-nickname', { params: { nickname }, auth: false });
-  return response.data;
+  return apiClient.get('/auth/check-nickname', { params: { nickname }, auth: false });
 }
 
 export const meetingsApi = {
