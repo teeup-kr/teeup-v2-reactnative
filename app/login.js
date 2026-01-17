@@ -19,10 +19,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
+import { googleAuthConfig } from '@/constants/authConstants';
 import { useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
 import { tokenStorage } from '@/lib/tokenStorage';
-import { buildGoogleAuthConfig, generateOauthState } from '@/lib/util/authUtils';
+import useGoogleWebAuthEffect, {
+  buildGoogleAuthConfig,
+  buildGoogleAuthPayload,
+  buildGoogleAuthorizeUrl,
+  generateOauthState,
+} from '@/lib/util/authUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
@@ -44,6 +50,14 @@ export default function LoginScreen() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
+
+  // 웹 플랫폼에서 Google OAuth 처리를 위한 훅
+  useGoogleWebAuthEffect({
+    refreshAuth,
+    router,
+    setErrors,
+    setIsGoogleSigningIn,
+  });
 
   const handleInputChange = (field) => (value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -91,13 +105,36 @@ export default function LoginScreen() {
   };
 
   const signInWithGoogle = async () => {
+    console.log('Starting Google Sign-In process...');
+    console.log('Google Auth Config:', googleAuthConfig);
     setErrors((prev) => ({ ...prev, general: '' }));
     setIsGoogleSigningIn(true);
 
-    const oauthState = generateOauthState();
-    await tokenStorage.setOauthState(oauthState);
+    if (!googleAuthConfig.clientId || !googleAuthConfig.redirectUrl) {
+      setErrors((prev) => ({
+        ...prev,
+        general: 'Google 로그인 설정(clientId/redirectUrl)이 누락되었습니다.',
+      }));
+      setIsGoogleSigningIn(false);
+      return;
+    }
+
+    const shouldClearState = Platform.OS !== 'web';
 
     try {
+      const oauthState = generateOauthState();
+      await tokenStorage.setOauthState(oauthState);
+
+      // Web 플랫폼에서는 별도의 브라우저 리디렉션 처리
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined') {
+          const authUrl = buildGoogleAuthorizeUrl(oauthState);
+          window.location.assign(authUrl);
+        }
+        return;
+      }
+
+      // Native 플랫폼에서는 react-native-app-auth 사용
       const authState = await authorize(buildGoogleAuthConfig(oauthState));
       // console.log('Google OAuth State:', authState);
       // const stateParam =
@@ -119,11 +156,10 @@ export default function LoginScreen() {
       //   ...(oauthState ? { state: oauthState } : {}),
       //   redirect_uri: config.redirectUrl,
       // };
-      const payload = {
-        provider: 'google',
-        authorizationCode: authState.authorizationCode,
-        codeVerifier: authState.codeVerifier,
-      };
+      const payload = buildGoogleAuthPayload(authState, oauthState);
+
+      console.log('!!! Google Login Payload: !!! \n', payload);
+
       await authApi.googleLogin(payload);
       await refreshAuth();
       router.replace('/');
@@ -132,7 +168,9 @@ export default function LoginScreen() {
       const message = error?.message || 'Google 로그인에 실패했습니다.';
       setErrors((prev) => ({ ...prev, general: message }));
     } finally {
-      await tokenStorage.clearOauthState();
+      if (shouldClearState) {
+        await tokenStorage.clearOauthState();
+      }
       setIsGoogleSigningIn(false);
     }
   };

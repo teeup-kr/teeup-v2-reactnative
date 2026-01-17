@@ -28,6 +28,9 @@
       "output": "static",
       "favicon": "./public/icons/icon-192.png"
     },
+    "ios": {
+      "bundleIdentifier": "com.pixencrew.teeup"
+    },
     "plugins": [
       "expo-router"
     ]
