@@ -79,11 +79,51 @@ export default function useGoogleWebAuthEffect({
     }
 
     const params = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
     const authorizationCode = params.get('code');
     const authError = params.get('error');
     const returnedState = params.get('state');
 
-    if (!authorizationCode && !authError) {
+    const parseAuthPayload = (searchParams) => {
+      if (!searchParams || typeof searchParams.get !== 'function') {
+        return null;
+      }
+
+      const payloadRaw = searchParams.get('payload') || searchParams.get('result');
+      if (payloadRaw) {
+        try {
+          return JSON.parse(payloadRaw);
+        } catch (parseError) {
+          console.warn('[Google OAuth] payload parse 실패', parseError);
+        }
+      }
+
+      const accessToken = searchParams.get('access_token') || searchParams.get('accessToken');
+      const refreshToken = searchParams.get('refresh_token') || searchParams.get('refreshToken');
+      const userRaw = searchParams.get('user');
+      if (!accessToken && !refreshToken && !userRaw) {
+        return null;
+      }
+
+      let user = null;
+      if (userRaw) {
+        try {
+          user = JSON.parse(userRaw);
+        } catch (parseError) {
+          console.warn('[Google OAuth] user parse 실패', parseError);
+        }
+      }
+
+      return {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        user,
+      };
+    };
+
+    const directAuthPayload = parseAuthPayload(params) || parseAuthPayload(hashParams);
+
+    if (!authorizationCode && !authError && !directAuthPayload) {
       return;
     }
 
@@ -105,24 +145,37 @@ export default function useGoogleWebAuthEffect({
         return;
       }
 
-      const storedState = await tokenStorage.getOauthState();
-      if (returnedState && storedState && returnedState !== storedState) {
-        setErrors((prev) => ({
-          ...prev,
-          general: 'Google 인증 상태가 일치하지 않습니다.',
-        }));
-        await tokenStorage.clearOauthState();
-        setIsGoogleSigningIn(false);
-        resetUrl();
-        return;
-      }
-
       try {
-        const payload = buildGoogleAuthPayload(
-          { authorizationCode },
-          returnedState || storedState,
-        );
-        await authApi.googleLogin(payload);
+        if (directAuthPayload) {
+          if (!directAuthPayload.access_token) {
+            throw new Error('액세스 토큰이 없습니다.');
+          }
+          await tokenStorage.setTokens(
+            directAuthPayload.access_token,
+            directAuthPayload.refresh_token,
+          );
+          if (directAuthPayload.user) {
+            await tokenStorage.setUser(directAuthPayload.user);
+          }
+        } else {
+          const storedState = await tokenStorage.getOauthState();
+          if (returnedState && storedState && returnedState !== storedState) {
+            setErrors((prev) => ({
+              ...prev,
+              general: 'Google 인증 상태가 일치하지 않습니다.',
+            }));
+            await tokenStorage.clearOauthState();
+            setIsGoogleSigningIn(false);
+            resetUrl();
+            return;
+          }
+
+          const payload = buildGoogleAuthPayload(
+            { authorizationCode },
+            returnedState || storedState,
+          );
+          await authApi.googleLogin(payload);
+        }
         await refreshAuth();
         router.replace('/');
       } catch (error) {

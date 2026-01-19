@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
 
-console.log('!!! Loading env config... !!!', Constants.expoConfig?.extra);
 const extra = Constants.expoConfig.extra;
+console.log('!!! Loading env config... !!!', extra);
 
 const googleAuth = extra.googleAuth;
 const apiBaseUrl = extra.apiBaseUrl;

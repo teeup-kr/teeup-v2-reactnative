@@ -42,8 +42,8 @@ module.exports = () => {
   // Expo extra 설정 병합
   const extra = {
     ...(base.extra ?? {}),
-    apiBaseUrl,
-    apiVersion,
+    apiBaseUrl: apiBaseUrl,
+    apiVersion: apiVersion,
     googleAuth: selectedGoogleAuth,
     oauthPlatform: platform,
   }
@@ -53,6 +53,8 @@ module.exports = () => {
     ...base,
     extra,
   };
+
+  console.log('!!! Generated expo config: !!!', expoConfig);
 
   return expoConfig;
 };
