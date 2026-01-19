@@ -14,10 +14,11 @@ const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'auth_user';
 const OAUTH_STATE_KEY = 'oauth_state';
+const OAUTH_CODE_VERIFIER_KEY = 'oauth_code_verifier';
 
 const memoryStore = new Map();
 
-function warnOnce()  {
+function warnOnce() {
   if (hasWarned) return;
   hasWarned = true;
   console.warn('AsyncStorage unavailable, using in-memory storage fallback.');
@@ -121,5 +122,31 @@ export const tokenStorage = {
   },
   async clearOauthState() {
     await storage.removeItem(OAUTH_STATE_KEY);
+  },
+
+  /* =========================
+   * PKCE (추가)
+   ========================= */
+  async setCodeVerifier(verifier) {
+    if (!verifier) return;
+    await storage.setItem(OAUTH_CODE_VERIFIER_KEY, verifier);
+  },
+
+  async getCodeVerifier() {
+    return storage.getItem(OAUTH_CODE_VERIFIER_KEY);
+  },
+
+  async clearCodeVerifier() {
+    await storage.removeItem(OAUTH_CODE_VERIFIER_KEY);
+  },
+
+  /* =========================
+   * OAuth 전체 정리 (권장)
+   ========================= */
+  async clearOauth() {
+    await storage.multiRemove([
+      OAUTH_STATE_KEY,
+      OAUTH_CODE_VERIFIER_KEY,
+    ]);
   },
 };

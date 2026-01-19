@@ -12,9 +12,13 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const setAuthError = useCallback((nextError) => {
+    setError(nextError);
+  }, []);
+
   const refreshAuth = useCallback(async () => {
     setIsLoading(true);
-    setError(null);
+    setAuthError(null);
     try {
       const [storedUser, accessToken] = await Promise.all([
         tokenStorage.getUser(),
@@ -37,13 +41,13 @@ export function AuthProvider({ children }) {
       }
     } catch (authError) {
       setUser(null);
-      setError(authError);
+      setAuthError(authError);
       await tokenStorage.clearTokens();
       await tokenStorage.clearUser();
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [setAuthError]);
 
   const logout = useCallback(async () => {
     await authApi.logout();
@@ -62,9 +66,10 @@ export function AuthProvider({ children }) {
       error,
       refreshAuth,
       logout,
+      setAuthError,
       setUser,
     }),
-    [user, isLoading, error, refreshAuth, logout],
+    [user, isLoading, error, refreshAuth, logout, setAuthError],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
