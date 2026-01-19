@@ -1,9 +1,10 @@
-import { config } from '../config/env';
+import Constants from 'expo-constants';
+const { clientId, redirectUri } = Constants.expoConfig.extra.googleAuth;
 
 export const googleAuthConfig = {
   issuer: 'https://accounts.google.com',
-  clientId: config.GOOGLE_CLIENT_ID,
-  redirectUrl: config.GOOGLE_REDIRECT_URI,
+  clientId: clientId,
+  redirectUrl: redirectUri,
   scopes: ['openid', 'profile', 'email'],
 };
 

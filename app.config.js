@@ -1,60 +1,133 @@
-const fs = require('fs');
-const path = require('path');
-const dotenv = require('dotenv');
+import 'dotenv/config';
+import appJson from './app.json';
 
-const appJson = require('./app.json');
-dotenv.config();
-
-// 플랫폼 감지
+/**
+ * 플랫폼 결정
+ * - 로컬 dev: EXPO_OS
+ * - EAS 빌드: EAS_BUILD_PLATFORM
+ */
 function resolvePlatform() {
+  const platform =
+    process.env.EXPO_OS ||
+    process.env.EAS_BUILD_PLATFORM;
 
-  const envPlatform = process.env.EXPO_OS;
-  if (!envPlatform) { throw new Error('OAuth platform is not set. Provide EAS_BUILD_PLATFORM, EXPO_OS, or EXPO_PLATFORM.'); }
+  if (!platform) {
+    throw new Error(
+      'Platform not detected. Set EXPO_OS or EAS_BUILD_PLATFORM.'
+    );
+  }
 
-  const normalized = envPlatform.toLowerCase();
-  const supportedPlatforms = ['ios', 'android', 'web'];
-  if (!supportedPlatforms.includes(normalized)) { throw new Error(`Unsupported OAuth platform: ${envPlatform}`); }
+  const normalized = platform.toLowerCase();
+  if (!['ios', 'android', 'web'].includes(normalized)) {
+    throw new Error(`Unsupported platform: ${platform}`);
+  }
 
-  console.log('!!! Platform detected !!! :', normalized);
+  console.log('!!! Platform detected !!!:', normalized);
   return normalized;
 }
 
-module.exports = () => {
+/**
+ * 플랫폼별 env 선택 헬퍼
+ * 예: EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB
+ */
+function pickPlatformEnv(prefix, platform) {
+  const key = `${prefix}_${platform.toUpperCase()}`;
+  const value = process.env[key];
 
+  if (!value) {
+    throw new Error(`Missing env var: ${key}`);
+  }
+
+  return value;
+}
+
+/**
+ * API Base URL 빌드 (빌드 타임 1회)
+ */
+function buildApiBaseUrl(origin, version) {
+  const trimmed = origin.replace(/\/+$/, '');
+  const v = version.replace(/^\/+/, '');
+
+  if (trimmed.endsWith(`/api/${v}`)) {
+    return trimmed;
+  }
+
+  if (trimmed.endsWith('/api')) {
+    return `${trimmed}/${v}`;
+  }
+
+  return `${trimmed}/api/${v}`;
+}
+
+export default () => {
   const base = appJson.expo;
   const platform = resolvePlatform();
 
-  // 플랫폼별 OAuth 자격 증명 로드
-  const credentialsPath = path.resolve(__dirname, `credentials/oauth.${platform}.json`,);
-  if (!fs.existsSync(credentialsPath)) { throw new Error(`OAuth credentials file is missing for ${platform}: ${credentialsPath}`,); }
+  /**
+   * 공통 EXPO_PUBLIC 값
+   */
+  const {
+    EXPO_PUBLIC_WEB_ORIGIN,
+    EXPO_PUBLIC_API_BASE_URL,
+    EXPO_PUBLIC_API_VERSION,
+  } = process.env;
 
-  const selectedCredentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
-  const selectedGoogleAuth = selectedCredentials.googleAuth;
-  if (!selectedGoogleAuth) { throw new Error(`Google OAuth credentials are missing in ${credentialsPath}`,); }
-
-  // API URL 및 버전 설정
-  const apiBaseUrl = process.env.API_BASE_URL;
-  if (!apiBaseUrl) { throw new Error('API base URL is missing. Set API_BASE_URL in .env.'); }
-
-  const apiVersion = process.env.API_VERSION;
-  if (!apiVersion) { throw new Error('API version is missing. Set API_VERSION in .env.'); }
-
-  // Expo extra 설정 병합
-  const extra = {
-    ...(base.extra ?? {}),
-    apiBaseUrl: apiBaseUrl,
-    apiVersion: apiVersion,
-    googleAuth: selectedGoogleAuth,
-    oauthPlatform: platform,
+  if (!EXPO_PUBLIC_API_BASE_URL) {
+    throw new Error('EXPO_PUBLIC_API_BASE_URL is missing');
   }
 
-  // 최종 expo 설정 생성
-  const expoConfig = {
+  if (!EXPO_PUBLIC_API_VERSION) {
+    throw new Error('EXPO_PUBLIC_API_VERSION is missing');
+  }
+
+  /**
+   * Google OAuth (플랫폼별)
+   */
+  const googleClientId = pickPlatformEnv(
+    'EXPO_PUBLIC_GOOGLE_CLIENT_ID',
+    platform,
+  );
+
+  const googleRedirectUri = pickPlatformEnv(
+    'EXPO_PUBLIC_GOOGLE_REDIRECT_URI',
+    platform,
+  );
+
+  // // Web은 origin + path 조합
+  // if (platform === 'web') {
+  //   if (!EXPO_PUBLIC_WEB_ORIGIN) {
+  //     throw new Error('EXPO_PUBLIC_WEB_ORIGIN is missing for web');
+  //   }
+  //   googleRedirectUri = EXPO_PUBLIC_GOOGLE_REDIRECT_URI_WEB;
+  // }
+
+  /**
+   * API URL 최종 확정 (빌드 타임)
+   */
+  const apiBaseUrlFinal = buildApiBaseUrl(
+    EXPO_PUBLIC_API_BASE_URL,
+    EXPO_PUBLIC_API_VERSION,
+  );
+
+  /**
+   * expo.extra (런타임에서 그대로 사용)
+   */
+  const extra = {
+    ...(base.extra ?? {}),
+    webOrigin: EXPO_PUBLIC_WEB_ORIGIN,
+    apiBaseUrl: apiBaseUrlFinal,
+    oauthPlatform: platform,
+    googleAuth: {
+      clientId: googleClientId,
+      redirectUri: googleRedirectUri,
+    },
+  };
+
+  console.log('!!! Generated expo extra !!!');
+  console.log(extra);
+
+  return {
     ...base,
     extra,
   };
-
-  console.log('!!! Generated expo config: !!!', expoConfig);
-
-  return expoConfig;
 };

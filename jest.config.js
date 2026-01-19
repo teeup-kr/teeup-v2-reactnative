@@ -5,5 +5,8 @@ module.exports = {
   silent: true,
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^expo-constants$': '<rootDir>/__mocks__/expo-constants.js',
+    '^@/lib/util/authUtils$':
+      '<rootDir>/__mocks__/@/lib/util/authUtils.js'
   },
 };

@@ -1,4 +1,16 @@
 import '@testing-library/jest-native/extend-expect';
+import { webcrypto } from 'node:crypto';
+import { TextEncoder } from 'util';
+
+// Web API polyfill (실제 구현)
+global.TextEncoder = TextEncoder;
+global.crypto = webcrypto;
+
+// btoa polyfill
+global.btoa = (str) =>
+  Buffer.from(str, 'binary').toString('base64');
+
+// ---- 이하 기존 mock 유지 ----
 
 jest.mock('expo-router');
 
@@ -13,7 +25,8 @@ jest.mock('react-native-safe-area-context', () => {
 jest.mock('expo-linear-gradient', () => {
   const React = require('react');
   const { View } = require('react-native');
-  const LinearGradient = ({ children, ...props }) => React.createElement(View, props, children);
+  const LinearGradient = ({ children, ...props }) =>
+    React.createElement(View, props, children);
   return { LinearGradient };
 });
 
@@ -23,7 +36,8 @@ jest.mock('@expo/vector-icons', () => {
   return new Proxy(
     {},
     {
-      get: (_target, name) => (props) => React.createElement(Text, props, String(name)),
+      get: (_target, name) => (props) =>
+        React.createElement(Text, props, String(name)),
     },
   );
 });

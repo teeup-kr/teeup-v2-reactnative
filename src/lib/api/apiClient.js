@@ -1,9 +1,10 @@
+import Constants from 'expo-constants';
 import { URLSearchParams } from 'react-native-url-polyfill';
 
-import { getApiBaseUrl } from '../../config/env';
 import { tokenStorage } from '../tokenStorage';
+const { apiBaseUrl } = Constants.expoConfig.extra;
 
-const API_BASE_URL = getApiBaseUrl();
+const API_BASE_URL = apiBaseUrl;
 
 const sensitiveKeys = ['password', 'token', 'authorization', 'refresh', 'access'];
 

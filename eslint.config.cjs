@@ -92,6 +92,16 @@ module.exports = [
         setTimeout: "readonly",
         clearTimeout: "readonly",
         fetch: "readonly",
+
+        // Browser globals
+        window: 'readonly',
+        document: 'readonly',
+        navigator: 'readonly',
+
+        // Web Crypto / PKCE 관련
+        crypto: 'readonly',
+        TextEncoder: 'readonly',
+        btoa: 'readonly',
       },
     },
   },
