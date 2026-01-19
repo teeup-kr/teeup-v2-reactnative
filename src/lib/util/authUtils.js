@@ -66,6 +66,7 @@ export function generateOauthState() { return `google_${Date.now()}_${Math.rando
 //   generateOauthState,
 // };
 
+// 웹 플랫폼 Google OAuth 처리
 export default function useGoogleWebAuthEffect({
   refreshAuth,
   router,
