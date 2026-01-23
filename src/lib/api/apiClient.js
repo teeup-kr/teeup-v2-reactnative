@@ -190,7 +190,7 @@ export const apiClient = {
   upload,
 };
 
-export async function oauthRequest(path, authData) {
+export const oauthRequest = async (path, authData) => {
 
   const url = `${buildUrl(path)}`;
 
