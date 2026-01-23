@@ -18,10 +18,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import Input from '@/components/ui/Input';
 import { googleAuthConfig } from '@/constants/authConstants';
 import { useAuth } from '@/context/AuthContext';
-import { authApi } from '@/lib/api/api';
 import { tokenStorage } from '@/lib/tokenStorage';
 import {
   buildGoogleAuthConfig,
@@ -41,74 +39,15 @@ const logoImage = require('../public/icons/icon-512-transparent.png');
 export default function LoginScreen() {
   const router = useRouter();
   const { refreshAuth } = useAuth();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
   const [errors, setErrors] = useState({
-    email: '',
-    password: '',
     general: '',
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
-
-  // // 웹 플랫폼에서 Google OAuth 처리를 위한 훅
-  // useGoogleWebAuthEffect({
-  //   refreshAuth,
-  //   router,
-  //   setErrors,
-  //   setIsGoogleSigningIn,
-  // });
-
-  const handleInputChange = (field) => (value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field] || errors.general) {
-      setErrors((prev) => ({ ...prev, [field]: '', general: '' }));
-    }
-  };
-
-  const validateForm = () => {
-    const nextErrors = {};
-    if (!formData.email.trim()) {
-      nextErrors.email = '이메일을 입력해주세요.';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      nextErrors.email = '올바른 이메일 형식을 입력해주세요.';
-    }
-
-    if (!formData.password.trim()) {
-      nextErrors.password = '비밀번호를 입력해주세요.';
-    } else if (formData.password.length < 6) {
-      nextErrors.password = '비밀번호는 6자 이상이어야 합니다.';
-    }
-
-    setErrors((prev) => ({ ...prev, ...nextErrors }));
-    return Object.keys(nextErrors).length === 0;
-  };
-
-  const handleLogin = async () => {
-    setErrors({ email: '', password: '', general: '' });
-    if (!validateForm()) return;
-
-    try {
-      setIsSubmitting(true);
-      await authApi.login({
-        email: formData.email.trim(),
-        password: formData.password,
-      });
-      await refreshAuth();
-      router.replace('/');
-    } catch (error) {
-      const message = error?.message || '로그인에 실패했습니다.';
-      setErrors((prev) => ({ ...prev, general: message }));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const signInWithGoogle = async () => {
     console.log('Starting Google Sign-In process...');
     console.log('Google Auth Config:', googleAuthConfig);
+    console.log('!!! Current redirectUrl:', googleAuthConfig.redirectUrl);
     setErrors((prev) => ({ ...prev, general: '' }));
     setIsGoogleSigningIn(true);
 
@@ -143,6 +82,12 @@ export default function LoginScreen() {
           codeChallengeMethod: 'S256',
         });
 
+        // 디버깅: 실제 사용되는 redirect_uri 확인
+        const urlObj = new URL(authUrl);
+        const redirectUri = urlObj.searchParams.get('redirect_uri');
+        alert(`사용되는 redirect_uri:\n${redirectUri}\n\n전체 URL:\n${authUrl}`);
+        
+        console.log('!!! Redirecting to Google OAuth URL:', authUrl);
         window.location.assign(authUrl);
         return;
       }
@@ -190,25 +135,7 @@ export default function LoginScreen() {
               </View>
 
               <Text style={styles.pageTitle}>로그인</Text>
-
-              <Input
-                label="이메일"
-                value={formData.email}
-                onChangeText={handleInputChange('email')}
-                placeholder="이메일을 입력하세요"
-                keyboardType="email-address"
-                error={errors.email}
-                required
-              />
-              <Input
-                label="비밀번호"
-                value={formData.password}
-                onChangeText={handleInputChange('password')}
-                placeholder="비밀번호를 입력하세요"
-                secureTextEntry
-                error={errors.password}
-                required
-              />
+              <Text style={styles.pageSubtitle}>Google 계정으로 로그인하세요</Text>
 
               {errors.general ? (
                 <Text style={styles.generalError}>{errors.general}</Text>
@@ -217,44 +144,14 @@ export default function LoginScreen() {
               <Button
                 variant="primary"
                 size="lg"
-                loading={isSubmitting}
-                disabled={isSubmitting}
-                onPress={handleLogin}
-                style={styles.buttonSpacing}
-              >
-                로그인
-              </Button>
-
-              <View style={styles.helperRow}>
-                <Text style={styles.helperText}>비밀번호를 잊으셨나요?</Text>
-                <Pressable onPress={() => router.push('/auth/forgot-password')}>
-                  <Text style={styles.helperLink}>비밀번호 찾기</Text>
-                </Pressable>
-              </View>
-
-              <View style={styles.dividerRow}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>또는</Text>
-                <View style={styles.dividerLine} />
-              </View>
-
-              <Button
-                variant="outline"
-                size="lg"
                 onPress={signInWithGoogle}
                 loading={isGoogleSigningIn}
-                disabled={isSubmitting || isGoogleSigningIn}
+                disabled={isGoogleSigningIn}
+                style={styles.buttonSpacing}
               >
-                <FontAwesome name="google" size={16} color={colors.neutral[700]} style={styles.iconGap} />
-                <Text style={styles.outlineText}>Google로 로그인</Text>
+                <FontAwesome name="google" size={16} color={colors.white} style={styles.iconGap} />
+                <Text style={styles.primaryButtonText}>Google로 로그인</Text>
               </Button>
-
-              <View style={styles.registerRow}>
-                <Text style={styles.registerText}>아직 계정이 없으신가요?</Text>
-                <Pressable onPress={() => router.push('/register')}>
-                  <Text style={styles.registerLink}>회원가입</Text>
-                </Pressable>
-              </View>
             </Card>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -310,7 +207,13 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
     textAlign: 'center',
-    marginBottom: tokens.spacing.md,
+    marginBottom: tokens.spacing.sm,
+  },
+  pageSubtitle: {
+    fontSize: tokens.font.md,
+    color: colors.neutral[600],
+    textAlign: 'center',
+    marginBottom: tokens.spacing.md3,
   },
   generalError: {
     textAlign: 'center',
@@ -319,59 +222,14 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing.sm2,
   },
   buttonSpacing: {
-    marginTop: tokens.spacing.xxs,
-  },
-  helperRow: {
-    marginTop: tokens.spacing.sm2,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  helperText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-  },
-  helperLink: {
-    fontSize: tokens.font.sm,
-    color: colors.primary[600],
-    fontWeight: tokens.fontWeight.semibold,
-    marginLeft: tokens.spacing.xs,
-  },
-  dividerRow: {
-    marginVertical: tokens.spacing.md3,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.neutral[200],
-  },
-  dividerText: {
-    marginHorizontal: tokens.spacing.sm2,
-    fontSize: tokens.font.sm,
-    color: colors.neutral[500],
+    marginTop: tokens.spacing.md,
   },
   iconGap: {
     marginRight: tokens.spacing.xs2,
   },
-  outlineText: {
+  primaryButtonText: {
     fontSize: tokens.font.lg,
     fontWeight: tokens.fontWeight.semibold,
-    color: colors.neutral[700],
-  },
-  registerRow: {
-    marginTop: tokens.spacing.md3,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  registerText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-  },
-  registerLink: {
-    fontSize: tokens.font.sm,
-    color: colors.primary[600],
-    fontWeight: tokens.fontWeight.semibold,
-    marginLeft: tokens.spacing.xs,
+    color: colors.white,
   },
 });

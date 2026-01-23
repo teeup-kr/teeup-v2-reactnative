@@ -348,13 +348,132 @@ export function openWebDateInput({ value, onChange }) {
     const doc = globalThis?.document;
     if (!doc || typeof doc.createElement !== 'function') return false;
 
+    // 기존 input이 있으면 제거
+    const existingInput = doc.getElementById('web-date-input-temp');
+    if (existingInput) {
+        existingInput.remove();
+    }
+
     const input = doc.createElement('input');
+    input.id = 'web-date-input-temp';
     input.type = 'date';
-    input.value = value;
-    input.onchange = (event) => {
-        onChange(event?.target?.value || '');
+    input.value = value || '';
+    input.style.position = 'fixed';
+    input.style.top = '50%';
+    input.style.left = '50%';
+    input.style.transform = 'translate(-50%, -50%)';
+    input.style.opacity = '0';
+    input.style.width = '1px';
+    input.style.height = '1px';
+    input.style.zIndex = '99999';
+    input.style.pointerEvents = 'auto';
+    input.style.border = 'none';
+    input.style.outline = 'none';
+    input.style.margin = '0';
+    input.style.padding = '0';
+    input.tabIndex = -1; // 탭 포커스 방지
+    
+    let isCleanedUp = false;
+    let cleanupTimeout = null;
+    let changeHandled = false;
+    
+    const cleanup = () => {
+        if (isCleanedUp) return;
+        isCleanedUp = true;
+        
+        if (cleanupTimeout) {
+            clearTimeout(cleanupTimeout);
+            cleanupTimeout = null;
+        }
+        
+        // 약간의 지연 후 제거 (날짜 선택기가 완전히 닫힐 때까지 대기)
+        setTimeout(() => {
+            if (input.parentNode) {
+                try {
+                    input.parentNode.removeChild(input);
+                } catch (e) {
+                    // 이미 제거된 경우 무시
+                }
+            }
+        }, 500);
     };
-    input.click();
+
+    input.onchange = (event) => {
+        if (changeHandled) return;
+        changeHandled = true;
+        
+        const selectedValue = event?.target?.value || '';
+        if (selectedValue) {
+            onChange(selectedValue);
+        }
+        // 변경 후 제거
+        cleanup();
+    };
+
+    // onblur 이벤트를 완전히 무시
+    // 날짜 선택기가 열려있는 동안 input을 유지하기 위해 onblur에서 아무것도 하지 않음
+    input.onblur = () => {
+        // 완전히 무시 - 날짜 선택기가 열려있는 동안 input을 유지
+        // onchange에서만 cleanup 실행
+    };
+
+    // DOM에 추가
+    doc.body.appendChild(input);
+    
+    // 클릭 이벤트 트리거
+    setTimeout(() => {
+        try {
+            // showPicker API 사용 (최신 브라우저) - 가장 안정적
+            // showPicker는 onblur를 발생시키지 않고, 날짜 선택기가 열린 상태를 유지
+            if (typeof input.showPicker === 'function') {
+                try {
+                    const pickerResult = input.showPicker();
+                    // showPicker가 Promise를 반환하는 경우
+                    if (pickerResult && typeof pickerResult.catch === 'function') {
+                        pickerResult.catch((error) => {
+                            // showPicker 실패 시 click 사용
+                            console.warn('showPicker 실패, click 사용:', error);
+                            setTimeout(() => {
+                                if (!isCleanedUp && input.parentNode) {
+                                    input.focus();
+                                    input.click();
+                                }
+                            }, 50);
+                        });
+                    }
+                    // showPicker가 Promise를 반환하지 않는 경우 (성공으로 간주)
+                } catch (pickerError) {
+                    // showPicker 호출 자체가 실패한 경우 click 사용
+                    console.warn('showPicker 호출 실패, click 사용:', pickerError);
+                    setTimeout(() => {
+                        if (!isCleanedUp && input.parentNode) {
+                            input.focus();
+                            input.click();
+                        }
+                    }, 50);
+                }
+            } else {
+                // showPicker를 지원하지 않으면 click 사용
+                input.focus();
+                setTimeout(() => {
+                    if (!isCleanedUp && input.parentNode) {
+                        input.click();
+                    }
+                }, 50);
+            }
+        } catch (error) {
+            console.warn('날짜 선택기 열기 실패:', error);
+            cleanup();
+        }
+    }, 100);
+
+    // 일정 시간 후에도 제거되지 않았으면 강제 제거 (안전장치)
+    setTimeout(() => {
+        if (!isCleanedUp && input.parentNode) {
+            cleanup();
+        }
+    }, 60000); // 60초 후 강제 제거
+
     return true;
 };
 
@@ -723,10 +842,15 @@ export function createFetchStatsHandler({ fetchRoundingStats, pickData, setStats
 
 export function createFetchMeetingsHandler({
     fetchMyRoundingMeetings,
+    fetchMyMeetings,
     scoreStatus,
     page,
     limit,
+    typeFilter,
+    startDate,
+    endDate,
     pickData,
+    extractList,
     setMeetings,
     setTotalPages,
     setLoading,
@@ -737,16 +861,59 @@ export function createFetchMeetingsHandler({
             setLoading(true);
             setError(null);
 
-            const response = await fetchMyRoundingMeetings({
-                score_status: scoreStatus,
-                page,
-                limit,
-            });
+            let response;
+            
+            // fetchMyRoundingMeetings를 사용하는 경우 (records.js)
+            if (fetchMyRoundingMeetings) {
+                response = await fetchMyRoundingMeetings({
+                    score_status: scoreStatus,
+                    page,
+                    limit,
+                });
+            } 
+            // fetchMyMeetings를 사용하는 경우 (meetings.js)
+            else if (fetchMyMeetings) {
+                const params = {
+                    page,
+                    limit: limit || 20,
+                };
+                
+                if (typeFilter && typeFilter !== 'all') {
+                    params.type = typeFilter;
+                }
+                if (startDate) {
+                    params.start_date = startDate;
+                }
+                if (endDate) {
+                    params.end_date = endDate;
+                }
+                
+                response = await fetchMyMeetings(params);
+            } else {
+                throw new Error('fetchMyRoundingMeetings or fetchMyMeetings must be provided');
+            }
 
-            const data = pickData(response) || response || {};
-            const list = data?.data ?? data?.list ?? [];
-            setMeetings(Array.isArray(list) ? list : []);
-            setTotalPages(Number(data?.total_pages) || 1);
+            // extractList가 있으면 사용 (meetings.js)
+            if (extractList) {
+                const list = extractList(response);
+                setMeetings(Array.isArray(list) ? list : []);
+            } 
+            // pickData가 있으면 사용 (records.js)
+            else if (pickData) {
+                const data = pickData(response) || response || {};
+                const list = data?.data ?? data?.list ?? [];
+                setMeetings(Array.isArray(list) ? list : []);
+                setTotalPages(Number(data?.total_pages) || 1);
+            } 
+            // 둘 다 없으면 기본 처리
+            else {
+                const data = response?.data || response || {};
+                const list = data?.data ?? data?.list ?? [];
+                setMeetings(Array.isArray(list) ? list : []);
+                if (data?.total_pages !== undefined) {
+                    setTotalPages(Number(data.total_pages) || 1);
+                }
+            }
         } catch (error) {
             console.error(error);
             setError(error);

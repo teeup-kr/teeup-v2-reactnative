@@ -103,7 +103,7 @@ export default function ClubRegisterScreen() {
                   key={type.id}
                   label={type.label}
                   selected={formData.type === type.id}
-                  onPress={handleChange('type')(type.id)}
+                  onPress={() => handleChange('type')(type.id)}
                   styles={styles}
                 />
               ))}

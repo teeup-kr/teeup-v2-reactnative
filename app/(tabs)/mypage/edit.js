@@ -25,10 +25,12 @@ import {
   createSaveProfileHandler,
   createShowToastHandler,
   createValidateProfileFormHandler,
+  openWebDateInput,
 } from '@/lib/handler/mypage';
 import {
   buildProfileFormData,
   calcHandicapFromAvg,
+  formatDateYYYYMMDD,
   getBirthDateValue,
   isNicknameSame as isNicknameSameValue,
   isSocialLoginUser,
@@ -118,28 +120,9 @@ export default function UserProfileEditForm() {
     [setShowPasswordModal],
   );
 
-  const openBirthPicker = useMemo(
-    () => createBirthPickerOpenHandler(setShowBirthPicker),
-    [setShowBirthPicker],
-  );
-
-  const handleBirthPickerChange = useMemo(
-    () => createBirthPickerChangeHandler({ setShowBirthPicker, handleInputChange }),
-    [handleInputChange, setShowBirthPicker],
-  );
-
   const handleCompositionStart = useMemo(
     () => createCompositionStartHandler(setIsNameComposing),
     [setIsNameComposing],
-  );
-
-  const handleCompositionEnd = useMemo(
-    () => createCompositionEndHandler({
-      setIsNameComposing,
-      handleInputChange,
-      fallbackValue: formData.realname,
-    }),
-    [formData.realname, handleInputChange, setIsNameComposing],
   );
 
   const handleInputChange = useMemo(
@@ -151,6 +134,46 @@ export default function UserProfileEditForm() {
       calcHandicapFromAvg,
     }),
     [setFormData, setErrors, setNicknameChecked, setNicknameMessage],
+  );
+
+  const openBirthPicker = useMemo(() => {
+    if (Platform.OS === 'web') {
+      return (e) => {
+        // 이벤트 전파 방지
+        if (e) {
+          e.preventDefault?.();
+          e.stopPropagation?.();
+        }
+        
+        const currentValue = formData.birthdate || '';
+        const didOpen = openWebDateInput({
+          value: currentValue,
+          onChange: (nextValue) => {
+            if (nextValue) {
+              handleInputChange('birthdate', nextValue);
+            }
+          },
+        });
+        if (!didOpen) {
+          console.warn('웹 날짜 선택기를 열 수 없습니다.');
+        }
+      };
+    }
+    return createBirthPickerOpenHandler(setShowBirthPicker);
+  }, [setShowBirthPicker, formData.birthdate, handleInputChange]);
+
+  const handleBirthPickerChange = useMemo(
+    () => createBirthPickerChangeHandler({ setShowBirthPicker, handleInputChange }),
+    [handleInputChange, setShowBirthPicker],
+  );
+
+  const handleCompositionEnd = useMemo(
+    () => createCompositionEndHandler({
+      setIsNameComposing,
+      handleInputChange,
+      fallbackValue: formData.realname,
+    }),
+    [formData.realname, handleInputChange, setIsNameComposing],
   );
 
   const handleNicknameChange = useMemo(
@@ -450,33 +473,52 @@ export default function UserProfileEditForm() {
                 생년월일 <Text style={styles.required}>*</Text>
               </Text>
 
-              <Pressable
-                onPress={openBirthPicker}
-                style={({ pressed }) => [
-                  styles.inputLike,
-                  errors.birthdate
-                    ? styles.inputError
-                    : styles.inputNormal,
-                  pressed && styles.inputPressed,
-                ]}
-              >
-                <Text style={styles.inputLikeText}>
-                  {formData.birthdate || '날짜를 선택하세요'}
-                </Text>
-              </Pressable>
+              {Platform.OS === 'web' ? (
+                <Pressable
+                  onPress={openBirthPicker}
+                  style={({ pressed }) => [
+                    styles.input,
+                    errors.birthdate
+                      ? styles.inputError
+                      : styles.inputNormal,
+                    pressed && styles.inputPressed,
+                  ]}
+                >
+                  <Text style={styles.inputLikeText}>
+                    {formData.birthdate || '날짜를 선택하세요'}
+                  </Text>
+                </Pressable>
+              ) : (
+                <>
+                  <Pressable
+                    onPress={openBirthPicker}
+                    style={({ pressed }) => [
+                      styles.inputLike,
+                      errors.birthdate
+                        ? styles.inputError
+                        : styles.inputNormal,
+                      pressed && styles.inputPressed,
+                    ]}
+                  >
+                    <Text style={styles.inputLikeText}>
+                      {formData.birthdate || '날짜를 선택하세요'}
+                    </Text>
+                  </Pressable>
 
-              {showBirthPicker && (
-                <DateTimePicker
-                  value={birthDateValue}
-                  mode="date"
-                  maximumDate={maxBirthDate}
-                  display={
-                    Platform.OS === 'ios'
-                      ? 'spinner'
-                      : 'default'
-                  }
-                  onChange={handleBirthPickerChange}
-                />
+                  {showBirthPicker && (
+                    <DateTimePicker
+                      value={birthDateValue}
+                      mode="date"
+                      maximumDate={maxBirthDate}
+                      display={
+                        Platform.OS === 'ios'
+                          ? 'spinner'
+                          : 'default'
+                      }
+                      onChange={handleBirthPickerChange}
+                    />
+                  )}
+                </>
               )}
 
               {!!errors.birthdate && (

@@ -1,27 +1,37 @@
 
 import {
+  FontAwesome
+} from '@expo/vector-icons';
+import {
   LinearGradient
 } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import {
-  useEffect,
-  useState
-} from 'react';
+import { useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView, StyleSheet, Text,
-  TextInput,
   View
 } from 'react-native';
+import { authorize } from 'react-native-app-auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import { registerInitialErrors, registerInitialForm } from '@/constants/authConstants';
+import { googleAuthConfig } from '@/constants/authConstants';
+import { useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
+import { tokenStorage } from '@/lib/tokenStorage';
+import {
+  buildGoogleAuthConfig,
+  buildGoogleAuthPayload,
+  buildGoogleAuthorizeUrl,
+  generateCodeChallenge,
+  generateCodeVerifier,
+  generateOauthState
+} from '@/lib/util/authUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
@@ -29,274 +39,76 @@ import { base, tokens } from '@/styles/style';
 
 const logoImage = require('../public/icons/icon-512-transparent.png');
 
-const Checkbox = ({ checked, onPress }) => {
-  return (
-    <Pressable onPress={onPress} style={[styles.checkboxBox, checked && styles.checkboxChecked]}>
-      {checked ? <Text style={styles.checkboxMark}>✓</Text> : null}
-    </Pressable>
-  );
-};
-
 export default function RegisterScreen() {
   const router = useRouter();
-  const [formData, setFormData] = useState(registerInitialForm);
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [validationErrors, setValidationErrors] = useState(registerInitialErrors);
-  const [emailChecked, setEmailChecked] = useState(false);
-  const [emailMessage, setEmailMessage] = useState('');
-  const [nicknameChecked, setNicknameChecked] = useState(false);
-  const [nicknameMessage, setNicknameMessage] = useState('');
-  const [passwordChecks, setPasswordChecks] = useState({
-    length: false,
-    complexity: false,
+  const { refreshAuth } = useAuth();
+  const [errors, setErrors] = useState({
+    general: '',
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
-  const [isCheckingNickname, setIsCheckingNickname] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+  const [isGoogleSigningUp, setIsGoogleSigningUp] = useState(false);
 
-  useEffect(() => {
-    if (formData.password) {
-      checkPasswordConditions(formData.password);
-    }
-  }, [formData.password]);
+  const signUpWithGoogle = async () => {
+    console.log('Starting Google Sign-Up process...');
+    console.log('Google Auth Config:', googleAuthConfig);
+    setErrors((prev) => ({ ...prev, general: '' }));
+    setIsGoogleSigningUp(true);
 
-  const handleInputChange = (field) => (value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (submitError) {
-      setSubmitError('');
-    }
-
-    if (field === 'email') {
-      setEmailChecked(false);
-      setEmailMessage('');
-      setValidationErrors((prev) => ({ ...prev, email: '' }));
-    }
-
-    if (field === 'nickname') {
-      setNicknameChecked(false);
-      setNicknameMessage('');
-      setValidationErrors((prev) => ({ ...prev, nickname: '' }));
-    }
-
-    if (field === 'password') {
-      setValidationErrors((prev) => ({ ...prev, password: '' }));
-    }
-
-    if (field === 'average_score') {
-      setValidationErrors((prev) => ({ ...prev, average_score: '' }));
-    }
-  };
-
-  const checkPasswordConditions = (password) => {
-    const lengthCheck = password.length >= 6 && password.length <= 32;
-    const hasUpper = /[A-Z]/.test(password);
-    const hasLower = /[a-z]/.test(password);
-    const hasDigit = /[0-9]/.test(password);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    const complexityCheck = [hasUpper, hasLower, hasDigit, hasSpecial].filter(Boolean).length >= 2;
-
-    setPasswordChecks({
-      length: lengthCheck,
-      complexity: complexityCheck,
-    });
-  };
-
-  const checkEmailDuplicate = async () => {
-    if (!formData.email) {
-      setValidationErrors((prev) => ({ ...prev, email: '이메일을 입력해주세요.' }));
-      return;
-    }
-
-    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)) {
-      setValidationErrors((prev) => ({ ...prev, email: '올바른 이메일 형식이 아닙니다.' }));
-      setEmailChecked(false);
-      setEmailMessage('');
-      return;
-    }
-
-    try {
-      setIsCheckingEmail(true);
-      setValidationErrors((prev) => ({ ...prev, email: '' }));
-      const result = await authApi.checkEmail(formData.email.trim());
-      if (result?.is_available && result?.is_valid) {
-        setEmailChecked(true);
-        setEmailMessage('사용 가능한 이메일입니다.');
-      } else {
-        setEmailChecked(false);
-        setEmailMessage('');
-        setValidationErrors((prev) => ({
-          ...prev,
-          email: result?.message || '이미 사용 중인 이메일입니다.',
-        }));
-      }
-    } catch (error) {
-      setEmailChecked(false);
-      setEmailMessage('');
-      setValidationErrors((prev) => ({
+    if (!googleAuthConfig.clientId || !googleAuthConfig.redirectUrl) {
+      setErrors((prev) => ({
         ...prev,
-        email: error?.message || '이메일 확인에 실패했습니다.',
+        general: 'Google 로그인 설정(clientId/redirectUrl)이 누락되었습니다.',
       }));
-    } finally {
-      setIsCheckingEmail(false);
-    }
-  };
-
-  const checkNicknameDuplicate = async () => {
-    if (!formData.nickname) {
-      setValidationErrors((prev) => ({ ...prev, nickname: '닉네임을 입력해주세요.' }));
+      setIsGoogleSigningUp(false);
       return;
     }
 
-    if (formData.nickname.length < 2 || formData.nickname.length > 20) {
-      setValidationErrors((prev) => ({ ...prev, nickname: '닉네임은 2-20자여야 합니다.' }));
-      setNicknameChecked(false);
-      setNicknameMessage('');
-      return;
-    }
-
-    if (!/^[a-zA-Z가-힣0-9]+$/.test(formData.nickname)) {
-      setValidationErrors((prev) => ({ ...prev, nickname: '닉네임은 영문, 한글, 숫자만 사용 가능합니다.' }));
-      setNicknameChecked(false);
-      setNicknameMessage('');
-      return;
-    }
+    const shouldClearState = Platform.OS !== 'web';
 
     try {
-      setIsCheckingNickname(true);
-      setValidationErrors((prev) => ({ ...prev, nickname: '' }));
-      const result = await authApi.checkNickname(formData.nickname.trim());
-      if (result?.is_available && result?.is_valid) {
-        setNicknameChecked(true);
-        setNicknameMessage('사용 가능한 닉네임입니다.');
-      } else {
-        setNicknameChecked(false);
-        setNicknameMessage('');
-        setValidationErrors((prev) => ({
-          ...prev,
-          nickname: result?.message || '이미 사용 중인 닉네임입니다.',
-        }));
+      const oauthState = generateOauthState();
+      await tokenStorage.setOauthState(oauthState);
+
+      // Web 플랫폼에서는 별도의 브라우저 리디렉션 처리
+      if (Platform.OS === 'web') {
+        const oauthState = generateOauthState();
+
+        const codeVerifier = generateCodeVerifier();
+        const codeChallenge = await generateCodeChallenge(codeVerifier);
+
+        await tokenStorage.setOauthState(oauthState);
+        await tokenStorage.setCodeVerifier(codeVerifier);
+
+        const authUrl = buildGoogleAuthorizeUrl({
+          state: oauthState,
+          codeChallenge,
+          codeChallengeMethod: 'S256',
+        });
+
+        window.location.assign(authUrl);
+        return;
       }
+
+      // Native 플랫폼에서는 react-native-app-auth 사용
+      const authState = await authorize(buildGoogleAuthConfig(oauthState));
+
+      const payload = buildGoogleAuthPayload(authState, oauthState);
+
+      console.log('!!! Google Sign-Up Payload: !!! \n', payload);
+
+      await authApi.googleLogin(payload);
+      await refreshAuth();
+      router.replace('/');
     } catch (error) {
-      setNicknameChecked(false);
-      setNicknameMessage('');
-      setValidationErrors((prev) => ({
-        ...prev,
-        nickname: error?.message || '닉네임 확인에 실패했습니다.',
-      }));
+      console.error('Google 회원가입 에러:', error);
+      const message = error?.message || 'Google 회원가입에 실패했습니다.';
+      setErrors((prev) => ({ ...prev, general: message }));
     } finally {
-      setIsCheckingNickname(false);
-    }
-  };
-
-  const validateConfirmPassword = () => {
-    if (!confirmPassword) {
-      setValidationErrors((prev) => ({ ...prev, confirmPassword: '' }));
-      return;
-    }
-
-    if (confirmPassword !== formData.password) {
-      setValidationErrors((prev) => ({ ...prev, confirmPassword: '비밀번호가 일치하지 않습니다.' }));
-    } else {
-      setValidationErrors((prev) => ({ ...prev, confirmPassword: '' }));
-    }
-  };
-
-  const validateForm = () => {
-    const nextErrors = {};
-
-    if (!formData.email) {
-      nextErrors.email = '이메일을 입력해주세요.';
-    } else if (!emailChecked) {
-      nextErrors.email = '이메일 중복확인을 해주세요.';
-    }
-
-    if (!formData.password) {
-      nextErrors.password = '비밀번호를 입력해주세요.';
-    } else if (formData.password.length < 6 || formData.password.length > 32) {
-      nextErrors.password = '비밀번호는 6자 이상 32자 이하여야 합니다.';
-    } else if (!passwordChecks.length || !passwordChecks.complexity) {
-      nextErrors.password = '비밀번호 조건을 충족해주세요.';
-    }
-
-    if (!confirmPassword) {
-      nextErrors.confirmPassword = '비밀번호 재확인을 입력해주세요.';
-    } else if (confirmPassword !== formData.password) {
-      nextErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
-    }
-
-    if (!formData.nickname) {
-      nextErrors.nickname = '닉네임을 입력해주세요.';
-    } else if (!nicknameChecked) {
-      nextErrors.nickname = '닉네임 중복확인을 해주세요.';
-    }
-
-    if (formData.average_score) {
-      const averageScoreValue = parseInt(formData.average_score, 10);
-      if (Number.isNaN(averageScoreValue) || averageScoreValue < 55 || averageScoreValue > 144) {
-        nextErrors.average_score = '평균 타수는 55타 이상 144타 이하여야 합니다.';
+      if (shouldClearState) {
+        await tokenStorage.clearOauthState();
       }
-    }
-
-    if (!formData.terms_agreement) {
-      nextErrors.terms_agreement = '서비스 이용약관에 동의해주세요.';
-    }
-    if (!formData.privacy_policy) {
-      nextErrors.privacy_policy = '개인정보처리방침에 동의해주세요.';
-    }
-    if (!formData.privacy_collection) {
-      nextErrors.privacy_collection = '개인정보 수집 및 이용동의에 동의해주세요.';
-    }
-
-    setValidationErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-    try {
-      setIsSubmitting(true);
-      setSubmitError('');
-      await authApi.register({
-        ...formData,
-        email: formData.email.trim(),
-        nickname: formData.nickname.trim(),
-        average_score: formData.average_score ? Number(formData.average_score) : undefined,
-      });
-      router.replace('/register-success');
-    } catch (error) {
-      setSubmitError(error?.message || '회원가입에 실패했습니다.');
-    } finally {
-      setIsSubmitting(false);
+      setIsGoogleSigningUp(false);
     }
   };
-
-  const handleSelectAll = (checked) => {
-    setFormData((prev) => ({
-      ...prev,
-      terms_agreement: checked,
-      privacy_policy: checked,
-      privacy_collection: checked,
-      marketing_consent: checked,
-    }));
-  };
-
-  const isAllTermsAgreed =
-    formData.terms_agreement &&
-    formData.privacy_policy &&
-    formData.privacy_collection;
-
-  const isFormValid =
-    formData.email &&
-    emailChecked &&
-    formData.password &&
-    passwordChecks.length &&
-    passwordChecks.complexity &&
-    formData.nickname &&
-    nicknameChecked &&
-    formData.terms_agreement &&
-    formData.privacy_policy &&
-    formData.privacy_collection;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -312,225 +124,24 @@ export default function RegisterScreen() {
                   <Image source={logoImage} style={styles.logo} resizeMode="contain" />
                 </View>
                 <Text style={styles.pageTitle}>회원가입</Text>
-                <Text style={styles.pageSubtitle}>골프 모임 플랫폼에 오신 것을 환영합니다</Text>
+                <Text style={styles.pageSubtitle}>Google 계정으로 간편하게 가입하세요</Text>
               </View>
 
-              <View style={styles.fieldGroup}>
-                <Text style={styles.label}>
-                  이메일 <Text style={styles.required}>*</Text>
-                </Text>
-                <View style={styles.inlineField}>
-                  <TextInput
-                    value={formData.email}
-                    onChangeText={handleInputChange('email')}
-                    placeholder="이메일을 입력하세요"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    style={[styles.input, validationErrors.email && styles.inputError]}
-                    placeholderTextColor={colors.neutral[400]}
-                  />
-                  <Pressable
-                    onPress={checkEmailDuplicate}
-                    disabled={!formData.email || emailChecked || isCheckingEmail}
-                    style={[
-                      styles.inlineButton,
-                      (!formData.email || emailChecked || isCheckingEmail) && styles.inlineButtonDisabled,
-                    ]}
-                  >
-                    <Text style={styles.inlineButtonText}>
-                      {emailChecked ? '확인완료' : isCheckingEmail ? '확인중' : '중복확인'}
-                    </Text>
-                  </Pressable>
-                </View>
-                {validationErrors.email ? (
-                  <Text style={styles.errorText}>{validationErrors.email}</Text>
-                ) : emailMessage ? (
-                  <Text style={styles.successText}>{emailMessage}</Text>
-                ) : null}
-              </View>
-
-              <View style={styles.fieldGroup}>
-                <Text style={styles.label}>
-                  비밀번호 <Text style={styles.required}>*</Text>
-                </Text>
-                <TextInput
-                  value={formData.password}
-                  onChangeText={handleInputChange('password')}
-                  placeholder="비밀번호를 입력하세요"
-                  secureTextEntry
-                  style={[styles.input, validationErrors.password && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
-                />
-                {formData.password ? (
-                  <View style={styles.passwordChecks}>
-                    <Text style={[styles.checkItem, passwordChecks.length && styles.checkItemSuccess]}>
-                      {passwordChecks.length ? '✓' : '○'} 6자 이상 32자 이하
-                    </Text>
-                    <Text style={[styles.checkItem, passwordChecks.complexity && styles.checkItemSuccess]}>
-                      {passwordChecks.complexity ? '✓' : '○'} 영문/특수문자/숫자 중 2개 이상
-                    </Text>
-                  </View>
-                ) : null}
-                {validationErrors.password ? (
-                  <Text style={styles.errorText}>{validationErrors.password}</Text>
-                ) : null}
-              </View>
-
-              <View style={styles.fieldGroup}>
-                <Text style={styles.label}>
-                  비밀번호 재확인 <Text style={styles.required}>*</Text>
-                </Text>
-                <TextInput
-                  value={confirmPassword}
-                  onChangeText={(value) => {
-                    setConfirmPassword(value);
-                    if (validationErrors.confirmPassword) {
-                      setValidationErrors((prev) => ({ ...prev, confirmPassword: '' }));
-                    }
-                  }}
-                  onBlur={validateConfirmPassword}
-                  placeholder="비밀번호를 다시 입력하세요"
-                  secureTextEntry
-                  style={[styles.input, validationErrors.confirmPassword && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
-                />
-                {validationErrors.confirmPassword ? (
-                  <Text style={styles.errorText}>{validationErrors.confirmPassword}</Text>
-                ) : confirmPassword && confirmPassword === formData.password ? (
-                  <Text style={styles.successText}>✓ 비밀번호가 일치합니다.</Text>
-                ) : null}
-              </View>
-
-              <View style={styles.fieldGroup}>
-                <Text style={styles.label}>
-                  닉네임 <Text style={styles.required}>*</Text>
-                </Text>
-                <View style={styles.inlineField}>
-                  <TextInput
-                    value={formData.nickname}
-                    onChangeText={handleInputChange('nickname')}
-                    placeholder="닉네임을 입력하세요"
-                    style={[styles.input, validationErrors.nickname && styles.inputError]}
-                    placeholderTextColor={colors.neutral[400]}
-                  />
-                  <Pressable
-                    onPress={checkNicknameDuplicate}
-                    disabled={!formData.nickname || nicknameChecked || isCheckingNickname}
-                    style={[
-                      styles.inlineButton,
-                      (!formData.nickname || nicknameChecked || isCheckingNickname) && styles.inlineButtonDisabled,
-                    ]}
-                  >
-                    <Text style={styles.inlineButtonText}>
-                      {nicknameChecked ? '확인완료' : isCheckingNickname ? '확인중' : '중복확인'}
-                    </Text>
-                  </Pressable>
-                </View>
-                {validationErrors.nickname ? (
-                  <Text style={styles.errorText}>{validationErrors.nickname}</Text>
-                ) : nicknameMessage ? (
-                  <Text style={styles.successText}>{nicknameMessage}</Text>
-                ) : null}
-              </View>
-
-              <View style={styles.fieldGroup}>
-                <Text style={styles.label}>평균 타수</Text>
-                <TextInput
-                  value={formData.average_score}
-                  onChangeText={(value) => handleInputChange('average_score')(value.replace(/[^0-9]/g, ''))}
-                  placeholder="예: 90 (55-144타)"
-                  keyboardType="numeric"
-                  style={[styles.input, validationErrors.average_score && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
-                />
-                {validationErrors.average_score ? (
-                  <Text style={styles.errorText}>{validationErrors.average_score}</Text>
-                ) : null}
-              </View>
-
-              <View style={styles.termsSection}>
-                <Text style={styles.termsTitle}>약관 동의</Text>
-                <View style={styles.checkboxRow}>
-                  <Checkbox checked={isAllTermsAgreed} onPress={() => handleSelectAll(!isAllTermsAgreed)} />
-                  <Text style={styles.checkboxLabel}>전체 동의</Text>
-                </View>
-
-                <View style={styles.termsList}>
-                  <View style={styles.checkboxRow}>
-                    <Checkbox
-                      checked={formData.terms_agreement}
-                      onPress={() => handleInputChange('terms_agreement')(!formData.terms_agreement)}
-                    />
-                    <Text style={styles.checkboxLabel}>서비스 이용약관 동의 (필수)</Text>
-                    <Pressable
-                      onPress={() => router.push('/terms?tab=terms')}
-                    >
-                      <Text style={styles.termsLink}>[보기]</Text>
-                    </Pressable>
-                  </View>
-
-                  <View style={styles.checkboxRow}>
-                    <Checkbox
-                      checked={formData.privacy_policy}
-                      onPress={() => handleInputChange('privacy_policy')(!formData.privacy_policy)}
-                    />
-                    <Text style={styles.checkboxLabel}>개인정보처리방침 동의 (필수)</Text>
-                    <Pressable
-                      onPress={() => router.push('/terms?tab=privacy')}
-                    >
-                      <Text style={styles.termsLink}>[보기]</Text>
-                    </Pressable>
-                  </View>
-
-                  <View style={styles.checkboxRow}>
-                    <Checkbox
-                      checked={formData.privacy_collection}
-                      onPress={() => handleInputChange('privacy_collection')(!formData.privacy_collection)}
-                    />
-                    <Text style={styles.checkboxLabel}>개인정보 수집 및 이용 동의 (필수)</Text>
-                    <Pressable
-                      onPress={() => router.push('/terms?tab=collection')}
-                    >
-                      <Text style={styles.termsLink}>[보기]</Text>
-                    </Pressable>
-                  </View>
-
-                  <View style={styles.checkboxRow}>
-                    <Checkbox
-                      checked={formData.marketing_consent}
-                      onPress={() => handleInputChange('marketing_consent')(!formData.marketing_consent)}
-                    />
-                    <Text style={styles.checkboxLabel}>마케팅정보 수신동의 (선택)</Text>
-                    <Pressable
-                      onPress={() => router.push('/terms?tab=marketing')}
-                    >
-                      <Text style={styles.termsLink}>[보기]</Text>
-                    </Pressable>
-                  </View>
-                </View>
-
-                {(validationErrors.terms_agreement ||
-                  validationErrors.privacy_policy ||
-                  validationErrors.privacy_collection) && (
-                    <Text style={styles.errorText}>
-                      {validationErrors.terms_agreement ||
-                        validationErrors.privacy_policy ||
-                        validationErrors.privacy_collection}
-                    </Text>
-                  )}
-              </View>
+              {errors.general ? (
+                <Text style={styles.generalError}>{errors.general}</Text>
+              ) : null}
 
               <Button
                 variant="primary"
                 size="lg"
-                loading={isSubmitting}
-                disabled={!isFormValid || isSubmitting}
-                onPress={handleSubmit}
-                style={styles.submitButton}
+                onPress={signUpWithGoogle}
+                loading={isGoogleSigningUp}
+                disabled={isGoogleSigningUp}
+                style={styles.buttonSpacing}
               >
-                {isSubmitting ? '처리 중...' : '회원가입'}
+                <FontAwesome name="google" size={16} color={colors.white} style={styles.iconGap} />
+                <Text style={styles.primaryButtonText}>Google로 회원가입</Text>
               </Button>
-              {submitError ? <Text style={styles.errorText}>{submitError}</Text> : null}
 
               <View style={styles.loginRow}>
                 <Text style={styles.loginText}>이미 계정이 있으신가요?</Text>
@@ -588,113 +199,24 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.md,
     color: colors.neutral[600],
     textAlign: 'center',
+    marginBottom: tokens.spacing.md3,
   },
-  fieldGroup: {
-    marginBottom: tokens.spacing.md,
-  },
-  label: base.labelSm,
-  required: {
-    color: colors.error[500],
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.base,
-    fontSize: tokens.font.base,
-    color: colors.neutral[900],
-    backgroundColor: colors.white,
-  },
-  inputError: {
-    borderColor: colors.error[500],
-  },
-  inlineField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  inlineButton: {
-    marginLeft: tokens.spacing.xs2,
-    paddingVertical: tokens.padding.base,
-    paddingHorizontal: tokens.padding.sm,
-    backgroundColor: colors.primary[600],
-    borderRadius: tokens.radius.base,
-  },
-  inlineButtonDisabled: {
-    opacity: 0.5,
-  },
-  inlineButtonText: {
-    color: colors.white,
+  generalError: {
+    textAlign: 'center',
+    color: colors.error[600],
     fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.semibold,
+    marginBottom: tokens.spacing.sm2,
   },
-  errorText: { ...base.textSmError, marginTop: tokens.spacing.xs },
-  successText: { ...base.textSmSuccess, marginTop: tokens.spacing.xs },
-  passwordChecks: {
-    marginTop: tokens.spacing.xs2,
+  buttonSpacing: {
+    marginTop: tokens.spacing.md,
   },
-  checkItem: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[500],
-    marginBottom: tokens.spacing.xxs,
-  },
-  checkItemSuccess: {
-    color: colors.success[600],
-  },
-  termsSection: {
-    borderTopWidth: 1,
-    borderTopColor: colors.neutral[200],
-    paddingTop: tokens.padding.md,
-    marginTop: tokens.spacing.xs2,
-  },
-  termsTitle: {
-    fontSize: tokens.font.md,
-    fontWeight: tokens.fontWeight.semibold,
-    color: colors.neutral[700],
-    marginBottom: tokens.spacing.sm,
-  },
-  termsList: {
-    marginTop: tokens.spacing.xs2,
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: tokens.spacing.xs2,
-    flexWrap: 'wrap',
-  },
-  checkboxBox: {
-    width: 18,
-    height: 18,
-    borderRadius: tokens.radius.xxs,
-    borderWidth: 1,
-    borderColor: colors.neutral[400],
-    alignItems: 'center',
-    justifyContent: 'center',
+  iconGap: {
     marginRight: tokens.spacing.xs2,
-    backgroundColor: colors.white,
   },
-  checkboxChecked: {
-    backgroundColor: colors.primary[600],
-    borderColor: colors.primary[600],
-  },
-  checkboxMark: {
-    color: colors.white,
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.bold,
-  },
-  checkboxLabel: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[700],
-    marginRight: tokens.spacing.xs,
-  },
-  termsLink: {
-    fontSize: tokens.font.sm,
-    color: colors.primary[600],
+  primaryButtonText: {
+    fontSize: tokens.font.lg,
     fontWeight: tokens.fontWeight.semibold,
-  },
-  submitButton: {
-    marginTop: tokens.spacing.sm2,
+    color: colors.white,
   },
   loginRow: {
     marginTop: tokens.spacing.md3,
