@@ -50,3 +50,4 @@ mobile-web/
 backend/
 .vscode/settings.json
 credentials/
+API_SPECIFICATION.md
