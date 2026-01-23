@@ -645,24 +645,46 @@ export function createOptionPressHandler({ onChange, field }) {
         };
 }
 
-export function createFetchClubsHandler({ fetchMyClubs, extractList, isEditMode, setClubs, setClubsLoading, setForm }) {
+export function createFetchClubsHandler({ fetchMyClubs, extractList, isEditMode, setClubs, setClubsLoading, setForm, setHasClubs, setError }) {
     return async function () {
         try {
-            setClubsLoading(true);
+            if (setClubsLoading) {
+                setClubsLoading(true);
+            }
             const response = await fetchMyClubs();
             const list = extractList(response);
             const activeClubs = list.filter(
                 (club) => club.status === 'ACTIVE' || club.status === 'APPROVED'
             );
-            setClubs(activeClubs);
-            if (!isEditMode && activeClubs.length === 1) {
+            
+            // setClubs가 있으면 클럽 목록 설정 (기존 동작)
+            if (setClubs) {
+                setClubs(activeClubs);
+            }
+            
+            // setHasClubs가 있으면 클럽 존재 여부 설정 (meetings/index.js용)
+            if (setHasClubs) {
+                setHasClubs(activeClubs.length > 0);
+            }
+            
+            if (!isEditMode && activeClubs.length === 1 && setForm) {
                 setForm((prev) => ({ ...prev, club_id: activeClubs[0].id }));
             }
         } catch (error) {
             console.error('클럽 목록 조회 실패:', error);
-            setClubs([]);
+            if (setClubs) {
+                setClubs([]);
+            }
+            if (setHasClubs) {
+                setHasClubs(false);
+            }
+            if (setError) {
+                setError(error);
+            }
         } finally {
-            setClubsLoading(false);
+            if (setClubsLoading) {
+                setClubsLoading(false);
+            }
         }
     };
 }
