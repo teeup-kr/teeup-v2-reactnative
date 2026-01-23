@@ -123,8 +123,8 @@ export default () => {
     },
   };
 
-  console.log('!!! Generated expo extra !!!');
-  console.log(extra);
+  // console.log('!!! Generated expo extra !!!');
+  // console.log(extra);
 
   return {
     ...base,
