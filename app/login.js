@@ -9,7 +9,6 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView, StyleSheet, Text,
   View
 } from 'react-native';
@@ -20,6 +19,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { googleAuthConfig } from '@/constants/authConstants';
 import { useAuth } from '@/context/AuthContext';
+import { authApi } from '@/lib/api/api';
 import { tokenStorage } from '@/lib/tokenStorage';
 import {
   buildGoogleAuthConfig,
@@ -82,11 +82,11 @@ export default function LoginScreen() {
           codeChallengeMethod: 'S256',
         });
 
-        // 디버깅: 실제 사용되는 redirect_uri 확인
-        const urlObj = new URL(authUrl);
-        const redirectUri = urlObj.searchParams.get('redirect_uri');
-        alert(`사용되는 redirect_uri:\n${redirectUri}\n\n전체 URL:\n${authUrl}`);
-        
+        // // 디버깅: 실제 사용되는 redirect_uri 확인
+        // const urlObj = new URL(authUrl);
+        // const redirectUri = urlObj.searchParams.get('redirect_uri');
+        // alert(`사용되는 redirect_uri:\n${redirectUri}\n\n전체 URL:\n${authUrl}`);
+
         console.log('!!! Redirecting to Google OAuth URL:', authUrl);
         window.location.assign(authUrl);
         return;
@@ -133,9 +133,6 @@ export default function LoginScreen() {
                 <Text style={styles.brandTitle}>티업링크</Text>
                 <Text style={styles.brandSubtitle}>골프 모임을 더 쉽고 즐겁게</Text>
               </View>
-
-              <Text style={styles.pageTitle}>로그인</Text>
-              <Text style={styles.pageSubtitle}>Google 계정으로 로그인하세요</Text>
 
               {errors.general ? (
                 <Text style={styles.generalError}>{errors.general}</Text>

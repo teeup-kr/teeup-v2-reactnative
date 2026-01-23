@@ -347,13 +347,13 @@ export function createFieldChangeHandler({ setFormData }) {
         };
 }
 
-export function createToggleRegularFeeHandler({ setFormData }) {
+export function createToggleRegularFeeHandler({ setFormData, defaultCycleId = '' }) {
     return () => {
         setFormData((prev) => ({
             ...prev,
             hasRegularFee: !prev.hasRegularFee,
             regularFeeAmount: !prev.hasRegularFee ? prev.regularFeeAmount : '',
-            regularFeeCycle: !prev.hasRegularFee ? prev.regularFeeCycle : '',
+            regularFeeCycle: !prev.hasRegularFee ? (prev.regularFeeCycle || defaultCycleId) : '',
             regularFeeDescription: !prev.hasRegularFee ? prev.regularFeeDescription : '',
         }));
     };
@@ -369,6 +369,74 @@ export function createSelectRegularFeeCycleHandler({ setFormData }) {
         };
 }
 
+export function createSidoSelectHandler({ setSelectedSidoCode, setSelectedGunguCodes, setErrors }) {
+    return (value) => {
+        const normalized = value ? String(value) : '';
+        setSelectedSidoCode(normalized);
+        setSelectedGunguCodes([]);
+        if (setErrors) {
+            setErrors((prev) => ({ ...prev, gungu_codes: '' }));
+        }
+    };
+}
+
+export function createToggleGunguHandler({
+    setSelectedGunguCodes,
+    setErrors,
+    maxSelections = 4,
+}) {
+    return (code) => {
+        const normalized = String(code);
+        setSelectedGunguCodes((prev) => {
+            if (prev.includes(normalized)) {
+                const next = prev.filter((item) => item !== normalized);
+                if (setErrors && next.length >= 1 && next.length <= maxSelections) {
+                    setErrors((errorState) => ({ ...errorState, gungu_codes: '' }));
+                }
+                return next;
+            }
+
+            if (prev.length >= maxSelections) {
+                if (setErrors) {
+                    setErrors((errorState) => ({
+                        ...errorState,
+                        gungu_codes: `최대 ${maxSelections}개까지 선택할 수 있어요.`,
+                    }));
+                }
+                return prev;
+            }
+
+            const next = [...prev, normalized];
+            if (setErrors && next.length >= 1 && next.length <= maxSelections) {
+                setErrors((errorState) => ({ ...errorState, gungu_codes: '' }));
+            }
+            return next;
+        });
+    };
+}
+
+export function createRegisterPressHandler({
+    selectedGunguCodes,
+    setErrors,
+    handleRegister,
+    minSelections = 1,
+    maxSelections = 4,
+}) {
+    return () => {
+        if (selectedGunguCodes.length < minSelections || selectedGunguCodes.length > maxSelections) {
+            if (setErrors) {
+                setErrors((prev) => ({
+                    ...prev,
+                    gungu_codes: '시/군/구는 1~4개 선택해주세요.',
+                }));
+            }
+            return;
+        }
+
+        handleRegister();
+    };
+}
+
 export function createSubmitClubRegisterHandler({
     formData,
     buildPayload,
@@ -377,6 +445,8 @@ export function createSubmitClubRegisterHandler({
     setIsSubmitting,
     defaultErrors,
     router,
+    successPath = '/',
+    successParams,
 }) {
     return async function () {
         setErrors(defaultErrors);
@@ -385,7 +455,11 @@ export function createSubmitClubRegisterHandler({
             setIsSubmitting(true);
             const payload = buildPayload(formData);
             await registerClubApplication(payload);
-            router.replace('/');
+            if (successParams) {
+                router.replace({ pathname: successPath, params: successParams });
+            } else {
+                router.replace(successPath);
+            }
         } catch (error) {
             const message = error?.message || '클럽 생성에 실패했습니다.';
             setErrors((prev) => ({ ...prev, general: message }));

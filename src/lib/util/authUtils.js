@@ -153,14 +153,14 @@ export function generateCodeVerifier(length = 64) {
 }
 
 
-export async function generateCodeChallenge(verifier) {
+export const generateCodeChallenge = async (verifier) => {
   const encoder = new TextEncoder();
   const data = encoder.encode(verifier);
 
   const digest = await crypto.subtle.digest('SHA-256', data);
 
   return base64UrlEncode(new Uint8Array(digest));
-}
+};
 
 function base64UrlEncode(buffer) {
   let binary = '';

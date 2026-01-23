@@ -3,39 +3,40 @@ import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    Pressable,
-    ScrollView, StyleSheet, Text,
-    View
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 
+import AppToast from '@/components/ui/AppToast';
 import Card from '@/components/ui/Card';
 import { notificationsApi } from '@/lib/api/api';
 import {
-    createBulkDeleteHandler,
-    createBulkReadHandler,
-    createClearDeleteTargetHandler,
-    createConfirmDeleteHandler,
-    createDeleteNotificationHandler,
-    createDeleteTargetHandler,
-    createFilterPressHandler,
-    createLoadNotificationsHandler,
-    createMarkAllAsReadHandler,
-    createMarkAsReadHandler,
-    createOpenNotificationHandler,
-    createOpenNotificationPressHandler,
-    createSelectAllHandler,
-    createToggleSelectHandler,
-    createToggleSelectPressHandler,
+  createBulkDeleteHandler,
+  createBulkReadHandler,
+  createClearDeleteTargetHandler,
+  createConfirmDeleteHandler,
+  createDeleteNotificationHandler,
+  createDeleteTargetHandler,
+  createFilterPressHandler,
+  createLoadNotificationsHandler,
+  createMarkAllAsReadHandler,
+  createMarkAsReadHandler,
+  createOpenNotificationHandler,
+  createOpenNotificationPressHandler,
+  createSelectAllHandler,
+  createToggleSelectHandler,
+  createToggleSelectPressHandler,
 } from '@/lib/handler/mypage';
 import {
-    formatNotificationDate,
-    getNotificationIcon,
-    isUnreadNotification,
-    notificationTypeLabels,
-    pickData,
+  formatNotificationDate,
+  getNotificationIcon,
+  isUnreadNotification,
+  notificationTypeLabels,
+  pickData,
 } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -346,15 +347,10 @@ export default function NotificationsTab() {
         </View>
       </Modal>
 
-      {toast && (
-        <View
-          style={[styles.toast, toast.tone === 'success' ? styles.toastSuccess : styles.toastError]}
-        >
-          <Text style={{ color: 'white', fontWeight: tokens.fontWeight.extrabold }}>
-            {toast.msg}
-          </Text>
-        </View>
-      )}
+      <AppToast
+        toast={toast ? { tone: toast.tone, message: toast.message } : null}
+        onClose={() => setToast(null)}
+      />
     </View>
   );
 }
@@ -430,16 +426,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral[200],
     alignItems: 'center',
   },
-
-  toast: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    padding: tokens.padding.sm,
-    borderRadius: tokens.radius.md,
-  },
-  toastSuccess: { backgroundColor: colors.emerald[600] },
-  toastError: { backgroundColor: colors.red[600] },
 
   errorCard: { alignItems: 'center', padding: tokens.padding.xxl },
   errorTitle: {
