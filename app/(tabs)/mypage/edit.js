@@ -10,6 +10,7 @@ import {
   View
 } from 'react-native';
 
+import AppToast from '@/components/ui/AppToast';
 import { mypageApi } from '@/lib/api/api';
 import {
   createBirthPickerChangeHandler,
@@ -30,7 +31,6 @@ import {
 import {
   buildProfileFormData,
   calcHandicapFromAvg,
-  formatDateYYYYMMDD,
   getBirthDateValue,
   isNicknameSame as isNicknameSameValue,
   isSocialLoginUser,
@@ -101,14 +101,6 @@ export default function UserProfileEditForm() {
   }, [isNicknameSame]);
 
   const showToast = useMemo(() => createShowToastHandler(setToast), []);
-
-  useEffect(() => {
-    if (!toast.open) return;
-    const timer = setTimeout(() => {
-      setToast((prev) => ({ ...prev, open: false }));
-    }, 2200);
-    return () => clearTimeout(timer);
-  }, [toast.open]);
 
   const openPasswordModal = useMemo(
     () => createPasswordModalOpenHandler(setShowPasswordModal),
@@ -750,32 +742,11 @@ export default function UserProfileEditForm() {
         )}
       </ScrollView>
 
-      {/* Toast */}
-      {toast?.open && (
-        <View
-          style={[
-            styles.toast,
-            toast.tone === 'error'
-              ? styles.toastError
-              : toast.tone === 'info'
-                ? styles.toastInfo
-                : styles.toastSuccess,
-          ]}
-        >
-          <FontAwesome5
-            name={
-              toast.tone === 'error'
-                ? 'times-circle'
-                : 'check-circle'
-            }
-            size={16}
-            color={colors.white}
-          />
-          <Text style={styles.toastText}>
-            {toast.message}
-          </Text>
-        </View>
-      )}
+      <AppToast
+        toast={toast?.open ? { tone: toast.tone, message: toast.message } : null}
+        autoHideMs={2200}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+      />
     </View>
   );
 }
@@ -944,19 +915,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveBtnText: { color: colors.white, fontWeight: tokens.fontWeight.extrabold, fontSize: tokens.font.sm },
-
-  toast: {
-    position: 'absolute',
-    top: 24,
-    right: 16,
-    flexDirection: 'row',
-    gap: 10,
-    padding: tokens.padding.baseLg,
-    borderRadius: tokens.radius.baseLg,
-    elevation: 8,
-  },
-  toastError: { backgroundColor: colors.red[600] },
-  toastInfo: { backgroundColor: colors.blue[600] },
-  toastSuccess: { backgroundColor: colors.green[600] },
-  toastText: { color: colors.white, fontWeight: tokens.fontWeight.extrabold },
 });

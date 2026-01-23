@@ -372,26 +372,27 @@ export function openWebDateInput({ value, onChange }) {
     input.style.margin = '0';
     input.style.padding = '0';
     input.tabIndex = -1; // 탭 포커스 방지
-    
+
     let isCleanedUp = false;
     let cleanupTimeout = null;
     let changeHandled = false;
-    
+
     const cleanup = () => {
         if (isCleanedUp) return;
         isCleanedUp = true;
-        
+
         if (cleanupTimeout) {
             clearTimeout(cleanupTimeout);
             cleanupTimeout = null;
         }
-        
+
         // 약간의 지연 후 제거 (날짜 선택기가 완전히 닫힐 때까지 대기)
         setTimeout(() => {
             if (input.parentNode) {
                 try {
                     input.parentNode.removeChild(input);
                 } catch (e) {
+                    console.log(e);
                     // 이미 제거된 경우 무시
                 }
             }
@@ -401,7 +402,7 @@ export function openWebDateInput({ value, onChange }) {
     input.onchange = (event) => {
         if (changeHandled) return;
         changeHandled = true;
-        
+
         const selectedValue = event?.target?.value || '';
         if (selectedValue) {
             onChange(selectedValue);
@@ -419,7 +420,7 @@ export function openWebDateInput({ value, onChange }) {
 
     // DOM에 추가
     doc.body.appendChild(input);
-    
+
     // 클릭 이벤트 트리거
     setTimeout(() => {
         try {
@@ -612,7 +613,7 @@ export function createMarkAllAsReadHandler({ notificationsApi, setNotifications,
             setNotifications((prev) =>
                 prev.map((item) => ({ ...item, status: 'READ', read_at: item.read_at || now }))
             );
-            setToast({ tone: 'success', msg: '모든 알림이 읽음 처리되었습니다.' });
+            setToast({ tone: 'success', message: '모든 알림이 읽음 처리되었습니다.' });
         } catch {
             alert('오류', '처리에 실패했습니다.');
         }
@@ -624,7 +625,7 @@ export function createDeleteNotificationHandler({ notificationsApi, setNotificat
         try {
             await notificationsApi.deleteNotification(id);
             setNotifications((prev) => prev.filter((item) => item.id !== id));
-            setToast({ tone: 'success', msg: '알림이 삭제되었습니다.' });
+            setToast({ tone: 'success', message: '알림이 삭제되었습니다.' });
         } catch {
             alert('오류', '삭제에 실패했습니다.');
         }
@@ -862,7 +863,7 @@ export function createFetchMeetingsHandler({
             setError(null);
 
             let response;
-            
+
             // fetchMyRoundingMeetings를 사용하는 경우 (records.js)
             if (fetchMyRoundingMeetings) {
                 response = await fetchMyRoundingMeetings({
@@ -870,14 +871,14 @@ export function createFetchMeetingsHandler({
                     page,
                     limit,
                 });
-            } 
+            }
             // fetchMyMeetings를 사용하는 경우 (meetings.js)
             else if (fetchMyMeetings) {
                 const params = {
                     page,
                     limit: limit || 20,
                 };
-                
+
                 if (typeFilter && typeFilter !== 'all') {
                     params.type = typeFilter;
                 }
@@ -887,7 +888,7 @@ export function createFetchMeetingsHandler({
                 if (endDate) {
                     params.end_date = endDate;
                 }
-                
+
                 response = await fetchMyMeetings(params);
             } else {
                 throw new Error('fetchMyRoundingMeetings or fetchMyMeetings must be provided');
@@ -897,14 +898,14 @@ export function createFetchMeetingsHandler({
             if (extractList) {
                 const list = extractList(response);
                 setMeetings(Array.isArray(list) ? list : []);
-            } 
+            }
             // pickData가 있으면 사용 (records.js)
             else if (pickData) {
                 const data = pickData(response) || response || {};
                 const list = data?.data ?? data?.list ?? [];
                 setMeetings(Array.isArray(list) ? list : []);
                 setTotalPages(Number(data?.total_pages) || 1);
-            } 
+            }
             // 둘 다 없으면 기본 처리
             else {
                 const data = response?.data || response || {};

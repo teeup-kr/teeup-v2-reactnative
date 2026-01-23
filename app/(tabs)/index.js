@@ -2,7 +2,8 @@
 import {
   LinearGradient
 } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
   Image,
   Pressable,
@@ -13,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppFooter from '@/components/layout/AppFooter';
 import AppHeader from '@/components/layout/AppHeader';
+import AppToast, { toastMap } from '@/components/ui/AppToast';
 import { homeFeatures } from '@/constants/homeConstants';
 import { useAuth } from '@/context/AuthContext';
 import { colors } from '@/styles/colors';
@@ -33,8 +35,20 @@ const FeatureCard = ({ title, description, emoji, background, accent }) => {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { toast: toastParam } = useLocalSearchParams();
   const { isAuthenticated } = useAuth();
   const heroGradient = [colors.emerald[600], colors.teal[700]];
+  const [toastKey, setToastKey] = useState(null);
+
+  useEffect(() => {
+    const toastValue = Array.isArray(toastParam) ? toastParam[0] : toastParam;
+    if (!toastMap[toastValue]) return;
+
+    setToastKey(toastValue);
+    router.setParams({ toast: undefined });
+
+    return undefined;
+  }, [toastParam, router]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -118,6 +132,7 @@ export default function HomeScreen() {
         </View>
         <AppFooter />
       </ScrollView>
+      <AppToast toastKey={toastKey} onClose={() => setToastKey(null)} />
     </SafeAreaView>
   );
 }
