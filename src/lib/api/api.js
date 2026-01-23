@@ -604,6 +604,22 @@ export const faqApi = {
   getCategories,
 };
 
+async function getSidoList() {
+  return apiClient.get('/sido-list', { auth: false });
+}
+
+async function getGunguList(sidoCode) {
+  return apiClient.get('/gungu-list', {
+    params: { sido_code: sidoCode },
+    auth: false,
+  });
+}
+
+export const regionApi = {
+  getSidoList,
+  getGunguList,
+};
+
 async function registerClubApplication(applicationData) {
   return apiClient.post('/clubs/register', applicationData);
 }

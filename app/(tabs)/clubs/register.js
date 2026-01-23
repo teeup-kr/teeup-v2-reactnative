@@ -1,11 +1,13 @@
 import { FontAwesome5 } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-    Pressable,
-    ScrollView, StyleSheet, Text,
-    TextInput,
-    View
+  ActivityIndicator,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  TextInput,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -14,14 +16,18 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubFeeCycles, clubRegisterTypes } from '@/constants/clubConstants';
-import { clubsApi } from '@/lib/api/api';
+import { clubsApi, regionApi } from '@/lib/api/api';
 import {
-    createFieldChangeHandler,
-    createSelectRegularFeeCycleHandler,
-    createSubmitClubRegisterHandler,
-    createToggleRegularFeeHandler,
+  createFieldChangeHandler,
+  createRegisterPressHandler,
+  createSelectRegularFeeCycleHandler,
+  createSidoSelectHandler,
+  createSubmitClubRegisterHandler,
+  createToggleGunguHandler,
+  createToggleRegularFeeHandler,
 } from '@/lib/handler/clubs';
 import { buildClubRegisterPayload, defaultClubRegisterErrors } from '@/lib/util/clubUtils';
+import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
@@ -35,25 +41,37 @@ export default function ClubRegisterScreen() {
     type: 'REGULAR',
     description: '',
     memberCount: '1',
-    location: '',
+    sidoCode: '',
+    gunguCodes: [],
     contact: '',
     additionalInfo: '',
     attachment: '',
     hasRegularFee: false,
     regularFeeAmount: '',
-    regularFeeCycle: '',
+    regularFeeCycle: clubFeeCycles[0]?.id ?? '',
     regularFeeDescription: '',
   });
 
   const [errors, setErrors] = useState(defaultClubRegisterErrors);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sidoOptions, setSidoOptions] = useState([]);
+  const [gunguOptions, setGunguOptions] = useState([]);
+  const [selectedSidoCode, setSelectedSidoCode] = useState('');
+  const [selectedGunguCodes, setSelectedGunguCodes] = useState([]);
+  const [isSidoLoading, setIsSidoLoading] = useState(false);
+  const [isGunguLoading, setIsGunguLoading] = useState(false);
+  const [regionFetchError, setRegionFetchError] = useState('');
 
   const handleChange = useMemo(
     () => createFieldChangeHandler({ setFormData }),
     [setFormData]
   );
   const handleToggleRegularFee = useMemo(
-    () => createToggleRegularFeeHandler({ setFormData }),
+    () =>
+      createToggleRegularFeeHandler({
+        setFormData,
+        defaultCycleId: clubFeeCycles[0]?.id ?? '',
+      }),
     [setFormData]
   );
   const handleSelectFeeCycle = useMemo(
@@ -71,9 +89,124 @@ export default function ClubRegisterScreen() {
         setIsSubmitting,
         defaultErrors: defaultClubRegisterErrors,
         router,
+        successParams: { toast: 'club_registered' },
       }),
     [formData, setErrors, setIsSubmitting, router]
   );
+
+  const handleSidoSelect = useMemo(
+    () =>
+      createSidoSelectHandler({
+        setSelectedSidoCode,
+        setSelectedGunguCodes,
+        setErrors,
+      }),
+    [setSelectedSidoCode, setSelectedGunguCodes, setErrors]
+  );
+  const handleToggleGungu = useMemo(
+    () =>
+      createToggleGunguHandler({
+        setSelectedGunguCodes,
+        setErrors,
+      }),
+    [setSelectedGunguCodes, setErrors]
+  );
+  const handleRegisterPress = useMemo(
+    () =>
+      createRegisterPressHandler({
+        selectedGunguCodes,
+        setErrors,
+        handleRegister,
+      }),
+    [selectedGunguCodes, setErrors, handleRegister]
+  );
+
+  const selectedSidoName = useMemo(() => {
+    const match = sidoOptions.find((option) => String(option.code) === String(selectedSidoCode));
+    return match?.name || '';
+  }, [sidoOptions, selectedSidoCode]);
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      sidoCode: selectedSidoCode,
+      gunguCodes: selectedGunguCodes,
+    }));
+  }, [selectedSidoCode, selectedGunguCodes, setFormData]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const fetchSidoOptions = async () => {
+      try {
+        setIsSidoLoading(true);
+        setRegionFetchError('');
+        const response = await regionApi.getSidoList();
+        const list = extractList(response);
+        if (isActive) {
+          setSidoOptions(list);
+        }
+      } catch (error) {
+        console.error('시도 목록 조회 실패:', error);
+        if (isActive) {
+          setRegionFetchError(error?.message || '시/도 목록을 불러오지 못했습니다.');
+          setSidoOptions([]);
+        }
+      } finally {
+        if (isActive) {
+          setIsSidoLoading(false);
+        }
+      }
+    };
+
+    fetchSidoOptions();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
+
+    if (!selectedSidoCode) {
+      setGunguOptions([]);
+      setSelectedGunguCodes([]);
+      return () => {
+        isActive = false;
+      };
+    }
+
+    const fetchGunguOptions = async () => {
+      try {
+        setIsGunguLoading(true);
+        setRegionFetchError('');
+        const response = await regionApi.getGunguList(selectedSidoCode);
+        const list = extractList(response);
+        if (isActive) {
+          setGunguOptions(list);
+          setSelectedGunguCodes([]);
+        }
+      } catch (error) {
+        console.error('시군구 목록 조회 실패:', error);
+        if (isActive) {
+          setRegionFetchError(error?.message || '시/군/구 목록을 불러오지 못했습니다.');
+          setGunguOptions([]);
+          setSelectedGunguCodes([]);
+        }
+      } finally {
+        if (isActive) {
+          setIsGunguLoading(false);
+        }
+      }
+    };
+
+    fetchGunguOptions();
+
+    return () => {
+      isActive = false;
+    };
+  }, [selectedSidoCode]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -122,29 +255,83 @@ export default function ClubRegisterScreen() {
             />
           </View>
 
-          <View style={styles.fieldGroupRow}>
-            <View style={styles.halfField}>
-              <Text style={styles.label}>예상 멤버 수</Text>
-              <TextInput
-                value={formData.memberCount}
-                onChangeText={handleChange('memberCount')}
-                placeholder="예: 20"
-                keyboardType="numeric"
-                style={styles.input}
-                placeholderTextColor={colors.neutral[400]}
-                error={errors.memberCount}
-              />
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>활동 지역 (시/도)</Text>
+            <View style={styles.selectBox}>
+              <Text style={styles.selectText}>
+                {selectedSidoName ||
+                  (isSidoLoading ? '시/도 목록을 불러오는 중...' : '시/도를 선택하세요')}
+              </Text>
+              <Text style={styles.selectArrow}>▼</Text>
+              <Picker
+                selectedValue={selectedSidoCode}
+                onValueChange={handleSidoSelect}
+                mode="dialog"
+                style={styles.hiddenPicker}
+                dropdownIconColor="transparent"
+                enabled={!isSidoLoading}
+              >
+                <Picker.Item label="시/도를 선택하세요" value="" />
+                {sidoOptions.map((option) => (
+                  <Picker.Item
+                    key={option.code}
+                    label={option.name}
+                    value={String(option.code)}
+                  />
+                ))}
+              </Picker>
             </View>
-            <View style={[styles.halfField, styles.halfFieldLast]}>
-              <Text style={styles.label}>지역</Text>
-              <TextInput
-                value={formData.location}
-                onChangeText={handleChange('location')}
-                placeholder="예: 서울/경기"
-                style={styles.input}
-                placeholderTextColor={colors.neutral[400]}
-              />
-            </View>
+            {regionFetchError ? (
+              <Text style={styles.errorText}>{regionFetchError}</Text>
+            ) : null}
+          </View>
+
+          <Text style={styles.label}>시/군/구 선택</Text>
+          <View style={[styles.input, styles.textArea]}>
+            {isGunguLoading ? (
+              <View style={styles.loadingRow}>
+                <ActivityIndicator size="small" color={colors.primary[600]} />
+                <Text style={styles.helperText}>시/군/구 목록을 불러오는 중...</Text>
+              </View>
+            ) : selectedSidoCode ? (
+              gunguOptions.length > 0 ? (
+                <View style={styles.chipRow}>
+                  {gunguOptions.map((option) => (
+                    <ChipOption
+                      key={option.code}
+                      label={option.name}
+                      selected={selectedGunguCodes.includes(String(option.code))}
+                      onPress={() => handleToggleGungu(option.code)}
+                      styles={styles}
+                    />
+                  ))}
+                </View>
+              ) : (
+                <Text style={styles.helperText}>선택한 시/도에 시/군/구가 없습니다.</Text>
+              )
+            ) : (
+              <Text style={styles.helperText}>시/도를 먼저 선택해주세요.</Text>
+            )}
+            {errors.gungu_codes ? (
+              <Text style={styles.errorText}>{errors.gungu_codes}</Text>
+            ) : null}
+
+          </View>
+          <Text style={styles.helperText}>
+            <FontAwesome5 name="info-circle" size={10} color={colors.neutral[500]} />
+            최소 1개, 최대 4개의 지역을 선택해주세요</Text>
+
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>예상 멤버 수</Text>
+            <TextInput
+              value={formData.memberCount}
+              onChangeText={handleChange('memberCount')}
+              placeholder="예: 20"
+              keyboardType="numeric"
+              style={styles.input}
+              placeholderTextColor={colors.neutral[400]}
+              error={errors.memberCount}
+            />
           </View>
 
           <View style={styles.fieldGroup}>
@@ -233,27 +420,14 @@ export default function ClubRegisterScreen() {
           )}
         </Card>
 
-        <Card style={styles.card}>
-          <Text style={styles.sectionTitle}>첨부 파일</Text>
-          <Text style={styles.sectionSubtitle}>클럽 소개서, 규정 등을 첨부하세요.</Text>
-          <Pressable style={styles.uploadBox}>
-            <FontAwesome5 name="file-alt" size={18} color={colors.neutral[500]} />
-            <View style={styles.uploadTextWrap}>
-              <Text style={styles.uploadTitle}>파일 선택</Text>
-              <Text style={styles.uploadSubtitle}>{formData.attachment}</Text>
-            </View>
-          </Pressable>
-        </Card>
-
         <Button
           variant="primary"
           size="lg"
-          onPress={handleRegister}
+          onPress={handleRegisterPress}
           disabled={isSubmitting}
         >
           클럽 등록 신청
         </Button>
-        <Text style={styles.noticeText}>등록 후 관리자의 승인이 필요합니다.</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -336,6 +510,48 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: tokens.fontWeight.bold,
     fontSize: tokens.font.sm,
+  },
+  selectBox: {
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+    borderRadius: tokens.radius.base,
+    backgroundColor: colors.white,
+    paddingHorizontal: tokens.padding.base,
+    paddingVertical: tokens.padding.xs2,
+    minHeight: 44,
+    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  selectText: {
+    flex: 1,
+    fontSize: tokens.font.base,
+    color: colors.neutral[800],
+  },
+  selectArrow: {
+    marginLeft: tokens.spacing.xs,
+    fontSize: tokens.font.sm,
+    color: colors.neutral[500],
+  },
+  hiddenPicker: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0,
+  },
+  helperText: {
+    margin: tokens.spacing.xs,
+    fontSize: tokens.font.sm,
+    color: colors.neutral[500],
+  },
+  errorText: base.textSmError,
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.xs,
+    marginTop: tokens.spacing.xs,
   },
   uploadBox: {
     flexDirection: 'row',
