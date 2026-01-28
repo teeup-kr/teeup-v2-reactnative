@@ -14,7 +14,7 @@ import ClubBadge from './ClubBadge';
 
 
 
-export default function ClubCard({ club, variant, onPress, styles, logoImage }) {
+export default function ClubCard({ club, variant, onPress, styles, logoImage, locationLabel }) {
   const showStatus = variant === 'all' || variant === 'my' || variant === 'applications';
   const showMembershipStatus = variant === 'my' || variant === 'join-applications';
   const showMembershipRole = variant === 'my' || variant === 'join-applications';
@@ -96,7 +96,7 @@ export default function ClubCard({ club, variant, onPress, styles, logoImage }) 
           <View style={styles.metaItem}>
             <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
             <Text style={styles.metaText} numberOfLines={1}>
-              {club?.location || '-'}
+              {locationLabel || club?.location || '-'}
             </Text>
           </View>
           <View style={styles.metaItem}>

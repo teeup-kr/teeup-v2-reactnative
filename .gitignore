@@ -51,3 +51,4 @@ backend/
 .vscode/settings.json
 credentials/
 API_SPECIFICATION.md
+report.md
