@@ -107,6 +107,8 @@ export function createFetchClubsHandler({
     activeTab,
     currentPage,
     debouncedSearchTerm,
+    sidoCode,
+    gunguCodes,
     myClubStatusFilter,
     statusFilter,
     userId,
@@ -140,6 +142,8 @@ export function createFetchClubsHandler({
                     page: currentPage,
                     limit: 6,
                     ...(debouncedSearchTerm ? { search: debouncedSearchTerm } : {}),
+                    ...(sidoCode ? { sido_code: sidoCode } : {}),
+                    ...(gunguCodes && gunguCodes.length > 0 ? { gungu_codes: gunguCodes } : {}),
                 });
             }
 
