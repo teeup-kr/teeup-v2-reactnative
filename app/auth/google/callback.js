@@ -1,15 +1,20 @@
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { Platform } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { googleAuthConfig } from '@/constants/authConstants';
 import { useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
 import { tokenStorage } from '@/lib/tokenStorage';
+import { colors } from '@/styles/colors';
+import { base, tokens } from '@/styles/style';
 
 export default function GoogleOAuthCallback() {
   const router = useRouter();
   const { refreshAuth, setAuthError } = useAuth();
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (Platform.OS !== 'web') return;
@@ -25,6 +30,8 @@ export default function GoogleOAuthCallback() {
     };
 
     const handleCallback = async () => {
+      setIsLoading(true);
+      setError(null);
       if (authError) {
         setAuthError(`Google 로그인 실패: ${authError}`);
         await tokenStorage.clearOauth();
@@ -59,15 +66,110 @@ export default function GoogleOAuthCallback() {
         router.replace('/');
       } catch (err) {
         console.error('Google OAuth callback error:', err);
+        setIsLoading(false);
+        
+        // 약관 동의가 필요한 경우 (403 에러 + 약관 동의 토큰 또는 에러 메시지 확인)
+        const isTermsAgreementRequired = 
+          err?.requiresTermsAgreement || 
+          err?.status === 403 && (
+            err?.termsAgreementToken || 
+            err?.message?.includes('약관') || 
+            err?.payload?.requires_terms_agreement
+          );
+        
+        if (isTermsAgreementRequired) {
+          // 약관 동의 토큰이 있으면 저장
+          if (err?.termsAgreementToken) {
+            await tokenStorage.setTermsAgreementToken(err.termsAgreementToken);
+          }
+          // 약관 동의 페이지로 리다이렉트
+          setError('필수 약관에 동의하지 않아 로그인할 수 없습니다. 약관 동의 페이지로 이동합니다...');
+          setTimeout(() => {
+            router.replace('/terms-agreement');
+            resetUrl();
+          }, 1500); // 1.5초 후 리다이렉트
+          return;
+        }
+        
+        // 일반 에러 처리
+        setError(err?.message || 'Google 로그인에 실패했습니다.');
         setAuthError(err?.message || 'Google 로그인에 실패했습니다.');
-      } finally {
-        await tokenStorage.clearOauth();
         resetUrl();
+      } finally {
+        setIsLoading(false);
+        // 약관 동의 페이지로 리다이렉트되지 않은 경우에만 OAuth 정보 정리
+        // 약관 동의 페이지로 가는 경우에는 OAuth 정보를 유지할 필요 없음
+        if (Platform.OS === 'web') {
+          const currentPath = window.location.pathname;
+          if (!currentPath.includes('/terms-agreement')) {
+            await tokenStorage.clearOauth();
+          }
+        }
       }
     };
 
     void handleCallback();
   }, [router, refreshAuth, setAuthError]);
 
-  return null; // 화면 표시 없음
+  // 로딩 또는 에러 화면 표시
+  if (Platform.OS === 'web') {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          {isLoading ? (
+            <>
+              <ActivityIndicator size="large" color={colors.primary[600]} />
+              <Text style={styles.loadingText}>로그인 처리 중...</Text>
+            </>
+          ) : error ? (
+            <>
+              <Text style={styles.errorTitle}>로그인 오류</Text>
+              <Text style={styles.errorText}>{error}</Text>
+              {error.includes('약관') && (
+                <Text style={styles.infoText}>약관 동의 페이지로 이동합니다...</Text>
+              )}
+            </>
+          ) : null}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return null;
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: tokens.padding.xl,
+  },
+  loadingText: {
+    ...base.textBase,
+    marginTop: tokens.spacing.md,
+    color: colors.neutral[600],
+  },
+  errorTitle: {
+    ...base.textXl,
+    fontWeight: tokens.fontWeight.bold,
+    color: colors.error[600],
+    marginBottom: tokens.spacing.md,
+  },
+  errorText: {
+    ...base.textBase,
+    color: colors.error[600],
+    textAlign: 'center',
+    marginBottom: tokens.spacing.sm,
+  },
+  infoText: {
+    ...base.textSm,
+    color: colors.neutral[500],
+    textAlign: 'center',
+    marginTop: tokens.spacing.md,
+  },
+});

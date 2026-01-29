@@ -128,6 +128,7 @@ export function buildGoogleAuthorizeUrl({
   codeChallenge,
   codeChallengeMethod,
 }) {
+  console.log('!!! buildGoogleAuthorizeUrl - redirectUrl:', googleAuthConfig.redirectUrl);
   const params = new URLSearchParams({
     client_id: googleAuthConfig.clientId,
     redirect_uri: googleAuthConfig.redirectUrl,
@@ -138,7 +139,9 @@ export function buildGoogleAuthorizeUrl({
     code_challenge_method: codeChallengeMethod,
   });
 
-  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  console.log('!!! Generated Google OAuth URL:', authUrl);
+  return authUrl;
 }
 
 // 웹 OAuth용 PKCE 구현 함수
