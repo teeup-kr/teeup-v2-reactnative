@@ -1,8 +1,10 @@
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Pressable,
     ScrollView, StyleSheet, Text,
     TextInput,
     View
@@ -19,7 +21,9 @@ import {
     roundingSettlementMethods,
     roundingTeamModes,
 } from '@/constants/meetingConstants';
-import { meetingsApi } from '@/lib/api/api';
+import { useAuth } from '@/context/AuthContext';
+import { clubsApi, meetingsApi } from '@/lib/api/api';
+import { createFetchMembersHandler } from '@/lib/handler/clubs';
 import {
     createFetchClubsHandler,
     createFetchMeetingHandler,
@@ -47,6 +51,7 @@ export function RoundingForm({ mode = 'create' }) {
   const meetingIdValue = Array.isArray(meetingId) ? meetingId[0] : meetingId;
   const isEditMode = mode === 'edit';
 
+  const { user } = useAuth();
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -66,9 +71,14 @@ export function RoundingForm({ mode = 'create' }) {
     caddy_fee: '',
     cart_fee: '',
     settlement_method: 'EQUAL_SPLIT',
+    is_private: false,
+    selected_participants: [],
+    selected_guests: [],
   });
   const [clubs, setClubs] = useState([]);
   const [clubsLoading, setClubsLoading] = useState(true);
+  const [clubMembers, setClubMembers] = useState([]);
+  const [clubMembersLoading, setClubMembersLoading] = useState(false);
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -127,6 +137,20 @@ export function RoundingForm({ mode = 'create' }) {
     [isEditMode, meetingIdValue, setForm, setLoading]
   );
 
+  // 클럽 멤버 조회
+  const fetchClubMembers = useMemo(
+    () =>
+      createFetchMembersHandler({
+        clubId: form.club_id,
+        fetchClubMembers: clubsApi.getClubMembers,
+        extractList,
+        setMembers: setClubMembers,
+        setIsLoading: setClubMembersLoading,
+        setError: () => {},
+      }),
+    [form.club_id]
+  );
+
   useEffect(() => {
     fetchClubs();
   }, [fetchClubs]);
@@ -134,6 +158,86 @@ export function RoundingForm({ mode = 'create' }) {
   useEffect(() => {
     fetchMeeting();
   }, [fetchMeeting]);
+
+  // 클럽 선택 시 멤버 목록 조회
+  useEffect(() => {
+    if (form.club_id && form.is_private) {
+      fetchClubMembers();
+    } else {
+      setClubMembers([]);
+    }
+  }, [form.club_id, form.is_private, fetchClubMembers]);
+
+  // 프라이빗 라운딩 토글 (is_private은 boolean이므로 true/false로 설정)
+  const handleTogglePrivate = useCallback((isPrivate) => {
+    setForm((prev) => ({
+      ...prev,
+      is_private: isPrivate,
+      selected_participants: !isPrivate ? [] : prev.selected_participants,
+      selected_guests: !isPrivate ? [] : prev.selected_guests,
+    }));
+  }, []);
+
+  // 참가자 선택/해제
+  const handleToggleParticipant = useCallback((userId) => {
+    setForm((prev) => {
+      const current = Array.isArray(prev.selected_participants) ? prev.selected_participants : [];
+      const isSelected = current.includes(userId);
+      return {
+        ...prev,
+        selected_participants: isSelected
+          ? current.filter((id) => id !== userId)
+          : [...current, userId],
+      };
+    });
+  }, []);
+
+  // 게스트 추가
+  const handleAddGuest = useCallback(() => {
+    setForm((prev) => {
+      const current = Array.isArray(prev.selected_guests) ? prev.selected_guests : [];
+      return {
+        ...prev,
+        selected_guests: [
+          ...current,
+          {
+            name: '',
+            birthdate: '',
+            gender: 'MALE',
+            average_score: '',
+            handicap: '',
+          },
+        ],
+      };
+    });
+  }, []);
+
+  // 게스트 제거
+  const handleRemoveGuest = useCallback((index) => {
+    setForm((prev) => {
+      const current = Array.isArray(prev.selected_guests) ? prev.selected_guests : [];
+      return {
+        ...prev,
+        selected_guests: current.filter((_, i) => i !== index),
+      };
+    });
+  }, []);
+
+  // 게스트 정보 변경
+  const handleGuestChange = useCallback((index, field, value) => {
+    setForm((prev) => {
+      const current = Array.isArray(prev.selected_guests) ? prev.selected_guests : [];
+      const updated = [...current];
+      updated[index] = {
+        ...updated[index],
+        [field]: value,
+      };
+      return {
+        ...prev,
+        selected_guests: updated,
+      };
+    });
+  }, []);
 
   const handleSubmit = useMemo(
     () =>
@@ -176,6 +280,30 @@ export function RoundingForm({ mode = 'create' }) {
             <Card style={styles.card}>
               <Text style={styles.sectionTitle}>기본 정보</Text>
               <Text style={styles.sectionSubtitle}>모임의 기본 정보를 입력해주세요.</Text>
+
+              {/* 프라이빗 라운딩 선택 */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>라운딩 유형</Text>
+                <View style={styles.chipRow}>
+                  <ChipOption
+                    label="일반 라운딩"
+                    selected={!form.is_private}
+                    onPress={() => handleTogglePrivate(false)}
+                    styles={styles}
+                  />
+                  <ChipOption
+                    label="프라이빗 라운딩"
+                    selected={form.is_private}
+                    onPress={() => handleTogglePrivate(true)}
+                    styles={styles}
+                  />
+                </View>
+                <Text style={styles.helperText}>
+                  {form.is_private
+                    ? '프라이빗 라운딩은 선택한 참가자에게만 보입니다.'
+                    : '일반 라운딩은 클럽 전체 멤버에게 공개됩니다.'}
+                </Text>
+              </View>
 
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>모임명</Text>
@@ -325,6 +453,183 @@ export function RoundingForm({ mode = 'create' }) {
                 </View>
               </View>
             </Card>
+
+            {/* 프라이빗 라운딩 참가자 선택 */}
+            {form.is_private && form.club_id && (
+              <Card style={styles.card}>
+                <Text style={styles.sectionTitle}>참가자 선택</Text>
+                <Text style={styles.sectionSubtitle}>
+                  프라이빗 라운딩에 참가할 클럽 멤버를 선택해주세요. (최소 1명 이상)
+                </Text>
+
+                {clubMembersLoading ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color={colors.primary[600]} />
+                    <Text style={styles.helperText}>멤버 목록을 불러오는 중...</Text>
+                  </View>
+                ) : clubMembers.length === 0 ? (
+                  <Text style={styles.helperText}>클럽 멤버가 없습니다.</Text>
+                ) : (
+                  <>
+                    <View style={styles.memberList}>
+                      {clubMembers
+                        .filter((member) => {
+                          const status = member?.status || member?.membership_status || 'ACTIVE';
+                          return status === 'ACTIVE' || status === 'APPROVED';
+                        })
+                        .map((member) => {
+                          const memberId = member?.id || member?.user_id || member?.member_id;
+                          const memberName =
+                            member?.user?.realname ||
+                            member?.user?.nickname ||
+                            member?.name ||
+                            member?.nickname ||
+                            '이름 없음';
+                          const isSelected = Array.isArray(form.selected_participants)
+                            ? form.selected_participants.includes(memberId)
+                            : false;
+                          const isCurrentUser = user?.id === memberId;
+
+                          return (
+                            <Pressable
+                              key={memberId}
+                              onPress={() => handleToggleParticipant(memberId)}
+                              style={({ pressed }) => [
+                                styles.memberItem,
+                                isSelected && styles.memberItemSelected,
+                                pressed && styles.memberItemPressed,
+                              ]}
+                            >
+                              <View style={styles.memberItemContent}>
+                                <FontAwesome5
+                                  name={isSelected ? 'check-circle' : 'circle'}
+                                  size={20}
+                                  color={isSelected ? colors.primary[600] : colors.neutral[400]}
+                                />
+                                <Text style={[styles.memberName, isSelected && styles.memberNameSelected]}>
+                                  {memberName}
+                                  {isCurrentUser && ' (나)'}
+                                </Text>
+                              </View>
+                            </Pressable>
+                          );
+                        })}
+                    </View>
+                    {fieldErrors.selected_participants && (
+                      <Text style={styles.errorText}>{fieldErrors.selected_participants}</Text>
+                    )}
+                    {Array.isArray(form.selected_participants) && form.selected_participants.length > 0 && (
+                      <Text style={styles.helperText}>
+                        {form.selected_participants.length}명이 선택되었습니다.
+                      </Text>
+                    )}
+                  </>
+                )}
+              </Card>
+            )}
+
+            {/* 프라이빗 라운딩 게스트 추가 */}
+            {form.is_private && (
+              <Card style={styles.card}>
+                <View style={styles.sectionRow}>
+                  <View>
+                    <Text style={styles.sectionTitle}>게스트 추가</Text>
+                    <Text style={styles.sectionSubtitle}>게스트를 추가할 수 있습니다. (선택사항)</Text>
+                  </View>
+                  <Button variant="secondary" size="sm" onPress={handleAddGuest}>
+                    <FontAwesome5 name="plus" size={12} color={colors.primary[600]} />
+                    <Text style={styles.addButtonText}>게스트 추가</Text>
+                  </Button>
+                </View>
+
+                {Array.isArray(form.selected_guests) && form.selected_guests.length > 0 && (
+                  <View style={styles.guestList}>
+                    {form.selected_guests.map((guest, index) => (
+                      <Card key={index} style={styles.guestCard}>
+                        <View style={styles.guestHeader}>
+                          <Text style={styles.guestTitle}>게스트 {index + 1}</Text>
+                          <Pressable
+                            onPress={() => handleRemoveGuest(index)}
+                            style={styles.removeButton}
+                          >
+                            <FontAwesome5 name="times" size={16} color={colors.error[600]} />
+                          </Pressable>
+                        </View>
+
+                        <View style={styles.fieldGroup}>
+                          <Text style={styles.label}>이름</Text>
+                          <TextInput
+                            value={guest.name || ''}
+                            onChangeText={(value) => handleGuestChange(index, 'name', value)}
+                            placeholder="게스트 이름"
+                            style={[styles.input, fieldErrors[`guest_${index}_name`] && styles.inputError]}
+                            placeholderTextColor={colors.neutral[400]}
+                          />
+                          {fieldErrors[`guest_${index}_name`] && (
+                            <Text style={styles.errorText}>{fieldErrors[`guest_${index}_name`]}</Text>
+                          )}
+                        </View>
+
+                        <View style={styles.row}>
+                          <View style={styles.halfField}>
+                            <Text style={styles.label}>생년월일</Text>
+                            <DateTimeField
+                              value={guest.birthdate || ''}
+                              onChange={(value) => handleGuestChange(index, 'birthdate', value)}
+                              placeholder="YYYY-MM-DD"
+                              error={fieldErrors[`guest_${index}_birthdate`]}
+                              minimumDate={undefined}
+                            />
+                          </View>
+                          <View style={[styles.halfField, styles.halfFieldLast]}>
+                            <Text style={styles.label}>성별</Text>
+                            <View style={styles.chipRow}>
+                              <ChipOption
+                                label="남성"
+                                selected={guest.gender === 'MALE'}
+                                onPress={() => handleGuestChange(index, 'gender', 'MALE')}
+                                styles={styles}
+                              />
+                              <ChipOption
+                                label="여성"
+                                selected={guest.gender === 'FEMALE'}
+                                onPress={() => handleGuestChange(index, 'gender', 'FEMALE')}
+                                styles={styles}
+                              />
+                            </View>
+                          </View>
+                        </View>
+
+                        <View style={styles.row}>
+                          <View style={styles.halfField}>
+                            <Text style={styles.label}>평균 타수</Text>
+                            <TextInput
+                              value={guest.average_score || ''}
+                              onChangeText={(value) => handleGuestChange(index, 'average_score', value)}
+                              placeholder="예: 100"
+                              keyboardType="numeric"
+                              style={[styles.input, fieldErrors[`guest_${index}_average_score`] && styles.inputError]}
+                              placeholderTextColor={colors.neutral[400]}
+                            />
+                          </View>
+                          <View style={[styles.halfField, styles.halfFieldLast]}>
+                            <Text style={styles.label}>핸디캡</Text>
+                            <TextInput
+                              value={guest.handicap || ''}
+                              onChangeText={(value) => handleGuestChange(index, 'handicap', value)}
+                              placeholder="예: 20.0"
+                              keyboardType="numeric"
+                              style={[styles.input, fieldErrors[`guest_${index}_handicap`] && styles.inputError]}
+                              placeholderTextColor={colors.neutral[400]}
+                            />
+                          </View>
+                        </View>
+                      </Card>
+                    ))}
+                  </View>
+                )}
+              </Card>
+            )}
 
             <Card style={styles.card}>
               <Text style={styles.sectionTitle}>팀 구성</Text>
@@ -549,4 +854,74 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.semibold,
   },
   errorText: { ...base.textSmError, marginTop: tokens.spacing.xxs },
+  sectionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: tokens.spacing.sm2,
+  },
+  memberList: {
+    marginTop: tokens.spacing.sm,
+    maxHeight: 300,
+  },
+  memberItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: tokens.padding.sm,
+    paddingHorizontal: tokens.padding.base,
+    borderRadius: tokens.radius.base,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    backgroundColor: colors.white,
+    marginBottom: tokens.spacing.xs,
+  },
+  memberItemSelected: {
+    borderColor: colors.primary[500],
+    backgroundColor: colors.primary[50],
+  },
+  memberItemPressed: {
+    opacity: 0.7,
+  },
+  memberItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  memberName: {
+    marginLeft: tokens.spacing.sm,
+    fontSize: tokens.font.base,
+    color: colors.neutral[700],
+  },
+  memberNameSelected: {
+    color: colors.primary[700],
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  guestList: {
+    marginTop: tokens.spacing.md,
+  },
+  guestCard: {
+    marginBottom: tokens.spacing.md,
+    padding: tokens.padding.md,
+    backgroundColor: colors.neutral[50],
+  },
+  guestHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: tokens.spacing.sm,
+  },
+  guestTitle: {
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
+    color: colors.neutral[800],
+  },
+  removeButton: {
+    padding: tokens.padding.xs,
+  },
+  addButtonText: {
+    marginLeft: tokens.spacing.xs,
+    fontSize: tokens.font.sm,
+    color: colors.primary[600],
+    fontWeight: tokens.fontWeight.semibold,
+  },
 });
