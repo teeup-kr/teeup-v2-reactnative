@@ -23,6 +23,9 @@ export function buildRoundingFormFromData({ data, fallback }) {
     caddy_fee: data.caddy_fee !== undefined ? String(data.caddy_fee) : '',
     cart_fee: data.cart_fee !== undefined ? String(data.cart_fee) : '',
     settlement_method: data.settlement_method || fallback.settlement_method,
+    is_private: data.is_private ?? false,
+    selected_participants: data.selected_participants ?? [],
+    selected_guests: data.selected_guests ?? [],
   });
 }
 
@@ -77,6 +80,14 @@ export function validateRoundingForm(form) {
     errors.hole_count = '홀 수는 1 이상이어야 합니다.';
   }
 
+  // 프라이빗 라운딩 검증
+  if (form.is_private) {
+    const selectedParticipants = Array.isArray(form.selected_participants) ? form.selected_participants : [];
+    if (selectedParticipants.length === 0) {
+      errors.selected_participants = '프라이빗 라운딩은 최소 1명 이상의 참가자를 선택해야 합니다.';
+    }
+  }
+
   return errors;
 };
 
@@ -88,7 +99,7 @@ export function buildRoundingPayload({ form, settlementMethods }) {
   const caddyFee = normalizeNumber(form.caddy_fee, 0);
   const cartFee = normalizeNumber(form.cart_fee, 0);
 
-  return {
+  const payload = {
     name: form.name.trim(),
     description: form.description.trim() || undefined,
     location: form.location.trim() || undefined,
@@ -111,7 +122,43 @@ export function buildRoundingPayload({ form, settlementMethods }) {
       form.settlement_method,
       settlementMethods
     ),
+    is_private: form.is_private || false,
   };
+
+  // 프라이빗 라운딩인 경우 참가자 및 게스트 정보 추가
+  if (form.is_private) {
+    const selectedParticipants = Array.isArray(form.selected_participants) ? form.selected_participants : [];
+    if (selectedParticipants.length > 0) {
+      payload.selected_participants = selectedParticipants;
+    }
+
+    const selectedGuests = Array.isArray(form.selected_guests) ? form.selected_guests : [];
+    if (selectedGuests.length > 0) {
+      payload.selected_guests = selectedGuests.map((guest) => {
+        let birthdateValue = undefined;
+        if (guest.birthdate) {
+          // 날짜만 있는 경우 (YYYY-MM-DD) 또는 날짜/시간이 있는 경우 모두 처리
+          const dateStr = guest.birthdate.trim();
+          if (dateStr.length === 10) {
+            // YYYY-MM-DD 형식인 경우 날짜만 전송
+            birthdateValue = dateStr;
+          } else {
+            // 날짜/시간이 있는 경우 convertToKST 사용
+            birthdateValue = convertToKST(dateStr);
+          }
+        }
+        return {
+          name: guest.name?.trim(),
+          birthdate: birthdateValue,
+          gender: guest.gender,
+          average_score: guest.average_score ? normalizeNumber(guest.average_score, 0) : undefined,
+          handicap: guest.handicap ? normalizeNumber(guest.handicap, 0) : undefined,
+        };
+      }).filter((guest) => guest.name); // 이름이 있는 게스트만 포함
+    }
+  }
+
+  return payload;
 };
 
 // export const roundingFormUtils = {
