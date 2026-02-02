@@ -1,3 +1,7 @@
+
+import { mypageApi } from '@/lib/api/api';
+import { extractData } from '@/lib/util/responseUtils';
+
 import { colors } from '../../styles/colors';
 import {
   convertToKST,
@@ -493,6 +497,53 @@ export function buildRoundingPayload({ form, settlementMethods }) {
   };
 };
 
+export async function ensureProfileCompleted({
+  router,
+  alertMessage = '클럽 이용 전 프로필을 완성해 주세요!',
+  redirectPath = '/mypage/edit',
+}) {
+  try {
+    const response = await mypageApi.fetchMyProfile();
+    const user = extractData(response);
+
+    if (!user) {
+      alert('사용자 정보를 불러올 수 없습니다.');
+      return false;
+    }
+
+    const {
+      realname,
+      phone_number,
+      gender,
+      birthdate,
+      average_score,
+    } = user;
+
+    const requiredFields = [
+      realname,
+      phone_number,
+      gender,
+      birthdate,
+      average_score,
+    ];
+
+    const isCompleted = !requiredFields.some(
+      v => v == null || v === ''
+    );
+
+    if (!isCompleted) {
+      alert(alertMessage);
+      router.replace(redirectPath);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('프로필 완성 여부 확인 실패:', error);
+    alert('프로필 정보를 확인할 수 없습니다.');
+    return false;
+  }
+}
 // export const mypageUtils = {
 //   formatProfileDate,
 //   getGenderLabel,

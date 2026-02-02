@@ -1,3 +1,4 @@
+import { ensureProfileCompleted } from '@/lib/util/mypageUtils';
 export function createFetchActivitiesHandler({ clubId, fetchClubActivities, extractList, setActivities, setIsLoading, setError }) {
     return async function () {
         setError('');
@@ -265,10 +266,12 @@ export function createMyStatusFilterHandler({ setMyClubStatusFilter, setCurrentP
 }
 
 export function createCreateClubHandler({ router }) {
+    ensureProfileCompleted(router)
     return () => {
         router.push('/clubs/register');
     };
 }
+
 
 export function createBrowseClubsHandler({ onTabChange }) {
     return () => {
@@ -466,7 +469,7 @@ export function createSubmitClubRegisterHandler({
             }
         } catch (error) {
             const message = error?.message || error?.detail || '클럽 생성에 실패했습니다.';
-            
+
             // 클럽 이름 중복 에러 체크
             if (error?.status === 400 && (message.includes('이미 사용 중인 클럽 이름') || message.includes('클럽 이름'))) {
                 setErrors((prev) => ({ ...prev, name: message, general: '' }));
