@@ -255,6 +255,7 @@ export function buildProfileInfoItems(profile, { formatProfileDate, getGenderLab
     { label: '실명', value: profile?.realname || '-' },
     { label: '닉네임', value: profile?.nickname || '-' },
     { label: '이메일', value: profile?.email || '-' },
+    { label: '연락처', value: profile?.phone_number || '-' },
     { label: '성별', value: getGenderLabel(profile?.gender) },
     { label: '생년월일', value: formatProfileDate(profile?.birthdate) },
     { label: '가입일', value: formatProfileDate(profile?.created_at) },
