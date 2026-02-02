@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import { router } from "expo-router";
 import { URLSearchParams } from 'react-native-url-polyfill';
 
 import { tokenStorage } from '../tokenStorage';
@@ -126,6 +127,21 @@ async function apiRequest(path, options = {}) {
 
   if (!response.ok) {
     const error = new Error(payload?.detail || payload?.message || '요청에 실패했습니다.');
+
+    // 요청 실패, 약관동의 요구 받은경우
+    if (
+      response.status === 403 &&
+      payload?.detail?.code === "TERMS_NOT_AGREED"
+    ) {
+      const redirect = payload.detail.redirect ?? "/terms-agree";
+
+      console.info("[Auth] Terms not agreed → redirect", redirect);
+
+      // 뒤로가기 방지
+      router.replace(redirect);
+      return; // throw 하지 않음
+    }
+
     error.status = response.status;
     error.payload = payload;
     console.warn('[API Error]', {

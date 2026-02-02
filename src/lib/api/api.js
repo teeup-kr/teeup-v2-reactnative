@@ -933,6 +933,30 @@ async function getTermsByType(type) {
   }
 }
 
+async function postAgreementsBulk(payload) {
+  try {
+    const response = await apiClient.post(
+      '/terms/agreements/bulk',
+      payload,
+      {
+        auth: true, // 약관 동의는 로그인 사용자 기준
+      }
+    );
+
+    const data = response;
+
+    // response_model 이 있는 경우를 고려
+    if (data) {
+      return data;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('약관 일괄 동의 실패:', error);
+    throw error; // 호출부에서 UX 처리하도록 throw
+  }
+}
+
 export const termsApi = {
   getActiveTerms,
   getActiveTermsByType,
@@ -941,6 +965,7 @@ export const termsApi = {
   getActivePrivacyCollectionTerms,
   getActiveMarketingTerms,
   getTerms: getTermsByType,
+  postAgreementsBulk
 };
 
 async function fetchMyClubs(params) {
@@ -948,7 +973,7 @@ async function fetchMyClubs(params) {
 }
 
 async function fetchRounds(params) {
-  return apiClient.get('/rounds', { params });
+  return apiClient.get('/rounds/', { params });
 }
 
 async function fetchSocials(params) {

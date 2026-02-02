@@ -41,9 +41,9 @@ export default function GoogleOAuthCallback() {
         const storedState = await tokenStorage.getOauthState();
         const codeVerifier = await tokenStorage.getCodeVerifier();
 
-        if (!codeVerifier) {
-          throw new Error('PKCE code_verifier가 존재하지 않습니다.');
-        }
+        // if (!codeVerifier) {
+        //   throw new Error('PKCE code_verifier가 존재하지 않습니다.');
+        // }
 
         if (storedState && returnedState && storedState !== returnedState) {
           throw new Error('OAuth state 값이 일치하지 않습니다.');
