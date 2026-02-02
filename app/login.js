@@ -23,6 +23,7 @@ import { authApi } from '@/lib/api/api';
 import { tokenStorage } from '@/lib/tokenStorage';
 import {
   buildGoogleAuthConfig,
+  buildGoogleAuthPayload,
   buildGoogleAuthorizeUrl,
   generateCodeChallenge,
   generateCodeVerifier,
@@ -81,10 +82,10 @@ export default function LoginScreen() {
           codeChallengeMethod: 'S256',
         });
 
-        // 디버깅: 실제 사용되는 redirect_uri 확인
-        const urlObj = new URL(authUrl);
-        const redirectUri = urlObj.searchParams.get('redirect_uri');
-        alert(`사용되는 redirect_uri:\n${redirectUri}\n\n전체 URL:\n${authUrl}`);
+        // // 디버깅: 실제 사용되는 redirect_uri 확인
+        // const urlObj = new URL(authUrl);
+        // const redirectUri = urlObj.searchParams.get('redirect_uri');
+        // alert(`사용되는 redirect_uri:\n${redirectUri}\n\n전체 URL:\n${authUrl}`);
 
         console.log('!!! Redirecting to Google OAuth URL:', authUrl);
         window.location.assign(authUrl);
@@ -94,9 +95,13 @@ export default function LoginScreen() {
       // Native 플랫폼에서는 react-native-app-auth 사용
       const authState = await authorize(buildGoogleAuthConfig(oauthState));
 
-      await authApi.googleLogin(authState);
+      const payload = buildGoogleAuthPayload(authState, oauthState);
+
+      console.log('!!! Google Login Payload: !!! \n', payload);
+
+      await authApi.googleLogin(payload);
       await refreshAuth();
-      router.replace('/mypage');
+      router.replace('/');
     } catch (error) {
       console.error('Google 로그인 에러:', error);
       const message = error?.message || 'Google 로그인에 실패했습니다.';
@@ -105,53 +110,51 @@ export default function LoginScreen() {
       if (shouldClearState) {
         await tokenStorage.clearOauthState();
       }
-    };
+      setIsGoogleSigningIn(false);
+    }
+  };
 
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <LinearGradient colors={[colors.primary[50], colors.primary[100]]} style={styles.gradient}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={styles.flex}
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <LinearGradient colors={[colors.primary[50], colors.primary[100]]} style={styles.gradient}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.flex}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
           >
-            <ScrollView
-              contentContainerStyle={styles.scrollContent}
-              keyboardShouldPersistTaps="handled"
-            >
-              <Card style={styles.card}>
-                <View style={styles.brandSection}>
-                  <View style={styles.logoWrap}>
-                    <Image source={logoImage} style={styles.logo} resizeMode="contain" />
-                  </View>
-                  <Text style={styles.brandTitle}>티업링크</Text>
-                  <Text style={styles.brandSubtitle}>골프 모임을 더 쉽고 즐겁게</Text>
+            <Card style={styles.card}>
+              <View style={styles.brandSection}>
+                <View style={styles.logoWrap}>
+                  <Image source={logoImage} style={styles.logo} resizeMode="contain" />
                 </View>
+                <Text style={styles.brandTitle}>티업링크</Text>
+                <Text style={styles.brandSubtitle}>골프 모임을 더 쉽고 즐겁게</Text>
+              </View>
 
-                <Text style={styles.pageTitle}>로그인</Text>
-                <Text style={styles.pageSubtitle}>Google 계정으로 로그인하세요</Text>
+              {errors.general ? (
+                <Text style={styles.generalError}>{errors.general}</Text>
+              ) : null}
 
-                {errors.general ? (
-                  <Text style={styles.generalError}>{errors.general}</Text>
-                ) : null}
-
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onPress={signInWithGoogle}
-                  loading={isGoogleSigningIn}
-                  disabled={isGoogleSigningIn}
-                  style={styles.buttonSpacing}
-                >
-                  <FontAwesome name="google" size={16} color={colors.white} style={styles.iconGap} />
-                  <Text style={styles.primaryButtonText}>Google로 로그인</Text>
-                </Button>
-              </Card>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </LinearGradient>
-      </SafeAreaView>
-    );
-  }
+              <Button
+                variant="primary"
+                size="lg"
+                onPress={signInWithGoogle}
+                loading={isGoogleSigningIn}
+                disabled={isGoogleSigningIn}
+                style={styles.buttonSpacing}
+              >
+                <FontAwesome name="google" size={16} color={colors.white} style={styles.iconGap} />
+                <Text style={styles.primaryButtonText}>Google로 로그인</Text>
+              </Button>
+            </Card>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </LinearGradient>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
