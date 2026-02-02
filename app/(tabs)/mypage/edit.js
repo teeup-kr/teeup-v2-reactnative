@@ -93,6 +93,8 @@ export default function UserProfileEditForm() {
     return isNicknameSameValue(profile?.nickname, formData.nickname);
   }, [formData.nickname, profile?.nickname]);
 
+  const selectedGender = profile.gender ?? formData.gender;
+
   useEffect(() => {
     if (isNicknameSame) {
       setNicknameChecked(true);
@@ -136,7 +138,7 @@ export default function UserProfileEditForm() {
           e.preventDefault?.();
           e.stopPropagation?.();
         }
-        
+
         const currentValue = formData.birthdate || '';
         const didOpen = openWebDateInput({
           value: currentValue,
@@ -519,31 +521,64 @@ export default function UserProfileEditForm() {
                 </Text>
               )}
             </View>
-
-            {/* 성별 */}
             <View>
-              <Text style={styles.label}>
-                <FontAwesome5
-                  name="venus-mars"
-                  size={14}
-                  style={styles.labelIcon}
-                />
-                성별 <Text style={styles.required}>*</Text>
-              </Text>
+              <View style={styles.genderSelectRow}>
+                {/* 남성 */}
+                <Pressable
+                  disabled={!!profile.gender}
+                  onPress={() => setFormData({ ...formData, gender: 'MALE' })}
+                  style={({ pressed }) => [
+                    styles.genderBtnBase,
+                    selectedGender === 'MALE'
+                      ? styles.genderBtnSelected
+                      : styles.genderBtnOutline,
+                    pressed && !profile.gender && styles.btnPressed,
+                    profile.gender && styles.btnDisabled,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.genderBtnTextBase,
+                      selectedGender === 'MALE'
+                        ? styles.genderBtnTextSelected
+                        : styles.genderBtnTextOutline,
+                    ]}
+                  >
+                    남성
+                  </Text>
+                </Pressable>
 
-              <View style={styles.readonlyBox}>
-                <Text style={styles.readonlyText}>
-                  {formData.gender === 'MALE'
-                    ? '남성'
-                    : formData.gender === 'FEMALE'
-                      ? '여성'
-                      : '-'}
-                </Text>
+                {/* 여성 */}
+                <Pressable
+                  disabled={!!profile.gender}
+                  onPress={() => setFormData({ ...formData, gender: 'FEMALE' })}
+                  style={({ pressed }) => [
+                    styles.genderBtnBase,
+                    selectedGender === 'FEMALE'
+                      ? styles.genderBtnSelected
+                      : styles.genderBtnOutline,
+                    pressed && !profile.gender && styles.btnPressed,
+                    profile.gender && styles.btnDisabled,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.genderBtnTextBase,
+                      selectedGender === 'FEMALE'
+                        ? styles.genderBtnTextSelected
+                        : styles.genderBtnTextOutline,
+                    ]}
+                  >
+                    여성
+                  </Text>
+                </Pressable>
               </View>
 
-              <Text style={styles.helperText}>
-                성별은 수정할 수 없습니다.
-              </Text>
+              {profile.gender && (
+                <Text style={styles.helperText}>
+                  성별은 수정할 수 없습니다.
+                </Text>
+              )}
             </View>
 
             {/* 평균타수 / 핸디캡 */}
@@ -915,4 +950,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveBtnText: { color: colors.white, fontWeight: tokens.fontWeight.extrabold, fontSize: tokens.font.sm },
+  genderSelectRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  genderBtnMinWidth: {
+    minWidth: 120,   // 원하는 최소 폭
+    flex: 1,         // 좌우 균등 확장
+  },
+  genderBtnBase: {
+    flex: 1,
+    paddingVertical: tokens.padding.sm,
+    borderRadius: tokens.radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+
+  genderBtnOutline: {
+    backgroundColor: colors.white,
+    borderColor: colors.inputBorder,
+  },
+
+  genderBtnSelected: {
+    backgroundColor: PRIMARY_600,
+    borderColor: PRIMARY_600,
+  },
+
+  genderBtnTextBase: {
+    fontSize: tokens.font.md,
+    fontWeight: tokens.fontWeight.bold,
+  },
+
+  genderBtnTextOutline: {
+    color: colors.textMuted,
+  },
+
+  genderBtnTextSelected: {
+    color: colors.white,
+  },
+
 });
