@@ -3,9 +3,38 @@ import { router } from "expo-router";
 import { URLSearchParams } from 'react-native-url-polyfill';
 
 import { tokenStorage } from '../tokenStorage';
-const { apiBaseUrl } = Constants.expoConfig.extra;
 
-const API_BASE_URL = apiBaseUrl;
+let extra =
+  Constants.expoConfig?.extra ??
+  Constants.manifest?.extra;
+
+// 런타임에 3000을 8200으로 강제 변경
+if (extra?.apiBaseUrl && extra.apiBaseUrl.includes('3000')) {
+  console.warn('⚠️ apiClient.js - Force replacing 3000 with 8200 in apiBaseUrl');
+  extra = {
+    ...extra,
+    apiBaseUrl: extra.apiBaseUrl.replace(/3000/g, '8200'),
+  };
+}
+
+// redirectUri에 /callback이 없으면 추가
+if (extra?.googleAuth?.redirectUri && !extra.googleAuth.redirectUri.includes('/callback')) {
+  console.warn('⚠️ apiClient.js - Adding /callback to redirectUri');
+  extra = {
+    ...extra,
+    googleAuth: {
+      ...extra.googleAuth,
+      redirectUri: extra.googleAuth.redirectUri + '/callback',
+    },
+  };
+}
+
+const API_BASE_URL = extra?.apiBaseUrl;
+
+console.log('!!! apiClient.js - Constants.expoConfig:', Constants.expoConfig);
+console.log('!!! apiClient.js - Constants.manifest:', Constants.manifest);
+console.log('!!! apiClient.js - extra (after fix):', JSON.stringify(extra, null, 2));
+console.log('!!! apiClient.js - API_BASE_URL:', API_BASE_URL);
 
 const sensitiveKeys = ['password', 'token', 'authorization', 'refresh', 'access'];
 
@@ -50,7 +79,9 @@ function buildUrl(path) {
     throw new Error('요청 경로를 지정해주세요.');
   }
   const urlPath = path.startsWith('/') ? path : `/${path}`;
-  return `${API_BASE_URL}${urlPath}`;
+  const fullUrl = `${API_BASE_URL}${urlPath}`;
+  console.log('!!! buildUrl - path:', path, '-> fullUrl:', fullUrl);
+  return fullUrl;
 };
 
 function buildRequestConfig(config = {}) {
@@ -144,11 +175,27 @@ async function apiRequest(path, options = {}) {
 
     error.status = response.status;
     error.payload = payload;
+    
+    // 403 응답이고 약관 동의 토큰이 헤더에 있는 경우
+    if (response.status === 403) {
+      const termsAgreementToken = response.headers.get('X-Terms-Agreement-Token') || 
+                                   response.headers.get('terms-agreement-token');
+      if (termsAgreementToken) {
+        error.termsAgreementToken = termsAgreementToken;
+        error.requiresTermsAgreement = true;
+        // payload에도 토큰이 있을 수 있으므로 확인
+        if (payload?.terms_agreement_token) {
+          error.termsAgreementToken = payload.terms_agreement_token;
+        }
+      }
+    }
+    
     console.warn('[API Error]', {
       method,
       url,
       status: response.status,
       payload: sanitizePayload(payload),
+      requiresTermsAgreement: error.requiresTermsAgreement,
     });
     throw error;
   }

@@ -222,10 +222,15 @@ export default function ClubRegisterScreen() {
               value={formData.name}
               onChangeText={handleChange('name')}
               placeholder="클럽명을 입력하세요"
-              style={styles.input}
+              style={[
+                styles.input,
+                errors.name && styles.inputError,
+              ]}
               placeholderTextColor={colors.neutral[400]}
-              error={errors.name}
             />
+            {errors.name ? (
+              <Text style={styles.errorText}>{errors.name}</Text>
+            ) : null}
           </View>
 
           <View style={styles.fieldGroup}>
@@ -466,6 +471,14 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.base,
     color: colors.neutral[900],
     backgroundColor: colors.white,
+  },
+  inputError: {
+    borderColor: colors.error[500],
+  },
+  errorText: {
+    marginTop: tokens.spacing.xxs,
+    fontSize: tokens.font.sm,
+    color: colors.error[600],
   },
   textArea: {
     minHeight: 88,

@@ -465,8 +465,14 @@ export function createSubmitClubRegisterHandler({
                 router.replace(successPath);
             }
         } catch (error) {
-            const message = error?.message || '클럽 생성에 실패했습니다.';
-            setErrors((prev) => ({ ...prev, general: message }));
+            const message = error?.message || error?.detail || '클럽 생성에 실패했습니다.';
+            
+            // 클럽 이름 중복 에러 체크
+            if (error?.status === 400 && (message.includes('이미 사용 중인 클럽 이름') || message.includes('클럽 이름'))) {
+                setErrors((prev) => ({ ...prev, name: message, general: '' }));
+            } else {
+                setErrors((prev) => ({ ...prev, general: message }));
+            }
         } finally {
             setIsSubmitting(false);
         }
