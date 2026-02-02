@@ -96,43 +96,16 @@
         // Native 플랫폼에서는 react-native-app-auth 사용
         const authState = await authorize(buildGoogleAuthConfig(oauthState));
 
-        const payload = buildGoogleAuthPayload(authState, oauthState);
-
-        console.log('!!! Google Login Payload: !!! \n', payload);
-
-        await authApi.googleLogin(payload);
-        await refreshAuth();
-        router.replace('/');
-      } catch (error) {
-        console.error('Google 로그인 에러:', error);
-        
-        // 약관 동의가 필요한 경우 (403 에러 + 약관 동의 토큰 또는 에러 메시지 확인)
-        const isTermsAgreementRequired = 
-          error?.requiresTermsAgreement || 
-          error?.status === 403 && (
-            error?.termsAgreementToken || 
-            error?.message?.includes('약관') || 
-            error?.payload?.requires_terms_agreement
-          );
-        
-        if (isTermsAgreementRequired) {
-          // 약관 동의 토큰이 있으면 저장
-          if (error?.termsAgreementToken) {
-            await tokenStorage.setTermsAgreementToken(error.termsAgreementToken);
-          }
-          // 약관 동의 페이지로 리다이렉트
-          router.replace('/terms-agreement');
-          return;
-        }
-        
-        // 일반 에러 처리
-        const message = error?.message || 'Google 로그인에 실패했습니다.';
-        setErrors((prev) => ({ ...prev, general: message }));
-      } finally {
-        if (shouldClearState) {
-          await tokenStorage.clearOauthState();
-        }
-        setIsGoogleSigningIn(false);
+      await authApi.googleLogin(payload);
+      await refreshAuth();
+      router.replace('/mypage');
+    } catch (error) {
+      console.error('Google 로그인 에러:', error);
+      const message = error?.message || 'Google 로그인에 실패했습니다.';
+      setErrors((prev) => ({ ...prev, general: message }));
+    } finally {
+      if (shouldClearState) {
+        await tokenStorage.clearOauthState();
       }
     };
 
