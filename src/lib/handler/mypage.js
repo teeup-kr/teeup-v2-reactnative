@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-import { buildProfilePayload, formatDateYYYYMMDD, getChangePasswordScreenError, validateChangePasswordForm, validateProfileForm } from '../util/mypageUtils';
+import { formatDateYYYYMMDD, getChangePasswordScreenError, validateChangePasswordForm, validateProfileForm } from '../util/mypageUtils';
 
 export function createPasswordFieldChangeHandler({
     setForm,
@@ -218,7 +218,6 @@ export function createBirthPickerChangeHandler({ setShowBirthPicker, handleInput
 
 export function createValidateProfileFormHandler({
     formData,
-    isSocialLogin,
     isNicknameSame,
     nicknameChecked,
     setErrors,
@@ -226,7 +225,6 @@ export function createValidateProfileFormHandler({
     return () => {
         const nextErrors = validateProfileForm({
             formData,
-            isSocialLogin,
             isNicknameSameValue: isNicknameSame,
             nicknameChecked,
         });
@@ -235,10 +233,15 @@ export function createValidateProfileFormHandler({
     };
 }
 
+const toNumberOrNull = (v) => {
+    if (v === '' || v == null) return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+};
+
 export function createSaveProfileHandler({
     formData,
     profile,
-    isSocialLogin,
     validateForm,
     updateMyProfile,
     showToast,
@@ -249,22 +252,51 @@ export function createSaveProfileHandler({
     return async function () {
         if (!validateForm()) return;
 
-        const payload = buildProfilePayload(formData, profile, isSocialLogin);
+        const hasFinalAverageScore = profile?.average_score != null;
+
+        const payload = {
+            nickname: formData.nickname,
+            realname: formData.realname,
+            phone_number: formData.phone_number,
+            birthdate: formData.birthdate,
+        };
+
+        // 성별은 최초 설정 이후 수정 불가
+        if (!profile?.gender && formData.gender) {
+            payload.gender = formData.gender;
+        }
+
+        // average_score가 없으면 언제든 재전송 가능
+        if (!hasFinalAverageScore) {
+            payload.average_score_init = toNumberOrNull(
+                formData.average_score_init,
+            );
+            payload.handicap_init = toNumberOrNull(
+                formData.handicap_init,
+            );
+        }
+
+        console.log('[UPDATE PROFILE PAYLOAD]', payload);
 
         try {
             setUpdateProfilePending(true);
             await updateMyProfile(payload);
+
             showToast('success', '저장되었습니다.');
             setNicknameChecked(true);
-            fetchProfile();
+            await fetchProfile();
         } catch (updateError) {
             console.error('회원정보 수정 실패:', updateError);
-            showToast('error', updateError?.message || '회원정보 수정에 실패했습니다.');
+            showToast(
+                'error',
+                updateError?.message || '회원정보 수정에 실패했습니다.',
+            );
         } finally {
             setUpdateProfilePending(false);
         }
     };
 }
+
 
 export function createPasswordModalOpenHandler(setShowPasswordModal) {
     return () => {

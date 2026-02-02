@@ -29,17 +29,15 @@ import {
   openWebDateInput,
 } from '@/lib/handler/mypage';
 import {
-  buildProfileFormData,
   calcHandicapFromAvg,
+  formatDateYYYYMMDD,
   getBirthDateValue,
-  isNicknameSame as isNicknameSameValue,
-  isSocialLoginUser,
+  isNicknameSame as isNicknameSameValue
 } from '@/lib/util/mypageUtils';
 import { extractData } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
-import ChangePasswordModal from './change-password-modal';
 
 
 
@@ -52,6 +50,7 @@ export default function UserProfileEditForm() {
   const [showBirthPicker, setShowBirthPicker] = useState(false);
   const maxBirthDate = useMemo(() => new Date(), []);
   const [profile, setProfile] = useState({
+    id: null,
     email: '',
     nickname: '',
     realname: '',
@@ -59,7 +58,9 @@ export default function UserProfileEditForm() {
     birthdate: '',
     gender: '',
     average_score: null,
+    average_score_init: null,
     handicap: null,
+    handicap_init: null,
   });
   const [formData, setFormData] = useState({
     nickname: '',
@@ -67,9 +68,11 @@ export default function UserProfileEditForm() {
     phone_number: '',
     birthdate: '',
     gender: '',
-    average_score: '',
-    calculatedHandicap: null,
+    average_score_init: '',
+    handicap_init: '',
+    calculatedHandicap: null, // 프론트 계산용
   });
+
   const [errors, setErrors] = useState({});
   const [, setLoading] = useState(true);
   const [handicapInfo, setHandicapInfo] = useState(null);
@@ -81,9 +84,8 @@ export default function UserProfileEditForm() {
   const [updateProfilePending, setUpdateProfilePending] = useState(false);
   const [toast, setToast] = useState({ open: false, tone: 'success', message: '' });
 
-  const isSocialLogin = useMemo(() => {
-    return isSocialLoginUser(profile);
-  }, [profile]);
+  const hasFinalAverageScore = useMemo(() => { return profile?.average_score != null; }, [profile]);
+
 
   const birthDateValue = useMemo(() => {
     return getBirthDateValue(formData.birthdate, maxBirthDate);
@@ -217,12 +219,11 @@ export default function UserProfileEditForm() {
   const validateForm = useMemo(
     () => createValidateProfileFormHandler({
       formData,
-      isSocialLogin,
       isNicknameSame,
       nicknameChecked,
       setErrors,
     }),
-    [formData, isSocialLogin, isNicknameSame, nicknameChecked, setErrors],
+    [formData, isNicknameSame, nicknameChecked, setErrors],
   );
 
   const fetchProfile = useCallback(async () => {
@@ -231,8 +232,25 @@ export default function UserProfileEditForm() {
       const response = await mypageApi.fetchMyProfile();
       const user = extractData(response);
       setProfile(user || {});
-      setFormData((prev) => buildProfileFormData(user, prev));
-      setNicknameChecked(Boolean(user?.nickname));
+      setFormData(prev => ({
+        ...prev,
+        nickname: user?.nickname ?? '',
+        realname: user?.realname ?? '',
+        phone_number: user?.phone_number ?? '',
+        birthdate: user?.birthdate
+          ? formatDateYYYYMMDD(user.birthdate)
+          : '',
+        gender: user?.gender ?? '',
+        average_score_init:
+          user?.average_score == null
+            ? String(user?.average_score_init ?? '')
+            : '',
+        handicap_init:
+          user?.handicap == null
+            ? String(user?.handicap_init ?? '')
+            : '',
+        calculatedHandicap: null,
+      })); setNicknameChecked(Boolean(user?.nickname));
       setNicknameMessage('');
       if (user?.id) {
         setHandicapLoading(true);
@@ -264,7 +282,6 @@ export default function UserProfileEditForm() {
     () => createSaveProfileHandler({
       formData,
       profile,
-      isSocialLogin,
       validateForm,
       updateMyProfile: mypageApi.updateMyProfile,
       showToast,
@@ -275,7 +292,6 @@ export default function UserProfileEditForm() {
     [
       fetchProfile,
       formData,
-      isSocialLogin,
       profile,
       setNicknameChecked,
       setUpdateProfilePending,
@@ -373,28 +389,6 @@ export default function UserProfileEditForm() {
                 </Text>
               )}
             </View>
-
-            {/* 비밀번호 변경 */}
-            {!isSocialLogin && (
-              <View>
-                <Text style={styles.label}>
-                  <FontAwesome5 name="lock" size={14} style={styles.labelIcon} />
-                  비밀번호
-                </Text>
-
-                <Pressable
-                  onPress={openPasswordModal}
-                  style={({ pressed }) => [
-                    styles.grayBtn,
-                    pressed && styles.btnPressed,
-                  ]}
-                >
-                  <Text style={styles.grayBtnText}>
-                    비밀번호 변경
-                  </Text>
-                </Pressable>
-              </View>
-            )}
 
             {/* 실명 */}
             <View>
@@ -579,172 +573,81 @@ export default function UserProfileEditForm() {
                   성별은 수정할 수 없습니다.
                 </Text>
               )}
+
             </View>
-
-            {/* 평균타수 / 핸디캡 */}
-            {isSocialLogin ? (
-              <>
-                <View>
-                  <Text style={styles.label}>
-                    <FontAwesome5
-                      name="chart-line"
-                      size={14}
-                      style={styles.labelIcon}
-                    />
-                    평균 타수 <Text style={styles.required}>*</Text>
-                  </Text>
-
-                  <TextInput
-                    value={formData.average_score || ''}
-                    onChangeText={handleAverageScoreChange}
-                    placeholder="평균 타수를 입력하세요 (55-144)"
-                    placeholderTextColor={colors.gray[400]}
-                    style={[
-                      styles.input,
-                      errors.average_score
-                        ? styles.inputError
-                        : styles.inputNormal,
-                    ]}
-                    keyboardType="numeric"
-                    inputMode="numeric"
+            {hasFinalAverageScore ? (
+              <View>
+                <Text style={styles.label}>
+                  <FontAwesome5
+                    name="chart-line"
+                    size={14}
+                    style={styles.labelIcon}
                   />
+                  평균 타수
+                </Text>
 
-                  {!!formData.calculatedHandicap && (
-                    <View style={styles.infoBox}>
-                      <Text style={styles.infoTitle}>
-                        계산된 핸디캡: {formData.calculatedHandicap}
-                      </Text>
-                      <Text style={styles.infoSub}>
-                        평균 타수 {formData.average_score}타 → 핸디캡{' '}
-                        {formData.calculatedHandicap}
-                      </Text>
-                    </View>
-                  )}
-
-                  {!!errors.average_score && (
-                    <Text style={styles.errorText}>
-                      {errors.average_score}
-                    </Text>
-                  )}
-                </View>
-
-                <View>
-                  <Text style={styles.label}>
-                    <FontAwesome5
-                      name="golf-ball"
-                      size={14}
-                      style={styles.labelIcon}
-                    />
-                    핸디캡
-                  </Text>
-
-                  <View style={styles.readonlyBox}>
-                    <Text style={styles.readonlyText}>
-                      {formData.calculatedHandicap
-                        ? Math.round(
-                          Number(formData.calculatedHandicap)
-                        )
-                        : calcHandicapFromAvg(
-                          formData.average_score
-                        ) ?? '-'}
-                    </Text>
-                  </View>
-
-                  <Text style={styles.helperText}>
-                    평균 타수로부터 자동 계산됩니다.
+                <View style={styles.readonlyBox}>
+                  <Text style={styles.readonlyText}>
+                    {profile.average_score}타
                   </Text>
                 </View>
-              </>
+
+                <Text style={styles.helperText}>
+                  경기 기록을 기반으로 계산된 평균 타수입니다.
+                </Text>
+              </View>
             ) : (
-              <>
-                {/* 일반 사용자 */}
-                <View>
-                  <Text style={styles.label}>
-                    <FontAwesome5
-                      name="chart-line"
-                      size={14}
-                      style={styles.labelIcon}
-                    />
-                    평균 타수
-                  </Text>
+              <View>
+                <Text style={styles.label}>
+                  <FontAwesome5
+                    name="chart-line"
+                    size={14}
+                    style={styles.labelIcon}
+                  />
+                  초기 평균 타수 <Text style={styles.required}>*</Text>
+                </Text>
 
-                  <View style={styles.readonlyBox}>
-                    <Text style={styles.readonlyText}>
-                      {profile.average_score ?? '-'}
+                <TextInput
+                  value={formData.average_score_init}
+                  onChangeText={(v) =>
+                    setFormData(prev => ({
+                      ...prev,
+                      average_score_init: v,
+                      calculatedHandicap: calcHandicapFromAvg(v),
+                    }))
+                  }
+                  placeholder="초기 평균 타수를 입력하세요 (55-144)"
+                  placeholderTextColor={colors.gray[400]}
+                  style={[
+                    styles.input,
+                    errors.average_score_init
+                      ? styles.inputError
+                      : styles.inputNormal,
+                  ]}
+                  keyboardType="numeric"
+                  inputMode="numeric"
+                />
+
+                {!!formData.calculatedHandicap && (
+                  <View style={styles.infoBox}>
+                    <Text style={styles.infoTitle}>
+                      예상 핸디캡: {formData.calculatedHandicap}
+                    </Text>
+                    <Text style={styles.infoSub}>
+                      평균 타수 {formData.average_score_init}타 → 핸디캡{' '}
+                      {formData.calculatedHandicap}
                     </Text>
                   </View>
+                )}
 
-                  <Text style={styles.helperText}>
-                    일반 사용자는 평균 타수를 수정할 수 없습니다.
+                {!!errors.average_score_init && (
+                  <Text style={styles.errorText}>
+                    {errors.average_score_init}
                   </Text>
-                </View>
-
-                <View>
-                  <Text style={styles.label}>
-                    <FontAwesome5
-                      name="golf-ball"
-                      size={14}
-                      style={styles.labelIcon}
-                    />
-                    핸디캡
-                  </Text>
-
-                  {handicapLoading ? (
-                    <View style={styles.readonlyBox}>
-                      <Text style={styles.loadingText}>
-                        불러오는 중...
-                      </Text>
-                    </View>
-                  ) : (
-                    <View style={styles.stackSm}>
-                      {handicapInfo?.calculated_handicap != null && (
-                        <View style={styles.autoBox}>
-                          <View style={styles.autoTopRow}>
-                            <Text style={styles.autoTitle}>
-                              자동 계산:{' '}
-                              {handicapInfo.calculated_handicap}
-                            </Text>
-
-                            {handicapInfo.handicap_update_method ===
-                              'AUTO' && (
-                                <View style={styles.badge}>
-                                  <Text style={styles.badgeText}>
-                                    자동
-                                  </Text>
-                                </View>
-                              )}
-                          </View>
-
-                          <Text style={styles.autoSub}>
-                            (
-                            {handicapInfo.handicap_calculation_count ??
-                              0}
-                            경기 기준)
-                          </Text>
-
-                          {handicapInfo.handicap_update_method ===
-                            'AUTO' && (
-                              <Text style={styles.autoHint}>
-                                경기 기록 기반으로 자동 업데이트됩니다
-                              </Text>
-                            )}
-                        </View>
-                      )}
-
-                      <View style={styles.readonlyBox}>
-                        <Text style={styles.readonlyText}>
-                          {handicapInfo?.initial_handicap != null
-                            ? `수동 입력: ${handicapInfo.initial_handicap}`
-                            : profile.handicap
-                              ? `수동 입력: ${profile.handicap}`
-                              : '미등록'}
-                        </Text>
-                      </View>
-                    </View>
-                  )}
-                </View>
-              </>
+                )}
+              </View>
             )}
+
           </View>
 
           {/* 저장 */}
@@ -768,13 +671,6 @@ export default function UserProfileEditForm() {
           </View>
         </View>
 
-        {/* 비밀번호 모달 */}
-        {!isSocialLogin && ChangePasswordModal && (
-          <ChangePasswordModal
-            isOpen={showPasswordModal}
-            onClose={closePasswordModal}
-          />
-        )}
       </ScrollView>
 
       <AppToast
