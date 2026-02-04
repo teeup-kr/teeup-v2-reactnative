@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -63,6 +63,21 @@ export function SocialForm({ mode = 'create' }) {
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+
+  const hasDraft = useMemo(
+    () =>
+      Boolean(
+        form.name.trim() ||
+          form.description.trim() ||
+          form.venue_name.trim() ||
+          form.meeting_time ||
+          form.application_deadline ||
+          form.club_id ||
+          form.max_participants ||
+          Number(form.social_cost) > 0
+      ),
+    [form]
+  );
 
   const handleFieldChange = useMemo(
     () => createFieldChangeHandler({ setForm }),
@@ -156,6 +171,28 @@ export function SocialForm({ mode = 'create' }) {
       setFieldErrors,
     ]
   );
+
+  const handleCancel = useCallback(() => {
+    if (!isEditMode && !hasDraft) {
+      router.back();
+      return;
+    }
+
+    Alert.alert(
+      '취소 확인',
+      isEditMode
+        ? '저장하지 않은 변경 사항이 모두 사라집니다. 수정을 취소하시겠습니까?'
+        : '작성 중인 내용이 모두 사라집니다. 모임 생성을 취소하시겠습니까?',
+      [
+        { text: '아니오', style: 'cancel' },
+        {
+          text: '취소',
+          style: 'destructive',
+          onPress: () => router.back(),
+        },
+      ]
+    );
+  }, [hasDraft, isEditMode, router]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -347,9 +384,26 @@ export function SocialForm({ mode = 'create' }) {
               )}
             </Card>
 
-            <Button variant="primary" size="lg" onPress={handleSubmit} loading={saving}>
-              {isEditMode ? '수정 완료' : '소셜 모임 생성'}
-            </Button>
+            <View style={styles.submitRow}>
+              <Button
+                variant="outline"
+                size="lg"
+                onPress={handleCancel}
+                disabled={saving}
+                style={styles.submitButton}
+              >
+                취소
+              </Button>
+              <Button
+                variant="primary"
+                size="lg"
+                onPress={handleSubmit}
+                loading={saving}
+                style={styles.submitButton}
+              >
+                {isEditMode ? '수정 완료' : '소셜 모임 생성'}
+              </Button>
+            </View>
           </>
         )}
       </ScrollView>
@@ -428,4 +482,12 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.semibold,
   },
   errorText: { ...base.textSmError, marginTop: tokens.spacing.xxs },
+  submitRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: tokens.spacing.lg,
+  },
+  submitButton: {
+    flex: 1,
+  },
 });

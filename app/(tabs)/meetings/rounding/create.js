@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Modal,
     Pressable,
     ScrollView, StyleSheet, Text,
     TextInput,
@@ -22,8 +23,7 @@ import {
     roundingTeamModes,
 } from '@/constants/meetingConstants';
 import { useAuth } from '@/context/AuthContext';
-import { clubsApi, meetingsApi } from '@/lib/api/api';
-import { createFetchMembersHandler } from '@/lib/handler/clubs';
+import { clubsApi, meetingsApi, mypageApi } from '@/lib/api/api';
 import {
     createFetchClubsHandler,
     createFetchMeetingHandler,
@@ -41,6 +41,92 @@ import {
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
+function normalizeId(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'object') {
+    return value.id ?? value.user_id ?? value.member_id ?? null;
+  }
+  return value;
+}
+
+function dedupeIds(values = []) {
+  const map = new Map();
+  values.forEach((value) => {
+    const id = normalizeId(value);
+    if (id === null || id === undefined || id === '') return;
+    map.set(String(id), id);
+  });
+  return Array.from(map.values());
+}
+
+function getUserName(user) {
+  if (!user || typeof user !== 'object') return '나';
+  return (
+    user.realname ||
+    user.name ||
+    user.nickname ||
+    user.username ||
+    user.email ||
+    '나'
+  );
+}
+
+function getMemberDisplayName(member) {
+  return (
+    member?.name ||
+    member?.user?.realname ||
+    member?.user?.nickname ||
+    member?.nickname ||
+    '이름 없음'
+  );
+}
+
+function buildSelectedMemberFromUser(user) {
+  const id = normalizeId(user?.id);
+  if (id === null || id === undefined || id === '') return null;
+  const gender = user?.gender ?? user?.user_gender ?? null;
+  const handicap =
+    user?.handicap ??
+    user?.handicap_init ??
+    user?.handicap_index ??
+    user?.initial_handicap ??
+    user?.calculated_handicap ??
+    null;
+
+  return {
+    id,
+    name: getUserName(user),
+    gender,
+    handicap,
+    club_id: null,
+    club_name: '',
+    is_me: true,
+  };
+}
+
+function buildSelectedMemberFromSearch(member, club) {
+  const id = normalizeId(member?.id);
+  if (id === null || id === undefined || id === '') return null;
+  return {
+    id,
+    name: getMemberDisplayName(member),
+    gender: member?.gender || null,
+    handicap: member?.handicap ?? member?.handicap_index ?? null,
+    club_id: club?.club_id ?? null,
+    club_name: club?.club_name || '',
+    is_me: false,
+  };
+}
+
+const PARTICIPANTS_PER_PAGE = 5;
+
+function compareParticipantName(left, right) {
+  const leftName = String(left?.name || '');
+  const rightName = String(right?.name || '');
+  if (leftName === rightName) return 0;
+  return leftName.localeCompare(rightName, 'ko-KR');
+}
+
 
 
 
@@ -52,6 +138,7 @@ export function RoundingForm({ mode = 'create' }) {
   const isEditMode = mode === 'edit';
 
   const { user } = useAuth();
+  const [myProfile, setMyProfile] = useState(null);
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -73,15 +160,49 @@ export function RoundingForm({ mode = 'create' }) {
     settlement_method: 'EQUAL_SPLIT',
     is_private: false,
     selected_participants: [],
+    selected_participant_details: [],
     selected_guests: [],
   });
   const [clubs, setClubs] = useState([]);
   const [clubsLoading, setClubsLoading] = useState(true);
-  const [clubMembers, setClubMembers] = useState([]);
-  const [clubMembersLoading, setClubMembersLoading] = useState(false);
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [participantModalVisible, setParticipantModalVisible] = useState(false);
+  const [participantSearchKeyword, setParticipantSearchKeyword] = useState('');
+  const [participantSearchLoading, setParticipantSearchLoading] = useState(false);
+  const [participantSearchResults, setParticipantSearchResults] = useState([]);
+  const [outsideParticipantPage, setOutsideParticipantPage] = useState(1);
+  const [modalParticipantPage, setModalParticipantPage] = useState(1);
+
+  const estimatedTotalCost = useMemo(() => {
+    const greenFee = Number(form.green_fee) || 0;
+    const caddyFee = Number(form.caddy_fee) || 0;
+    const cartFee = Number(form.cart_fee) || 0;
+    return greenFee + caddyFee + cartFee;
+  }, [form.green_fee, form.caddy_fee, form.cart_fee]);
+
+  const hasDraft = useMemo(
+    () =>
+      Boolean(
+        form.name.trim() ||
+          form.description.trim() ||
+          form.location.trim() ||
+          form.meeting_time ||
+          form.application_deadline ||
+          form.club_id ||
+          form.course_name.trim() ||
+          form.reservation_name.trim() ||
+          form.tee_times.trim() ||
+          form.max_participants ||
+          Number(form.green_fee) > 0 ||
+          Number(form.caddy_fee) > 0 ||
+          Number(form.cart_fee) > 0 ||
+          (Array.isArray(form.selected_participants) && form.selected_participants.length > 0) ||
+          (Array.isArray(form.selected_guests) && form.selected_guests.length > 0)
+      ),
+    [form]
+  );
 
   const handleFieldChange = useMemo(
     () => createFieldChangeHandler({ setForm }),
@@ -137,20 +258,6 @@ export function RoundingForm({ mode = 'create' }) {
     [isEditMode, meetingIdValue, setForm, setLoading]
   );
 
-  // 클럽 멤버 조회
-  const fetchClubMembers = useMemo(
-    () =>
-      createFetchMembersHandler({
-        clubId: form.club_id,
-        fetchClubMembers: clubsApi.getClubMembers,
-        extractList,
-        setMembers: setClubMembers,
-        setIsLoading: setClubMembersLoading,
-        setError: () => {},
-      }),
-    [form.club_id]
-  );
-
   useEffect(() => {
     fetchClubs();
   }, [fetchClubs]);
@@ -159,38 +266,351 @@ export function RoundingForm({ mode = 'create' }) {
     fetchMeeting();
   }, [fetchMeeting]);
 
-  // 클럽 선택 시 멤버 목록 조회
   useEffect(() => {
-    if (form.club_id && form.is_private) {
-      fetchClubMembers();
-    } else {
-      setClubMembers([]);
+    let isMounted = true;
+
+    const fetchMyProfile = async () => {
+      try {
+        const response = await mypageApi.fetchMyProfile();
+        const profile = extractData(response);
+        if (isMounted && profile) {
+          setMyProfile(profile);
+        }
+      } catch (profileError) {
+        console.error('내 프로필 조회 실패:', profileError);
+      }
+    };
+
+    fetchMyProfile();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const mySelectedMember = useMemo(
+    () => buildSelectedMemberFromUser(myProfile ?? user),
+    [myProfile, user]
+  );
+
+  const selectedParticipantDetails = useMemo(() => {
+    const ids = dedupeIds(form.selected_participants);
+    const details = Array.isArray(form.selected_participant_details)
+      ? form.selected_participant_details
+      : [];
+    const detailMap = new Map();
+
+    details.forEach((member) => {
+      const id = normalizeId(member?.id);
+      if (id === null || id === undefined || id === '') return;
+      detailMap.set(String(id), {
+        id,
+        name: getMemberDisplayName(member),
+        gender: member?.gender ?? null,
+        handicap: member?.handicap ?? member?.handicap_index ?? null,
+        club_id: member?.club_id ?? null,
+        club_name: member?.club_name ?? '',
+        is_me: Boolean(member?.is_me),
+      });
+    });
+
+    return ids.map((id) => {
+      const key = String(id);
+      if (detailMap.has(key)) return detailMap.get(key);
+      if (mySelectedMember && String(mySelectedMember.id) === key) return mySelectedMember;
+      return {
+        id,
+        name: `멤버 #${id}`,
+        gender: null,
+        handicap: null,
+        club_id: null,
+        club_name: '',
+        is_me: false,
+      };
+    });
+  }, [form.selected_participant_details, form.selected_participants, mySelectedMember]);
+
+  const sortedSelectedParticipants = useMemo(() => {
+    const meId = mySelectedMember ? String(mySelectedMember.id) : null;
+    return [...selectedParticipantDetails].sort((left, right) => {
+      const leftIsMe =
+        Boolean(left?.is_me) || (meId !== null && String(normalizeId(left?.id)) === meId);
+      const rightIsMe =
+        Boolean(right?.is_me) || (meId !== null && String(normalizeId(right?.id)) === meId);
+
+      if (leftIsMe && !rightIsMe) return -1;
+      if (!leftIsMe && rightIsMe) return 1;
+      return compareParticipantName(left, right);
+    });
+  }, [selectedParticipantDetails, mySelectedMember]);
+
+  const totalParticipantPages = useMemo(
+    () => Math.max(1, Math.ceil(sortedSelectedParticipants.length / PARTICIPANTS_PER_PAGE)),
+    [sortedSelectedParticipants.length]
+  );
+
+  const outsidePagedParticipants = useMemo(() => {
+    const start = (outsideParticipantPage - 1) * PARTICIPANTS_PER_PAGE;
+    return sortedSelectedParticipants.slice(start, start + PARTICIPANTS_PER_PAGE);
+  }, [outsideParticipantPage, sortedSelectedParticipants]);
+
+  const modalPagedParticipants = useMemo(() => {
+    const start = (modalParticipantPage - 1) * PARTICIPANTS_PER_PAGE;
+    return sortedSelectedParticipants.slice(start, start + PARTICIPANTS_PER_PAGE);
+  }, [modalParticipantPage, sortedSelectedParticipants]);
+
+  useEffect(() => {
+    setOutsideParticipantPage((prev) => Math.min(prev, totalParticipantPages));
+    setModalParticipantPage((prev) => Math.min(prev, totalParticipantPages));
+  }, [totalParticipantPages]);
+
+  const handleOutsidePrevPage = useCallback(() => {
+    setOutsideParticipantPage((prev) => Math.max(1, prev - 1));
+  }, []);
+
+  const handleOutsideNextPage = useCallback(() => {
+    setOutsideParticipantPage((prev) => Math.min(totalParticipantPages, prev + 1));
+  }, [totalParticipantPages]);
+
+  const handleModalPrevPage = useCallback(() => {
+    setModalParticipantPage((prev) => Math.max(1, prev - 1));
+  }, []);
+
+  const handleModalNextPage = useCallback(() => {
+    setModalParticipantPage((prev) => Math.min(totalParticipantPages, prev + 1));
+  }, [totalParticipantPages]);
+
+  const selectedParticipantIdSet = useMemo(
+    () => new Set(dedupeIds(form.selected_participants).map((id) => String(id))),
+    [form.selected_participants]
+  );
+
+  const searchResultGroups = useMemo(() => {
+    const groups = Array.isArray(participantSearchResults) ? participantSearchResults : [];
+    const resultIds = new Set();
+
+    groups.forEach((group) => {
+      const members = Array.isArray(group?.members) ? group.members : [];
+      members.forEach((member) => {
+        const id = normalizeId(member?.id);
+        if (id === null || id === undefined || id === '') return;
+        resultIds.add(String(id));
+      });
+    });
+
+    const stickyMembers = selectedParticipantDetails
+      .filter((member) => !resultIds.has(String(normalizeId(member?.id))))
+      .map((member) => ({
+        id: member.id,
+        name: member.name,
+        gender: member.gender,
+        handicap: member.handicap,
+      }));
+
+    if (stickyMembers.length === 0) {
+      return groups;
     }
-  }, [form.club_id, form.is_private, fetchClubMembers]);
+
+    return [
+      {
+        club_id: 'selected',
+        club_name: '선택된 참가자',
+        members: stickyMembers,
+      },
+      ...groups,
+    ];
+  }, [participantSearchResults, selectedParticipantDetails]);
+
+  const ensureMyselfParticipant = useCallback((prev) => {
+    if (!mySelectedMember) return prev;
+    const currentIds = dedupeIds(prev.selected_participants);
+    const hasMe = currentIds.some((id) => String(id) === String(mySelectedMember.id));
+    if (hasMe) {
+      const currentDetails = Array.isArray(prev.selected_participant_details)
+        ? prev.selected_participant_details
+        : [];
+      const myDetailIndex = currentDetails.findIndex(
+        (member) => String(normalizeId(member?.id)) === String(mySelectedMember.id)
+      );
+      if (myDetailIndex >= 0) {
+        const existing = currentDetails[myDetailIndex] ?? {};
+        const shouldUpdate =
+          existing?.name !== mySelectedMember.name ||
+          existing?.gender !== mySelectedMember.gender ||
+          existing?.handicap !== mySelectedMember.handicap ||
+          existing?.is_me !== true;
+
+        if (!shouldUpdate) {
+          return prev;
+        }
+
+        const nextDetails = [...currentDetails];
+        nextDetails[myDetailIndex] = {
+          ...existing,
+          ...mySelectedMember,
+          is_me: true,
+        };
+        return {
+          ...prev,
+          selected_participant_details: nextDetails,
+        };
+      }
+
+      return {
+        ...prev,
+        selected_participant_details: [...currentDetails, mySelectedMember],
+      };
+    }
+
+    return {
+      ...prev,
+      selected_participants: [...currentIds, mySelectedMember.id],
+      selected_participant_details: [
+        ...(Array.isArray(prev.selected_participant_details) ? prev.selected_participant_details : []),
+        mySelectedMember,
+      ],
+    };
+  }, [mySelectedMember]);
+
+  useEffect(() => {
+    if (!form.is_private) return;
+    setForm((prev) => ensureMyselfParticipant(prev));
+  }, [form.is_private, ensureMyselfParticipant]);
+
+  useEffect(() => {
+    if (form.is_private) return;
+    setParticipantModalVisible(false);
+    setParticipantSearchKeyword('');
+    setParticipantSearchResults([]);
+    setOutsideParticipantPage(1);
+    setModalParticipantPage(1);
+  }, [form.is_private]);
 
   // 프라이빗 라운딩 토글 (is_private은 boolean이므로 true/false로 설정)
   const handleTogglePrivate = useCallback((isPrivate) => {
-    setForm((prev) => ({
-      ...prev,
-      is_private: isPrivate,
-      selected_participants: !isPrivate ? [] : prev.selected_participants,
-      selected_guests: !isPrivate ? [] : prev.selected_guests,
-    }));
-  }, []);
-
-  // 참가자 선택/해제
-  const handleToggleParticipant = useCallback((userId) => {
     setForm((prev) => {
-      const current = Array.isArray(prev.selected_participants) ? prev.selected_participants : [];
-      const isSelected = current.includes(userId);
+      if (!isPrivate) {
+        return {
+          ...prev,
+          is_private: false,
+          selected_participants: [],
+          selected_participant_details: [],
+          selected_guests: [],
+        };
+      }
+
+      return ensureMyselfParticipant({
+        ...prev,
+        is_private: true,
+      });
+    });
+  }, [ensureMyselfParticipant]);
+
+  const handleOpenParticipantModal = useCallback(() => {
+    if (!form.is_private) return;
+    setParticipantSearchKeyword('');
+    setParticipantSearchResults([]);
+    setModalParticipantPage(1);
+    setParticipantModalVisible(true);
+  }, [form.is_private]);
+
+  const handleCloseParticipantModal = useCallback(() => {
+    if (participantSearchLoading) return;
+    setParticipantModalVisible(false);
+  }, [participantSearchLoading]);
+
+  const handleSearchParticipants = useCallback(async ({ keywordOverride } = {}) => {
+    const keyword = String(keywordOverride ?? participantSearchKeyword ?? '').trim();
+    const params = keyword ? { name: keyword, limit: 50 } : {};
+    try {
+      setParticipantSearchLoading(true);
+      const response = await clubsApi.searchClubMembersByName(params);
+      const payload = response?.data && !Array.isArray(response.data) ? response.data : response;
+      const groups = Array.isArray(payload?.data) ? payload.data : [];
+      const filteredGroups = form.club_id
+        ? groups.filter((group) => String(group?.club_id) === String(form.club_id))
+        : groups;
+      setParticipantSearchResults(filteredGroups);
+    } catch (searchError) {
+      console.error('멤버 검색 실패:', searchError);
+      Alert.alert('오류', searchError?.message || '멤버 검색에 실패했습니다.');
+      setParticipantSearchResults([]);
+    } finally {
+      setParticipantSearchLoading(false);
+    }
+  }, [form.club_id, participantSearchKeyword]);
+
+  useEffect(() => {
+    if (!participantModalVisible || !form.is_private) return;
+
+    let isMounted = true;
+    const fetchAllMembers = async () => {
+      try {
+        setParticipantSearchLoading(true);
+        const response = await clubsApi.searchClubMembersByName({});
+        const payload = response?.data && !Array.isArray(response.data) ? response.data : response;
+        const groups = Array.isArray(payload?.data) ? payload.data : [];
+        const filteredGroups = form.club_id
+          ? groups.filter((group) => String(group?.club_id) === String(form.club_id))
+          : groups;
+        if (isMounted) {
+          setParticipantSearchResults(filteredGroups);
+        }
+      } catch (searchError) {
+        console.error('전체 멤버 조회 실패:', searchError);
+        if (isMounted) {
+          setParticipantSearchResults([]);
+        }
+      } finally {
+        if (isMounted) {
+          setParticipantSearchLoading(false);
+        }
+      }
+    };
+
+    fetchAllMembers();
+    return () => {
+      isMounted = false;
+    };
+  }, [participantModalVisible, form.is_private, form.club_id]);
+
+  const handleToggleParticipantFromSearch = useCallback((nextMember) => {
+    if (!nextMember || normalizeId(nextMember.id) === null) return;
+    setForm((prev) => {
+      const currentIds = dedupeIds(prev.selected_participants);
+      const currentDetails = Array.isArray(prev.selected_participant_details)
+        ? prev.selected_participant_details
+        : [];
+      const memberId = normalizeId(nextMember.id);
+      const alreadySelected = currentIds.some((id) => String(id) === String(memberId));
+
+      if (alreadySelected && mySelectedMember && String(mySelectedMember.id) === String(memberId)) {
+        Alert.alert('안내', "'나'는 프라이빗 라운딩 참가자에서 제외할 수 없습니다.");
+        return prev;
+      }
+
+      if (alreadySelected) {
+        return {
+          ...prev,
+          selected_participants: currentIds.filter((id) => String(id) !== String(memberId)),
+          selected_participant_details: currentDetails.filter(
+            (member) => String(normalizeId(member?.id)) !== String(memberId)
+          ),
+        };
+      }
+
       return {
         ...prev,
-        selected_participants: isSelected
-          ? current.filter((id) => id !== userId)
-          : [...current, userId],
+        selected_participants: [...currentIds, memberId],
+        selected_participant_details: [...currentDetails, nextMember],
       };
     });
-  }, []);
+    setFieldErrors((prev) => {
+      if (!prev?.selected_participants) return prev;
+      const nextErrors = { ...prev };
+      delete nextErrors.selected_participants;
+      return nextErrors;
+    });
+  }, [mySelectedMember]);
 
   // 게스트 추가
   const handleAddGuest = useCallback(() => {
@@ -265,6 +685,28 @@ export function RoundingForm({ mode = 'create' }) {
       setFieldErrors,
     ]
   );
+
+  const handleCancel = useCallback(() => {
+    if (!isEditMode && !hasDraft) {
+      router.back();
+      return;
+    }
+
+    Alert.alert(
+      '취소 확인',
+      isEditMode
+        ? '저장하지 않은 변경 사항이 모두 사라집니다. 수정을 취소하시겠습니까?'
+        : '작성 중인 내용이 모두 사라집니다. 모임 생성을 취소하시겠습니까?',
+      [
+        { text: '아니오', style: 'cancel' },
+        {
+          text: '취소',
+          style: 'destructive',
+          onPress: () => router.back(),
+        },
+      ]
+    );
+  }, [hasDraft, isEditMode, router]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -454,76 +896,107 @@ export function RoundingForm({ mode = 'create' }) {
               </View>
             </Card>
 
-            {/* 프라이빗 라운딩 참가자 선택 */}
-            {form.is_private && form.club_id && (
+            {/* 프라이빗 라운딩 참가자 목록 */}
+            {form.is_private && (
               <Card style={styles.card}>
-                <Text style={styles.sectionTitle}>참가자 선택</Text>
-                <Text style={styles.sectionSubtitle}>
-                  프라이빗 라운딩에 참가할 클럽 멤버를 선택해주세요. (최소 1명 이상)
-                </Text>
-
-                {clubMembersLoading ? (
-                  <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="small" color={colors.primary[600]} />
-                    <Text style={styles.helperText}>멤버 목록을 불러오는 중...</Text>
+                <View style={styles.sectionRow}>
+                  <View>
+                    <Text style={styles.sectionTitle}>참가자 목록</Text>
+                    <Text style={styles.sectionSubtitle}>
+                      프라이빗 라운딩 참가자입니다. '나'는 기본으로 포함됩니다.
+                    </Text>
                   </View>
-                ) : clubMembers.length === 0 ? (
-                  <Text style={styles.helperText}>클럽 멤버가 없습니다.</Text>
+                  <Pressable style={styles.editParticipantsButton} onPress={handleOpenParticipantModal}>
+                    <FontAwesome5 name="edit" size={12} color={colors.white} />
+                    <Text style={styles.editParticipantsButtonText}>편집</Text>
+                  </Pressable>
+                </View>
+
+                {sortedSelectedParticipants.length === 0 ? (
+                  <Text style={styles.helperText}>참가자가 없습니다.</Text>
                 ) : (
                   <>
                     <View style={styles.memberList}>
-                      {clubMembers
-                        .filter((member) => {
-                          const status = member?.status || member?.membership_status || 'ACTIVE';
-                          return status === 'ACTIVE' || status === 'APPROVED';
-                        })
-                        .map((member) => {
-                          const memberId = member?.id || member?.user_id || member?.member_id;
-                          const memberName =
-                            member?.user?.realname ||
-                            member?.user?.nickname ||
-                            member?.name ||
-                            member?.nickname ||
-                            '이름 없음';
-                          const isSelected = Array.isArray(form.selected_participants)
-                            ? form.selected_participants.includes(memberId)
-                            : false;
-                          const isCurrentUser = user?.id === memberId;
+                    {outsidePagedParticipants.map((member) => {
+                      const participantId = normalizeId(member?.id);
+                      const isMe =
+                        (member?.is_me === true) ||
+                        (mySelectedMember && String(participantId) === String(mySelectedMember.id));
+                      const genderLabel =
+                        member?.gender === 'FEMALE'
+                          ? '여성'
+                          : member?.gender === 'MALE'
+                            ? '남성'
+                            : '성별 미입력';
+                      const handicapLabel =
+                        member?.handicap !== null &&
+                        member?.handicap !== undefined &&
+                        member?.handicap !== ''
+                          ? `핸디캡 ${member.handicap}`
+                          : '핸디캡 미입력';
 
-                          return (
-                            <Pressable
-                              key={memberId}
-                              onPress={() => handleToggleParticipant(memberId)}
-                              style={({ pressed }) => [
-                                styles.memberItem,
-                                isSelected && styles.memberItemSelected,
-                                pressed && styles.memberItemPressed,
-                              ]}
-                            >
-                              <View style={styles.memberItemContent}>
-                                <FontAwesome5
-                                  name={isSelected ? 'check-circle' : 'circle'}
-                                  size={20}
-                                  color={isSelected ? colors.primary[600] : colors.neutral[400]}
-                                />
-                                <Text style={[styles.memberName, isSelected && styles.memberNameSelected]}>
-                                  {memberName}
-                                  {isCurrentUser && ' (나)'}
-                                </Text>
-                              </View>
-                            </Pressable>
-                          );
-                        })}
+                      return (
+                        <View key={String(participantId)} style={styles.memberItem}>
+                          <View style={styles.memberItemContent}>
+                            <FontAwesome5 name="user" size={14} color={colors.primary[600]} />
+                            <View style={styles.memberTextGroup}>
+                              <Text style={styles.memberName}>
+                                {member?.name || `멤버 #${participantId}`}
+                                {isMe ? ' (나)' : ''}
+                              </Text>
+                              <Text style={styles.memberMeta}>
+                                {genderLabel} · {handicapLabel}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      );
+                    })}
                     </View>
-                    {fieldErrors.selected_participants && (
-                      <Text style={styles.errorText}>{fieldErrors.selected_participants}</Text>
-                    )}
-                    {Array.isArray(form.selected_participants) && form.selected_participants.length > 0 && (
-                      <Text style={styles.helperText}>
-                        {form.selected_participants.length}명이 선택되었습니다.
+                    <View style={styles.paginationRow}>
+                      <Pressable
+                        onPress={handleOutsidePrevPage}
+                        disabled={outsideParticipantPage <= 1}
+                        style={[
+                          styles.paginationButton,
+                          outsideParticipantPage <= 1 && styles.paginationButtonDisabled,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.paginationButtonText,
+                            outsideParticipantPage <= 1 && styles.paginationButtonTextDisabled,
+                          ]}
+                        >
+                          이전
+                        </Text>
+                      </Pressable>
+                      <Text style={styles.paginationInfo}>
+                        {outsideParticipantPage}/{totalParticipantPages}
                       </Text>
-                    )}
+                      <Pressable
+                        onPress={handleOutsideNextPage}
+                        disabled={outsideParticipantPage >= totalParticipantPages}
+                        style={[
+                          styles.paginationButton,
+                          outsideParticipantPage >= totalParticipantPages && styles.paginationButtonDisabled,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.paginationButtonText,
+                            outsideParticipantPage >= totalParticipantPages && styles.paginationButtonTextDisabled,
+                          ]}
+                        >
+                          다음
+                        </Text>
+                      </Pressable>
+                    </View>
                   </>
+                )}
+
+                {fieldErrors.selected_participants && (
+                  <Text style={styles.errorText}>{fieldErrors.selected_participants}</Text>
                 )}
               </Card>
             )}
@@ -761,14 +1234,249 @@ export function RoundingForm({ mode = 'create' }) {
                   ))}
                 </View>
               </View>
+
+              <View style={styles.totalCostCard}>
+                <Text style={styles.totalCostLabel}>예상 총 비용</Text>
+                <Text style={styles.totalCostValue}>{estimatedTotalCost.toLocaleString('ko-KR')}원</Text>
+              </View>
             </Card>
 
-            <Button variant="primary" size="lg" onPress={handleSubmit} loading={saving}>
-              {isEditMode ? '수정 완료' : '라운딩 모임 생성'}
-            </Button>
+            <View style={styles.submitRow}>
+              <Button
+                variant="outline"
+                size="lg"
+                onPress={handleCancel}
+                disabled={saving}
+                style={styles.submitButton}
+              >
+                취소
+              </Button>
+              <Button
+                variant="primary"
+                size="lg"
+                onPress={handleSubmit}
+                loading={saving}
+                style={styles.submitButton}
+              >
+                {isEditMode ? '수정 완료' : '라운딩 모임 생성'}
+              </Button>
+            </View>
           </>
         )}
       </ScrollView>
+
+      <Modal
+        visible={participantModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={handleCloseParticipantModal}
+      >
+        <View style={styles.participantModalBackdrop}>
+          <View style={styles.participantModalCard}>
+            <View style={styles.participantModalHeader}>
+              <Text style={styles.participantModalTitle}>참가자 편집</Text>
+              <Pressable onPress={handleCloseParticipantModal} style={styles.participantModalCloseButton}>
+                <FontAwesome5 name="times" size={16} color={colors.neutral[600]} />
+              </Pressable>
+            </View>
+
+            <View style={styles.participantSearchRow}>
+              <TextInput
+                value={participantSearchKeyword}
+                onChangeText={setParticipantSearchKeyword}
+                placeholder="이름으로 검색"
+                placeholderTextColor={colors.neutral[400]}
+                style={styles.participantSearchInput}
+                returnKeyType="search"
+                onSubmitEditing={handleSearchParticipants}
+              />
+              <Pressable
+                style={({ pressed }) => [
+                  styles.participantSearchButton,
+                  pressed && styles.memberItemPressed,
+                ]}
+                onPress={handleSearchParticipants}
+                disabled={participantSearchLoading}
+              >
+                <Text style={styles.participantSearchButtonText}>검색</Text>
+              </Pressable>
+            </View>
+
+            <ScrollView style={styles.participantSearchResultArea}>
+              {participantSearchLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color={colors.primary[600]} />
+                  <Text style={styles.helperText}>검색 중...</Text>
+                </View>
+              ) : searchResultGroups.length === 0 ? (
+                <Text style={styles.helperText}>
+                  {participantSearchKeyword.trim()
+                    ? '검색 결과가 없습니다.'
+                    : '이름을 입력 후 검색하세요.'}
+                </Text>
+              ) : (
+                searchResultGroups.map((clubGroup) => (
+                  <View key={String(clubGroup?.club_id || clubGroup?.club_name)} style={styles.searchClubGroup}>
+                    <Text style={styles.searchClubTitle}>
+                      {clubGroup?.club_name || '클럽'}
+                    </Text>
+                    {(Array.isArray(clubGroup?.members) ? clubGroup.members : [])
+                      .slice()
+                      .sort((left, right) => {
+                        const leftId = normalizeId(left?.id);
+                        const rightId = normalizeId(right?.id);
+                        const leftSelected =
+                          leftId !== null &&
+                          leftId !== undefined &&
+                          leftId !== '' &&
+                          selectedParticipantIdSet.has(String(leftId));
+                        const rightSelected =
+                          rightId !== null &&
+                          rightId !== undefined &&
+                          rightId !== '' &&
+                          selectedParticipantIdSet.has(String(rightId));
+                        if (leftSelected === rightSelected) return 0;
+                        return leftSelected ? -1 : 1;
+                      })
+                      .map((member) => {
+                      const participant = buildSelectedMemberFromSearch(member, clubGroup);
+                      if (!participant) return null;
+                      const memberId = participant.id;
+                      const alreadySelected = selectedParticipantIdSet.has(String(memberId));
+
+                      return (
+                        <Pressable
+                          key={String(memberId)}
+                          onPress={() => handleToggleParticipantFromSearch(participant)}
+                          style={({ pressed }) => [
+                            styles.searchResultItem,
+                            alreadySelected && styles.searchResultItemSelected,
+                            pressed && styles.memberItemPressed,
+                          ]}
+                        >
+                          <View style={styles.searchResultContent}>
+                            <Text style={[styles.memberName, alreadySelected && styles.memberNameSelected]}>
+                              {participant.name}
+                            </Text>
+                            <Text style={styles.searchResultMeta}>
+                              {participant.gender === 'FEMALE'
+                                ? '여성'
+                                : participant.gender === 'MALE'
+                                  ? '남성'
+                                  : '성별 미입력'}
+                              {participant.handicap !== null && participant.handicap !== undefined
+                                ? ` · 핸디캡 ${participant.handicap}`
+                                : ''}
+                            </Text>
+                          </View>
+                          <View
+                            style={[
+                              styles.searchToggleButton,
+                              alreadySelected
+                                ? styles.searchToggleButtonSelected
+                                : styles.searchToggleButtonUnselected,
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.searchToggleButtonText,
+                                alreadySelected
+                                  ? styles.searchToggleButtonTextSelected
+                                  : styles.searchToggleButtonTextUnselected,
+                              ]}
+                            >
+                              {alreadySelected ? '선택됨' : '추가'}
+                            </Text>
+                          </View>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ))
+              )}
+            </ScrollView>
+
+            <View style={styles.modalSelectedSection}>
+              <Text style={styles.modalSelectedTitle}>
+                선택된 참가자 {sortedSelectedParticipants.length}명
+              </Text>
+              <ScrollView style={styles.modalSelectedList}>
+                {modalPagedParticipants.map((member) => {
+                  const participantId = normalizeId(member?.id);
+                  const isMe =
+                    (member?.is_me === true) ||
+                    (mySelectedMember && String(participantId) === String(mySelectedMember.id));
+                  const genderLabel =
+                    member?.gender === 'FEMALE'
+                      ? '여성'
+                      : member?.gender === 'MALE'
+                        ? '남성'
+                        : '성별 미입력';
+                  const handicapLabel =
+                    member?.handicap !== null &&
+                    member?.handicap !== undefined &&
+                    member?.handicap !== ''
+                      ? `핸디캡 ${member.handicap}`
+                      : '핸디캡 미입력';
+                  return (
+                    <View key={String(participantId)} style={styles.modalSelectedItem}>
+                      <View style={styles.modalSelectedTextGroup}>
+                        <Text style={styles.memberName}>
+                          {member?.name || `멤버 #${participantId}`}
+                          {isMe ? ' (나)' : ''}
+                        </Text>
+                        <Text style={styles.memberMeta}>
+                          {genderLabel} · {handicapLabel}
+                        </Text>
+                      </View>
+                      <Text style={styles.modalSelectedStatusText}>선택됨</Text>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+              <View style={styles.paginationRow}>
+                <Pressable
+                  onPress={handleModalPrevPage}
+                  disabled={modalParticipantPage <= 1}
+                  style={[
+                    styles.paginationButton,
+                    modalParticipantPage <= 1 && styles.paginationButtonDisabled,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.paginationButtonText,
+                      modalParticipantPage <= 1 && styles.paginationButtonTextDisabled,
+                    ]}
+                  >
+                    이전
+                  </Text>
+                </Pressable>
+                <Text style={styles.paginationInfo}>
+                  {modalParticipantPage}/{totalParticipantPages}
+                </Text>
+                <Pressable
+                  onPress={handleModalNextPage}
+                  disabled={modalParticipantPage >= totalParticipantPages}
+                  style={[
+                    styles.paginationButton,
+                    modalParticipantPage >= totalParticipantPages && styles.paginationButtonDisabled,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.paginationButtonText,
+                      modalParticipantPage >= totalParticipantPages && styles.paginationButtonTextDisabled,
+                    ]}
+                  >
+                    다음
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -860,9 +1568,22 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: tokens.spacing.sm2,
   },
+  editParticipantsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: tokens.radius.base,
+    backgroundColor: colors.primary[600],
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs2,
+  },
+  editParticipantsButtonText: {
+    fontSize: tokens.font.xs,
+    fontWeight: tokens.fontWeight.semibold,
+    color: colors.white,
+  },
   memberList: {
     marginTop: tokens.spacing.sm,
-    maxHeight: 300,
   },
   memberItem: {
     flexDirection: 'row',
@@ -887,13 +1608,214 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  memberName: {
+  memberTextGroup: {
     marginLeft: tokens.spacing.sm,
+    flex: 1,
+  },
+  memberName: {
     fontSize: tokens.font.base,
     color: colors.neutral[700],
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  memberMeta: {
+    marginTop: 2,
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
   },
   memberNameSelected: {
     color: colors.primary[700],
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  participantModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: tokens.padding.md,
+    paddingVertical: tokens.padding.lg,
+  },
+  participantModalCard: {
+    backgroundColor: colors.white,
+    borderRadius: tokens.radius.xl,
+    padding: tokens.padding.md,
+    width: '100%',
+    maxWidth: 720,
+    height: '90%',
+  },
+  participantModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: tokens.spacing.sm2,
+  },
+  participantModalTitle: {
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.bold,
+    color: colors.neutral[900],
+  },
+  participantModalCloseButton: {
+    padding: tokens.padding.xs,
+  },
+  participantSearchRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: tokens.spacing.sm2,
+  },
+  participantSearchInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+    borderRadius: tokens.radius.base,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.base,
+    fontSize: tokens.font.base,
+    color: colors.neutral[900],
+    backgroundColor: colors.white,
+  },
+  participantSearchButton: {
+    borderRadius: tokens.radius.base,
+    backgroundColor: colors.primary[600],
+    justifyContent: 'center',
+    paddingHorizontal: tokens.padding.sm,
+  },
+  participantSearchButtonText: {
+    fontSize: tokens.font.sm,
+    color: colors.white,
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  participantSearchResultArea: {
+    maxHeight: 280,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    borderRadius: tokens.radius.base,
+    padding: tokens.padding.sm,
+    marginBottom: tokens.spacing.sm2,
+  },
+  searchClubGroup: {
+    marginBottom: tokens.spacing.sm2,
+  },
+  searchClubTitle: {
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
+    color: colors.neutral[800],
+    marginBottom: tokens.spacing.xs,
+  },
+  searchResultItem: {
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    borderRadius: tokens.radius.base,
+    backgroundColor: colors.white,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.sm,
+    marginBottom: tokens.spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  searchResultItemSelected: {
+    borderColor: colors.primary[500],
+    backgroundColor: colors.primary[50],
+  },
+  searchToggleButton: {
+    borderWidth: 1,
+    borderRadius: tokens.radius.pill,
+    paddingHorizontal: tokens.padding.xs2,
+    paddingVertical: tokens.padding.xxs,
+  },
+  searchToggleButtonSelected: {
+    borderColor: colors.primary[600],
+    backgroundColor: colors.primary[100],
+  },
+  searchToggleButtonUnselected: {
+    borderColor: colors.neutral[300],
+    backgroundColor: colors.white,
+  },
+  searchToggleButtonText: {
+    fontSize: tokens.font.xs,
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  searchToggleButtonTextSelected: {
+    color: colors.primary[700],
+  },
+  searchToggleButtonTextUnselected: {
+    color: colors.neutral[600],
+  },
+  searchResultContent: {
+    flex: 1,
+  },
+  searchResultMeta: {
+    marginTop: 2,
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+  },
+  modalSelectedSection: {
+    borderTopWidth: 1,
+    borderTopColor: colors.neutral[200],
+    paddingTop: tokens.padding.sm,
+  },
+  modalSelectedTitle: {
+    fontSize: tokens.font.sm,
+    color: colors.neutral[800],
+    fontWeight: tokens.fontWeight.semibold,
+    marginBottom: tokens.spacing.xs2,
+  },
+  modalSelectedList: {
+    maxHeight: 180,
+  },
+  modalSelectedItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    borderRadius: tokens.radius.base,
+    backgroundColor: colors.neutral[50],
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs2,
+    marginBottom: tokens.spacing.xs,
+  },
+  modalSelectedTextGroup: {
+    flex: 1,
+    marginRight: tokens.spacing.sm2,
+  },
+  modalSelectedStatusText: {
+    fontSize: tokens.font.xs,
+    color: colors.primary[700],
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  paginationRow: {
+    marginTop: tokens.spacing.xs2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  paginationButton: {
+    minWidth: 64,
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+    borderRadius: tokens.radius.base,
+    backgroundColor: colors.white,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  paginationButtonDisabled: {
+    backgroundColor: colors.neutral[100],
+    borderColor: colors.neutral[200],
+  },
+  paginationButtonText: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[700],
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  paginationButtonTextDisabled: {
+    color: colors.neutral[400],
+  },
+  paginationInfo: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[700],
     fontWeight: tokens.fontWeight.semibold,
   },
   guestList: {
@@ -923,5 +1845,31 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.sm,
     color: colors.primary[600],
     fontWeight: tokens.fontWeight.semibold,
+  },
+  totalCostCard: {
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    borderRadius: tokens.radius.base,
+    backgroundColor: colors.neutral[50],
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.sm,
+  },
+  totalCostLabel: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+  },
+  totalCostValue: {
+    marginTop: 2,
+    fontSize: tokens.font.base,
+    color: colors.neutral[900],
+    fontWeight: tokens.fontWeight.bold,
+  },
+  submitRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: tokens.spacing.lg,
+  },
+  submitButton: {
+    flex: 1,
   },
 });

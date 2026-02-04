@@ -8,10 +8,8 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 import { authorize } from 'react-native-app-auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -33,6 +31,8 @@ import {
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
+
+
 const logoImage = require('../public/icons/icon-512-transparent.png');
 
 export default function LoginScreen() {
@@ -44,6 +44,9 @@ export default function LoginScreen() {
   const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
 
   const signInWithGoogle = async () => {
+    console.log('Starting Google Sign-In process...');
+    console.log('Google Auth Config:', googleAuthConfig);
+    console.log('!!! Current redirectUrl:', googleAuthConfig.redirectUrl);
     setErrors((prev) => ({ ...prev, general: '' }));
     setIsGoogleSigningIn(true);
 
@@ -62,24 +65,44 @@ export default function LoginScreen() {
       const oauthState = generateOauthState();
       await tokenStorage.setOauthState(oauthState);
 
+      // Web 플랫폼에서는 별도의 브라우저 리디렉션 처리
       if (Platform.OS === 'web') {
+        const oauthState = generateOauthState();
+
         const codeVerifier = generateCodeVerifier();
         const codeChallenge = await generateCodeChallenge(codeVerifier);
+
+        await tokenStorage.setOauthState(oauthState);
         await tokenStorage.setCodeVerifier(codeVerifier);
+
         const authUrl = buildGoogleAuthorizeUrl({
           state: oauthState,
           codeChallenge,
           codeChallengeMethod: 'S256',
         });
+
+        // // 디버깅: 실제 사용되는 redirect_uri 확인
+        // const urlObj = new URL(authUrl);
+        // const redirectUri = urlObj.searchParams.get('redirect_uri');
+        // alert(`사용되는 redirect_uri:\n${redirectUri}\n\n전체 URL:\n${authUrl}`);
+
+        console.log('!!! Redirecting to Google OAuth URL:', authUrl);
         window.location.assign(authUrl);
         return;
       }
+
+      // Native 플랫폼에서는 react-native-app-auth 사용
+      const authState = await authorize(buildGoogleAuthConfig(oauthState));
+
+      const payload = buildGoogleAuthPayload(authState, oauthState);
+
+      console.log('!!! Google Login Payload: !!! \n', payload);
 
       const authState = await authorize(buildGoogleAuthConfig(oauthState));
       const payload = buildGoogleAuthPayload(authState);
       await authApi.googleLogin(payload);
       await refreshAuth();
-      router.replace('/mypage');
+      router.replace('/');
     } catch (error) {
       console.error('Google 로그인 에러:', error);
       const message = error?.message || 'Google 로그인에 실패했습니다.';
@@ -111,9 +134,6 @@ export default function LoginScreen() {
                 <Text style={styles.brandTitle}>티업링크</Text>
                 <Text style={styles.brandSubtitle}>골프 모임을 더 쉽고 즐겁게</Text>
               </View>
-
-              <Text style={styles.pageTitle}>로그인</Text>
-              <Text style={styles.pageSubtitle}>Google 계정으로 로그인하세요</Text>
 
               {errors.general ? (
                 <Text style={styles.generalError}>{errors.general}</Text>

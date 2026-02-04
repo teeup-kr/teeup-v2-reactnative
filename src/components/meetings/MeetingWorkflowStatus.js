@@ -1,11 +1,9 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
-
-import Button from '../ui/Button';
 
 const STEP_CONFIG = [
   { key: 'CREATED', label: '모임 생성', icon: 'clipboard-list' },
@@ -23,11 +21,19 @@ const isPastDateTime = (value) => {
   return date.getTime() <= Date.now();
 };
 
+const formatDateTime = (value) => {
+  if (!value) return '미정';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString('ko-KR');
+};
+
 export default function MeetingWorkflowStatus({
   meeting,
   participants = [],
   teams = [],
   userRole,
+  applicationStatus,
   confirmedParticipants = [],
   isApplicationDeadlinePassed,
   isApplicationClosedEarly,
@@ -38,7 +44,11 @@ export default function MeetingWorkflowStatus({
   onCompleteRounding,
   onCompleteMeeting,
 }) {
-  const isManager = userRole === 'ORGANIZER' || userRole === 'HOST' || userRole === 'LEADER';
+  const isManager =
+    userRole === 'ORGANIZER' ||
+    userRole === 'HOST' ||
+    userRole === 'LEADER' ||
+    userRole === 'MANAGER';
   const isRoundingMeeting = meeting?.meeting_type === 'ROUND' || meeting?.meeting_type === 'ROUNDING';
 
   const workflowState = useMemo(() => {
@@ -111,9 +121,53 @@ export default function MeetingWorkflowStatus({
   const canConfirmSettlement =
     isRoundingMeeting && meeting?.rounding_completed_at && !meeting?.settlement_confirmed;
 
+  const meetingStatusLabel = useMemo(() => {
+    const status = String(meeting?.status || '').toUpperCase();
+    if (status === 'IN_PROGRESS') return '진행 중';
+    if (status === 'COMPLETED') return '완료';
+    if (status === 'CANCELED') return '취소';
+    return '진행 중';
+  }, [meeting?.status]);
+
+  const summaryRows = useMemo(() => {
+    const currentCount = Number.isFinite(Number(meeting?.participant_count))
+      ? Number(meeting.participant_count)
+      : participants.length;
+    const maxCount =
+      meeting?.max_participants !== null && meeting?.max_participants !== undefined
+        ? meeting.max_participants
+        : '-';
+
+    return [
+      { label: '참가 신청', value: isApplicationClosed ? '마감' : '진행 중' },
+      { label: '현재 참가자', value: `${currentCount} / ${maxCount}명` },
+      { label: '확정 팀', value: teams.length > 0 ? `${teams.length}팀` : '미정' },
+      { label: '모임 상태', value: meetingStatusLabel },
+      { label: '참가 신청 마감', value: formatDateTime(meeting?.application_deadline) },
+    ];
+  }, [
+    isApplicationClosed,
+    meeting?.application_deadline,
+    meeting?.max_participants,
+    meeting?.participant_count,
+    meetingStatusLabel,
+    participants.length,
+    teams.length,
+  ]);
+
+  const applicationSummary = useMemo(() => {
+    if (!applicationStatus) return null;
+    return {
+      total: applicationStatus?.total_applications ?? participants.length,
+      confirmed: applicationStatus?.confirmed_count ?? confirmedCount,
+      max: applicationStatus?.max_participants ?? meeting?.max_participants ?? '-',
+    };
+  }, [applicationStatus, participants.length, confirmedCount, meeting?.max_participants]);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>진행 상태</Text>
+      <Text style={styles.title}>모임 진행 상황</Text>
+      <Text style={styles.subtitle}>모임 마감에서 정산 확정까지 모임 진행 현황을 확인하세요.</Text>
       <View style={styles.stepList}>
         {STEP_CONFIG.map((step, index) => {
           const isCompleted = index < workflowIndex;
@@ -141,36 +195,113 @@ export default function MeetingWorkflowStatus({
 
       <View style={styles.actionRow}>
         {isManager && onCloseApplicationEarly && !isApplicationClosed && (
-          <Button size="sm" variant="outline" onPress={onCloseApplicationEarly}>
-            모집 마감
-          </Button>
+          <Pressable
+            style={({ pressed }) => [
+              styles.actionButtonBase,
+              styles.actionButtonAmberOutline,
+              pressed && styles.actionButtonPressed,
+            ]}
+            onPress={onCloseApplicationEarly}
+          >
+            <Text style={[styles.actionButtonText, styles.actionButtonTextAmber]}>모집 마감</Text>
+          </Pressable>
         )}
         {isManager && onAutoFormTeams && (
-          <Button size="sm" onPress={onAutoFormTeams} disabled={!canAutoFormTeams}>
-            팀 편성 시작
-          </Button>
+          <Pressable
+            style={({ pressed }) => [
+              styles.actionButtonBase,
+              styles.actionButtonBlue,
+              !canAutoFormTeams && styles.actionButtonDisabled,
+              pressed && canAutoFormTeams && styles.actionButtonPressed,
+            ]}
+            onPress={onAutoFormTeams}
+            disabled={!canAutoFormTeams}
+          >
+            <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>팀 편성 시작</Text>
+          </Pressable>
         )}
         {isManager && onConfirmTeamFormation && workflowState === 'TEAM_FORMED' && (
-          <Button size="sm" onPress={onConfirmTeamFormation}>
-            팀 편성 확정
-          </Button>
+          <Pressable
+            style={({ pressed }) => [
+              styles.actionButtonBase,
+              styles.actionButtonGreen,
+              pressed && styles.actionButtonPressed,
+            ]}
+            onPress={onConfirmTeamFormation}
+          >
+            <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>팀 편성 확정</Text>
+          </Pressable>
         )}
         {isManager && onStartRounding && canStartRounding && (
-          <Button size="sm" onPress={onStartRounding}>
-            모임 진행 시작
-          </Button>
+          <Pressable
+            style={({ pressed }) => [
+              styles.actionButtonBase,
+              styles.actionButtonBlue,
+              pressed && styles.actionButtonPressed,
+            ]}
+            onPress={onStartRounding}
+          >
+            <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>모임 진행 시작</Text>
+          </Pressable>
         )}
         {isManager && onCompleteRounding && canCompleteRounding && (
-          <Button size="sm" onPress={onCompleteRounding}>
-            라운딩 종료
-          </Button>
+          <Pressable
+            style={({ pressed }) => [
+              styles.actionButtonBase,
+              styles.actionButtonOrange,
+              pressed && styles.actionButtonPressed,
+            ]}
+            onPress={onCompleteRounding}
+          >
+            <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>라운딩 종료</Text>
+          </Pressable>
         )}
         {isManager && onCompleteMeeting && canConfirmSettlement && (
-          <Button size="sm" onPress={onCompleteMeeting}>
-            정산 완료 처리
-          </Button>
+          <Pressable
+            style={({ pressed }) => [
+              styles.actionButtonBase,
+              styles.actionButtonPurple,
+              pressed && styles.actionButtonPressed,
+            ]}
+            onPress={onCompleteMeeting}
+          >
+            <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>정산 완료 처리</Text>
+          </Pressable>
         )}
       </View>
+
+      <View style={styles.summaryCard}>
+        {summaryRows.map((row) => (
+          <View key={row.label} style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>{row.label}</Text>
+            <Text style={styles.summaryValue}>{row.value}</Text>
+          </View>
+        ))}
+      </View>
+
+      {applicationSummary ? (
+        <View style={styles.applicationCard}>
+          <Text style={styles.applicationTitle}>참가 신청 현황</Text>
+          <View style={styles.applicationGrid}>
+            <View style={styles.applicationItem}>
+              <Text style={styles.applicationLabel}>전체 신청</Text>
+              <Text style={styles.applicationValue}>{applicationSummary.total}명</Text>
+            </View>
+            <View style={styles.applicationItem}>
+              <Text style={styles.applicationLabel}>확정 인원</Text>
+              <Text style={[styles.applicationValue, styles.applicationValueSuccess]}>
+                {applicationSummary.confirmed}명
+              </Text>
+            </View>
+            <View style={styles.applicationItem}>
+              <Text style={styles.applicationLabel}>정원</Text>
+              <Text style={styles.applicationValue}>
+                {applicationSummary.max !== '-' ? `${applicationSummary.max}명` : '-'}
+              </Text>
+            </View>
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -187,6 +318,11 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
+    marginBottom: tokens.spacing.xxs,
+  },
+  subtitle: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
     marginBottom: tokens.spacing.sm2,
   },
   stepList: {
@@ -231,5 +367,114 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
     marginTop: tokens.spacing.sm2,
+  },
+  actionButtonBase: {
+    borderRadius: tokens.radius.sm,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonPressed: {
+    opacity: 0.9,
+  },
+  actionButtonDisabled: {
+    opacity: 0.5,
+  },
+  actionButtonAmberOutline: {
+    borderWidth: 1,
+    borderColor: colors.warning[600],
+    backgroundColor: colors.warning[50],
+  },
+  actionButtonBlue: {
+    backgroundColor: colors.blue[600],
+  },
+  actionButtonGreen: {
+    backgroundColor: colors.green[600],
+  },
+  actionButtonOrange: {
+    backgroundColor: colors.warning[700],
+  },
+  actionButtonPurple: {
+    backgroundColor: colors.violet[600],
+  },
+  actionButtonText: {
+    fontSize: tokens.font.xs,
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  actionButtonTextWhite: {
+    color: colors.white,
+  },
+  actionButtonTextAmber: {
+    color: colors.warning[700],
+  },
+  summaryCard: {
+    marginTop: tokens.spacing.sm2,
+    borderRadius: tokens.radius.md,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    backgroundColor: colors.neutral[50],
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.sm,
+    gap: 6,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+  },
+  summaryValue: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[800],
+    fontWeight: tokens.fontWeight.semibold,
+    marginLeft: tokens.spacing.sm,
+    textAlign: 'right',
+    flex: 1,
+  },
+  applicationCard: {
+    marginTop: tokens.spacing.sm2,
+    borderRadius: tokens.radius.md,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    backgroundColor: colors.neutral[50],
+    padding: tokens.padding.sm,
+  },
+  applicationTitle: {
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
+    color: colors.neutral[900],
+    marginBottom: tokens.spacing.xs2,
+  },
+  applicationGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  applicationItem: {
+    minWidth: 90,
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    borderRadius: tokens.radius.sm,
+    backgroundColor: colors.white,
+    paddingHorizontal: tokens.padding.xs2,
+    paddingVertical: tokens.padding.xs,
+  },
+  applicationLabel: {
+    fontSize: tokens.font.xxs,
+    color: colors.neutral[500],
+    marginBottom: 2,
+  },
+  applicationValue: {
+    fontSize: tokens.font.sm,
+    color: colors.neutral[900],
+    fontWeight: tokens.fontWeight.bold,
+  },
+  applicationValueSuccess: {
+    color: colors.success[700],
   },
 });

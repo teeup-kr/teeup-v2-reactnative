@@ -315,6 +315,15 @@ export function normalizeNumber(value, fallback = 0) {
 };
 
 export function parseTeeTimes(value) {
+  console.log('parseTeeTimes input:', value);
+  if (Array.isArray(value)) {
+    return value
+      .map((time) => String(time).trim())
+      .filter((time) => time.length > 0);
+  }
+  if (typeof value !== 'string') {
+    return [];
+  }
   return value
     .split(',')
     .map((time) => time.trim())

@@ -2,15 +2,15 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
-    useEffect,
-    useMemo,
-    useState
+  useEffect,
+  useMemo,
+  useState
 } from 'react';
 import {
-    ActivityIndicator,
-    Pressable,
-    ScrollView, StyleSheet, Text,
-    View
+  ActivityIndicator,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,17 +18,19 @@ import AppFooter from '@/components/layout/AppFooter';
 import Card from '@/components/ui/Card';
 import { mypageApi } from '@/lib/api/api';
 import {
-    createFetchClubsHandler,
-    createFetchProfileHandler,
-    createOpenClubDetailHandler,
-    createOpenClubsHandler,
+  createFetchClubsHandler,
+  createFetchProfileHandler,
+  createOpenClubDetailHandler,
+  createOpenClubsHandler,
 } from '@/lib/handler/mypage';
 import {
-    buildProfileInfoItems,
-    formatProfileDate,
-    getGenderLabel,
-    getHandicapDisplay,
-    getProfileInfoIconName,
+  buildProfileInfoItems,
+  formatProfileDate,
+  getAverageScoreDisplay,
+  getGenderLabel,
+  getHandicapDisplay,
+  getHandicapDisplayInfo,
+  getProfileInfoIconName
 } from '@/lib/util/mypageUtils';
 import { extractData, extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
@@ -54,6 +56,15 @@ export default function OverviewScreen() {
         setError,
       }),
     [setError, setHandicapInfo, setLoading, setProfile],
+  );
+  const averageScoreDisplay = useMemo(
+    () => getAverageScoreDisplay(profile),
+    [profile]
+  );
+
+  const handicapDisplayInfo = useMemo(
+    () => getHandicapDisplayInfo(profile),
+    [profile]
   );
 
   const fetchClubs = useMemo(
@@ -144,33 +155,42 @@ export default function OverviewScreen() {
         <Text style={styles.cardTitle}>골프 정보</Text>
 
         {/* 평균 타수 */}
-        <View style={styles.row}>
-          <FontAwesome5 name="golf-ball" size={14} color={colors.neutral[500]} style={styles.icon} />
-          <View style={styles.rowContent}>
-            <Text style={styles.infoLabel}>평균 타수</Text>
-            <Text style={styles.infoValue}>
-              {profile?.average_score != null ? `${profile.average_score}타` : '-'}
-            </Text>
+        {averageScoreDisplay && (
+          <View style={styles.row}>
+            <FontAwesome5
+              name="golf-ball"
+              size={14}
+              color={colors.neutral[500]}
+              style={styles.icon}
+            />
+            <View style={styles.rowContent}>
+              <Text style={styles.infoLabel}>
+                {averageScoreDisplay.label}
+              </Text>
+              <Text style={styles.infoValue}>
+                {averageScoreDisplay.value}
+              </Text>
+            </View>
           </View>
-        </View>
-
-        {/* 핸디캡 */}
-        <View style={styles.row}>
-          <FontAwesome5
-            name="chart-line"
-            size={14}
-            color={colors.neutral[500]}
-            style={styles.icon}
-          />
-          <View style={styles.rowContent}>
-            <Text style={styles.infoLabel}>
-              {handicapDisplay.type === 'initial' ? '초기 핸디캡' : '핸디캡'}
-            </Text>
-            <Text style={styles.infoValue}>
-              {handicapDisplay.value}
-            </Text>
+        )}
+        {handicapDisplayInfo && (
+          <View style={styles.row}>
+            <FontAwesome5
+              name="chart-line"
+              size={14}
+              color={colors.neutral[500]}
+              style={styles.icon}
+            />
+            <View style={styles.rowContent}>
+              <Text style={styles.infoLabel}>
+                {handicapDisplayInfo.label}
+              </Text>
+              <Text style={styles.infoValue}>
+                {handicapDisplayInfo.value}
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
 
       </Card>
 

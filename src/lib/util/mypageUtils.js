@@ -1,3 +1,7 @@
+
+import { mypageApi } from '@/lib/api/api';
+import { extractData } from '@/lib/util/responseUtils';
+
 import { colors } from '../../styles/colors';
 import {
   convertToKST,
@@ -37,16 +41,6 @@ export function formatBirthdate(value) {
   }
   return value;
 };
-export function isSocialLoginUser(profile) {
-  if (profile?.is_social_login != null) return profile.is_social_login;
-  if (profile?.is_social != null) return profile.is_social;
-  const provider =
-    profile?.provider ||
-    profile?.auth_provider ||
-    profile?.login_provider ||
-    profile?.social_provider;
-  return Boolean(provider && provider !== 'LOCAL' && provider !== 'local');
-};
 
 export function calcHandicapFromAvg(avgStr) {
   const num = Number(avgStr);
@@ -55,13 +49,33 @@ export function calcHandicapFromAvg(avgStr) {
   return Math.max(0, Math.min(72, Math.round(num - 72)));
 };
 
-export function formatDateYYYYMMDD(date) {
-  if (!date) return '';
+// export function formatDateYYYYMMDD(date) {
+//   if (!date) return '';
+//   const year = date.getFullYear();
+//   const month = String(date.getMonth() + 1).padStart(2, '0');
+//   const day = String(date.getDate()).padStart(2, '0');
+//   return `${year}-${month}-${day}`;
+// };
+/**
+ * Date / ISO string / datetime string → "YYYY-MM-DD"
+ * - RN / Web 공통
+ * - 잘못된 값은 빈 문자열 반환
+ */
+export function formatDateYYYYMMDD(value) {
+  if (!value) return '';
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
+
   return `${year}-${month}-${day}`;
-};
+}
 
 export function parseBirthdate(value) {
   if (!value) return null;
@@ -107,7 +121,7 @@ export function buildProfileFormData(user, prevFormData) {
   };
 };
 
-export function buildProfilePayload(formData, profile, isSocialLogin) {
+export function buildProfilePayload(formData, profile) {
   const payload = {
     nickname: formData.nickname.trim(),
     realname: formData.realname.trim(),
@@ -116,16 +130,11 @@ export function buildProfilePayload(formData, profile, isSocialLogin) {
     gender: formData.gender || profile?.gender || null,
   };
 
-  if (isSocialLogin) {
-    payload.average_score = formData.average_score ? Number(formData.average_score) : null;
-  }
-
   return payload;
 };
 
 export function validateProfileForm({
   formData,
-  isSocialLogin,
   isNicknameSameValue,
   nicknameChecked,
 }) {
@@ -152,15 +161,6 @@ export function validateProfileForm({
 
   if (!formData.birthdate) {
     nextErrors.birthdate = '생년월일을 선택해주세요.';
-  }
-
-  if (isSocialLogin) {
-    const avg = Number(formData.average_score);
-    if (!formData.average_score) {
-      nextErrors.average_score = '평균 타수를 입력해주세요.';
-    } else if (Number.isNaN(avg) || avg < 55 || avg > 144) {
-      nextErrors.average_score = '평균 타수는 55~144 사이여야 합니다.';
-    }
   }
 
   return nextErrors;
@@ -255,6 +255,7 @@ export function buildProfileInfoItems(profile, { formatProfileDate, getGenderLab
     { label: '실명', value: profile?.realname || '-' },
     { label: '닉네임', value: profile?.nickname || '-' },
     { label: '이메일', value: profile?.email || '-' },
+    { label: '연락처', value: profile?.phone_number || '-' },
     { label: '성별', value: getGenderLabel(profile?.gender) },
     { label: '생년월일', value: formatProfileDate(profile?.birthdate) },
     { label: '가입일', value: formatProfileDate(profile?.created_at) },
@@ -266,6 +267,8 @@ export function getProfileInfoIconName(label) {
   if (label === '성별') return 'venus-mars';
   if (label === '생년월일') return 'calendar-alt';
   if (label === '가입일') return 'calendar-check';
+  if (label === '연락처') return 'phone';
+  if (label === '닉네임') return 'id-card';
   return 'user-alt';
 };
 export function toYmd(date) {
@@ -492,6 +495,56 @@ export function buildRoundingPayload({ form, settlementMethods }) {
   };
 };
 
+export async function ensureProfileCompleted({
+  router,
+  alertMessage = '클럽 이용 전 프로필을 완성해 주세요!',
+  redirectPath = '/mypage/edit',
+} = {}) {
+  try {
+    const response = await mypageApi.fetchMyProfile();
+    const user = extractData(response);
+
+    if (!user) {
+      alert('사용자 정보를 불러올 수 없습니다.');
+      return false;
+    }
+
+    const {
+      realname,
+      phone_number,
+      gender,
+      birthdate,
+      average_score,
+      average_score_init
+    } = user;
+
+    const requiredFields = [
+      realname,
+      phone_number,
+      gender,
+      birthdate,
+      average_score ?? average_score_init // 평균 타수 둘 중 하나라도 있으면 통과
+    ];
+
+    const isCompleted = !requiredFields.some(
+      v => v == null || v === ''
+    );
+
+    if (!isCompleted) {
+      alert(alertMessage);
+      if (router?.replace) {
+        router.replace(redirectPath);
+      }
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('프로필 완성 여부 확인 실패:', error);
+    alert('프로필 정보를 확인할 수 없습니다.');
+    return false;
+  }
+}
 // export const mypageUtils = {
 //   formatProfileDate,
 //   getGenderLabel,
@@ -531,3 +584,53 @@ export function buildRoundingPayload({ form, settlementMethods }) {
 //   resolveSettlementMethod,
 //   buildRoundingPayload,
 // };
+
+export function getAverageScoreDisplay(profile) {
+  if (!profile) {
+    return { label: '평균 타수', value: '-' };
+  }
+
+  if (profile.average_score != null) {
+    return {
+      label: '평균 타수',
+      value: `${profile.average_score}타`,
+    };
+  }
+
+  if (profile.average_score_init != null) {
+    return {
+      label: '초기 평균 타수',
+      value: `${profile.average_score_init}타`,
+    };
+  }
+
+  return {
+    label: '평균 타수',
+    value: '-',
+  };
+}
+
+export function getHandicapDisplayInfo(profile) {
+  if (!profile) {
+    return { label: '핸디캡', value: '-' };
+  }
+
+  if (profile.handicap != null) {
+    return {
+      label: '핸디캡',
+      value: profile.handicap,
+    };
+  }
+
+  if (profile.handicap_init != null) {
+    return {
+      label: '초기 핸디캡',
+      value: profile.handicap_init,
+    };
+  }
+
+  return {
+    label: '핸디캡',
+    value: '-',
+  };
+}
