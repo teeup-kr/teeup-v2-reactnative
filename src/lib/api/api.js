@@ -174,6 +174,10 @@ async function getRound(id) {
   return apiClient.get(`/rounds/${id}`);
 }
 
+async function getRoundScoreStats(id) {
+  return apiClient.get(`/rounds/${id}/score-stats`);
+}
+
 async function createRound(data, config = {}) {
   return apiClient.post('/rounds/', data, config);
 }
@@ -410,6 +414,7 @@ async function getGuests(meetingId) {
 export const roundsApi = {
   getRounds,
   getRound,
+  getRoundScoreStats,
   createRound,
   updateRound,
   deleteRound,
@@ -731,6 +736,10 @@ async function getClubMembers(clubId, params = {}) {
   return apiClient.get(`/clubs/${clubId}/members`, { params });
 }
 
+async function searchClubMembersByName(params = {}) {
+  return apiClient.get('/clubs/members/search', { params });
+}
+
 async function updateClubMemberRole(clubId, memberId, data) {
   return apiClient.put(`/clubs/${clubId}/members/${memberId}/role`, data);
 }
@@ -840,6 +849,7 @@ export const clubsApi = {
   joinClub,
   leaveClub,
   getClubMembers,
+  searchClubMembersByName,
   updateClubMemberRole,
   removeClubMember,
   getClubNotices,

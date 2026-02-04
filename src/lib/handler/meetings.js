@@ -1,4 +1,13 @@
 
+import { ensureProfileCompleted } from '@/lib/util/mypageUtils';
+
+async function ensureMeetingProfileCompleted(router) {
+    return ensureProfileCompleted({
+        router,
+        alertMessage: '모임 이용 전 프로필을 완성해 주세요!',
+    });
+}
+
 export function createFetchUserInfoHandler({
     fetchMyProfile,
     fetchUserHandicap,
@@ -88,7 +97,16 @@ export function createFetchApplicationStatusHandler({ meetingIdValue, isRounding
     };
 }
 
-export function createUpdateUserInfoHandler({ userInfo, updateMyProfile, setProcessingAction, setIsEditingUserInfo, fetchUserInfo, alert }) {
+export function createUpdateUserInfoHandler({
+    userInfo,
+    userId,
+    updateMyProfile,
+    updateUserHandicap,
+    setProcessingAction,
+    setIsEditingUserInfo,
+    fetchUserInfo,
+    alert,
+}) {
     return async function () {
         try {
             setProcessingAction(true);
@@ -99,6 +117,21 @@ export function createUpdateUserInfoHandler({ userInfo, updateMyProfile, setProc
                 birthdate: userInfo.birthdate || null,
                 gender: userInfo.gender || null,
             });
+
+            const handicapRaw = userInfo?.handicap;
+            if (
+                typeof updateUserHandicap === 'function' &&
+                userId &&
+                handicapRaw !== undefined &&
+                handicapRaw !== null &&
+                `${handicapRaw}`.trim() !== ''
+            ) {
+                const handicapValue = Number(handicapRaw);
+                if (Number.isFinite(handicapValue)) {
+                    await updateUserHandicap(userId, { initial_handicap: handicapValue });
+                }
+            }
+
             setIsEditingUserInfo(false);
             fetchUserInfo();
         } catch (error) {
@@ -114,6 +147,7 @@ export function createJoinHandler({
     meetingIdValue,
     joinSocial,
     joinRound,
+    router,
     setJoinModalOpen,
     setProcessingAction,
     fetchParticipants,
@@ -121,6 +155,8 @@ export function createJoinHandler({
     alert,
 }) {
     return async function () {
+        const isCompleted = await ensureMeetingProfileCompleted(router);
+        if (!isCompleted) return;
         try {
             setProcessingAction(true);
             if (typeSlug === 'social') {
@@ -144,12 +180,15 @@ export function createLeaveHandler({
     meetingIdValue,
     leaveSocial,
     leaveRound,
+    router,
     setProcessingAction,
     fetchParticipants,
     fetchMeeting,
     alert,
 }) {
-    return () => {
+    return async () => {
+        const isCompleted = await ensureMeetingProfileCompleted(router);
+        if (!isCompleted) return;
         alert('참가 취소', '참가를 취소하시겠습니까?', [
             { text: '취소', style: 'cancel' },
             {
@@ -178,6 +217,7 @@ export function createLeaveHandler({
 export function createAutoFormTeamsHandler({
     meetingIdValue,
     autoFormTeams,
+    router,
     extractList,
     setProcessingAction,
     setPreviewTeams,
@@ -187,6 +227,8 @@ export function createAutoFormTeamsHandler({
 }) {
     return async function (payload = {}) {
         if (!meetingIdValue) return null;
+        const isCompleted = await ensureMeetingProfileCompleted(router);
+        if (!isCompleted) return null;
         try {
             setProcessingAction(true);
             const response = await autoFormTeams(meetingIdValue, payload);
@@ -210,6 +252,7 @@ export function createAutoFormTeamsHandler({
 export function createConfirmTeamsHandler({
     meetingIdValue,
     confirmTeamFormation,
+    router,
     setProcessingAction,
     setTeamPreviewOpen,
     fetchTeams,
@@ -218,6 +261,8 @@ export function createConfirmTeamsHandler({
 }) {
     return async function () {
         if (!meetingIdValue) return;
+        const isCompleted = await ensureMeetingProfileCompleted(router);
+        if (!isCompleted) return;
         try {
             setProcessingAction(true);
             await confirmTeamFormation(meetingIdValue);
@@ -232,9 +277,11 @@ export function createConfirmTeamsHandler({
     };
 }
 
-export function createStartRoundingHandler({ meetingIdValue, startRounding, setProcessingAction, fetchMeeting, alert }) {
+export function createStartRoundingHandler({ meetingIdValue, startRounding, router, setProcessingAction, fetchMeeting, alert }) {
     return async function () {
         if (!meetingIdValue) return;
+        const isCompleted = await ensureMeetingProfileCompleted(router);
+        if (!isCompleted) return;
         try {
             setProcessingAction(true);
             await startRounding(meetingIdValue);
@@ -250,6 +297,7 @@ export function createStartRoundingHandler({ meetingIdValue, startRounding, setP
 export function createCompleteRoundingHandler({
     meetingIdValue,
     completeRounding,
+    router,
     setProcessingAction,
     setRoundingCompleteOpen,
     fetchMeeting,
@@ -257,6 +305,8 @@ export function createCompleteRoundingHandler({
 }) {
     return async function () {
         if (!meetingIdValue) return;
+        const isCompleted = await ensureMeetingProfileCompleted(router);
+        if (!isCompleted) return;
         try {
             setProcessingAction(true);
             await completeRounding(meetingIdValue);
@@ -270,9 +320,11 @@ export function createCompleteRoundingHandler({
     };
 }
 
-export function createConfirmSettlementHandler({ meetingIdValue, confirmSettlement, setProcessingAction, fetchMeeting, alert }) {
+export function createConfirmSettlementHandler({ meetingIdValue, confirmSettlement, router, setProcessingAction, fetchMeeting, alert }) {
     return async function () {
         if (!meetingIdValue) return;
+        const isCompleted = await ensureMeetingProfileCompleted(router);
+        if (!isCompleted) return;
         try {
             setProcessingAction(true);
             await confirmSettlement(meetingIdValue);
@@ -421,11 +473,34 @@ export function createFetchSocialMeetingsHandler({
 }) {
     return async function (page = socialPage, search = socialSearchQuery) {
         try {
-            const requestParams = { page, limit: 6, ...(search ? { search } : {}) };
-            const response = await fetchSocials(requestParams);
-            const socialData = extractList(response);
+            // 날짜/상태 필터는 프론트에서 처리하므로 전체 페이지를 먼저 수집
+            const allPagesMeetings = [];
+            let currentPage = 1;
+            let hasMore = true;
 
-            const socials = socialData.map((social) => ({
+            while (hasMore && currentPage <= 10) {
+                const requestParams = {
+                    page: currentPage,
+                    limit: 100,
+                    ...(search ? { search } : {}),
+                };
+                const response = await fetchSocials(requestParams);
+                const pageMeetings = extractList(response);
+
+                if (pageMeetings.length === 0) {
+                    hasMore = false;
+                } else {
+                    allPagesMeetings.push(...pageMeetings);
+                    const totalPages = response?.total_pages || 1;
+                    if (currentPage >= totalPages) {
+                        hasMore = false;
+                    } else {
+                        currentPage += 1;
+                    }
+                }
+            }
+
+            const socials = allPagesMeetings.map((social) => ({
                 ...social,
                 meeting_type: 'SOCIAL',
                 meeting_time: social.meeting_time,
@@ -493,7 +568,9 @@ export function createSearchHandler({
 
 export function createCreateMeetingHandler({ router }) {
     return (type) =>
-        () => {
+        async () => {
+            const isCompleted = await ensureMeetingProfileCompleted(router);
+            if (!isCompleted) return;
             if (type === 'rounding') {
                 router.push('/meetings/rounding/create');
             } else {
@@ -692,29 +769,74 @@ export function createFetchClubsHandler({ fetchMyClubs, extractList, isEditMode,
 export function createFetchMeetingHandler({
     isEditMode,
     meetingIdValue,
+    typeSlug,
     fetchSocial,
+    fetchRound,
     extractData,
+    setMeeting,
     setForm,
     setLoading,
+    setError,
     setParticipantType,
     alert,
     buildFormFromData,
     getParticipantType,
 }) {
     return async function () {
-        if (!isEditMode || !meetingIdValue) return;
+        if (!meetingIdValue) return;
+        const isDetailMode = typeof setMeeting === 'function';
+        if (!isDetailMode && !isEditMode) return;
+
         try {
-            setLoading(true);
-            const response = await fetchSocial(meetingIdValue);
+            if (typeof setLoading === 'function') {
+                setLoading(true);
+            }
+            if (typeof setError === 'function') {
+                setError('');
+            }
+
+            const normalizedType = String(typeSlug || '').toLowerCase();
+            const fetchMeeting = normalizedType === 'social'
+                ? fetchSocial
+                : normalizedType === 'rounding'
+                    ? fetchRound
+                    : (fetchSocial || fetchRound);
+
+            if (typeof fetchMeeting !== 'function') {
+                throw new Error('모임 조회 함수가 정의되지 않았습니다.');
+            }
+            const response = await fetchMeeting(meetingIdValue);
             const data = extractData(response);
-            if (!data) return;
+            if (!data) {
+                if (isDetailMode) {
+                    setMeeting(null);
+                }
+                return;
+            }
+
+            if (isDetailMode) {
+                setMeeting(data);
+                return;
+            }
+
             setForm((prev) => buildFormFromData({ data, fallback: prev }));
-            setParticipantType(getParticipantType(data));
+            if (
+                typeof setParticipantType === 'function' &&
+                typeof getParticipantType === 'function'
+            ) {
+                setParticipantType(getParticipantType(data));
+            }
         } catch (error) {
             console.error('모임 조회 실패:', error);
-            alert('오류', '모임 정보를 불러오는데 실패했습니다.');
+            if (typeof setError === 'function') {
+                setError(error?.message || '모임 정보를 불러오는데 실패했습니다.');
+            } else if (typeof alert === 'function') {
+                alert('오류', '모임 정보를 불러오는데 실패했습니다.');
+            }
         } finally {
-            setLoading(false);
+            if (typeof setLoading === 'function') {
+                setLoading(false);
+            }
         }
     };
 }
@@ -736,6 +858,9 @@ export function createSubmitHandler({
     meetingIdValue,
     createSocial,
     updateSocial,
+    createRound,
+    updateRound,
+    meetingType,
     extractData,
     router,
     alert,
@@ -746,6 +871,26 @@ export function createSubmitHandler({
     settlementMethods,
 }) {
     return async function () {
+        const isCompleted = await ensureMeetingProfileCompleted(router);
+        if (!isCompleted) return;
+
+        const submitType = String(
+            meetingType ||
+            ((typeof createRound === 'function' || typeof updateRound === 'function') ? 'rounding' : 'social')
+        ).toLowerCase();
+        const meetingTypeSlug = submitType === 'rounding' ? 'rounding' : 'social';
+        const createMeeting = createSocial || createRound;
+        const updateMeeting = updateSocial || updateRound;
+
+        if (isEditMode && typeof updateMeeting !== 'function') {
+            alert('오류', '모임 수정 API가 준비되지 않았습니다.');
+            return;
+        }
+        if (!isEditMode && typeof createMeeting !== 'function') {
+            alert('오류', '모임 생성 API가 준비되지 않았습니다.');
+            return;
+        }
+
         const errors = validateForm({ form, participantType });
         setFieldErrors(errors);
         if (Object.keys(errors).length > 0) {
@@ -758,18 +903,25 @@ export function createSubmitHandler({
         try {
             setSaving(true);
             const response = isEditMode
-                ? await updateSocial(meetingIdValue, payload)
-                : await createSocial(payload);
+                ? await updateMeeting(meetingIdValue, payload)
+                : await createMeeting(payload);
             const data = extractData(response);
             const createdId = data?.id || data?.meeting_id || meetingIdValue;
-            alert('완료', isEditMode ? '모임 정보가 수정되었습니다.' : '소셜 모임이 생성되었습니다.');
+            alert(
+                '완료',
+                isEditMode
+                    ? '모임 정보가 수정되었습니다.'
+                    : meetingTypeSlug === 'rounding'
+                        ? '라운딩 모임이 생성되었습니다.'
+                        : '소셜 모임이 생성되었습니다.'
+            );
             if (createdId) {
-                router.replace(`/meetings/social/${createdId}`);
+                router.replace(`/meetings/${meetingTypeSlug}/${createdId}`);
             } else {
                 router.replace('/meetings');
             }
         } catch (error) {
-            console.error('소셜 저장 실패:', error);
+            console.error(`${meetingTypeSlug === 'rounding' ? '라운딩' : '소셜'} 저장 실패:`, error);
             alert('오류', error?.message || '모임 저장에 실패했습니다.');
         } finally {
             setSaving(false);

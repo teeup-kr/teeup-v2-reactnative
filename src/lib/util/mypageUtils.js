@@ -499,7 +499,7 @@ export async function ensureProfileCompleted({
   router,
   alertMessage = '클럽 이용 전 프로필을 완성해 주세요!',
   redirectPath = '/mypage/edit',
-}) {
+} = {}) {
   try {
     const response = await mypageApi.fetchMyProfile();
     const user = extractData(response);
@@ -515,6 +515,7 @@ export async function ensureProfileCompleted({
       gender,
       birthdate,
       average_score,
+      average_score_init
     } = user;
 
     const requiredFields = [
@@ -522,7 +523,7 @@ export async function ensureProfileCompleted({
       phone_number,
       gender,
       birthdate,
-      average_score,
+      average_score ?? average_score_init // 평균 타수 둘 중 하나라도 있으면 통과
     ];
 
     const isCompleted = !requiredFields.some(
@@ -531,7 +532,9 @@ export async function ensureProfileCompleted({
 
     if (!isCompleted) {
       alert(alertMessage);
-      router.replace(redirectPath);
+      if (router?.replace) {
+        router.replace(redirectPath);
+      }
       return false;
     }
 

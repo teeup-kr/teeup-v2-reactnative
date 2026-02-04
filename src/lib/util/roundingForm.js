@@ -2,7 +2,54 @@ import { convertToKST, normalizeNumber, parseTeeTimes, toDateTimeLocalValue, val
 
 export function getRoundingMeetingTitle(isEditMode) { return isEditMode ? '라운딩 모임 수정' : '라운딩 모임 만들기'; }
 
+function normalizeParticipantId(item) {
+  if (item === null || item === undefined) return null;
+  if (typeof item === 'object') {
+    const id = item.id ?? item.user_id ?? item.member_id ?? null;
+    return id === null || id === undefined ? null : id;
+  }
+  return item;
+}
+
+function normalizeParticipantIds(items) {
+  if (!Array.isArray(items)) return [];
+  const unique = new Map();
+  items.forEach((item) => {
+    const id = normalizeParticipantId(item);
+    if (id === null || id === undefined || id === '') return;
+    unique.set(String(id), id);
+  });
+  return Array.from(unique.values());
+}
+
+function buildParticipantDetails(items) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .filter((item) => item && typeof item === 'object')
+    .map((item) => ({
+      id: item.id ?? item.user_id ?? item.member_id,
+      name:
+        item.name ??
+        item.user?.realname ??
+        item.user?.nickname ??
+        item.nickname ??
+        '',
+      gender: item.gender ?? null,
+      handicap: item.handicap ?? item.handicap_index ?? null,
+      club_id: item.club_id ?? item.club?.id ?? null,
+      club_name: item.club_name ?? item.club?.name ?? '',
+      is_me: Boolean(item.is_me),
+    }))
+    .filter((item) => item.id !== null && item.id !== undefined && item.id !== '');
+}
+
 export function buildRoundingFormFromData({ data, fallback }) {
+  const normalizedParticipants = normalizeParticipantIds(data.selected_participants);
+  const participantDetails =
+    Array.isArray(data.selected_participant_details) && data.selected_participant_details.length > 0
+      ? buildParticipantDetails(data.selected_participant_details)
+      : buildParticipantDetails(data.selected_participants);
+
   return ({
     ...fallback,
     name: data.name ?? '',
@@ -24,17 +71,20 @@ export function buildRoundingFormFromData({ data, fallback }) {
     cart_fee: data.cart_fee !== undefined ? String(data.cart_fee) : '',
     settlement_method: data.settlement_method || fallback.settlement_method,
     is_private: data.is_private ?? false,
-    selected_participants: data.selected_participants ?? [],
+    selected_participants: normalizedParticipants,
+    selected_participant_details: participantDetails,
     selected_guests: data.selected_guests ?? [],
   });
 }
 
-export function validateRoundingForm(form) {
+export function validateRoundingForm(input) {
+  const form = input?.form ?? input ?? {};
+  console.log('Validating rounding form:', form);
   const errors = {};
   const teeTimes = parseTeeTimes(form.tee_times);
 
-  if (!form.name.trim()) errors.name = '모임명을 입력해주세요.';
-  if (!form.location.trim()) errors.location = '장소를 입력해주세요.';
+  if (!form.name?.trim()) errors.name = '모임명을 입력해주세요.';
+  if (!form.location?.trim()) errors.location = '장소를 입력해주세요.';
   if (!form.meeting_time) errors.meeting_time = '모임 시간을 입력해주세요.';
   if (!form.application_deadline) errors.application_deadline = '신청 마감일을 입력해주세요.';
   if (form.meeting_time && form.application_deadline) {
@@ -47,8 +97,8 @@ export function validateRoundingForm(form) {
     }
   }
   if (!form.club_id) errors.club_id = '클럽을 선택해주세요.';
-  if (!form.course_name.trim()) errors.course_name = '골프장명을 입력해주세요.';
-  if (!form.reservation_name.trim()) errors.reservation_name = '예약자명을 입력해주세요.';
+  if (!form.course_name?.trim()) errors.course_name = '골프장명을 입력해주세요.';
+  if (!form.reservation_name?.trim()) errors.reservation_name = '예약자명을 입력해주세요.';
   if (teeTimes.length === 0) errors.tee_times = '티타임을 입력해주세요.';
   if (form.meeting_time && teeTimes.length > 0) {
     if (!validateMeetingTimeWithTeeTimes(form.meeting_time, teeTimes)) {
@@ -82,7 +132,7 @@ export function validateRoundingForm(form) {
 
   // 프라이빗 라운딩 검증
   if (form.is_private) {
-    const selectedParticipants = Array.isArray(form.selected_participants) ? form.selected_participants : [];
+    const selectedParticipants = normalizeParticipantIds(form.selected_participants);
     if (selectedParticipants.length === 0) {
       errors.selected_participants = '프라이빗 라운딩은 최소 1명 이상의 참가자를 선택해야 합니다.';
     }
@@ -127,7 +177,7 @@ export function buildRoundingPayload({ form, settlementMethods }) {
 
   // 프라이빗 라운딩인 경우 참가자 및 게스트 정보 추가
   if (form.is_private) {
-    const selectedParticipants = Array.isArray(form.selected_participants) ? form.selected_participants : [];
+    const selectedParticipants = normalizeParticipantIds(form.selected_participants);
     if (selectedParticipants.length > 0) {
       payload.selected_participants = selectedParticipants;
     }

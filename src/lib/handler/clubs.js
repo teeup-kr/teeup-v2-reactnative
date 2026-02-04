@@ -266,8 +266,9 @@ export function createMyStatusFilterHandler({ setMyClubStatusFilter, setCurrentP
 }
 
 export function createCreateClubHandler({ router }) {
-    ensureProfileCompleted(router)
-    return () => {
+    return async () => {
+        const isCompleted = await ensureProfileCompleted({ router });
+        if (!isCompleted) return;
         router.push('/clubs/register');
     };
 }
