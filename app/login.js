@@ -92,10 +92,6 @@ export default function LoginScreen() {
       }
 
       // Native 플랫폼에서는 react-native-app-auth 사용
-      const authState = await authorize(buildGoogleAuthConfig(oauthState));
-
-      const payload = buildGoogleAuthPayload(authState, oauthState);
-
       console.log('!!! Google Login Payload: !!! \n', payload);
 
       const authState = await authorize(buildGoogleAuthConfig(oauthState));
