@@ -765,7 +765,8 @@ async function deleteClubNotice(clubId, noticeId) {
 }
 
 async function getClubRegulations(clubId, params = {}) {
-  return apiClient.get(`/clubs/${clubId}/regulations`, { params });
+  // 백엔드: GET /regulations → { categories } / GET /regulations/list → { data }. 목록은 /list 사용.
+  return apiClient.get(`/clubs/${clubId}/regulations/list`, { params });
 }
 
 async function getClubRegulation(clubId, regulationId) {

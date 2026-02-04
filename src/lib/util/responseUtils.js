@@ -12,6 +12,8 @@ export function extractList(payload) {
   if (Array.isArray(payload.value)) return payload.value;
   if (Array.isArray(payload.results)) return payload.results;
   if (Array.isArray(payload.notices)) return payload.notices;
+  if (Array.isArray(payload.regulations)) return payload.regulations;
+  if (payload.data && Array.isArray(payload.data.regulations)) return payload.data.regulations;
   return [];
 };
 

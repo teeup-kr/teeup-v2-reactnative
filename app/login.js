@@ -1,4 +1,3 @@
-
 import {
   FontAwesome
 } from '@expo/vector-icons';
@@ -99,6 +98,8 @@ export default function LoginScreen() {
 
       console.log('!!! Google Login Payload: !!! \n', payload);
 
+      const authState = await authorize(buildGoogleAuthConfig(oauthState));
+      const payload = buildGoogleAuthPayload(authState);
       await authApi.googleLogin(payload);
       await refreshAuth();
       router.replace('/');
