@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/ui/Card';
+import HtmlContent from '@/components/ui/HtmlContent';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { noticeCategoryLabel } from '@/constants/noticesConstants';
 import { noticesApi } from '@/lib/api/api';
@@ -69,7 +70,7 @@ export default function NoticeDetailScreen() {
               </View>
               <Text style={styles.title}>{notice.title}</Text>
               <Text style={styles.date}>{notice.date}</Text>
-              <Text style={styles.content}>{notice.content}</Text>
+              <HtmlContent html={notice.content} baseStyle={styles.content} />
             </>
           ) : (
             <Text style={styles.loadingText}>공지사항을 찾을 수 없습니다.</Text>
