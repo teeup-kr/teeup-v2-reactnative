@@ -36,10 +36,16 @@ export default function SettlementViewModal({
         setLoading(true);
         setError(null);
         const response = await roundsApi.getMeetingSettlement(meetingId);
-        setSettlement(extractData(response));
+        const data = extractData(response);
+        setSettlement(data?.settlement ?? data);
       } catch (fetchError) {
-        console.error('정산 조회 실패:', fetchError);
-        setError('정산 정보를 불러오는데 실패했습니다.');
+        if (fetchError?.status === 404) {
+          setSettlement(null);
+          setError(null);
+        } else {
+          console.error('정산 조회 실패:', fetchError);
+          setError('정산 정보를 불러오는데 실패했습니다.');
+        }
       } finally {
         setLoading(false);
       }
@@ -69,20 +75,31 @@ export default function SettlementViewModal({
       ) : settlement ? (
         <ScrollView style={styles.detailList}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>정산 방식</Text>
-            <Text style={styles.detailValue}>{settlement.method || settlement.settlement_method || '-'}</Text>
-          </View>
-          <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>총 금액</Text>
-            <Text style={styles.detailValue}>{formatCurrency(settlement.total_amount || settlement.amount)}</Text>
+            <Text style={styles.detailValue}>{formatCurrency(settlement.total_cost ?? settlement.total_amount ?? settlement.amount)}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>정산 상태</Text>
-            <Text style={styles.detailValue}>{settlement.status || '-'}</Text>
+            <Text style={styles.detailLabel}>1인당 금액</Text>
+            <Text style={styles.detailValue}>{formatCurrency(settlement.amount_per_person)}</Text>
           </View>
+          {settlement.total_participants != null && (
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>정산 대상</Text>
+              <Text style={styles.detailValue}>{settlement.total_participants}명</Text>
+            </View>
+          )}
+          {settlement.title ? (
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>제목</Text>
+              <Text style={styles.detailValue}>{settlement.title}</Text>
+            </View>
+          ) : null}
         </ScrollView>
       ) : (
-        <Text style={styles.emptyText}>정산 정보가 없습니다.</Text>
+        <View style={styles.emptyWrap}>
+          <Text style={styles.emptyText}>정산 정보가 없습니다.</Text>
+          <Text style={styles.emptySubtext}>정산이 생성되면 상세 내역을 확인할 수 있습니다.</Text>
+        </View>
       )}
     </Modal>
   );
@@ -121,9 +138,20 @@ const styles = StyleSheet.create({
     color: colors.neutral[800],
     fontWeight: tokens.fontWeight.semibold,
   },
+  emptyWrap: {
+    padding: tokens.padding.md,
+    alignItems: 'center',
+  },
   emptyText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
+    color: colors.neutral[700],
     textAlign: 'center',
+  },
+  emptySubtext: {
+    fontSize: tokens.font.sm,
+    color: colors.neutral[500],
+    textAlign: 'center',
+    marginTop: tokens.spacing.xs,
   },
 });
