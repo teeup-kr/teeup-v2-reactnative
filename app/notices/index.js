@@ -90,10 +90,14 @@ export default function NoticeListScreen() {
             </Pressable>
           ))
         )}
-        <Card style={styles.infoCard}>
+        <Pressable
+          style={({ pressed }) => [styles.infoCard, pressed && styles.infoCardPressed]}
+          onPress={() => router.push('/inquiries')}
+        >
           <Text style={styles.infoTitle}>문의가 필요하신가요?</Text>
-          <Text style={styles.infoText}>FAQ에서 답을 찾거나 고객센터로 문의해주세요.</Text>
-        </Card>
+          <Text style={styles.infoText}>FAQ에서 답을 찾거나 1:1 문의를 등록해주세요.</Text>
+          <Text style={styles.infoLink}>1:1 문의하기 →</Text>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
@@ -156,6 +160,15 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     marginTop: tokens.spacing.xs2,
+  },
+  infoCardPressed: {
+    opacity: 0.9,
+  },
+  infoLink: {
+    marginTop: tokens.spacing.xs,
+    fontSize: tokens.font.sm,
+    color: colors.primary[600],
+    fontWeight: tokens.fontWeight.semibold,
   },
   infoTitle: {
     fontSize: tokens.font.base,
