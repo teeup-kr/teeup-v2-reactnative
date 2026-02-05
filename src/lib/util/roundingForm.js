@@ -1,4 +1,4 @@
-import { convertToKST, normalizeNumber, parseTeeTimes, toDateTimeLocalValue, validateMeetingTimeWithTeeTimes } from '../util/meetingUtils';
+import { convertToKST, formatBirthdateForApi, normalizeNumber, parseTeeTimes, toDateTimeLocalValue, validateMeetingTimeWithTeeTimes } from '../util/meetingUtils';
 
 export function getRoundingMeetingTitle(isEditMode) { return isEditMode ? '라운딩 모임 수정' : '라운딩 모임 만들기'; }
 
@@ -187,13 +187,11 @@ export function buildRoundingPayload({ form, settlementMethods }) {
       payload.selected_guests = selectedGuests.map((guest) => {
         let birthdateValue = undefined;
         if (guest.birthdate) {
-          // 날짜만 있는 경우 (YYYY-MM-DD) 또는 날짜/시간이 있는 경우 모두 처리
-          const dateStr = guest.birthdate.trim();
-          if (dateStr.length === 10) {
-            // YYYY-MM-DD 형식인 경우 날짜만 전송
-            birthdateValue = dateStr;
+          const dateStr = String(guest.birthdate).trim();
+          const apiFormatted = formatBirthdateForApi(dateStr);
+          if (apiFormatted) {
+            birthdateValue = apiFormatted;
           } else {
-            // 날짜/시간이 있는 경우 convertToKST 사용
             birthdateValue = convertToKST(dateStr);
           }
         }

@@ -1,10 +1,9 @@
 import { colors } from '@/styles/colors';
-export const clubValidTabs = ['my', 'all', 'applications', 'join-applications'];
+export const clubValidTabs = ['my', 'all', 'join-applications'];
 
 export const clubTabs = [
   { id: 'my', label: '내 클럽' },
   { id: 'all', label: '클럽 찾아보기' },
-  { id: 'applications', label: '클럽 등록 신청 내역' },
   { id: 'join-applications', label: '가입 신청 내역' },
 ];
 

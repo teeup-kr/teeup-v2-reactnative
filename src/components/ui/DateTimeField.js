@@ -2,8 +2,10 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import { useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { openWebDateTimeInput } from '@/lib/handler/mypage';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
+
 const parseDateTimeValue = (value) => {
   if (!value) return new Date();
   const safeValue = value.includes(' ') ? value.replace(' ', 'T') : value;
@@ -21,6 +23,13 @@ const formatDateTimeValue = (date) => {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
+const formatDisplayValue = (val) => {
+  if (!val || !val.trim()) return '';
+  const v = val.trim().slice(0, 16);
+  if (v.length < 10) return v;
+  return `${v.slice(0, 10)} ${v.slice(11, 16)}`;
+};
+
 export default function DateTimeField({
   label,
   value,
@@ -31,7 +40,50 @@ export default function DateTimeField({
   minimumDate,
 }) {
   const [showPicker, setShowPicker] = useState(false);
-  const displayValue = useMemo(() => (value && value.trim() ? value : ''), [value]);
+  const displayValue = useMemo(() => formatDisplayValue(value), [value]);
+
+  if (Platform.OS === 'web') {
+    const handleWebPress = (e) => {
+      if (e) {
+        e.preventDefault?.();
+        e.stopPropagation?.();
+      }
+      if (disabled) return;
+      const target = e?.nativeEvent?.target;
+      const anchorRect = target && typeof target.getBoundingClientRect === 'function' ? target.getBoundingClientRect() : null;
+      const inputValue = value ? value.slice(0, 16) : '';
+      const min = minimumDate ? minimumDate.toISOString().slice(0, 16) : undefined;
+      const didOpen = openWebDateTimeInput({
+        value: inputValue,
+        min,
+        anchorRect,
+        onChange: (nextValue) => {
+          if (nextValue) onChange(nextValue);
+        },
+      });
+      if (!didOpen) console.warn('웹 날짜/시간 선택기를 열 수 없습니다.');
+    };
+    return (
+      <View style={styles.field}>
+        {label ? <Text style={styles.label}>{label}</Text> : null}
+        <Pressable
+          onPress={handleWebPress}
+          disabled={disabled}
+          style={({ pressed }) => [
+            styles.inputLike,
+            error && styles.inputError,
+            disabled && styles.inputDisabled,
+            pressed && !disabled && { opacity: 0.9 },
+          ]}
+        >
+          <Text style={[styles.inputLikeText, !displayValue && styles.placeholderText]}>
+            {displayValue || placeholder}
+          </Text>
+        </Pressable>
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      </View>
+    );
+  }
 
   const openAndroidPicker = () => {
     const currentValue = parseDateTimeValue(value);
@@ -86,13 +138,14 @@ export default function DateTimeField({
       <Pressable
         onPress={handlePress}
         disabled={disabled}
-        style={[
-          styles.input,
+        style={({ pressed }) => [
+          styles.inputLike,
           error && styles.inputError,
           disabled && styles.inputDisabled,
+          pressed && !disabled && { opacity: 0.9 },
         ]}
       >
-        <Text style={[styles.inputText, !displayValue && styles.placeholderText]}>
+        <Text style={[styles.inputLikeText, !displayValue && styles.placeholderText]}>
           {displayValue || placeholder}
         </Text>
       </Pressable>
@@ -120,20 +173,20 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing.xs,
     fontWeight: tokens.fontWeight.semibold,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    paddingHorizontal: tokens.padding.sm,
+  inputLike: {
+    paddingHorizontal: tokens.padding.baseLg,
     paddingVertical: tokens.padding.sm,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    borderRadius: tokens.radius.md,
     backgroundColor: colors.white,
   },
-  inputText: {
-    fontSize: tokens.font.base,
-    color: colors.neutral[900],
+  inputLikeText: {
+    fontSize: tokens.font.lg,
+    color: colors.text,
   },
   placeholderText: {
-    color: colors.neutral[400],
+    color: colors.textMuted,
   },
   inputError: {
     borderColor: colors.error[500],

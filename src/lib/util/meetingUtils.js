@@ -19,6 +19,48 @@ export function parseYmd(value) {
   return new Date(yyyy, mm - 1, dd);
 };
 
+/** 입력용: 숫자만 남기고 최대 8자리 (YYYYMMDD) */
+export function normalizeBirthdateInput(value) {
+  if (value == null || value === '') return '';
+  const digits = String(value).replace(/\D/g, '').slice(0, 8);
+  return digits;
+}
+
+const BIRTHDATE_YEAR_MIN = 1900;
+const BIRTHDATE_YEAR_MAX = new Date().getFullYear();
+
+/** 생년월일이 유효한 범위(1900~올해, 올바른 월/일)인지 검사 */
+function isValidBirthdate(yyyy, mm, dd) {
+  const year = Number(yyyy);
+  const month = Number(mm);
+  const day = Number(dd);
+  if (year < BIRTHDATE_YEAR_MIN || year > BIRTHDATE_YEAR_MAX) return false;
+  if (month < 1 || month > 12) return false;
+  const d = new Date(year, month - 1, day);
+  if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) return false;
+  return true;
+}
+
+/** API 전송용: 8자리(YYYYMMDD) 또는 YYYY-MM-DD → YYYY-MM-DD(유효할 때만), 그 외 null */
+export function formatBirthdateForApi(value) {
+  if (!value || typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const digits = trimmed.replace(/\D/g, '');
+  let yyyy; let mm; let dd;
+  if (digits.length === 8) {
+    yyyy = digits.slice(0, 4);
+    mm = digits.slice(4, 6);
+    dd = digits.slice(6, 8);
+  } else if (trimmed.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    [yyyy, mm, dd] = trimmed.split('-');
+  } else {
+    return null;
+  }
+  if (!isValidBirthdate(yyyy, mm, dd)) return null;
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export function isPastDateTime(value) {
   if (!value) return false;
   try {

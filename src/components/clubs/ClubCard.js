@@ -15,7 +15,7 @@ import ClubBadge from './ClubBadge';
 
 
 export default function ClubCard({ club, variant, onPress, styles, logoImage, locationLabel }) {
-  const showStatus = variant === 'all' || variant === 'my' || variant === 'applications';
+  const showStatus = variant === 'all' || variant === 'my';
   const showMembershipStatus = variant === 'my' || variant === 'join-applications';
   const showMembershipRole = variant === 'my' || variant === 'join-applications';
 
@@ -107,9 +107,7 @@ export default function ClubCard({ club, variant, onPress, styles, logoImage, lo
 
         <View style={styles.cardFooter}>
           <Text style={styles.cardDate}>
-            {variant === 'applications'
-              ? `신청일: ${formatClubDate(club?.created_at)}`
-              : formatClubDate(club?.created_at || club?.joined_at)}
+            {formatClubDate(club?.created_at || club?.joined_at)}
           </Text>
           <Text style={styles.cardLink}>자세히 보기 →</Text>
         </View>

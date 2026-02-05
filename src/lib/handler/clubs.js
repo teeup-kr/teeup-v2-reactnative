@@ -114,7 +114,6 @@ export function createFetchClubsHandler({
     statusFilter,
     userId,
     fetchMyClubs,
-    fetchMyClubApplications,
     fetchClubs,
     normalizePaginatedResponse,
     setClubs,
@@ -130,8 +129,6 @@ export function createFetchClubsHandler({
 
             if (activeTab === 'my') {
                 response = await fetchMyClubs({ page: currentPage, limit: 6 });
-            } else if (activeTab === 'applications') {
-                response = await fetchMyClubApplications({ page: currentPage, limit: 6 });
             } else if (activeTab === 'join-applications') {
                 response = await fetchMyClubs({
                     page: currentPage,
@@ -225,15 +222,10 @@ export function createClubPressHandler({ router, alert }) {
     };
 }
 
-export function createCardPressHandler({ activeTab, router, onClubPress }) {
-    return (club) =>
-        () => {
-            if (activeTab === 'applications') {
-                router.push(`/clubs/applications/${club.id}`);
-                return;
-            }
-            onClubPress(club);
-        };
+export function createCardPressHandler({ router, onClubPress }) {
+    return (club) => () => {
+        onClubPress(club);
+    };
 }
 
 export function createSearchTermChangeHandler({ setSearchTerm }) {

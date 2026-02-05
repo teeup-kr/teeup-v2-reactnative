@@ -84,6 +84,9 @@ export default function FullMenu() {
       items: [
         { icon: 'file-alt', label: '공지사항', onPress: () => navigate('/notices') },
         { icon: 'question-circle', label: 'FAQ', onPress: () => navigate('/faq') },
+        ...(isAuthenticated
+          ? [{ icon: 'envelope', label: '1:1 문의', onPress: () => navigate('/inquiries', true) }]
+          : []),
         { icon: 'file-alt', label: '이용약관', onPress: () => navigate('/terms') },
         ...(isAuthenticated ? [{ icon: 'sign-out-alt', label: '로그아웃', onPress: handleLogout }] : []),
       ],
