@@ -35,7 +35,7 @@ import {
     createConfirmSettlementHandler,
     createConfirmTeamsHandler,
     createFetchApplicationStatusHandler,
-    createFetchMeetingHandler,
+    createFetchMeetingDetailHandler,
     createFetchParticipantsHandler,
     createFetchTeamsHandler,
     createFetchUserInfoHandler,
@@ -52,6 +52,7 @@ import {
     buildUserInfoFromProfile,
     extractData,
     extractList,
+    formatBirthdateForApi,
     formatDateTime,
     getCurrentHandicap,
     getIsJoined,
@@ -59,6 +60,7 @@ import {
     getMyParticipantId,
     getTypeSlug,
     getUserRole,
+    normalizeBirthdateInput,
 } from '@/lib/util/meetingUtils';
 import { ensureProfileCompleted } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
@@ -266,7 +268,7 @@ export default function MeetingDetailScreen() {
 
   const fetchMeeting = useMemo(
     () =>
-      createFetchMeetingHandler({
+      createFetchMeetingDetailHandler({
         meetingIdValue,
         typeSlug,
         fetchSocial: meetingsApi.fetchSocial,
@@ -286,6 +288,7 @@ export default function MeetingDetailScreen() {
         typeSlug,
         meeting,
         fetchRoundParticipants: meetingsApi.fetchRoundParticipants,
+        fetchSocialParticipants: meetingsApi.fetchSocialParticipants,
         extractList,
         setParticipants,
         setConfirmedParticipants,
@@ -387,9 +390,11 @@ export default function MeetingDetailScreen() {
         setPreviewTeams,
         setTeamPreviewOpen,
         setTeams,
+        fetchTeams,
+        onCloseTeamFormation: () => setTeamFormationOpen(false),
         alert: Alert.alert,
       }),
-    [meetingIdValue, router, setProcessingAction, setPreviewTeams, setTeamPreviewOpen, setTeams]
+    [meetingIdValue, router, setProcessingAction, setPreviewTeams, setTeamPreviewOpen, setTeams, fetchTeams]
   );
 
   const handleConfirmTeams = useMemo(
@@ -618,6 +623,11 @@ export default function MeetingDetailScreen() {
         Alert.alert('확인', '게스트 이름을 입력해주세요.');
         return;
       }
+      const birthdateRaw = String(guestForm.birthdate || '').trim().replace(/\D/g, '');
+      if (birthdateRaw.length === 8 && !formatBirthdateForApi(guestForm.birthdate)) {
+        Alert.alert('확인', '생년월일을 확인해주세요. (1900년~올해, 올바른 월·일)');
+        return;
+      }
 
       const handicapValue =
         guestForm.handicap !== '' && Number.isFinite(Number(guestForm.handicap))
@@ -635,7 +645,7 @@ export default function MeetingDetailScreen() {
         setProcessingAction(true);
         await roundsApi.addGuest(meetingIdValue, {
           name: guestName,
-          birthdate: guestForm.birthdate || null,
+          birthdate: formatBirthdateForApi(guestForm.birthdate) || null,
           gender: guestForm.gender || null,
           handicap: handicapValue,
           average_score: averageScoreValue,
@@ -724,7 +734,7 @@ export default function MeetingDetailScreen() {
             );
             const nextUserIds = new Set(
               nextMembers
-                .map((member) => member?.user_id || member?.id)
+                .map((member) => member?.user_id)
                 .filter(Boolean)
             );
 
@@ -739,7 +749,7 @@ export default function MeetingDetailScreen() {
 
             const previousUserIds = new Set(previousMemberByUserId.keys());
             for (const member of nextMembers) {
-              const userId = member?.user_id || member?.id;
+              const userId = member?.user_id;
               if (userId && !previousUserIds.has(userId)) {
                 await roundsApi.addTeamMember(meetingIdValue, teamId, userId);
               }
@@ -757,7 +767,7 @@ export default function MeetingDetailScreen() {
 
             const members = team?.members || team?.team_members || [];
             for (const member of members) {
-              const userId = member?.user_id || member?.id;
+              const userId = member?.user_id;
               if (userId) {
                 await roundsApi.addTeamMember(meetingIdValue, createdTeamId, userId);
               }
@@ -972,10 +982,21 @@ export default function MeetingDetailScreen() {
     settlementConfirmedParticipants.length,
   ]);
 
+  /** 라운딩은 SCHEDULED만 참가 가능, 소셜은 취소/완료가 아니면 참가 가능(OPEN 등) */
+  const isJoinableStatus = useMemo(
+    () => {
+      if (normalizedStatus === 'CANCELED' || normalizedStatus === 'COMPLETED') return false;
+      if (normalizedStatus === 'SCHEDULED') return true;
+      if (!isRoundingMeeting) return true;
+      return false;
+    },
+    [normalizedStatus, isRoundingMeeting]
+  );
+
   const canJoin = useMemo(
     () =>
       Boolean(
-        normalizedStatus === 'SCHEDULED' &&
+        isJoinableStatus &&
           !isOrganizer &&
           !isParticipant &&
           (meeting?.max_participants == null ||
@@ -983,7 +1004,7 @@ export default function MeetingDetailScreen() {
           !isApplicationClosed
       ),
     [
-      normalizedStatus,
+      isJoinableStatus,
       isOrganizer,
       isParticipant,
       meeting?.max_participants,
@@ -1020,9 +1041,21 @@ export default function MeetingDetailScreen() {
     [isOrganizer, isParticipant, isClubLeaderOrManager, displayStatus]
   );
 
+  /** 소셜: 주최/참가자가 아니고 취소·완료가 아니면 참가 버튼 표시 (API 상태와 무관하게) */
+  const showJoinButtonForSocial = useMemo(
+    () =>
+      Boolean(
+        !isRoundingMeeting &&
+          isJoinableStatus &&
+          !isOrganizer &&
+          !isParticipant
+      ),
+    [isRoundingMeeting, isJoinableStatus, isOrganizer, isParticipant]
+  );
+
   const hasTopActions = useMemo(
-    () => canEditTopActions || canJoin || canLeave,
-    [canEditTopActions, canJoin, canLeave]
+    () => canEditTopActions || canJoin || canLeave || showJoinButtonForSocial,
+    [canEditTopActions, canJoin, canLeave, showJoinButtonForSocial]
   );
 
   const canShowMySettlementTab = useMemo(() => {
@@ -1050,6 +1083,11 @@ export default function MeetingDetailScreen() {
   const hasConfirmedTeams = useMemo(
     () => teams.some((team) => String(team?.status || '').toUpperCase() === 'CONFIRMED'),
     [teams]
+  );
+
+  const teamsForWorkflow = useMemo(
+    () => (teams.length > 0 ? teams : extractList(meeting?.teams) || []),
+    [teams, meeting?.teams]
   );
 
   const canCloseApplication = useMemo(
@@ -1489,7 +1527,7 @@ export default function MeetingDetailScreen() {
           <View style={styles.topButtonsSection}>
             {hasTopActions ? (
               <View style={styles.topButtonsWrap}>
-                {canJoin ? (
+                {(canJoin || showJoinButtonForSocial) ? (
                   <Pressable
                     style={({ pressed }) => [
                       styles.topButtonBase,
@@ -1612,7 +1650,7 @@ export default function MeetingDetailScreen() {
           <MeetingWorkflowStatus
             meeting={meeting}
             participants={participants}
-            teams={teams}
+            teams={teamsForWorkflow}
             userRole={userRole}
             applicationStatus={applicationStatus}
             confirmedParticipants={confirmedParticipants}
@@ -1967,10 +2005,12 @@ export default function MeetingDetailScreen() {
               <Text style={styles.fieldLabel}>생년월일</Text>
               <TextInput
                 value={guestForm.birthdate}
-                onChangeText={(value) => setGuestForm((prev) => ({ ...prev, birthdate: value }))}
+                onChangeText={(value) => setGuestForm((prev) => ({ ...prev, birthdate: normalizeBirthdateInput(value) }))}
                 style={styles.input}
-                placeholder="YYYY-MM-DD"
+                placeholder="8글자 입력 (예: 20260205)"
                 placeholderTextColor={colors.neutral[400]}
+                keyboardType="number-pad"
+                maxLength={8}
               />
             </View>
 

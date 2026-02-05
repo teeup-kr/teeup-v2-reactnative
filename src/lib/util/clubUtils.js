@@ -80,7 +80,7 @@ export function getClubPageNumbers({ currentPage, totalPages }) {
   return numbers;
 };
 
-export function getClubCardVariant(activeTab) { return activeTab === 'applications' ? 'applications' : activeTab; }
+export function getClubCardVariant(activeTab) { return activeTab || 'my'; }
 export function normalizeClubActivities(activities) {
   return activities.map((item, index) => {
     const activityKey = item?.id || item?.activity_id || item?.title || `activity-${index}`;
