@@ -376,7 +376,7 @@ export function getMyPageTabContent({ activeTab, tabs }) {
             return tabs.overview;
     }
 };
-export function openWebDateInput({ value, onChange }) {
+export function openWebDateInput({ value, onChange, anchorRect }) {
     const doc = globalThis?.document;
     if (!doc || typeof doc.createElement !== 'function') return false;
 
@@ -391,12 +391,23 @@ export function openWebDateInput({ value, onChange }) {
     input.type = 'date';
     input.value = value || '';
     input.style.position = 'fixed';
-    input.style.top = '50%';
-    input.style.left = '50%';
-    input.style.transform = 'translate(-50%, -50%)';
+    if (anchorRect && typeof anchorRect.left === 'number' && typeof anchorRect.top === 'number') {
+        input.style.left = `${anchorRect.left}px`;
+        input.style.top = `${anchorRect.top}px`;
+        input.style.width = `${Math.max(1, anchorRect.width || 1)}px`;
+        input.style.height = `${Math.max(1, anchorRect.height || 1)}px`;
+    } else {
+        input.style.top = '50%';
+        input.style.left = '50%';
+        input.style.transform = 'translate(-50%, -50%)';
+        input.style.width = '1px';
+        input.style.height = '1px';
+    }
     input.style.opacity = '0';
-    input.style.width = '1px';
-    input.style.height = '1px';
+    if (!anchorRect || typeof anchorRect.left !== 'number') {
+        input.style.width = '1px';
+        input.style.height = '1px';
+    }
     input.style.zIndex = '99999';
     input.style.pointerEvents = 'auto';
     input.style.border = 'none';
@@ -418,17 +429,20 @@ export function openWebDateInput({ value, onChange }) {
             cleanupTimeout = null;
         }
 
-        // 약간의 지연 후 제거 (날짜 선택기가 완전히 닫힐 때까지 대기)
-        setTimeout(() => {
+        // 선택 직후 클릭이 버튼에 가도록 바로 클릭 차단 해제
+        input.style.pointerEvents = 'none';
+        input.style.visibility = 'hidden';
+        const removeInput = () => {
             if (input.parentNode) {
                 try {
                     input.parentNode.removeChild(input);
                 } catch (e) {
-                    console.log(e);
                     // 이미 제거된 경우 무시
                 }
             }
-        }, 500);
+        };
+        // 짧은 지연 후 제거 (이벤트 전파 후 제거, 두 번째 클릭이 버튼에 닿도록)
+        setTimeout(removeInput, 50);
     };
 
     input.onchange = (event) => {
@@ -439,15 +453,13 @@ export function openWebDateInput({ value, onChange }) {
         if (selectedValue) {
             onChange(selectedValue);
         }
-        // 변경 후 제거
         cleanup();
     };
 
-    // onblur 이벤트를 완전히 무시
-    // 날짜 선택기가 열려있는 동안 input을 유지하기 위해 onblur에서 아무것도 하지 않음
+    // 바깥 클릭(달력만 닫고 선택 안 함) 시에도 정리해서 다시 버튼이 눌리도록
     input.onblur = () => {
-        // 완전히 무시 - 날짜 선택기가 열려있는 동안 input을 유지
-        // onchange에서만 cleanup 실행
+        if (changeHandled || isCleanedUp) return;
+        cleanupTimeout = setTimeout(cleanup, 200);
     };
 
     // DOM에 추가
@@ -510,6 +522,109 @@ export function openWebDateInput({ value, onChange }) {
     return true;
 };
 
+/**
+ * 웹에서 datetime-local 선택기 열기 (날짜+시간)
+ * openWebDateInput과 동일 패턴, type="datetime-local" 사용
+ */
+export function openWebDateTimeInput({ value, onChange, min, anchorRect }) {
+    const doc = globalThis?.document;
+    if (!doc || typeof doc.createElement !== 'function') return false;
+
+    const existingInput = doc.getElementById('web-datetime-input-temp');
+    if (existingInput) existingInput.remove();
+
+    const input = doc.createElement('input');
+    input.id = 'web-datetime-input-temp';
+    input.type = 'datetime-local';
+    input.value = value || '';
+    if (min) input.min = min;
+    input.style.position = 'fixed';
+    if (anchorRect && typeof anchorRect.left === 'number' && typeof anchorRect.top === 'number') {
+        input.style.left = `${anchorRect.left}px`;
+        input.style.top = `${anchorRect.top}px`;
+        input.style.width = `${Math.max(1, anchorRect.width || 1)}px`;
+        input.style.height = `${Math.max(1, anchorRect.height || 1)}px`;
+    } else {
+        input.style.top = '50%';
+        input.style.left = '50%';
+        input.style.transform = 'translate(-50%, -50%)';
+        input.style.width = '1px';
+        input.style.height = '1px';
+    }
+    input.style.opacity = '0';
+    input.style.zIndex = '99999';
+    input.style.pointerEvents = 'auto';
+    input.style.border = 'none';
+    input.style.outline = 'none';
+    input.style.margin = '0';
+    input.style.padding = '0';
+    input.tabIndex = -1;
+
+    let isCleanedUp = false;
+    let blurCleanupTimeout = null;
+    const cleanup = () => {
+        if (isCleanedUp) return;
+        isCleanedUp = true;
+        if (blurCleanupTimeout) {
+            clearTimeout(blurCleanupTimeout);
+            blurCleanupTimeout = null;
+        }
+        input.style.pointerEvents = 'none';
+        input.style.visibility = 'hidden';
+        const removeInput = () => {
+            if (input.parentNode) {
+                try { input.parentNode.removeChild(input); } catch (e) { /* noop */ }
+            }
+        };
+        setTimeout(removeInput, 50);
+    };
+
+    input.onchange = (event) => {
+        const v = event?.target?.value || '';
+        if (v) onChange(v);
+        cleanup();
+    };
+    input.onblur = () => {
+        if (isCleanedUp) return;
+        blurCleanupTimeout = setTimeout(cleanup, 200);
+    };
+
+    doc.body.appendChild(input);
+    setTimeout(() => {
+        try {
+            if (typeof input.showPicker === 'function') {
+                try {
+                    const r = input.showPicker();
+                    if (r && typeof r.catch === 'function') {
+                        r.catch(() => {
+                            if (!isCleanedUp && input.parentNode) {
+                                input.focus();
+                                input.click();
+                            }
+                        });
+                    }
+                } catch {
+                    if (!isCleanedUp && input.parentNode) {
+                        input.focus();
+                        input.click();
+                    }
+                }
+            } else {
+                input.focus();
+                setTimeout(() => {
+                    if (!isCleanedUp && input.parentNode) input.click();
+                }, 50);
+            }
+        } catch {
+            cleanup();
+        }
+    }, 100);
+    setTimeout(() => {
+        if (!isCleanedUp && input.parentNode) cleanup();
+    }, 60000);
+    return true;
+}
+
 export function createDatePickerChangeHandler({ setValue, setPage, toYmd }) {
     return (event, date) => {
         if (event?.type === 'dismissed') return;
@@ -529,10 +644,13 @@ export function createOpenDatePickerHandler({
     fromYmd,
     toYmd,
 }) {
-    return () => {
+    return (e) => {
         if (platform === 'web') {
+            const target = e?.nativeEvent?.target;
+            const anchorRect = target && typeof target.getBoundingClientRect === 'function' ? target.getBoundingClientRect() : null;
             const didOpen = openWebDateInput({
                 value,
+                anchorRect,
                 onChange: (nextValue) => {
                     setValue(nextValue);
                     setPage(1);

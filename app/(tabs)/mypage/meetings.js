@@ -190,7 +190,7 @@ export default function MyMeetingsScreen() {
           {/* 날짜 */}
           {/* 시작일 */}
           <Text style={styles.dateText}>시작일</Text>
-          <Pressable style={styles.dateInput} onPress={openStartPicker}>
+          <Pressable style={styles.dateInput} onPress={(ev) => openStartPicker(ev)}>
 
             <Text style={{ fontSize: tokens.font.sm, color: startDate ? colors.neutral[800] : colors.neutral[400] }}>
               {startDate || 'YYYY-MM-DD'}
@@ -199,7 +199,7 @@ export default function MyMeetingsScreen() {
 
           {/* 종료일 */}
           <Text style={styles.dateText}>종료일</Text>
-          <Pressable style={styles.dateInput} onPress={openEndPicker}>
+          <Pressable style={styles.dateInput} onPress={(ev) => openEndPicker(ev)}>
             <Text style={{ fontSize: tokens.font.sm, color: endDate ? colors.neutral[800] : colors.neutral[400] }}>
               {endDate || 'YYYY-MM-DD'}
             </Text>
