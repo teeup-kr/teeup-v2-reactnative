@@ -142,8 +142,11 @@ export default function UserProfileEditForm() {
         }
 
         const currentValue = formData.birthdate || '';
+        const target = e?.nativeEvent?.target;
+        const anchorRect = target && typeof target.getBoundingClientRect === 'function' ? target.getBoundingClientRect() : null;
         const didOpen = openWebDateInput({
           value: currentValue,
+          anchorRect,
           onChange: (nextValue) => {
             if (nextValue) {
               handleInputChange('birthdate', nextValue);
