@@ -221,6 +221,7 @@ export default function MeetingDetailScreen() {
   const [roundingCompleteOpen, setRoundingCompleteOpen] = useState(false);
   const [scoreModalOpen, setScoreModalOpen] = useState(false);
   const [previewTeams, setPreviewTeams] = useState([]);
+  const [previewFormation, setPreviewFormation] = useState(null);
   const [formationHistory, setFormationHistory] = useState([]);
   const [guestModalOpen, setGuestModalOpen] = useState(false);
   const [guestForm, setGuestForm] = useState({
@@ -384,10 +385,19 @@ export default function MeetingDetailScreen() {
         setProcessingAction,
         setPreviewTeams,
         setTeamPreviewOpen,
+        setPreviewFormation,
         setTeams,
         alert: Alert.alert,
       }),
-    [meetingIdValue, router, setProcessingAction, setPreviewTeams, setTeamPreviewOpen, setTeams]
+    [
+      meetingIdValue,
+      router,
+      setProcessingAction,
+      setPreviewTeams,
+      setTeamPreviewOpen,
+      setPreviewFormation,
+      setTeams,
+    ]
   );
 
   const handleConfirmTeams = useMemo(
@@ -629,7 +639,13 @@ export default function MeetingDetailScreen() {
   const closeHistory = useMemo(() => () => setHistoryOpen(false), []);
   const openBatchFormation = useMemo(() => () => setBatchFormationOpen(true), []);
   const closeBatchFormation = useMemo(() => () => setBatchFormationOpen(false), []);
-  const closeTeamPreview = useMemo(() => () => setTeamPreviewOpen(false), []);
+  const closeTeamPreview = useMemo(
+    () => () => {
+      setTeamPreviewOpen(false);
+      setPreviewFormation(null);
+    },
+    []
+  );
   const closeRoundingComplete = useMemo(() => () => setRoundingCompleteOpen(false), []);
   const openScoreModal = useMemo(() => () => setScoreModalOpen(true), []);
   const closeScoreModal = useMemo(() => () => setScoreModalOpen(false), []);
@@ -739,10 +755,16 @@ export default function MeetingDetailScreen() {
   const handleBatchViewDetail = useMemo(
     () =>
       (result) => {
+        const mode = result?.mode || meeting?.team_formation_mode;
+        const size = result?.teamSize || meeting?.team_size || 4;
+        setPreviewFormation({
+          mode,
+          teamSize: size,
+        });
         setPreviewTeams(result.teams || []);
         setTeamPreviewOpen(true);
       },
-    []
+    [meeting?.team_formation_mode, meeting?.team_size]
   );
 
   const handleHistoryViewDetail = useMemo(
@@ -1983,8 +2005,8 @@ export default function MeetingDetailScreen() {
         visible={teamPreviewOpen}
         onClose={closeTeamPreview}
         teams={previewTeams}
-        formationMode={meeting?.team_formation_mode}
-        teamSize={meeting?.team_size || 4}
+        formationMode={previewFormation?.mode ?? meeting?.team_formation_mode}
+        teamSize={previewFormation?.teamSize || meeting?.team_size || 4}
         onConfirm={handleConfirmTeams}
         onReform={handleReformTeams}
         onSaveHistory={handleSaveHistory}

@@ -219,6 +219,7 @@ export function createAutoFormTeamsHandler({
     setPreviewTeams,
     setTeamPreviewOpen,
     setTeams,
+    setPreviewFormation,
     alert,
 }) {
     return async function (payload = {}) {
@@ -229,10 +230,17 @@ export function createAutoFormTeamsHandler({
             setProcessingAction(true);
             const response = await autoFormTeams(meetingIdValue, payload);
             const teamsData = extractList(response?.teams || response?.data?.teams || response);
-            if (payload.preview || payload.batchMode) {
+            if (payload.preview && !payload.batchMode) {
+                if (typeof setPreviewFormation === 'function') {
+                    const mode = payload?.formation_mode;
+                    const size = payload?.team_size;
+                    if (mode || size) {
+                        setPreviewFormation({ mode, teamSize: size });
+                    }
+                }
                 setPreviewTeams(teamsData);
                 setTeamPreviewOpen(true);
-            } else {
+            } else if (!payload.batchMode) {
                 setTeams(teamsData);
             }
             return response;
