@@ -209,22 +209,12 @@ export default function MeetingStatsScreen() {
             <Text style={styles.emptyText}>참가자가 없습니다.</Text>
           ) : (
             participants.map((participant) => {
-              const status = String(participant?.status || 'PENDING').toUpperCase();
-              const statusText = status === 'CONFIRMED' ? '확정' : status === 'PENDING' ? '대기' : '취소';
-              const statusColor =
-                status === 'CONFIRMED'
-                  ? colors.success[700]
-                  : status === 'PENDING'
-                    ? colors.warning[700]
-                    : colors.error[700];
-
               return (
                 <View key={participant?.id || participant?.user_id} style={styles.participantRow}>
                   <View style={styles.participantInfo}>
                     <Text style={styles.participantName}>{getParticipantName(participant)}</Text>
                     <Text style={styles.participantEmail}>{participant?.user_email || '-'}</Text>
                   </View>
-                  <Text style={[styles.participantStatus, { color: statusColor }]}>{statusText}</Text>
                 </View>
               );
             })
@@ -394,11 +384,6 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.xs,
     color: colors.neutral[500],
     marginTop: 2,
-  },
-  participantStatus: {
-    fontSize: tokens.font.xs,
-    fontWeight: tokens.fontWeight.semibold,
-    marginLeft: 8,
   },
   teamCard: {
     borderWidth: 1,

@@ -48,7 +48,6 @@ export function createFetchParticipantsHandler({
     fetchRoundParticipants,
     extractList,
     setParticipants,
-    setConfirmedParticipants,
 }) {
     return async function () {
         if (!meetingIdValue) return;
@@ -63,9 +62,6 @@ export function createFetchParticipantsHandler({
             const response = await fetchRoundParticipants(meetingIdValue);
             const list = extractList(response);
             setParticipants(list);
-            setConfirmedParticipants(
-                list.filter((participant) => participant.status === 'CONFIRMED')
-            );
         } catch (error) {
             console.error('참가자 조회 실패:', error);
         }

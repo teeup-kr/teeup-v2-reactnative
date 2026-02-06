@@ -14,7 +14,6 @@ import {
 import FilterChip from '@/components/mypage/FilterChip';
 import Card from '@/components/ui/Card';
 import {
-    myMeetingsRoleConfig,
     myMeetingsStatusConfig,
     myMeetingsTypeConfig,
     myMeetingsTypeTabs
@@ -266,7 +265,6 @@ export default function MyMeetingsScreen() {
           const type = myMeetingsTypeConfig[meetingType];
           const statusKey = getMeetingStatusKey(meeting);
           const status = myMeetingsStatusConfig[statusKey];
-          const role = myMeetingsRoleConfig[meeting?.role || 'PARTICIPANT'];
           const meetingId = meeting?.id;
           const slug = meetingType === 'ROUND' ? 'rounding' : 'social';
 
@@ -314,11 +312,6 @@ export default function MyMeetingsScreen() {
                   <FontAwesome5 name="users" size={12} color={colors.neutral[500]} />
                   <Text style={styles.metaText}>
                     {meeting?.participant_count ?? 0}명 참여
-                  </Text>
-                </View>
-                <View style={[styles.badge, { backgroundColor: role.bg }]}>
-                  <Text style={[styles.badgeText, { color: role.color }]}>
-                    {role.label}
                   </Text>
                 </View>
               </View>

@@ -206,20 +206,6 @@ async function getRoundParticipants(id) {
   return apiClient.get(`/rounds/${id}/participants`);
 }
 
-async function updateParticipantStatus(roundId, participantId, data) {
-  return apiClient.patch(
-    `/rounds/${roundId}/participants/${participantId}/status`,
-    data
-  );
-}
-
-async function updateParticipantRole(roundId, participantId, data) {
-  return apiClient.patch(
-    `/rounds/${roundId}/participants/${participantId}/role`,
-    data
-  );
-}
-
 async function removeParticipant(roundId, participantId) {
   return apiClient.delete(`/rounds/${roundId}/participants/${participantId}`);
 }
@@ -331,14 +317,6 @@ async function applyToMeeting(meetingId) {
   return apiClient.post(`/meetings/${meetingId}/apply`);
 }
 
-async function approveParticipant(meetingId, participantId) {
-  return apiClient.post(`/meetings/${meetingId}/participants/${participantId}/approve`);
-}
-
-async function rejectParticipant(meetingId, participantId) {
-  return apiClient.post(`/meetings/${meetingId}/participants/${participantId}/reject`);
-}
-
 async function closeApplicationEarly(meetingId) {
   return apiClient.post(`/meetings/${meetingId}/close-application`);
 }
@@ -422,8 +400,6 @@ export const roundsApi = {
   leaveRound,
   cancelRound,
   getRoundParticipants,
-  updateParticipantStatus,
-  updateParticipantRole,
   removeParticipant,
   getRoundTeams,
   createTeam,
@@ -450,8 +426,6 @@ export const roundsApi = {
   markNotificationAsRead,
   markAllNotificationsAsRead,
   applyToMeeting,
-  approveParticipant,
-  rejectParticipant,
   closeApplicationEarly,
   getApplicationStatus,
   startTeamFormation,

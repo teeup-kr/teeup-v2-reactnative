@@ -211,7 +211,6 @@ export default function MeetingDetailScreen() {
   const [isEditingUserInfo, setIsEditingUserInfo] = useState(false);
   const [processingAction, setProcessingAction] = useState(false);
   const [applicationStatus, setApplicationStatus] = useState(null);
-  const [confirmedParticipants, setConfirmedParticipants] = useState([]);
 
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [teamFormationOpen, setTeamFormationOpen] = useState(false);
@@ -288,9 +287,8 @@ export default function MeetingDetailScreen() {
         fetchRoundParticipants: meetingsApi.fetchRoundParticipants,
         extractList,
         setParticipants,
-        setConfirmedParticipants,
       }),
-    [meetingIdValue, typeSlug, meeting, setParticipants, setConfirmedParticipants]
+    [meetingIdValue, typeSlug, meeting, setParticipants]
   );
 
   const fetchTeams = useMemo(
@@ -557,44 +555,6 @@ export default function MeetingDetailScreen() {
     [meetingIdValue, fetchMeeting, fetchParticipants, fetchStatus, ensureMeetingProfile]
   );
 
-  const handleApproveParticipant = useMemo(
-    () => async (participantId) => {
-      if (!participantId) return;
-      const isCompleted = await ensureMeetingProfile();
-      if (!isCompleted) return;
-      try {
-        setProcessingAction(true);
-        await roundsApi.approveParticipant(meetingIdValue, participantId);
-        fetchParticipants();
-        fetchMeeting();
-      } catch (approveError) {
-        Alert.alert('오류', approveError?.message || '참가 승인에 실패했습니다.');
-      } finally {
-        setProcessingAction(false);
-      }
-    },
-    [meetingIdValue, fetchParticipants, fetchMeeting, ensureMeetingProfile]
-  );
-
-  const handleRejectParticipant = useMemo(
-    () => async (participantId) => {
-      if (!participantId) return;
-      const isCompleted = await ensureMeetingProfile();
-      if (!isCompleted) return;
-      try {
-        setProcessingAction(true);
-        await roundsApi.rejectParticipant(meetingIdValue, participantId);
-        fetchParticipants();
-        fetchMeeting();
-      } catch (rejectError) {
-        Alert.alert('오류', rejectError?.message || '참가 거절에 실패했습니다.');
-      } finally {
-        setProcessingAction(false);
-      }
-    },
-    [meetingIdValue, fetchParticipants, fetchMeeting, ensureMeetingProfile]
-  );
-
   const handleOpenGuestModal = useMemo(() => () => setGuestModalOpen(true), []);
   const handleCloseGuestModal = useMemo(
     () => () => {
@@ -804,30 +764,22 @@ export default function MeetingDetailScreen() {
     [participants, user?.id]
   );
 
-  const participantRole = useMemo(
-    () => String(myParticipant?.role || '').toUpperCase(),
-    [myParticipant?.role]
-  );
-
   const isJoined = useMemo(
     () => getIsJoined({ participants, user }),
     [participants, user]
   );
 
+  const organizerId = meeting?.created_by ?? meeting?.creator_id;
   const isOrganizer = useMemo(
     () =>
       Boolean(
-        (meeting?.creator_id !== undefined &&
-          meeting?.creator_id !== null &&
+        organizerId !== undefined &&
+          organizerId !== null &&
           user?.id !== undefined &&
           user?.id !== null &&
-          `${meeting.creator_id}` === `${user.id}`) ||
-          participantRole === 'ORGANIZER' ||
-          participantRole === 'HOST' ||
-          userRole === 'ORGANIZER' ||
-          userRole === 'HOST'
+          `${organizerId}` === `${user.id}`
       ),
-    [meeting?.creator_id, participantRole, user?.id, userRole]
+    [organizerId, user?.id]
   );
 
   const isParticipant = useMemo(
@@ -838,18 +790,21 @@ export default function MeetingDetailScreen() {
   const isClubLeaderOrManager = useMemo(() => {
     const participantClubRole = String(myParticipant?.club_role || myParticipant?.membership_role || '').toUpperCase();
     return (
-      participantRole === 'LEADER' ||
-      participantRole === 'MANAGER' ||
-      userRole === 'LEADER' ||
-      userRole === 'MANAGER' ||
       participantClubRole === 'LEADER' ||
-      participantClubRole === 'MANAGER'
+      participantClubRole === 'MANAGER' ||
+      userRole === 'LEADER' ||
+      userRole === 'MANAGER'
     );
-  }, [myParticipant?.club_role, myParticipant?.membership_role, participantRole, userRole]);
+  }, [myParticipant?.club_role, myParticipant?.membership_role, userRole]);
+
+  const isAdmin = useMemo(
+    () => String(userRole || '').toUpperCase() === 'ADMIN',
+    [userRole]
+  );
 
   const hasManagerPermission = useMemo(
-    () => Boolean(isOrganizer || (isParticipant && isClubLeaderOrManager)),
-    [isOrganizer, isParticipant, isClubLeaderOrManager]
+    () => Boolean(isAdmin || isOrganizer || (isParticipant && isClubLeaderOrManager)),
+    [isAdmin, isOrganizer, isParticipant, isClubLeaderOrManager]
   );
 
   const isManager = useMemo(
@@ -862,10 +817,11 @@ export default function MeetingDetailScreen() {
     [meeting]
   );
 
-  const confirmedCount = useMemo(
-    () => participants.filter((participant) => String(participant?.status || '').toUpperCase() === 'CONFIRMED').length,
-    [participants]
-  );
+  const participantCount = useMemo(() => {
+    if (participants.length > 0) return participants.length;
+    const count = Number(meeting?.participant_count);
+    return Number.isFinite(count) ? count : 0;
+  }, [participants.length, meeting?.participant_count]);
 
   const normalizedStatus = useMemo(
     () => String(meeting?.status || '').toUpperCase(),
@@ -897,19 +853,14 @@ export default function MeetingDetailScreen() {
     [meeting?.meeting_time]
   );
 
-  const settlementConfirmedParticipants = useMemo(
-    () => participants.filter((participant) => String(participant?.status || '').toUpperCase() === 'CONFIRMED'),
-    [participants]
-  );
-
   const isMinParticipantsNotMet = useMemo(() => {
     if (!meeting || !isApplicationClosed) return false;
-    const count = settlementConfirmedParticipants.length;
+    const count = participantCount;
     if (isRoundingMeeting) {
       return count >= 1 && count <= 3;
     }
     return count === 1;
-  }, [meeting, isApplicationClosed, isRoundingMeeting, settlementConfirmedParticipants.length]);
+  }, [meeting, isApplicationClosed, isRoundingMeeting, participantCount]);
 
   const canSettleMeeting = useMemo(() => {
     if (!meeting) return false;
@@ -953,10 +904,10 @@ export default function MeetingDetailScreen() {
 
     if (isApplicationClosed) {
       if (isRoundingMeeting) {
-        if (settlementConfirmedParticipants.length >= 1 && settlementConfirmedParticipants.length <= 3) {
+        if (participantCount >= 1 && participantCount <= 3) {
           return 'CANCELED';
         }
-      } else if (settlementConfirmedParticipants.length === 1) {
+      } else if (participantCount === 1) {
         return 'CANCELED';
       }
       return '모집마감';
@@ -969,7 +920,7 @@ export default function MeetingDetailScreen() {
     teams.length,
     isApplicationClosed,
     isRoundingMeeting,
-    settlementConfirmedParticipants.length,
+    participantCount,
   ]);
 
   const canJoin = useMemo(
@@ -1043,8 +994,8 @@ export default function MeetingDetailScreen() {
   );
 
   const canAccessTeamTab = useMemo(
-    () => Boolean(isRoundingMeeting && confirmedCount >= 4 && isApplicationClosed),
-    [isRoundingMeeting, confirmedCount, isApplicationClosed]
+    () => Boolean(isRoundingMeeting && participantCount >= 4 && isApplicationClosed),
+    [isRoundingMeeting, participantCount, isApplicationClosed]
   );
 
   const hasConfirmedTeams = useMemo(
@@ -1078,7 +1029,7 @@ export default function MeetingDetailScreen() {
         isManager &&
           isRoundingMeeting &&
           normalizedStatus === 'SCHEDULED' &&
-          confirmedCount >= 4 &&
+          participantCount >= 4 &&
           isApplicationClosed &&
           !meeting?.team_formation_confirmed_at &&
           !meeting?.rounding_started_at &&
@@ -1088,7 +1039,7 @@ export default function MeetingDetailScreen() {
       isManager,
       isRoundingMeeting,
       normalizedStatus,
-      confirmedCount,
+      participantCount,
       isApplicationClosed,
       meeting?.team_formation_confirmed_at,
       meeting?.rounding_started_at,
@@ -1266,16 +1217,6 @@ export default function MeetingDetailScreen() {
   const renderParticipantRow = useCallback(function renderParticipantRow(participant, index) {
     const participantData = participant ?? {};
     const participantUser = participantData.user ?? {};
-    const status = String(participantData.status ?? '').toUpperCase();
-    const statusLabel =
-      status === 'CONFIRMED'
-        ? '확정'
-        : status === 'PENDING'
-          ? '대기'
-          : status === 'REJECTED'
-            ? '거절'
-            : status || '-';
-    const participantId = participantData.id ?? participantData.participant_id;
     const participantUserId = participantData.user_id ?? participantData.id;
     const isMine = currentUserId !== null && `${participantUserId}` === `${currentUserId}`;
     const participantGender =
@@ -1284,8 +1225,10 @@ export default function MeetingDetailScreen() {
       participantData.user_gender ??
       (isMine ? userInfo?.gender ?? currentUserGender : null);
     const genderValue = String(participantGender ?? '').toUpperCase();
-    const roleValue = String(participantData.role ?? '').toUpperCase();
     const genderLabel = genderValue === 'MALE' ? '남성' : genderValue === 'FEMALE' ? '여성' : '';
+    const organizerId = meeting?.created_by ?? meeting?.creator_id;
+    const isOrganizerParticipant =
+      organizerId !== undefined && organizerId !== null && `${organizerId}` === `${participantUserId}`;
     const handicapRaw =
       participantData.handicap_index ??
       participantData.handicap ??
@@ -1297,15 +1240,8 @@ export default function MeetingDetailScreen() {
     const handicapLabel = Number.isFinite(handicapNumber)
       ? `핸디 ${handicapNumber % 1 === 0 ? handicapNumber.toFixed(0) : handicapNumber.toFixed(1)}`
       : '';
-    const roleLabel =
-      roleValue === 'ORGANIZER' ? '개설자' : roleValue === 'PARTICIPANT' ? '참가자' : '';
+    const roleLabel = isOrganizerParticipant ? '개설자' : '';
     const isGuest = participantData.is_guest === true;
-
-    const statusTone = status === 'CONFIRMED'
-      ? styles.statusConfirmed
-      : status === 'PENDING'
-        ? styles.statusPending
-        : styles.statusRejected;
 
     return (
       <View key={participantData.id ?? index} style={styles.participantCard}>
@@ -1338,32 +1274,20 @@ export default function MeetingDetailScreen() {
                   <Text style={[styles.miniBadgeText, styles.roleBadgeText]}>{handicapLabel}</Text>
                 </View>
               ) : null}
-              <View style={[styles.miniBadge, statusTone]}>
-                <Text style={[styles.miniBadgeText, styles.statusBadgeText]}>{statusLabel}</Text>
-              </View>
             </View>
           </View>
         </View>
-
-        {isManager && status === 'PENDING' && participantId ? (
-          <View style={styles.participantActionRow}>
-            <Pressable
-              style={[styles.participantActionButton, styles.participantApproveButton]}
-              onPress={() => handleApproveParticipant(participantId)}
-            >
-              <Text style={styles.participantActionText}>승인</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.participantActionButton, styles.participantRejectButton]}
-              onPress={() => handleRejectParticipant(participantId)}
-            >
-              <Text style={styles.participantActionText}>거절</Text>
-            </Pressable>
-          </View>
-        ) : null}
       </View>
     );
-  }, [isManager, handleApproveParticipant, handleRejectParticipant, currentUserId, currentUserGender, userInfo?.gender, userInfo?.handicap, currentHandicap]);
+  }, [
+    currentUserId,
+    currentUserGender,
+    userInfo?.gender,
+    userInfo?.handicap,
+    currentHandicap,
+    meeting?.created_by,
+    meeting?.creator_id,
+  ]);
 
   const renderTeamCard = useCallback(function renderTeamCard(team, index) {
     const members = team?.members ?? team?.team_members ?? [];
@@ -1402,8 +1326,8 @@ export default function MeetingDetailScreen() {
                   </View>
                 ) : null}
                 {recentScoreValue ? (
-                  <View style={[styles.miniBadge, styles.statusPending]}>
-                    <Text style={[styles.miniBadgeText, styles.statusBadgeText]}>{recentScoreValue}</Text>
+                  <View style={[styles.miniBadge, styles.roleBadge]}>
+                    <Text style={[styles.miniBadgeText, styles.roleBadgeText]}>{recentScoreValue}</Text>
                   </View>
                 ) : null}
               </View>
@@ -1613,9 +1537,8 @@ export default function MeetingDetailScreen() {
             meeting={meeting}
             participants={participants}
             teams={teams}
-            userRole={userRole}
+            isManager={isManager}
             applicationStatus={applicationStatus}
-            confirmedParticipants={confirmedParticipants}
             onCloseApplicationEarly={handleCloseApplicationEarly}
             onAutoFormTeams={openTeamFormation}
             onConfirmTeamFormation={handleConfirmTeams}
@@ -1818,15 +1741,17 @@ export default function MeetingDetailScreen() {
 
                 <View style={styles.participantSummaryGrid}>
                   <View style={styles.participantSummaryItem}>
-                    <Text style={styles.participantSummaryLabel}>전체 신청</Text>
+                    <Text style={styles.participantSummaryLabel}>참가 인원</Text>
                     <Text style={styles.participantSummaryValue}>
-                      {applicationStatus?.total_applications ?? participants.length}명
+                      {Number.isFinite(Number(applicationStatus?.participant_count))
+                        ? Number(applicationStatus.participant_count)
+                        : participantCount}명
                     </Text>
                   </View>
                   <View style={styles.participantSummaryItem}>
-                    <Text style={styles.participantSummaryLabel}>확정 인원</Text>
-                    <Text style={[styles.participantSummaryValue, styles.participantSummaryValueSuccess]}>
-                      {confirmedCount}명
+                    <Text style={styles.participantSummaryLabel}>모집 상태</Text>
+                    <Text style={styles.participantSummaryValue}>
+                      {isApplicationClosed ? '마감' : '모집 중'}
                     </Text>
                   </View>
                   <View style={styles.participantSummaryItem}>
@@ -1898,11 +1823,7 @@ export default function MeetingDetailScreen() {
                   meetingType={meetingDomainType}
                   canSettle={canSettleMeeting}
                   canManageSettlement={canManageSettlement}
-                  participants={
-                    settlementConfirmedParticipants.length > 0
-                      ? settlementConfirmedParticipants
-                      : participants
-                  }
+                  participants={participants}
                   onSettlementCreated={fetchMeeting}
                   onConfirmSettlement={handleConfirmSettlement}
                   meeting={meeting}
@@ -2482,9 +2403,6 @@ const styles = StyleSheet.create({
     color: colors.neutral[900],
     fontWeight: tokens.fontWeight.bold,
   },
-  participantSummaryValueSuccess: {
-    color: colors.success[700],
-  },
   participantCard: {
     borderWidth: 1,
     borderColor: colors.neutral[200],
@@ -2546,44 +2464,6 @@ const styles = StyleSheet.create({
   },
   roleBadgeText: {
     color: colors.success[700],
-  },
-  statusConfirmed: {
-    backgroundColor: colors.success[50],
-  },
-  statusPending: {
-    backgroundColor: colors.warning[50],
-  },
-  statusRejected: {
-    backgroundColor: colors.error[50],
-  },
-  statusBadgeText: {
-    color: colors.neutral[800],
-  },
-  participantActionRow: {
-    marginTop: 8,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 8,
-  },
-  participantActionButton: {
-    borderRadius: tokens.radius.sm,
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs2,
-  },
-  participantApproveButton: {
-    backgroundColor: colors.success[50],
-    borderWidth: 1,
-    borderColor: colors.success[600],
-  },
-  participantRejectButton: {
-    backgroundColor: colors.error[50],
-    borderWidth: 1,
-    borderColor: colors.error[600],
-  },
-  participantActionText: {
-    fontSize: tokens.font.xs,
-    fontWeight: tokens.fontWeight.semibold,
-    color: colors.neutral[800],
   },
   emptyText: {
     fontSize: tokens.font.sm,

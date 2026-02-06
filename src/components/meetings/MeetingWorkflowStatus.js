@@ -32,9 +32,8 @@ export default function MeetingWorkflowStatus({
   meeting,
   participants = [],
   teams = [],
-  userRole,
+  isManager,
   applicationStatus,
-  confirmedParticipants = [],
   isApplicationDeadlinePassed,
   isApplicationClosedEarly,
   onCloseApplicationEarly,
@@ -44,11 +43,7 @@ export default function MeetingWorkflowStatus({
   onCompleteRounding,
   onCompleteMeeting,
 }) {
-  const isManager =
-    userRole === 'ORGANIZER' ||
-    userRole === 'HOST' ||
-    userRole === 'LEADER' ||
-    userRole === 'MANAGER';
+  const canManage = Boolean(isManager);
   const isRoundingMeeting = meeting?.meeting_type === 'ROUND' || meeting?.meeting_type === 'ROUNDING';
 
   const workflowState = useMemo(() => {
@@ -103,12 +98,16 @@ export default function MeetingWorkflowStatus({
     return isPastDateTime(meeting.application_deadline);
   }, [meeting, isApplicationClosedEarly]);
 
-  const confirmedCount = confirmedParticipants?.length || participants.filter((p) => p.status === 'CONFIRMED').length;
+  const participantCount = useMemo(() => {
+    const count = applicationStatus?.participant_count;
+    if (Number.isFinite(Number(count))) return Number(count);
+    return participants.length;
+  }, [applicationStatus?.participant_count, participants.length]);
   const canAutoFormTeams =
     isRoundingMeeting &&
     isApplicationClosed &&
     (workflowState === 'PARTICIPANTS_JOINED' || workflowState === 'TEAM_FORMATION_READY') &&
-    confirmedCount >= 4;
+    participantCount >= 4;
 
   const canStartRounding =
     isRoundingMeeting &&
@@ -130,9 +129,12 @@ export default function MeetingWorkflowStatus({
   }, [meeting?.status]);
 
   const summaryRows = useMemo(() => {
-    const currentCount = Number.isFinite(Number(meeting?.participant_count))
-      ? Number(meeting.participant_count)
-      : participants.length;
+    const currentCount =
+      Number.isFinite(Number(applicationStatus?.participant_count))
+        ? Number(applicationStatus.participant_count)
+        : Number.isFinite(Number(meeting?.participant_count))
+          ? Number(meeting.participant_count)
+          : participants.length;
     const maxCount =
       meeting?.max_participants !== null && meeting?.max_participants !== undefined
         ? meeting.max_participants
@@ -147,6 +149,7 @@ export default function MeetingWorkflowStatus({
     ];
   }, [
     isApplicationClosed,
+    applicationStatus?.participant_count,
     meeting?.application_deadline,
     meeting?.max_participants,
     meeting?.participant_count,
@@ -158,11 +161,11 @@ export default function MeetingWorkflowStatus({
   const applicationSummary = useMemo(() => {
     if (!applicationStatus) return null;
     return {
-      total: applicationStatus?.total_applications ?? participants.length,
-      confirmed: applicationStatus?.confirmed_count ?? confirmedCount,
+      count: participantCount,
       max: applicationStatus?.max_participants ?? meeting?.max_participants ?? '-',
+      statusLabel: isApplicationClosed ? '마감' : '모집 중',
     };
-  }, [applicationStatus, participants.length, confirmedCount, meeting?.max_participants]);
+  }, [applicationStatus, participantCount, meeting?.max_participants, isApplicationClosed]);
 
   return (
     <View style={styles.container}>
@@ -194,7 +197,7 @@ export default function MeetingWorkflowStatus({
       </View>
 
       <View style={styles.actionRow}>
-        {isManager && onCloseApplicationEarly && !isApplicationClosed && (
+        {canManage && onCloseApplicationEarly && !isApplicationClosed && (
           <Pressable
             style={({ pressed }) => [
               styles.actionButtonBase,
@@ -206,7 +209,7 @@ export default function MeetingWorkflowStatus({
             <Text style={[styles.actionButtonText, styles.actionButtonTextAmber]}>모집 마감</Text>
           </Pressable>
         )}
-        {isManager && onAutoFormTeams && (
+        {canManage && onAutoFormTeams && (
           <Pressable
             style={({ pressed }) => [
               styles.actionButtonBase,
@@ -220,7 +223,7 @@ export default function MeetingWorkflowStatus({
             <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>팀 편성 시작</Text>
           </Pressable>
         )}
-        {isManager && onConfirmTeamFormation && workflowState === 'TEAM_FORMED' && (
+        {canManage && onConfirmTeamFormation && workflowState === 'TEAM_FORMED' && (
           <Pressable
             style={({ pressed }) => [
               styles.actionButtonBase,
@@ -232,7 +235,7 @@ export default function MeetingWorkflowStatus({
             <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>팀 편성 확정</Text>
           </Pressable>
         )}
-        {isManager && onStartRounding && canStartRounding && (
+        {canManage && onStartRounding && canStartRounding && (
           <Pressable
             style={({ pressed }) => [
               styles.actionButtonBase,
@@ -244,7 +247,7 @@ export default function MeetingWorkflowStatus({
             <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>모임 진행 시작</Text>
           </Pressable>
         )}
-        {isManager && onCompleteRounding && canCompleteRounding && (
+        {canManage && onCompleteRounding && canCompleteRounding && (
           <Pressable
             style={({ pressed }) => [
               styles.actionButtonBase,
@@ -256,7 +259,7 @@ export default function MeetingWorkflowStatus({
             <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>라운딩 종료</Text>
           </Pressable>
         )}
-        {isManager && onCompleteMeeting && canConfirmSettlement && (
+        {canManage && onCompleteMeeting && canConfirmSettlement && (
           <Pressable
             style={({ pressed }) => [
               styles.actionButtonBase,
@@ -284,20 +287,18 @@ export default function MeetingWorkflowStatus({
           <Text style={styles.applicationTitle}>참가 신청 현황</Text>
           <View style={styles.applicationGrid}>
             <View style={styles.applicationItem}>
-              <Text style={styles.applicationLabel}>전체 신청</Text>
-              <Text style={styles.applicationValue}>{applicationSummary.total}명</Text>
-            </View>
-            <View style={styles.applicationItem}>
-              <Text style={styles.applicationLabel}>확정 인원</Text>
-              <Text style={[styles.applicationValue, styles.applicationValueSuccess]}>
-                {applicationSummary.confirmed}명
-              </Text>
+              <Text style={styles.applicationLabel}>참가 인원</Text>
+              <Text style={styles.applicationValue}>{applicationSummary.count}명</Text>
             </View>
             <View style={styles.applicationItem}>
               <Text style={styles.applicationLabel}>정원</Text>
               <Text style={styles.applicationValue}>
                 {applicationSummary.max !== '-' ? `${applicationSummary.max}명` : '-'}
               </Text>
+            </View>
+            <View style={styles.applicationItem}>
+              <Text style={styles.applicationLabel}>모집 상태</Text>
+              <Text style={styles.applicationValue}>{applicationSummary.statusLabel}</Text>
             </View>
           </View>
         </View>
@@ -473,8 +474,5 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.sm,
     color: colors.neutral[900],
     fontWeight: tokens.fontWeight.bold,
-  },
-  applicationValueSuccess: {
-    color: colors.success[700],
   },
 });
