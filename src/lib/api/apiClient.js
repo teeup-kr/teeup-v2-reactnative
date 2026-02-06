@@ -149,15 +149,27 @@ async function apiRequest(path, options = {}) {
   const isJson = response.headers.get('content-type')?.includes('application/json');
   const payload = isJson ? await response.json() : null;
 
-  console.log('[API Response]', {
-    method,
-    url,
-    status: response.status,
-    payload: sanitizePayload(payload),
-  });
+  console.log(
+    '[API Response]\n' +
+    JSON.stringify({
+      method,
+      url,
+      status: response.status,
+      payload: sanitizePayload(payload),
+    }, null, 2)
+  );
 
   if (!response.ok) {
     const error = new Error(payload?.detail || payload?.message || '요청에 실패했습니다.');
+
+    const hasAuthHeader = Boolean(requestHeaders.Authorization);
+    if (response.status === 401 && hasAuthHeader) {
+      console.info('[Auth] Token expired → logout');
+      await tokenStorage.clearTokens();
+      await tokenStorage.clearUser();
+      router.replace('/login');
+      return;
+    }
 
     // 요청 실패, 약관동의 요구 받은경우
     if (

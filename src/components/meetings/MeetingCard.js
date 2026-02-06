@@ -13,9 +13,15 @@ import { colors } from '@/styles/colors';
 import MeetingBadge from './MeetingBadge';
 
 
-export default function MeetingCard({ meeting, onPress, styles }) {
+export default function MeetingCard({ meeting, onPress, styles, currentUserId }) {
   const meetingType = meeting?.meeting_type || meeting?.type || 'ROUND';
   const maxParticipants = meeting?.max_participants ?? meeting?.maxParticipants;
+  const isPrivate = Boolean(meeting?.is_private ?? meeting?.isPrivate);
+  const organizerId = meeting?.created_by;
+  const isOrganizer =
+    currentUserId != null &&
+    organizerId != null &&
+    String(currentUserId) === String(organizerId);
   const typeConfig = getMeetingTypeBadgeConfig(meetingType);
   const statusBadges = getMeetingStatusBadgeConfigs(meeting);
 
@@ -40,6 +46,24 @@ export default function MeetingCard({ meeting, onPress, styles }) {
                 text={typeConfig.text}
                 backgroundColor={typeConfig.backgroundColor}
                 textColor={typeConfig.textColor}
+                style={styles.badge}
+                textStyle={styles.badgeText}
+              />
+            ) : null}
+            {isOrganizer ? (
+              <MeetingBadge
+                text="개설자"
+                backgroundColor={colors.error[50]}
+                textColor={colors.error[700]}
+                style={styles.badge}
+                textStyle={styles.badgeText}
+              />
+            ) : null}
+            {isPrivate ? (
+              <MeetingBadge
+                text="프라이빗"
+                backgroundColor={colors.neutral[200]}
+                textColor={colors.neutral[700]}
                 style={styles.badge}
                 textStyle={styles.badgeText}
               />

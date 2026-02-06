@@ -2,13 +2,13 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    Pressable,
-    ScrollView, StyleSheet, Text,
-    TextInput,
-    View
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView, StyleSheet, Text,
+  TextInput,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -30,37 +30,35 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { meetingDetailTabs } from '@/constants/meetingConstants';
 import { meetingsApi, mypageApi, roundsApi, socialsApi, usersApi } from '@/lib/api/api';
 import {
-    createAutoFormTeamsHandler,
-    createCompleteRoundingHandler,
-    createConfirmSettlementHandler,
-    createConfirmTeamsHandler,
-    createFetchApplicationStatusHandler,
-    createFetchMeetingDetailHandler,
-    createFetchParticipantsHandler,
-    createFetchTeamsHandler,
-    createFetchUserInfoHandler,
-    createJoinHandler,
-    createLeaveHandler,
-    createRestoreHistoryHandler,
-    createSaveHistoryHandler,
-    createScoreSuccessHandler,
-    createStartRoundingHandler,
-    createTabPressHandler,
-    createUpdateUserInfoHandler,
+  createAutoFormTeamsHandler,
+  createCompleteRoundingHandler,
+  createConfirmSettlementHandler,
+  createConfirmTeamsHandler,
+  createFetchApplicationStatusHandler,
+  createFetchMeetingDetailHandler,
+  createFetchParticipantsHandler,
+  createFetchTeamsHandler,
+  createFetchUserInfoHandler,
+  createJoinHandler,
+  createLeaveHandler,
+  createRestoreHistoryHandler,
+  createSaveHistoryHandler,
+  createScoreSuccessHandler,
+  createStartRoundingHandler,
+  createTabPressHandler,
+  createUpdateUserInfoHandler,
 } from '@/lib/handler/meetings';
 import {
-    buildUserInfoFromProfile,
-    extractData,
-    extractList,
-    formatBirthdateForApi,
-    formatDateTime,
-    getCurrentHandicap,
-    getIsJoined,
-    getMeetingDomainType,
-    getMyParticipantId,
-    getTypeSlug,
-    getUserRole,
-    normalizeBirthdateInput,
+  buildUserInfoFromProfile,
+  extractData,
+  extractList,
+  formatDateTime,
+  getCurrentHandicap,
+  getIsJoined,
+  getMeetingDomainType,
+  getMyParticipantId,
+  getTypeSlug,
+  getUserRole,
 } from '@/lib/util/meetingUtils';
 import { ensureProfileCompleted } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
@@ -225,10 +223,10 @@ export default function MeetingDetailScreen() {
   const [previewTeams, setPreviewTeams] = useState([]);
   const [previewFormation, setPreviewFormation] = useState(null);
   const [formationHistory, setFormationHistory] = useState([]);
+  const [participantsLoaded, setParticipantsLoaded] = useState(false);
   const [guestModalOpen, setGuestModalOpen] = useState(false);
   const [guestForm, setGuestForm] = useState({
     name: '',
-    birthdate: '',
     gender: 'MALE',
     handicap: '',
     average_score: '',
@@ -325,9 +323,25 @@ export default function MeetingDetailScreen() {
   }, [fetchMeeting, fetchUserInfo]);
 
   useEffect(() => {
-    fetchParticipants();
+    let canceled = false;
+    const run = async () => {
+      setParticipantsLoaded(false);
+      try {
+        await fetchParticipants();
+      } finally {
+        if (!canceled) {
+          setParticipantsLoaded(true);
+        }
+      }
+    };
+
+    run();
     fetchTeams();
     fetchStatus();
+
+    return () => {
+      canceled = true;
+    };
   }, [fetchParticipants, fetchTeams, fetchStatus]);
 
   const handleUpdateUserInfo = useMemo(
@@ -577,7 +591,6 @@ export default function MeetingDetailScreen() {
       setGuestModalOpen(false);
       setGuestForm({
         name: '',
-        birthdate: '',
         gender: 'MALE',
         handicap: '',
         average_score: '',
@@ -593,12 +606,6 @@ export default function MeetingDetailScreen() {
         Alert.alert('확인', '게스트 이름을 입력해주세요.');
         return;
       }
-      const birthdateRaw = String(guestForm.birthdate || '').trim().replace(/\D/g, '');
-      if (birthdateRaw.length === 8 && !formatBirthdateForApi(guestForm.birthdate)) {
-        Alert.alert('확인', '생년월일을 확인해주세요. (1900년~올해, 올바른 월·일)');
-        return;
-      }
-
       const handicapValue =
         guestForm.handicap !== '' && Number.isFinite(Number(guestForm.handicap))
           ? Number(guestForm.handicap)
@@ -615,7 +622,6 @@ export default function MeetingDetailScreen() {
         setProcessingAction(true);
         await roundsApi.addGuest(meetingIdValue, {
           name: guestName,
-          birthdate: formatBirthdateForApi(guestForm.birthdate) || null,
           gender: guestForm.gender || null,
           handicap: handicapValue,
           average_score: averageScoreValue,
@@ -623,7 +629,6 @@ export default function MeetingDetailScreen() {
         setGuestModalOpen(false);
         setGuestForm({
           name: '',
-          birthdate: '',
           gender: 'MALE',
           handicap: '',
           average_score: '',
@@ -806,10 +811,10 @@ export default function MeetingDetailScreen() {
     () =>
       Boolean(
         organizerId !== undefined &&
-          organizerId !== null &&
-          user?.id !== undefined &&
-          user?.id !== null &&
-          `${organizerId}` === `${user.id}`
+        organizerId !== null &&
+        user?.id !== undefined &&
+        user?.id !== null &&
+        `${organizerId}` === `${user.id}`
       ),
     [organizerId, user?.id]
   );
@@ -970,11 +975,11 @@ export default function MeetingDetailScreen() {
     () =>
       Boolean(
         isJoinableStatus &&
-          !isOrganizer &&
-          !isParticipant &&
-          (meeting?.max_participants == null ||
-            Number(meeting?.participant_count || participants.length) < Number(meeting?.max_participants)) &&
-          !isApplicationClosed
+        !isOrganizer &&
+        !isParticipant &&
+        (meeting?.max_participants == null ||
+          Number(meeting?.participant_count || participants.length) < Number(meeting?.max_participants)) &&
+        !isApplicationClosed
       ),
     [
       isJoinableStatus,
@@ -991,9 +996,9 @@ export default function MeetingDetailScreen() {
     () =>
       Boolean(
         normalizedStatus !== 'CANCELED' &&
-          normalizedStatus !== 'COMPLETED' &&
-          isParticipant &&
-          !isOrganizer
+        normalizedStatus !== 'COMPLETED' &&
+        isParticipant &&
+        !isOrganizer
       ),
     [normalizedStatus, isParticipant, isOrganizer]
   );
@@ -1007,9 +1012,9 @@ export default function MeetingDetailScreen() {
     () =>
       Boolean(
         (isOrganizer || (isParticipant && isClubLeaderOrManager)) &&
-          displayStatus !== 'CANCELED' &&
-          displayStatus !== '종료' &&
-          displayStatus !== '완료'
+        displayStatus !== 'CANCELED' &&
+        displayStatus !== '종료' &&
+        displayStatus !== '완료'
       ),
     [isOrganizer, isParticipant, isClubLeaderOrManager, displayStatus]
   );
@@ -1019,9 +1024,9 @@ export default function MeetingDetailScreen() {
     () =>
       Boolean(
         !isRoundingMeeting &&
-          isJoinableStatus &&
-          !isOrganizer &&
-          !isParticipant
+        isJoinableStatus &&
+        !isOrganizer &&
+        !isParticipant
       ),
     [isRoundingMeeting, isJoinableStatus, isOrganizer, isParticipant]
   );
@@ -1029,6 +1034,10 @@ export default function MeetingDetailScreen() {
   const hasTopActions = useMemo(
     () => canEditTopActions || canJoin || canLeave || showJoinButtonForSocial,
     [canEditTopActions, canJoin, canLeave, showJoinButtonForSocial]
+  );
+  const canRenderTopActions = useMemo(
+    () => participantsLoaded && !userInfoLoading,
+    [participantsLoaded, userInfoLoading]
   );
 
   const canShowMySettlementTab = useMemo(() => {
@@ -1067,11 +1076,11 @@ export default function MeetingDetailScreen() {
     () =>
       Boolean(
         isManager &&
-          isRoundingMeeting &&
-          !isApplicationClosed &&
-          normalizedStatus === 'SCHEDULED' &&
-          participants.length > 0 &&
-          !processingAction
+        isRoundingMeeting &&
+        !isApplicationClosed &&
+        normalizedStatus === 'SCHEDULED' &&
+        participants.length > 0 &&
+        !processingAction
       ),
     [
       isManager,
@@ -1087,13 +1096,13 @@ export default function MeetingDetailScreen() {
     () =>
       Boolean(
         isManager &&
-          isRoundingMeeting &&
-          normalizedStatus === 'SCHEDULED' &&
-          participantCount >= 4 &&
-          isApplicationClosed &&
-          !meeting?.team_formation_confirmed_at &&
-          !meeting?.rounding_started_at &&
-          !processingAction
+        isRoundingMeeting &&
+        normalizedStatus === 'SCHEDULED' &&
+        participantCount >= 4 &&
+        isApplicationClosed &&
+        !meeting?.team_formation_confirmed_at &&
+        !meeting?.rounding_started_at &&
+        !processingAction
       ),
     [
       isManager,
@@ -1237,7 +1246,7 @@ export default function MeetingDetailScreen() {
         label: '정산 방법',
         value: formatOptional(
           SOCIAL_SETTLEMENT_METHOD_LABELS[meeting.social_settlement_method] ||
-            meeting.social_settlement_method,
+          meeting.social_settlement_method,
           '미정'
         ),
         icon: 'dollar-sign',
@@ -1298,10 +1307,11 @@ export default function MeetingDetailScreen() {
       (isMine ? userInfo?.handicap ?? currentHandicap : null);
     const handicapNumber = Number(handicapRaw);
     const handicapLabel = Number.isFinite(handicapNumber)
-      ? `핸디 ${handicapNumber % 1 === 0 ? handicapNumber.toFixed(0) : handicapNumber.toFixed(1)}`
+      ? `핸디캡 ${handicapNumber % 1 === 0 ? handicapNumber.toFixed(0) : handicapNumber.toFixed(1)}`
       : '';
-    const roleLabel = isOrganizerParticipant ? '개설자' : '';
     const isGuest = participantData.is_guest === true;
+    const roleLabel = isOrganizerParticipant ? '개설자' : '';
+    const guestLabel = isGuest ? '게스트' : '';
 
     return (
       <View key={participantData.id ?? index} style={styles.participantCard}>
@@ -1316,7 +1326,9 @@ export default function MeetingDetailScreen() {
                 : participantData.user_name ?? participantData.name ?? '참가자'}
             </Text>
             <Text style={styles.participantSubText}>
-              {isGuest ? '게스트' : participantData.user_email ?? '-'}
+              {isGuest
+                ? '-'
+                : participantData.user_email ?? '-'}
             </Text>
             <View style={styles.participantBadgeRow}>
               {genderLabel ? (
@@ -1324,14 +1336,33 @@ export default function MeetingDetailScreen() {
                   <Text style={[styles.miniBadgeText, styles.genderBadgeText]}>{genderLabel}</Text>
                 </View>
               ) : null}
-              {roleLabel ? (
-                <View style={[styles.miniBadge, styles.roleBadge]}>
-                  <Text style={[styles.miniBadgeText, styles.roleBadgeText]}>{roleLabel}</Text>
-                </View>
-              ) : null}
               {handicapLabel ? (
                 <View style={[styles.miniBadge, styles.roleBadge]}>
                   <Text style={[styles.miniBadgeText, styles.roleBadgeText]}>{handicapLabel}</Text>
+                </View>
+              ) : null}
+              {roleLabel ? (
+                <View
+                  style={[
+                    styles.miniBadge,
+                    styles.roleBadge,
+                    isOrganizerParticipant && styles.organizerBadge,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.miniBadgeText,
+                      styles.roleBadgeText,
+                      isOrganizerParticipant && styles.organizerBadgeText,
+                    ]}
+                  >
+                    {roleLabel}
+                  </Text>
+                </View>
+              ) : null}
+              {guestLabel ? (
+                <View style={[styles.miniBadge, styles.guestBadge]}>
+                  <Text style={[styles.miniBadgeText, styles.guestBadgeText]}>{guestLabel}</Text>
                 </View>
               ) : null}
             </View>
@@ -1362,7 +1393,7 @@ export default function MeetingDetailScreen() {
           const genderLabel = genderValue === 'MALE' ? '남성' : genderValue === 'FEMALE' ? '여성' : '';
           const handicapValue =
             member?.handicap_index !== null && member?.handicap_index !== undefined
-              ? `핸디 ${member.handicap_index}`
+              ? `핸디캡 ${member.handicap_index}`
               : '';
           const recentScoreValue =
             member?.recent_avg_score !== null && member?.recent_avg_score !== undefined
@@ -1471,7 +1502,7 @@ export default function MeetingDetailScreen() {
           <Text style={styles.subtitle}>{meeting?.club_name || '-'}</Text>
 
           <View style={styles.topButtonsSection}>
-            {hasTopActions ? (
+            {canRenderTopActions && hasTopActions ? (
               <View style={styles.topButtonsWrap}>
                 {(canJoin || showJoinButtonForSocial) ? (
                   <Pressable
@@ -1522,15 +1553,15 @@ export default function MeetingDetailScreen() {
                     </Pressable>
 
                     {isRoundingMeeting &&
-                    normalizedStatus === 'SCHEDULED' &&
-                    hasApplicationClosedEarlyFlag &&
-                    !isApplicationDeadlinePassed ? (
+                      normalizedStatus === 'SCHEDULED' &&
+                      hasApplicationClosedEarlyFlag &&
+                      !isApplicationDeadlinePassed ? (
                       <Pressable
                         style={({ pressed }) => [
                           styles.topButtonBase,
                           styles.topButtonWarning,
                           (processingAction || isApplicationClosedEarly || normalizedStatus === 'CANCELED') &&
-                            styles.topButtonDisabled,
+                          styles.topButtonDisabled,
                           pressed && styles.topButtonPressed,
                         ]}
                         onPress={handleCloseApplicationEarly}
@@ -1615,9 +1646,9 @@ export default function MeetingDetailScreen() {
               모임이 완료되면 정산 정보를 입력할 수 있습니다.
             </Text>
             {isManager &&
-            String(meeting?.status || '').toUpperCase() === 'SCHEDULED' &&
-            !meeting?.is_completed &&
-            !meeting?.settlement_confirmed ? (
+              String(meeting?.status || '').toUpperCase() === 'SCHEDULED' &&
+              !meeting?.is_completed &&
+              !meeting?.settlement_confirmed ? (
               <View style={styles.actionRow}>
                 <Pressable
                   style={({ pressed }) => [
@@ -1647,38 +1678,38 @@ export default function MeetingDetailScreen() {
                 (!canAccessTeamTab || (teams.length === 0 && !hasConfirmedTeams));
 
               return (
-              <Pressable
-                key={tab.key}
-                onPress={handleTabPress(tab.key)}
-                style={[styles.tabButton, activeTab === tab.key && styles.tabButtonActive]}
-                disabled={disabled}
-              >
-                <View style={styles.tabInner}>
-                  <Text
-                    style={[
-                      styles.tabText,
-                      activeTab === tab.key && styles.tabTextActive,
-                      disabled && styles.tabTextDisabled,
-                    ]}
-                  >
-                    {tab.label}
-                  </Text>
-                  {tab.key === 'participants' ? (
-                    <View style={[styles.tabCountChip, activeTab === tab.key && styles.tabCountChipActive]}>
-                      <Text style={[styles.tabCountText, activeTab === tab.key && styles.tabCountTextActive]}>
-                        {participants.length}
-                      </Text>
-                    </View>
-                  ) : null}
-                  {tab.key === 'teams' && isRoundingMeeting ? (
-                    <View style={[styles.tabCountChip, activeTab === tab.key && styles.tabCountChipActive]}>
-                      <Text style={[styles.tabCountText, activeTab === tab.key && styles.tabCountTextActive]}>
-                        {teams.length}
-                      </Text>
-                    </View>
-                  ) : null}
-                </View>
-              </Pressable>
+                <Pressable
+                  key={tab.key}
+                  onPress={handleTabPress(tab.key)}
+                  style={[styles.tabButton, activeTab === tab.key && styles.tabButtonActive]}
+                  disabled={disabled}
+                >
+                  <View style={styles.tabInner}>
+                    <Text
+                      style={[
+                        styles.tabText,
+                        activeTab === tab.key && styles.tabTextActive,
+                        disabled && styles.tabTextDisabled,
+                      ]}
+                    >
+                      {tab.label}
+                    </Text>
+                    {tab.key === 'participants' ? (
+                      <View style={[styles.tabCountChip, activeTab === tab.key && styles.tabCountChipActive]}>
+                        <Text style={[styles.tabCountText, activeTab === tab.key && styles.tabCountTextActive]}>
+                          {participants.length}
+                        </Text>
+                      </View>
+                    ) : null}
+                    {tab.key === 'teams' && isRoundingMeeting ? (
+                      <View style={[styles.tabCountChip, activeTab === tab.key && styles.tabCountChipActive]}>
+                        <Text style={[styles.tabCountText, activeTab === tab.key && styles.tabCountTextActive]}>
+                          {teams.length}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                </Pressable>
               );
             })}
           </View>
@@ -1687,143 +1718,143 @@ export default function MeetingDetailScreen() {
             {activeTab === 'participants' && (
               <View style={styles.tabSection}>
                 {isManager && isRoundingMeeting ? (
-              <View style={styles.participantSummaryCard}>
-                <View style={styles.participantSummaryHeader}>
-                  <View style={styles.participantSummaryHeaderText}>
-                    <Text style={styles.participantSummaryTitle}>참가 신청 관리</Text>
-                    {isRoundingMeeting ? (
-                      <Text style={styles.participantSummaryDescription}>
-                        참가자를 확인하고 조기 마감 또는 팀 편성을 진행할 수 있습니다.
-                      </Text>
-                    ) : null}
-                  </View>
-                  {isRoundingMeeting && isApplicationClosed ? (
-                    <View style={styles.applicationClosedChip}>
-                      <Text style={styles.applicationClosedChipText}>신청 마감됨</Text>
+                  <View style={styles.participantSummaryCard}>
+                    <View style={styles.participantSummaryHeader}>
+                      <View style={styles.participantSummaryHeaderText}>
+                        <Text style={styles.participantSummaryTitle}>참가 신청 관리</Text>
+                        {isRoundingMeeting ? (
+                          <Text style={styles.participantSummaryDescription}>
+                            참가자를 확인하고 조기 마감 또는 팀 편성을 진행할 수 있습니다.
+                          </Text>
+                        ) : null}
+                      </View>
+                      {isRoundingMeeting && isApplicationClosed ? (
+                        <View style={styles.applicationClosedChip}>
+                          <Text style={styles.applicationClosedChipText}>신청 마감됨</Text>
+                        </View>
+                      ) : null}
                     </View>
-                  ) : null}
-                </View>
 
-                {isRoundingMeeting ? (
-                  <View style={styles.participantManageActions}>
-                    <Pressable
-                      style={({ pressed }) => [
-                        styles.manageActionButtonBase,
-                        styles.manageActionButtonAmberOutline,
-                        !canCloseApplication && styles.manageActionButtonDisabled,
-                        pressed && canCloseApplication && styles.manageActionButtonPressed,
-                      ]}
-                      onPress={handleCloseApplicationEarly}
-                      disabled={!canCloseApplication}
-                    >
-                      <Text style={[styles.manageActionTextBase, styles.manageActionTextAmber]}>
-                        신청 마감하기
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      style={({ pressed }) => [
-                        styles.manageActionButtonBase,
-                        styles.manageActionButtonGreen,
-                        !canModifyTeams && styles.manageActionButtonDisabled,
-                        pressed && canModifyTeams && styles.manageActionButtonPressed,
-                      ]}
-                      onPress={handleOpenGuestModal}
-                      disabled={!canModifyTeams}
-                    >
-                      <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
-                        게스트 추가
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      style={({ pressed }) => [
-                        styles.manageActionButtonBase,
-                        styles.manageActionButtonBlue,
-                        !canStartTeamFormation && styles.manageActionButtonDisabled,
-                        pressed && canStartTeamFormation && styles.manageActionButtonPressed,
-                      ]}
-                      onPress={openTeamFormation}
-                      disabled={!canStartTeamFormation}
-                    >
-                      <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
-                        팀 편성 시작
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      style={({ pressed }) => [
-                        styles.manageActionButtonBase,
-                        styles.manageActionButtonPurple,
-                        !canStartTeamFormation && styles.manageActionButtonDisabled,
-                        pressed && canStartTeamFormation && styles.manageActionButtonPressed,
-                      ]}
-                      onPress={openBatchFormation}
-                      disabled={!canStartTeamFormation}
-                    >
-                      <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
-                        일괄 편성
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      style={({ pressed }) => [
-                        styles.manageActionButtonBase,
-                        styles.manageActionButtonIndigo,
-                        (processingAction || meeting?.team_formation_confirmed_at !== null) &&
-                          styles.manageActionButtonDisabled,
-                        pressed &&
-                          !(processingAction || meeting?.team_formation_confirmed_at !== null) &&
-                          styles.manageActionButtonPressed,
-                      ]}
-                      onPress={openHistory}
-                      disabled={processingAction || meeting?.team_formation_confirmed_at !== null}
-                    >
-                      <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
-                        편성 히스토리
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      style={({ pressed }) => [
-                        styles.manageActionButtonBase,
-                        styles.manageActionButtonRoseTint,
-                        (processingAction || normalizedStatus !== 'SCHEDULED') &&
-                          styles.manageActionButtonDisabled,
-                        pressed &&
-                          !(processingAction || normalizedStatus !== 'SCHEDULED') &&
-                          styles.manageActionButtonPressed,
-                      ]}
-                      onPress={handleCancelMeeting}
-                      disabled={processingAction || normalizedStatus !== 'SCHEDULED'}
-                    >
-                      <Text style={[styles.manageActionTextBase, styles.manageActionTextRose]}>
-                        모임 취소
-                      </Text>
-                    </Pressable>
-                  </View>
-                ) : null}
+                    {isRoundingMeeting ? (
+                      <View style={styles.participantManageActions}>
+                        <Pressable
+                          style={({ pressed }) => [
+                            styles.manageActionButtonBase,
+                            styles.manageActionButtonAmberOutline,
+                            !canCloseApplication && styles.manageActionButtonDisabled,
+                            pressed && canCloseApplication && styles.manageActionButtonPressed,
+                          ]}
+                          onPress={handleCloseApplicationEarly}
+                          disabled={!canCloseApplication}
+                        >
+                          <Text style={[styles.manageActionTextBase, styles.manageActionTextAmber]}>
+                            신청 마감하기
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          style={({ pressed }) => [
+                            styles.manageActionButtonBase,
+                            styles.manageActionButtonGreen,
+                            !canModifyTeams && styles.manageActionButtonDisabled,
+                            pressed && canModifyTeams && styles.manageActionButtonPressed,
+                          ]}
+                          onPress={handleOpenGuestModal}
+                          disabled={!canModifyTeams}
+                        >
+                          <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
+                            게스트 추가
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          style={({ pressed }) => [
+                            styles.manageActionButtonBase,
+                            styles.manageActionButtonBlue,
+                            !canStartTeamFormation && styles.manageActionButtonDisabled,
+                            pressed && canStartTeamFormation && styles.manageActionButtonPressed,
+                          ]}
+                          onPress={openTeamFormation}
+                          disabled={!canStartTeamFormation}
+                        >
+                          <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
+                            팀 편성 시작
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          style={({ pressed }) => [
+                            styles.manageActionButtonBase,
+                            styles.manageActionButtonPurple,
+                            !canStartTeamFormation && styles.manageActionButtonDisabled,
+                            pressed && canStartTeamFormation && styles.manageActionButtonPressed,
+                          ]}
+                          onPress={openBatchFormation}
+                          disabled={!canStartTeamFormation}
+                        >
+                          <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
+                            일괄 편성
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          style={({ pressed }) => [
+                            styles.manageActionButtonBase,
+                            styles.manageActionButtonIndigo,
+                            (processingAction || meeting?.team_formation_confirmed_at !== null) &&
+                            styles.manageActionButtonDisabled,
+                            pressed &&
+                            !(processingAction || meeting?.team_formation_confirmed_at !== null) &&
+                            styles.manageActionButtonPressed,
+                          ]}
+                          onPress={openHistory}
+                          disabled={processingAction || meeting?.team_formation_confirmed_at !== null}
+                        >
+                          <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
+                            편성 히스토리
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          style={({ pressed }) => [
+                            styles.manageActionButtonBase,
+                            styles.manageActionButtonRoseTint,
+                            (processingAction || normalizedStatus !== 'SCHEDULED') &&
+                            styles.manageActionButtonDisabled,
+                            pressed &&
+                            !(processingAction || normalizedStatus !== 'SCHEDULED') &&
+                            styles.manageActionButtonPressed,
+                          ]}
+                          onPress={handleCancelMeeting}
+                          disabled={processingAction || normalizedStatus !== 'SCHEDULED'}
+                        >
+                          <Text style={[styles.manageActionTextBase, styles.manageActionTextRose]}>
+                            모임 취소
+                          </Text>
+                        </Pressable>
+                      </View>
+                    ) : null}
 
-                <View style={styles.participantSummaryGrid}>
-                  <View style={styles.participantSummaryItem}>
-                    <Text style={styles.participantSummaryLabel}>참가 인원</Text>
-                    <Text style={styles.participantSummaryValue}>
-                      {Number.isFinite(Number(applicationStatus?.participant_count))
-                        ? Number(applicationStatus.participant_count)
-                        : participantCount}명
-                    </Text>
+                    <View style={styles.participantSummaryGrid}>
+                      <View style={styles.participantSummaryItem}>
+                        <Text style={styles.participantSummaryLabel}>참가 인원</Text>
+                        <Text style={styles.participantSummaryValue}>
+                          {Number.isFinite(Number(applicationStatus?.participant_count))
+                            ? Number(applicationStatus.participant_count)
+                            : participantCount}명
+                        </Text>
+                      </View>
+                      <View style={styles.participantSummaryItem}>
+                        <Text style={styles.participantSummaryLabel}>모집 상태</Text>
+                        <Text style={styles.participantSummaryValue}>
+                          {isApplicationClosed ? '마감' : '모집 중'}
+                        </Text>
+                      </View>
+                      <View style={styles.participantSummaryItem}>
+                        <Text style={styles.participantSummaryLabel}>정원</Text>
+                        <Text style={styles.participantSummaryValue}>
+                          {meeting?.max_participants !== null && meeting?.max_participants !== undefined
+                            ? `${meeting.max_participants}명`
+                            : '-'}
+                        </Text>
+                      </View>
+                    </View>
                   </View>
-                  <View style={styles.participantSummaryItem}>
-                    <Text style={styles.participantSummaryLabel}>모집 상태</Text>
-                    <Text style={styles.participantSummaryValue}>
-                      {isApplicationClosed ? '마감' : '모집 중'}
-                    </Text>
-                  </View>
-                  <View style={styles.participantSummaryItem}>
-                    <Text style={styles.participantSummaryLabel}>정원</Text>
-                    <Text style={styles.participantSummaryValue}>
-                      {meeting?.max_participants !== null && meeting?.max_participants !== undefined
-                        ? `${meeting.max_participants}명`
-                        : '-'}
-                    </Text>
-                  </View>
-                </View>
-              </View>
                 ) : null}
 
                 {participants.length === 0 ? (
@@ -1941,19 +1972,6 @@ export default function MeetingDetailScreen() {
                 style={styles.input}
                 placeholder="게스트 이름"
                 placeholderTextColor={colors.neutral[400]}
-              />
-            </View>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>생년월일</Text>
-              <TextInput
-                value={guestForm.birthdate}
-                onChangeText={(value) => setGuestForm((prev) => ({ ...prev, birthdate: normalizeBirthdateInput(value) }))}
-                style={styles.input}
-                placeholder="8글자 입력 (예: 20260205)"
-                placeholderTextColor={colors.neutral[400]}
-                keyboardType="number-pad"
-                maxLength={8}
               />
             </View>
 
@@ -2526,6 +2544,18 @@ const styles = StyleSheet.create({
   },
   roleBadgeText: {
     color: colors.success[700],
+  },
+  organizerBadge: {
+    backgroundColor: colors.error[50],
+  },
+  organizerBadgeText: {
+    color: colors.error[700],
+  },
+  guestBadge: {
+    backgroundColor: colors.neutral[100],
+  },
+  guestBadgeText: {
+    color: colors.neutral[700],
   },
   emptyText: {
     fontSize: tokens.font.sm,
