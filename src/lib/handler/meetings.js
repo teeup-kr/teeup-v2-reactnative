@@ -46,6 +46,7 @@ export function createFetchParticipantsHandler({
     typeSlug,
     meeting,
     fetchRoundParticipants,
+    fetchSocialParticipants,
     extractList,
     setParticipants,
 }) {
@@ -54,8 +55,17 @@ export function createFetchParticipantsHandler({
 
         try {
             if (typeSlug === 'social') {
-                const list = extractList(meeting?.participants);
-                setParticipants(list);
+                if (typeof fetchSocialParticipants === 'function') {
+                    const response = await fetchSocialParticipants(meetingIdValue);
+                    const list = extractList(response);
+                    setParticipants(list);
+                    setConfirmedParticipants(
+                        list.filter((p) => String(p?.status || '').toUpperCase() === 'CONFIRMED')
+                    );
+                } else {
+                    const list = extractList(meeting?.participants);
+                    setParticipants(list);
+                }
                 return;
             }
 
@@ -242,6 +252,12 @@ export function createAutoFormTeamsHandler({
                 setTeamPreviewOpen(true);
             } else if (!payload.batchMode) {
                 setTeams(teamsData);
+                if (typeof fetchTeams === 'function' && (!teamsData || teamsData.length === 0)) {
+                    await fetchTeams();
+                }
+                if (typeof onCloseTeamFormation === 'function') {
+                    onCloseTeamFormation();
+                }
             }
             return response;
         } catch (error) {
@@ -766,6 +782,34 @@ export function createFetchClubsHandler({ fetchMyClubs, extractList, isEditMode,
             if (setClubsLoading) {
                 setClubsLoading(false);
             }
+        }
+    };
+}
+
+export function createFetchMeetingDetailHandler({
+    meetingIdValue,
+    typeSlug,
+    fetchSocial,
+    fetchRound,
+    extractData,
+    setMeeting,
+    setLoading,
+    setError,
+}) {
+    return async function () {
+        if (!meetingIdValue) return;
+        try {
+            setLoading(true);
+            setError(null);
+            const fetchApi = typeSlug === 'social' ? fetchSocial : fetchRound;
+            const response = await fetchApi(meetingIdValue);
+            const data = extractData(response);
+            setMeeting(data);
+        } catch (error) {
+            console.error('모임 상세 조회 실패:', error);
+            setError(error?.message || '모임 정보를 불러오는데 실패했습니다.');
+        } finally {
+            setLoading(false);
         }
     };
 }

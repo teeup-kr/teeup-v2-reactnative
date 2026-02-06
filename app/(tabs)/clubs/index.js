@@ -308,7 +308,6 @@ export default function ClubsScreen() {
         statusFilter,
         userId: user?.id,
         fetchMyClubs: clubsApi.getMyClubs,
-        fetchMyClubApplications: clubsApi.getMyClubApplications,
         fetchClubs: clubsApi.getClubs,
         normalizePaginatedResponse,
         setClubs,
@@ -357,11 +356,10 @@ export default function ClubsScreen() {
   const handleCardPress = useMemo(
     () =>
       createCardPressHandler({
-        activeTab,
         router,
         onClubPress: handleClubPress,
       }),
-    [activeTab, router, handleClubPress]
+    [router, handleClubPress]
   );
 
   const handleSearchTermChange = useMemo(
@@ -607,38 +605,26 @@ export default function ClubsScreen() {
           </Card>
         ) : clubs.length === 0 ? (
           <View style={styles.emptyState}>
-            <FontAwesome5
-              name={activeTab === 'applications' ? 'file-alt' : 'users'}
-              size={44}
-              color={colors.neutral[300]}
-            />
+            <FontAwesome5 name="users" size={44} color={colors.neutral[300]} />
             <Text style={styles.emptyTitle}>
               {activeTab === 'all'
                 ? '클럽이 없습니다'
-                : activeTab === 'applications'
-                  ? '개설 신청 내역'
-                  : activeTab === 'join-applications'
-                    ? '가입 신청 내역'
-                    : '내 클럽'}
+                : activeTab === 'join-applications'
+                  ? '가입 신청 내역'
+                  : '내 클럽'}
             </Text>
             <Text style={styles.emptySubtitle}>
               {activeTab === 'all'
                 ? searchTerm || statusFilter !== 'ALL'
                   ? '검색 조건에 맞는 클럽이 없습니다.'
                   : '아직 등록된 클럽이 없습니다.'
-                : activeTab === 'applications'
-                  ? '클럽 개설 신청 내역이 없습니다.'
-                  : activeTab === 'join-applications'
-                    ? '가입 승인 대기 중인 클럽이 없습니다.'
-                    : '가입한 클럽이 없습니다. 클럽에 가입해보세요!'}
+                : activeTab === 'join-applications'
+                  ? '가입 승인 대기 중인 클럽이 없습니다.'
+                  : '가입한 클럽이 없습니다. 클럽에 가입해보세요!'}
             </Text>
             {activeTab === 'all' && !searchTerm && statusFilter === 'ALL' ? (
               <Button variant="primary" size="sm" onPress={handleCreateClub}>
                 첫 번째 클럽 등록하기
-              </Button>
-            ) : activeTab === 'applications' ? (
-              <Button variant="primary" size="sm" onPress={handleCreateClub}>
-                클럽 등록하기
               </Button>
             ) : activeTab === 'my' || activeTab === 'join-applications' ? (
               <Button variant="primary" size="sm" onPress={handleBrowseClubs}>

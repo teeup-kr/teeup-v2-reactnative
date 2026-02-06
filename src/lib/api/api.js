@@ -467,7 +467,7 @@ async function deleteSocial(id) {
 }
 
 async function joinSocial(id) {
-  return apiClient.post(`/socials/${id}/join`);
+  return apiClient.post(`/socials/${id}/join`, {});
 }
 
 async function leaveSocial(id) {
@@ -485,6 +485,7 @@ export const socialsApi = {
   updateSocial,
   deleteSocial,
   joinSocial,
+  fetchSocialParticipants,
   leaveSocial,
   cancelSocial,
 };
@@ -628,6 +629,29 @@ export const faqApi = {
   getFaqs,
   getFaq,
   getCategories,
+};
+
+async function getMyInquiries(params = {}) {
+  return apiClient.get('/inquiries', { params });
+}
+
+async function getInquiry(inquiryId) {
+  return apiClient.get(`/inquiries/${inquiryId}`);
+}
+
+async function createInquiry(data) {
+  return apiClient.post('/inquiries', data);
+}
+
+async function getInquiryTypes() {
+  return apiClient.get('/inquiries/types/');
+}
+
+export const inquiriesApi = {
+  getMyInquiries,
+  getInquiry,
+  createInquiry,
+  getInquiryTypes,
 };
 
 async function getSidoList() {
@@ -1036,6 +1060,10 @@ async function fetchRoundParticipants(meetingId) {
   return apiClient.get(`/rounds/${meetingId}/participants`);
 }
 
+async function fetchSocialParticipants(meetingId) {
+  return apiClient.get(`/socials/${meetingId}/participants`);
+}
+
 async function fetchRoundTeams(meetingId) {
   return apiClient.get(`/rounds/${meetingId}/teams`);
 }
@@ -1077,7 +1105,7 @@ async function leaveRoundByMeeting(meetingId) {
 }
 
 async function joinSocialByMeeting(meetingId) {
-  return apiClient.post(`/socials/${meetingId}/join`);
+  return apiClient.post(`/socials/${meetingId}/join`, {});
 }
 
 async function leaveSocialByMeeting(meetingId) {
@@ -1122,6 +1150,7 @@ export const meetingsApi = {
   updateSocialById,
   fetchRoundExpenses,
   fetchRoundParticipants,
+  fetchSocialParticipants,
   fetchRoundTeams,
   fetchApplicationStatus,
   closeApplicationEarly,

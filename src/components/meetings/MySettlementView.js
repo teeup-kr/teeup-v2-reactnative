@@ -29,8 +29,13 @@ export default function MySettlementView({ meetingId }) {
         const response = await roundsApi.getMySettlement(meetingId);
         setData(extractData(response));
       } catch (fetchError) {
-        console.error('내 정산 조회 실패:', fetchError);
-        setError('정산 정보를 불러오는데 실패했습니다.');
+        if (fetchError?.status === 404) {
+          setData(null);
+          setError(null);
+        } else {
+          console.error('내 정산 조회 실패:', fetchError);
+          setError('정산 정보를 불러오는데 실패했습니다.');
+        }
       } finally {
         setLoading(false);
       }
@@ -53,23 +58,33 @@ export default function MySettlementView({ meetingId }) {
   }
 
   if (!data) {
-    return <Text style={styles.emptyText}>정산 정보가 없습니다.</Text>;
+    return (
+      <View style={styles.emptyCard}>
+        <Text style={styles.emptyText}>정산 정보가 없습니다.</Text>
+        <Text style={styles.emptySubtext}>정산이 생성되면 내 부담금을 확인할 수 있습니다.</Text>
+      </View>
+    );
   }
+
+  const myAmount = data.total_amount_due ?? data.my_amount ?? data.amount;
+  const statusText = data.is_paid === true ? '납부 완료' : (data.remaining_amount > 0 ? '미납' : '납부 완료');
 
   return (
     <View style={styles.card}>
       <Text style={styles.title}>내 정산 내역</Text>
       <View style={styles.row}>
-        <Text style={styles.label}>정산 방식</Text>
-        <Text style={styles.value}>{data.method || data.settlement_method || '-'}</Text>
-      </View>
-      <View style={styles.row}>
         <Text style={styles.label}>내 부담금</Text>
-        <Text style={styles.value}>{formatCurrency(data.my_amount || data.amount)}</Text>
+        <Text style={styles.value}>{formatCurrency(myAmount)}</Text>
       </View>
+      {data.amount_paid != null && data.amount_paid > 0 && (
+        <View style={styles.row}>
+          <Text style={styles.label}>납부액</Text>
+          <Text style={styles.value}>{formatCurrency(data.amount_paid)}</Text>
+        </View>
+      )}
       <View style={styles.row}>
-        <Text style={styles.label}>정산 상태</Text>
-        <Text style={styles.value}>{data.status || '-'}</Text>
+        <Text style={styles.label}>상태</Text>
+        <Text style={styles.value}>{statusText}</Text>
       </View>
     </View>
   );
@@ -116,8 +131,23 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.sm,
     color: colors.error[600],
   },
+  emptyCard: {
+    backgroundColor: colors.neutral[50],
+    borderRadius: tokens.radius.lg,
+    padding: tokens.padding.lg,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+  },
   emptyText: {
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
+    color: colors.neutral[700],
+    textAlign: 'center',
+  },
+  emptySubtext: {
     fontSize: tokens.font.sm,
-    color: colors.neutral[600],
+    color: colors.neutral[500],
+    textAlign: 'center',
+    marginTop: tokens.spacing.xs,
   },
 });

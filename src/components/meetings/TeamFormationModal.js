@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { formatBirthdateForApi, normalizeBirthdateInput } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
@@ -38,7 +39,19 @@ export default function TeamFormationModal({
 
   const handleSubmit = () => {
     if (!canSubmit) return;
+    const invalidGuest = guests.find((g) => {
+      const raw = String(g.birthdate || '').trim().replace(/\D/g, '');
+      return raw.length === 8 && !formatBirthdateForApi(g.birthdate);
+    });
+    if (invalidGuest) {
+      Alert.alert('확인', '게스트 생년월일을 확인해주세요. (1900년~올해, 올바른 월·일)');
+      return;
+    }
     if (onFormTeams) {
+      const guestsForApi = guests.map((g) => ({
+        ...g,
+        birthdate: formatBirthdateForApi(g.birthdate) || null,
+      }));
       onFormTeams({
         formation_mode: formationMode,
         team_size: Number(teamSize),
