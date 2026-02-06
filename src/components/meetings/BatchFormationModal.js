@@ -69,6 +69,7 @@ export default function BatchFormationModal({
               mode,
               label: formationModeOptions.find((option) => option.value === mode)?.label || mode,
               teams,
+              teamSize: Number(teamSize),
               success: true,
             };
           } catch (error) {
@@ -76,6 +77,7 @@ export default function BatchFormationModal({
               mode,
               label: formationModeOptions.find((option) => option.value === mode)?.label || mode,
               teams: [],
+              teamSize: Number(teamSize),
               success: false,
               error: error?.message || '편성 실패',
             };
@@ -152,22 +154,36 @@ export default function BatchFormationModal({
               {result.success ? (
                 <>
                   <Text style={styles.resultMeta}>팀 수: {result.teams.length}</Text>
-                  <Button size="sm" onPress={() => {
-                    if (onViewDetail) {
-                      onViewDetail(result);
-                    }
-                    if (onFormTeams) {
-                      onFormTeams({
-                        formation_mode: result.mode,
-                        team_size: Number(teamSize),
-                        preview: true,
-                        selectedResult: result,
-                      });
-                    }
-                    onClose();
-                  }}>
-                    이 결과 선택
-                  </Button>
+                  <View style={styles.resultActionRow}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      style={styles.resultActionButton}
+                      onPress={() => {
+                        if (onViewDetail) {
+                          onViewDetail(result);
+                        }
+                      }}
+                    >
+                      상세 보기
+                    </Button>
+                    <Button
+                      size="sm"
+                      style={styles.resultActionButton}
+                      onPress={() => {
+                        if (onFormTeams) {
+                          onFormTeams({
+                            formation_mode: result.mode,
+                            team_size: Number(teamSize),
+                            preview: true,
+                          });
+                        }
+                        onClose();
+                      }}
+                    >
+                      이 결과 선택
+                    </Button>
+                  </View>
                 </>
               ) : (
                 <Text style={styles.errorText}>{result.error}</Text>
@@ -268,6 +284,13 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.xs,
     color: colors.neutral[500],
     marginBottom: tokens.spacing.xs2,
+  },
+  resultActionRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  resultActionButton: {
+    flex: 1,
   },
   errorText: {
     fontSize: tokens.font.xs,

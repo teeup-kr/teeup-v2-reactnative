@@ -38,12 +38,6 @@ export const myMeetingsTypeConfig = {
   SOCIAL: { label: '소셜', color: colors.primary[600], bg: colors.primary[50] },
 };
 
-export const myMeetingsRoleConfig = {
-  ORGANIZER: { label: '주최자', color: colors.neutral[700], bg: colors.neutral[100] },
-  HOST: { label: '주최자', color: colors.neutral[700], bg: colors.neutral[100] },
-  PARTICIPANT: { label: '참가자', color: colors.neutral[600], bg: colors.neutral[100] },
-};
-
 export const genderOptions = [
   { id: 'male', label: '남성', value: 'M' },
   { id: 'female', label: '여성', value: 'F' },

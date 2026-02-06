@@ -18,11 +18,6 @@ const formationModeOptions = [
   { value: 'GENDER_MIXED_RANDOM', label: '성별 혼합 + 랜덤' },
 ];
 
-const genderOptions = [
-  { value: 'MALE', label: '남성' },
-  { value: 'FEMALE', label: '여성' },
-];
-
 export default function TeamFormationModal({
   isOpen,
   visible,
@@ -35,32 +30,12 @@ export default function TeamFormationModal({
   const isVisible = visible ?? isOpen;
   const [formationMode, setFormationMode] = useState(meeting?.team_formation_mode || 'GENDER_MIXED_HANDICAP');
   const [teamSize, setTeamSize] = useState(String(meeting?.team_size || 4));
-  const [guests, setGuests] = useState([]);
-  const [showGuestForm, setShowGuestForm] = useState(false);
-  const [guestForm, setGuestForm] = useState({
-    name: '',
-    birthdate: '',
-    gender: '',
-    handicap: '',
-    average_score: '',
-  });
 
   const canSubmit = useMemo(() => {
     return !!formationMode && !!teamSize;
   }, [formationMode, teamSize]);
 
   if (!isVisible) return null;
-
-  const handleAddGuest = () => {
-    if (!guestForm.name) return;
-    setGuests((prev) => [...prev, { ...guestForm }]);
-    setGuestForm({ name: '', birthdate: '', gender: '', handicap: '', average_score: '' });
-    setShowGuestForm(false);
-  };
-
-  const handleRemoveGuest = (index) => {
-    setGuests((prev) => prev.filter((_, idx) => idx !== index));
-  };
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -80,7 +55,6 @@ export default function TeamFormationModal({
       onFormTeams({
         formation_mode: formationMode,
         team_size: Number(teamSize),
-        guests: guestsForApi,
       });
     }
   };
@@ -132,81 +106,6 @@ export default function TeamFormationModal({
         keyboardType="number-pad"
         placeholder="예: 4"
       />
-
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>게스트 추가</Text>
-        <Button size="sm" variant="outline" onPress={() => setShowGuestForm((prev) => !prev)}>
-          {showGuestForm ? '닫기' : '게스트 추가'}
-        </Button>
-      </View>
-
-      {showGuestForm ? (
-        <View style={styles.guestForm}>
-          <Input
-            label="이름"
-            value={guestForm.name}
-            onChangeText={(value) => setGuestForm((prev) => ({ ...prev, name: value }))}
-            placeholder="게스트 이름"
-          />
-          <Input
-            label="생년월일"
-            value={guestForm.birthdate}
-            onChangeText={(value) => setGuestForm((prev) => ({ ...prev, birthdate: normalizeBirthdateInput(value) }))}
-            placeholder="8글자 입력 (예: 20260205)"
-            keyboardType="number-pad"
-            maxLength={8}
-          />
-          <Text style={styles.fieldLabel}>성별</Text>
-          <View style={styles.genderRow}>
-            {genderOptions.map((option) => (
-              <Pressable
-                key={option.value}
-                onPress={() => setGuestForm((prev) => ({ ...prev, gender: option.value }))}
-                style={({ pressed }) => [
-                  styles.genderChip,
-                  guestForm.gender === option.value && styles.genderChipActive,
-                  pressed && styles.genderChipPressed,
-                ]}
-              >
-                <Text style={[styles.genderText, guestForm.gender === option.value && styles.genderTextActive]}>
-                  {option.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          <Input
-            label="핸디캡"
-            value={guestForm.handicap}
-            onChangeText={(value) => setGuestForm((prev) => ({ ...prev, handicap: value }))}
-            placeholder="예: 15.8"
-            keyboardType="decimal-pad"
-          />
-          <Input
-            label="평균 타수"
-            value={guestForm.average_score}
-            onChangeText={(value) => setGuestForm((prev) => ({ ...prev, average_score: value }))}
-            placeholder="예: 90"
-            keyboardType="number-pad"
-          />
-          <Button size="sm" onPress={handleAddGuest}>
-            게스트 추가 완료
-          </Button>
-        </View>
-      ) : null}
-
-      {guests.length > 0 && (
-        <View style={styles.guestList}>
-          {guests.map((guest, index) => (
-            <View key={`${guest.name}-${index}`} style={styles.guestItem}>
-              <Text style={styles.guestName}>{guest.name}</Text>
-              <Text style={styles.guestMeta}>성별: {guest.gender || '-'}</Text>
-              <Pressable onPress={() => handleRemoveGuest(index)}>
-                <Text style={styles.removeText}>삭제</Text>
-              </Pressable>
-            </View>
-          ))}
-        </View>
-      )}
     </Modal>
   );
 }
@@ -247,41 +146,6 @@ const styles = StyleSheet.create({
     color: colors.primary[700],
     fontWeight: tokens.fontWeight.semibold,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: tokens.spacing.xs,
-  },
-  guestForm: {
-    marginTop: tokens.spacing.xs2,
-  },
-  guestList: {
-    marginTop: tokens.spacing.xs2,
-    gap: 8,
-  },
-  guestItem: {
-    padding: tokens.padding.base,
-    borderRadius: tokens.radius.base,
-    backgroundColor: colors.neutral[50],
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
-  },
-  guestName: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[900],
-  },
-  guestMeta: {
-    fontSize: tokens.font.xs,
-    color: colors.neutral[500],
-    marginTop: tokens.spacing.xxs,
-  },
-  removeText: {
-    marginTop: tokens.spacing.xs,
-    fontSize: tokens.font.xs,
-    color: colors.error[600],
-  },
   footerRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -289,37 +153,5 @@ const styles = StyleSheet.create({
   },
   footerButton: {
     flex: 1,
-  },
-  fieldLabel: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.semibold,
-    color: colors.neutral[700],
-    marginBottom: tokens.spacing.xs2,
-  },
-  genderRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: tokens.spacing.xs2,
-    gap: 8,
-  },
-  genderChip: {
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs2,
-    borderRadius: tokens.radius.baseLg,
-    backgroundColor: colors.neutral[100],
-  },
-  genderChipActive: {
-    backgroundColor: colors.primary[600],
-  },
-  genderChipPressed: {
-    opacity: 0.9,
-  },
-  genderText: {
-    fontSize: tokens.font.xs,
-    color: colors.neutral[600],
-    fontWeight: tokens.fontWeight.semibold,
-  },
-  genderTextActive: {
-    color: colors.white,
   },
 });

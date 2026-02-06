@@ -49,7 +49,6 @@ export function createFetchParticipantsHandler({
     fetchSocialParticipants,
     extractList,
     setParticipants,
-    setConfirmedParticipants,
 }) {
     return async function () {
         if (!meetingIdValue) return;
@@ -73,9 +72,6 @@ export function createFetchParticipantsHandler({
             const response = await fetchRoundParticipants(meetingIdValue);
             const list = extractList(response);
             setParticipants(list);
-            setConfirmedParticipants(
-                list.filter((participant) => participant.status === 'CONFIRMED')
-            );
         } catch (error) {
             console.error('참가자 조회 실패:', error);
         }
@@ -233,8 +229,7 @@ export function createAutoFormTeamsHandler({
     setPreviewTeams,
     setTeamPreviewOpen,
     setTeams,
-    fetchTeams,
-    onCloseTeamFormation,
+    setPreviewFormation,
     alert,
 }) {
     return async function (payload = {}) {
@@ -244,12 +239,18 @@ export function createAutoFormTeamsHandler({
         try {
             setProcessingAction(true);
             const response = await autoFormTeams(meetingIdValue, payload);
-            const raw = response?.teams ?? response?.data?.teams ?? response?.data ?? response;
-            const teamsData = Array.isArray(raw) ? raw : extractList(raw);
-            if (payload.preview || payload.batchMode) {
+            const teamsData = extractList(response?.teams || response?.data?.teams || response);
+            if (payload.preview && !payload.batchMode) {
+                if (typeof setPreviewFormation === 'function') {
+                    const mode = payload?.formation_mode;
+                    const size = payload?.team_size;
+                    if (mode || size) {
+                        setPreviewFormation({ mode, teamSize: size });
+                    }
+                }
                 setPreviewTeams(teamsData);
                 setTeamPreviewOpen(true);
-            } else {
+            } else if (!payload.batchMode) {
                 setTeams(teamsData);
                 if (typeof fetchTeams === 'function' && (!teamsData || teamsData.length === 0)) {
                     await fetchTeams();

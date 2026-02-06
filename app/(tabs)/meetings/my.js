@@ -80,41 +80,11 @@ function getStatusBadgeConfig(status) {
   };
 }
 
-function getParticipationStatusConfig(status) {
-  const key = String(status || '').toUpperCase();
-  if (key === 'CONFIRMED') {
-    return {
-      label: '확정',
-      backgroundColor: colors.success[50],
-      textColor: colors.success[700],
-    };
-  }
-  if (key === 'CANCELED') {
-    return {
-      label: '취소',
-      backgroundColor: colors.error[50],
-      textColor: colors.error[700],
-    };
-  }
-  return {
-    label: '대기중',
-    backgroundColor: colors.warning[50],
-    textColor: colors.warning[700],
-  };
-}
-
 function formatCost(value) {
   if (value === null || value === undefined || value === '') return '미정';
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return String(value);
   return `${numeric.toLocaleString('ko-KR')}원`;
-}
-
-function getRoleLabel(role) {
-  const key = String(role || '').toUpperCase();
-  if (key === 'ORGANIZER') return '개설자';
-  if (key === 'PARTICIPANT') return '참가자';
-  return key || '참가자';
 }
 
 function isUpcoming(meeting) {
@@ -260,9 +230,6 @@ export default function MyMeetingsScreen() {
               const id = meeting?.id || meeting?.meeting_id;
               const typeLabel = getTypeLabel(meeting);
               const statusBadge = getStatusBadgeConfig(meeting?.status);
-              const participationBadge = getParticipationStatusConfig(
-                meeting?.participation_status || meeting?.participant_status
-              );
               const costValue =
                 typeLabel === '라운딩'
                   ? formatCost(meeting?.total_cost)
@@ -305,17 +272,6 @@ export default function MyMeetingsScreen() {
                     </View>
                     <View style={styles.badgeRow}>
                       <Text style={styles.typeBadge}>{typeLabel}</Text>
-                      <Text style={styles.roleBadge}>{getRoleLabel(meeting?.user_role || meeting?.role)}</Text>
-                      <View
-                        style={[
-                          styles.participationBadge,
-                          { backgroundColor: participationBadge.backgroundColor },
-                        ]}
-                      >
-                        <Text style={[styles.participationBadgeText, { color: participationBadge.textColor }]}>
-                          {participationBadge.label}
-                        </Text>
-                      </View>
                     </View>
                   </View>
 
@@ -462,23 +418,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: tokens.radius.pill,
-  },
-  roleBadge: {
-    fontSize: tokens.font.xs,
-    color: colors.success[700],
-    backgroundColor: colors.success[50],
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: tokens.radius.pill,
-  },
-  participationBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: tokens.radius.pill,
-  },
-  participationBadgeText: {
-    fontSize: tokens.font.xs,
-    fontWeight: tokens.fontWeight.semibold,
   },
   statusBadge: {
     marginLeft: tokens.spacing.xs,
