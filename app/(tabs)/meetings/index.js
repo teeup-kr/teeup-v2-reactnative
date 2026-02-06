@@ -52,7 +52,7 @@ export default function MeetingsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const tabParam = Array.isArray(params.tab) ? params.tab[0] : params.tab;
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   const initialTab = useMemo(
     () => (tabParam === 'social' ? 'social' : 'rounding'),
@@ -614,6 +614,7 @@ export default function MeetingsScreen() {
                         meeting={{ ...meeting, id: meetingId }}
                         onPress={handleMeetingClick(meeting)}
                         styles={styles}
+                        currentUserId={user?.id ?? null}
                       />
                     );
                   })}
