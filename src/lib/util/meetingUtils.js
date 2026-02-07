@@ -430,6 +430,26 @@ export function getTypeSlug(meetingType) { return meetingType === 'social' ? 'so
 
 export function getMeetingDomainType(typeSlug) { return typeSlug === 'social' ? 'SOCIAL' : 'ROUND'; }
 
+/**
+ * API 응답에서 meeting_type / settlement_method 등이 문자열("ROUND") 또는 Enum 직렬화 객체로 올 수 있음.
+ * 항상 문자열로 비교할 수 있도록 값만 추출.
+ */
+export function normalizeEnumValue(v) {
+  if (v == null) return null;
+  if (typeof v === 'string') return v;
+  return v?.value ?? null;
+}
+
+/** meeting의 모임 타입 문자열 (ROUND / SOCIAL) */
+export function getMeetingTypeValue(meeting) {
+  return normalizeEnumValue(meeting?.meeting_type ?? meeting?.type) ?? null;
+}
+
+/** meeting의 정산 방법 문자열 (EQUAL_SPLIT / INDIVIDUAL 등) */
+export function getSettlementMethodValue(meeting) {
+  return normalizeEnumValue(meeting?.settlement_method) ?? null;
+}
+
 export function getMyParticipantId({ user, participants }) {
   if (!user?.id) return null;
   const match = participants.find((participant) => participant.user_id === user.id);
@@ -477,7 +497,7 @@ export function getTotalExpenseAmount(expenses) {
 
 export function normalizeMyMeetings(meetings) {
   return meetings.map((meeting) => {
-    const meetingType = meeting?.meeting_type || meeting?.type || 'ROUND';
+    const meetingType = getMeetingTypeValue(meeting) || meeting?.meeting_type || meeting?.type || 'ROUND';
     const typeSlug = meetingType === 'ROUND' || meetingType === 'ROUNDING' ? 'rounding' : 'social';
     return {
       id: meeting?.id || meeting?.meeting_id,

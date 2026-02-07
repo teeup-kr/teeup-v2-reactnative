@@ -24,12 +24,18 @@ export default function TeamFormationModal({
   onClose,
   onFormTeams,
   meeting,
+  participants = [],
   processing,
   onOpenBatch,
 }) {
   const isVisible = visible ?? isOpen;
   const [formationMode, setFormationMode] = useState(meeting?.team_formation_mode || 'GENDER_MIXED_HANDICAP');
   const [teamSize, setTeamSize] = useState(String(meeting?.team_size || 4));
+
+  const guests = useMemo(
+    () => (Array.isArray(participants) ? participants.filter((p) => p?.is_guest || p?.guest_id) : []),
+    [participants]
+  );
 
   const canSubmit = useMemo(() => {
     return !!formationMode && !!teamSize;

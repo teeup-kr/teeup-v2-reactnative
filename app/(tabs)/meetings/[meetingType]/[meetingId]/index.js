@@ -211,6 +211,8 @@ export default function MeetingDetailScreen() {
   const [isEditingUserInfo, setIsEditingUserInfo] = useState(false);
   const [processingAction, setProcessingAction] = useState(false);
   const [applicationStatus, setApplicationStatus] = useState(null);
+  const [confirmedParticipants, setConfirmedParticipants] = useState([]);
+  const [settlement, setSettlement] = useState(null);
 
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [teamFormationOpen, setTeamFormationOpen] = useState(false);
@@ -287,10 +289,12 @@ export default function MeetingDetailScreen() {
         meeting,
         fetchRoundParticipants: meetingsApi.fetchRoundParticipants,
         fetchSocialParticipants: meetingsApi.fetchSocialParticipants,
+        fetchGuests: roundsApi.getGuests,
         extractList,
         setParticipants,
+        setConfirmedParticipants,
       }),
-    [meetingIdValue, typeSlug, meeting, setParticipants]
+    [meetingIdValue, typeSlug, meeting, setParticipants, setConfirmedParticipants]
   );
 
   const fetchTeams = useMemo(
@@ -317,31 +321,29 @@ export default function MeetingDetailScreen() {
     [meetingIdValue, isRoundingMeeting, setApplicationStatus]
   );
 
+  const fetchSettlement = useCallback(async () => {
+    if (!meetingIdValue) return;
+    try {
+      const res = await roundsApi.getMeetingSettlement(meetingIdValue);
+      setSettlement(res?.settlement ?? null);
+    } catch {
+      setSettlement(null);
+    }
+  }, [meetingIdValue]);
+
   useEffect(() => {
     fetchUserInfo();
     fetchMeeting();
   }, [fetchMeeting, fetchUserInfo]);
 
   useEffect(() => {
-    let canceled = false;
-    const run = async () => {
-      setParticipantsLoaded(false);
-      try {
-        await fetchParticipants();
-      } finally {
-        if (!canceled) {
-          setParticipantsLoaded(true);
-        }
-      }
-    };
+    fetchSettlement();
+  }, [fetchSettlement]);
 
-    run();
+  useEffect(() => {
+    fetchParticipants();
     fetchTeams();
     fetchStatus();
-
-    return () => {
-      canceled = true;
-    };
   }, [fetchParticipants, fetchTeams, fetchStatus]);
 
   const handleUpdateUserInfo = useMemo(
@@ -472,6 +474,36 @@ export default function MeetingDetailScreen() {
         alert: Alert.alert,
       }),
     [meetingIdValue, router, setProcessingAction, fetchMeeting]
+  );
+
+  const handleSyncMeetingToSettlement = useCallback(
+    async (payload) => {
+      if (!meetingIdValue) return;
+      try {
+        if (meetingDomainType === 'ROUND') {
+          await roundsApi.updateRoundById(meetingIdValue, payload);
+        } else {
+          await meetingsApi.updateSocialById(meetingIdValue, payload);
+        }
+        // 정산에서 바뀐 비용을 모임 상세 비용 정보에 즉시 반영
+        setMeeting((prev) => {
+          if (!prev) return prev;
+          const next = { ...prev };
+          if (payload.total_cost != null) next.total_cost = payload.total_cost;
+          if (payload.green_fee != null) next.green_fee = payload.green_fee;
+          if (payload.caddy_fee != null) next.caddy_fee = payload.caddy_fee;
+          if (payload.cart_fee != null) next.cart_fee = payload.cart_fee;
+          if (payload.other_fee != null) next.other_fee = payload.other_fee;
+          if (payload.settlement_method != null) next.settlement_method = payload.settlement_method;
+          if (payload.social_cost != null) next.social_cost = payload.social_cost;
+          return next;
+        });
+      } catch (syncError) {
+        console.warn('모임 정보 동기화 실패:', syncError);
+        Alert.alert('안내', '정산은 저장되었으나 모임 정보 갱신에 실패했습니다.');
+      }
+    },
+    [meetingIdValue, meetingDomainType]
   );
 
   const ensureMeetingProfile = useMemo(
@@ -1012,11 +1044,13 @@ export default function MeetingDetailScreen() {
     () =>
       Boolean(
         (isOrganizer || (isParticipant && isClubLeaderOrManager)) &&
-        displayStatus !== 'CANCELED' &&
-        displayStatus !== '종료' &&
-        displayStatus !== '완료'
+          normalizedStatus !== 'CANCELED' &&
+          normalizedStatus !== 'COMPLETED' &&
+          displayStatus !== 'CANCELED' &&
+          displayStatus !== '종료' &&
+          displayStatus !== '완료'
       ),
-    [isOrganizer, isParticipant, isClubLeaderOrManager, displayStatus]
+    [isOrganizer, isParticipant, isClubLeaderOrManager, normalizedStatus, displayStatus]
   );
 
   /** 소셜: 주최/참가자가 아니고 취소·완료가 아니면 참가 버튼 표시 (API 상태와 무관하게) */
@@ -1225,7 +1259,8 @@ export default function MeetingDetailScreen() {
           key: 'settlement_method',
           label: '정산 방법',
           value: formatOptional(
-            SETTLEMENT_METHOD_LABELS[meeting.settlement_method] || meeting.settlement_method,
+            SETTLEMENT_METHOD_LABELS[settlement?.settlement_method ?? meeting.settlement_method] ||
+              (settlement?.settlement_method ?? meeting.settlement_method),
             '미정'
           ),
           icon: 'dollar-sign',
@@ -1233,6 +1268,7 @@ export default function MeetingDetailScreen() {
       ];
     }
 
+    const displaySocialMethod = settlement?.settlement_method ?? meeting.settlement_method;
     return [
       ...baseItems,
       {
@@ -1242,43 +1278,53 @@ export default function MeetingDetailScreen() {
         icon: 'clipboard-list',
       },
       {
-        key: 'social_settlement_method',
+        key: 'settlement_method',
         label: '정산 방법',
         value: formatOptional(
-          SOCIAL_SETTLEMENT_METHOD_LABELS[meeting.social_settlement_method] ||
-          meeting.social_settlement_method,
+          SOCIAL_SETTLEMENT_METHOD_LABELS[displaySocialMethod] || displaySocialMethod,
           '미정'
         ),
         icon: 'dollar-sign',
       },
     ];
-  }, [meeting, isRoundingMeeting]);
+  }, [meeting, settlement, isRoundingMeeting]);
 
   const costInfoItems = useMemo(() => {
     if (!meeting) return [];
 
+    // 정산이 있으면 정산 관리와 동일한 금액으로 표시 (정산 정보와 맞춤)
+    const totalCost = settlement?.total_cost ?? meeting.total_cost;
+    const greenFee = settlement?.green_fee ?? meeting.green_fee;
+    const caddyFee = settlement?.caddy_fee ?? meeting.caddy_fee;
+    const cartFee = settlement?.cart_fee ?? meeting.cart_fee;
+    const otherFee = settlement?.other_fee ?? meeting.other_fee;
+    const socialCost = settlement?.total_cost ?? meeting.social_cost;
+
     if (isRoundingMeeting) {
       const items = [];
-      if (meeting.total_cost !== null && meeting.total_cost !== undefined) {
-        items.push({ key: 'total_cost', label: '총 비용', value: formatCurrency(meeting.total_cost) });
+      if (totalCost !== null && totalCost !== undefined) {
+        items.push({ key: 'total_cost', label: '총 비용', value: formatCurrency(totalCost) });
       }
-      if (meeting.green_fee !== null && meeting.green_fee !== undefined) {
-        items.push({ key: 'green_fee', label: '그린피', value: formatCurrency(meeting.green_fee) });
+      if (greenFee !== null && greenFee !== undefined) {
+        items.push({ key: 'green_fee', label: '그린피', value: formatCurrency(greenFee) });
       }
-      if (meeting.caddy_fee !== null && meeting.caddy_fee !== undefined) {
-        items.push({ key: 'caddy_fee', label: '캐디피', value: formatCurrency(meeting.caddy_fee) });
+      if (caddyFee !== null && caddyFee !== undefined) {
+        items.push({ key: 'caddy_fee', label: '캐디피', value: formatCurrency(caddyFee) });
       }
-      if (meeting.cart_fee !== null && meeting.cart_fee !== undefined) {
-        items.push({ key: 'cart_fee', label: '카트비', value: formatCurrency(meeting.cart_fee) });
+      if (cartFee !== null && cartFee !== undefined) {
+        items.push({ key: 'cart_fee', label: '카트비', value: formatCurrency(cartFee) });
+      }
+      if (otherFee != null && otherFee !== 0) {
+        items.push({ key: 'other_fee', label: '기타 비용', value: formatCurrency(otherFee) });
       }
       return items;
     }
 
-    if (meeting.social_cost !== null && meeting.social_cost !== undefined) {
-      return [{ key: 'social_cost', label: '소셜 비용', value: formatCurrency(meeting.social_cost) }];
+    if (socialCost !== null && socialCost !== undefined) {
+      return [{ key: 'social_cost', label: '소셜 비용', value: formatCurrency(socialCost) }];
     }
     return [];
-  }, [meeting, isRoundingMeeting]);
+  }, [meeting, settlement, isRoundingMeeting]);
 
   const currentUserId = user?.id ?? null;
   const currentUserGender = user?.gender ?? null;
@@ -1914,9 +1960,17 @@ export default function MeetingDetailScreen() {
                   meetingType={meetingDomainType}
                   canSettle={canSettleMeeting}
                   canManageSettlement={canManageSettlement}
-                  participants={participants}
-                  onSettlementCreated={fetchMeeting}
+                  participants={
+                    confirmedParticipants.length > 0
+                      ? confirmedParticipants
+                      : participants
+                  }
+                  onSettlementCreated={async () => {
+                    await fetchMeeting();
+                    await fetchSettlement();
+                  }}
                   onConfirmSettlement={handleConfirmSettlement}
+                  onSyncMeetingToSettlement={handleSyncMeetingToSettlement}
                   meeting={meeting}
                 />
               )
@@ -2055,6 +2109,7 @@ export default function MeetingDetailScreen() {
         onClose={closeTeamFormation}
         onFormTeams={handleAutoFormTeams}
         meeting={meeting}
+        participants={participants}
         processing={processingAction}
         onOpenBatch={openBatchFormation}
       />

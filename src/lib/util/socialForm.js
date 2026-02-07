@@ -13,7 +13,7 @@ export function buildSocialFormFromData({ data, fallback }) {
     application_deadline: toDateTimeLocalValue(data.application_deadline),
     max_participants: data.max_participants !== undefined ? String(data.max_participants) : '',
     social_cost: data.social_cost !== undefined ? String(data.social_cost) : '',
-    social_settlement_method: data.social_settlement_method || fallback.social_settlement_method,
+    settlement_method: data.settlement_method ?? fallback.settlement_method,
     club_id: data.club_id ?? data.club?.id ?? '',
   });
 }
@@ -66,8 +66,8 @@ export function buildSocialPayload({ form, participantType, settlementMethods })
     max_participants:
       participantType === 'ALL' ? 0 : normalizeNumber(form.max_participants, 0),
     social_cost: normalizeNumber(form.social_cost, 0),
-    social_settlement_method: resolveSocialSettlementMethod(
-      form.social_settlement_method,
+    settlement_method: resolveSocialSettlementMethod(
+      form.settlement_method,
       settlementMethods
     ),
     club_id: form.club_id || undefined,

@@ -54,7 +54,7 @@ export function SocialForm({ mode = 'create' }) {
     application_deadline: '',
     max_participants: '',
     social_cost: '',
-    social_settlement_method: 'EQUAL_SPLIT',
+    settlement_method: 'EQUAL_SPLIT',
     club_id: '',
   });
   const [participantType, setParticipantType] = useState('ALL');
@@ -92,7 +92,7 @@ export function SocialForm({ mode = 'create' }) {
     [handleFieldChange]
   );
   const handleSettlementSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'social_settlement_method' }),
+    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'settlement_method' }),
     [handleFieldChange]
   );
   const handleParticipantTypeSelect = useMemo(
@@ -336,7 +336,7 @@ export function SocialForm({ mode = 'create' }) {
                     <ChipOption
                       key={method.id}
                       label={method.label}
-                      selected={form.social_settlement_method === method.id}
+                      selected={form.settlement_method === method.id}
                       onPress={handleSettlementSelect(method.id)}
                       styles={styles}
                     />

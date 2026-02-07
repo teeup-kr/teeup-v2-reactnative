@@ -365,6 +365,10 @@ async function createRoundingSettlement(meetingId, data) {
   return apiClient.post(`/meetings/${meetingId}/settlement/rounding`, data);
 }
 
+async function updateRoundingSettlement(meetingId, data) {
+  return apiClient.put(`/meetings/${meetingId}/settlement/rounding`, data);
+}
+
 async function getMySettlement(meetingId) {
   return apiClient.get(`/meetings/${meetingId}/settlement/my`);
 }
@@ -373,12 +377,23 @@ async function createEventSettlement(meetingId, data) {
   return apiClient.post(`/meetings/${meetingId}/settlement/social`, data);
 }
 
+async function updateEventSettlement(meetingId, data) {
+  return apiClient.put(`/meetings/${meetingId}/settlement/social`, data);
+}
+
 async function getMeetingSettlement(meetingId) {
   return apiClient.get(`/meetings/${meetingId}/settlement`);
 }
 
 async function getAvailableParticipants(meetingId) {
   return apiClient.get(`/meetings/${meetingId}/settlement/available-participants`);
+}
+
+async function markParticipantPaid(meetingId, expenseId, data) {
+  return apiClient.patch(
+    `/meetings/${meetingId}/expenses/${expenseId}/participants/mark-paid`,
+    data
+  );
 }
 
 async function addGuest(meetingId, guestData) {
@@ -438,10 +453,13 @@ export const roundsApi = {
   completeMeeting,
   confirmSettlement,
   createRoundingSettlement,
+  updateRoundingSettlement,
   getMySettlement,
   createEventSettlement,
+  updateEventSettlement,
   getMeetingSettlement,
   getAvailableParticipants,
+  markParticipantPaid,
   addGuest,
   getGuests,
 };
