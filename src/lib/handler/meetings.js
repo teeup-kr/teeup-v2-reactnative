@@ -1,4 +1,4 @@
-
+import { getMeetingTypeValue } from '@/lib/util/meetingUtils';
 import { ensureProfileCompleted } from '@/lib/util/mypageUtils';
 
 async function ensureMeetingProfileCompleted(router) {
@@ -41,14 +41,28 @@ export function createFetchUserInfoHandler({
     };
 }
 
+/** 게스트 목록을 정산/참가자 UI에서 쓰는 participant 형태로 정규화 (guest_id, id, guest_name 등) */
+function normalizeGuestsToParticipants(guestList) {
+    if (!Array.isArray(guestList)) return [];
+    return guestList.map((g) => ({
+        id: g?.id ?? g?.participant_id,
+        guest_id: g?.guest_id ?? g?.id,
+        guest_name: g?.guest_name ?? g?.name ?? g?.realname,
+        name: g?.name ?? g?.guest_name,
+        status: g?.status ?? 'CONFIRMED',
+    }));
+}
+
 export function createFetchParticipantsHandler({
     meetingIdValue,
     typeSlug,
     meeting,
     fetchRoundParticipants,
     fetchSocialParticipants,
+    fetchGuests,
     extractList,
     setParticipants,
+    setConfirmedParticipants,
 }) {
     return async function () {
         if (!meetingIdValue) return;
@@ -59,9 +73,11 @@ export function createFetchParticipantsHandler({
                     const response = await fetchSocialParticipants(meetingIdValue);
                     const list = extractList(response);
                     setParticipants(list);
-                    setConfirmedParticipants(
-                        list.filter((p) => String(p?.status || '').toUpperCase() === 'CONFIRMED')
-                    );
+                    if (typeof setConfirmedParticipants === 'function') {
+                        setConfirmedParticipants(
+                            list.filter((p) => String(p?.status || '').toUpperCase() === 'CONFIRMED')
+                        );
+                    }
                 } else {
                     const list = extractList(meeting?.participants);
                     setParticipants(list);
@@ -71,7 +87,33 @@ export function createFetchParticipantsHandler({
 
             const response = await fetchRoundParticipants(meetingIdValue);
             const list = extractList(response);
-            setParticipants(list);
+            let merged = Array.isArray(list) ? [...list] : [];
+
+            if (typeof fetchGuests === 'function') {
+                try {
+                    const guestsResponse = await fetchGuests(meetingIdValue);
+                    const guestsRaw = extractList(guestsResponse);
+                    const guests = normalizeGuestsToParticipants(guestsRaw);
+                    const existingKeys = new Set(merged.map((p) => (p?.user_id != null ? `user:${p.user_id}` : p?.guest_id != null ? `guest:${p.guest_id}` : `id:${p?.id}`)));
+                    guests.forEach((g) => {
+                        const key = g?.guest_id != null ? `guest:${g.guest_id}` : `id:${g?.id}`;
+                        if (!existingKeys.has(key)) {
+                            merged.push(g);
+                            existingKeys.add(key);
+                        }
+                    });
+                } catch (guestError) {
+                    console.warn('게스트 목록 조회 실패:', guestError);
+                }
+            }
+
+            setParticipants(merged);
+            if (typeof setConfirmedParticipants === 'function') {
+                const confirmed = merged.filter(
+                    (p) => p?.guest_id != null || String(p?.status || '').toUpperCase() === 'CONFIRMED'
+                );
+                setConfirmedParticipants(confirmed);
+            }
         } catch (error) {
             console.error('참가자 조회 실패:', error);
         }
@@ -602,7 +644,7 @@ export function createCreateMeetingHandler({ router }) {
 export function createMeetingPressHandler({ router }) {
     return (meeting) =>
         () => {
-            const meetingType = meeting?.meeting_type || meeting?.type;
+            const meetingType = getMeetingTypeValue(meeting) || meeting?.meeting_type || meeting?.type;
             const slug = meetingType === 'SOCIAL' ? 'social' : 'rounding';
             const meetingId = meeting?.id || meeting?.meeting_id;
             if (!meetingId) return;

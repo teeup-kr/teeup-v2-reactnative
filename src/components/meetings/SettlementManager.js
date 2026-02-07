@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 
 import { roundsApi } from '@/lib/api/api';
@@ -8,6 +8,7 @@ import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
 import SettlementViewModal from './SettlementViewModal';
+import Modal from '../ui/Modal';
 
 const ROUND_METHODS = [
   { value: 'EQUAL_SPLIT', label: 'N분의 1' },
@@ -18,7 +19,6 @@ const SOCIAL_METHODS = [
   { value: 'EQUAL_SPLIT', label: 'N분의 1' },
   { value: 'TREASURER_PREPAID', label: '총무 선결제' },
   { value: 'CLUB_FUND', label: '클럽 회비 사용' },
-  { value: 'INDIVIDUAL', label: '개별 정산' },
 ];
 
 function formatCurrency(value) {
@@ -69,6 +69,32 @@ function getParticipantDisplayName(p) {
 function getParticipantKey(p, index) {
   const sk = getParticipantStorageKey(p);
   return sk ?? `idx-${index}`;
+}
+
+/** 개별 정산용 참가자 칩 - 클릭 시 participant를 props에서 읽어 전달 (클로저/off-by-one 방지) */
+function ParticipantChip({ feeKey, participant, isSelected, onToggle, chipStyles }) {
+  const handlePress = useCallback(() => {
+    const sk = getParticipantStorageKey(participant);
+    if (sk) onToggle(feeKey, sk);
+  }, [participant, feeKey, onToggle]);
+  const storageKey = getParticipantStorageKey(participant);
+  if (!storageKey) return null;
+  return (
+    <Pressable
+      style={[chipStyles.feeParticipantChip, isSelected && chipStyles.feeParticipantChipActive]}
+      onPress={handlePress}
+    >
+      <FontAwesome5
+        name={isSelected ? 'check-circle' : 'circle'}
+        size={14}
+        color={isSelected ? colors.primary[600] : colors.neutral[400]}
+        style={chipStyles.feeParticipantIcon}
+      />
+      <Text style={[chipStyles.feeParticipantChipText, isSelected && chipStyles.feeParticipantChipTextActive]}>
+        {getParticipantDisplayName(participant)}
+      </Text>
+    </Pressable>
+  );
 }
 
 function makeSettlementForm(settlement, meeting) {
@@ -137,6 +163,7 @@ export default function SettlementManager({
   participants = [],
   onSettlementCreated,
   onConfirmSettlement,
+  onSyncMeetingToSettlement,
 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -147,10 +174,26 @@ export default function SettlementManager({
     green_fee: [],
     caddy_fee: [],
     cart_fee: [],
+    other_fee: [],
   });
   const [saving, setSaving] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [payModalOpen, setPayModalOpen] = useState(false);
+  const [payTarget, setPayTarget] = useState(null);
+  const [payAmount, setPayAmount] = useState('');
+  const [extraPayerId, setExtraPayerId] = useState(null);
+  const [extraPayerByFee, setExtraPayerByFee] = useState({
+    green_fee: null,
+    caddy_fee: null,
+    cart_fee: null,
+    other_fee: null,
+  });
+  const [paySaving, setPaySaving] = useState(false);
+  const [socialExpenseItems, setSocialExpenseItems] = useState([
+    { id: '1', title: '점심비', amount: '' },
+    { id: '2', title: '회의비', amount: '' },
+  ]);
 
   const fetchSettlement = useCallback(async () => {
     if (!meetingId) return;
@@ -175,8 +218,105 @@ export default function SettlementManager({
     setSettlementForm(makeSettlementForm(settlement, meeting));
     if (settlement) {
       setMethod(String(settlement?.settlement_method || settlement?.method || 'EQUAL_SPLIT'));
+      if (meetingType === 'SOCIAL') {
+        const targets = settlement?.settlement_targets ?? settlement?.target_ids ?? [];
+        const raw = Array.isArray(targets) ? targets : [];
+        const ids = raw.map((t) => (typeof t === 'object' && t != null ? t?.user_id ?? t?.guest_id ?? t?.participant_id ?? t?.id : t));
+        const keys = ids
+          .filter((id) => id != null && id !== '')
+          .map((id) => {
+            const p = participants.find(
+              (q) => Number(q?.user_id) === Number(id) || Number(q?.guest_id) === Number(id) || Number(q?.id) === Number(id)
+            );
+            return p ? getParticipantStorageKey(p) : null;
+          })
+          .filter(Boolean);
+        setFeeParticipants((prev) => ({ ...prev, other_fee: keys }));
+        if (settlement?.expense_items?.length > 0) {
+          setSocialExpenseItems(
+            settlement.expense_items.map((item, idx) => ({
+              id: String(item.id ?? idx + 1),
+              title: item.title || `항목 ${idx + 1}`,
+              amount: String(item.amount ?? ''),
+            }))
+          );
+        } else if (settlement?.other_fee != null && Number(settlement.other_fee) > 0) {
+          setSocialExpenseItems([
+            { id: '1', title: '기타 비용', amount: String(settlement.other_fee) },
+          ]);
+        }
+      }
+      if (meetingType === 'ROUND') {
+        const ep = settlement?.extra_payer_id ?? null;
+        setExtraPayerId(ep);
+        const idsToKeys = (ids) => (Array.isArray(ids) ? ids : [])
+          .filter((id) => id != null && id !== '')
+          .map((id) => {
+            const p = participants.find(
+              (q) => Number(q?.user_id) === Number(id) || Number(q?.guest_id) === Number(id) || Number(q?.id) === Number(id)
+            );
+            return p ? getParticipantStorageKey(p) : null;
+          })
+          .filter(Boolean);
+        const g = idsToKeys(settlement.green_fee_participants);
+        const c = idsToKeys(settlement.caddy_fee_participants);
+        const k = idsToKeys(settlement.cart_fee_participants);
+        const firstOther = settlement.other_expense_items?.[0];
+        const o = firstOther ? idsToKeys(firstOther.participants) : [];
+        if (g.length > 0 || c.length > 0 || k.length > 0 || o.length > 0) {
+          const firstKey = g[0] ?? c[0] ?? k[0] ?? o[0];
+          const firstP = participants.find((q) => getParticipantStorageKey(q) === firstKey);
+          setExtraPayerId(
+            settlement?.extra_payer_id ?? (firstP?.id != null ? firstP.id : null)
+          );
+          setExtraPayerByFee({
+            green_fee: settlement?.green_fee_extra_payer_id ?? null,
+            caddy_fee: settlement?.caddy_fee_extra_payer_id ?? null,
+            cart_fee: settlement?.cart_fee_extra_payer_id ?? null,
+            other_fee: settlement?.other_fee_extra_payer_id ?? null,
+          });
+          setFeeParticipants((prev) => ({
+            ...prev,
+            green_fee: g.length ? g : prev.green_fee || [],
+            caddy_fee: c.length ? c : prev.caddy_fee || [],
+            cart_fee: k.length ? k : prev.cart_fee || [],
+            other_fee: o.length ? o : prev.other_fee || [],
+          }));
+        }
+      }
     }
-  }, [settlement, meeting]);
+  }, [settlement, meeting, meetingType, participants]);
+
+  useEffect(() => {
+    if (
+      meetingType === 'ROUND' &&
+      method === 'EQUAL_SPLIT' &&
+      extraPayerId == null &&
+      (feeParticipants.green_fee || []).length > 0
+    ) {
+      const firstKey = feeParticipants.green_fee[0];
+      const firstP = participants.find((q) => getParticipantStorageKey(q) === firstKey);
+      if (firstP?.id != null) {
+        setExtraPayerId(firstP.id);
+      }
+    }
+  }, [meetingType, method, extraPayerId, feeParticipants.green_fee, participants]);
+
+  useEffect(() => {
+    if (meetingType === 'ROUND' && method === 'INDIVIDUAL') {
+      setExtraPayerByFee((prev) => {
+        const next = { ...prev };
+        for (const feeKey of ['green_fee', 'caddy_fee', 'cart_fee', 'other_fee']) {
+          const keys = feeParticipants[feeKey] || [];
+          if (keys.length > 0 && (prev[feeKey] == null || prev[feeKey] === '')) {
+            const firstP = participants.find((q) => getParticipantStorageKey(q) === keys[0]);
+            if (firstP?.id != null) next[feeKey] = firstP.id;
+          }
+        }
+        return next;
+      });
+    }
+  }, [meetingType, method, feeParticipants, participants]);
 
   const participantStorageKeys = useMemo(
     () => participants.map(getParticipantStorageKey).filter(Boolean),
@@ -201,18 +341,88 @@ export default function SettlementManager({
     setFeeParticipants((prev) => ({ ...prev, [feeKey]: [] }));
   }, []);
 
-  /** 선택된 storage key들을 참가자 id(MeetingParticipant.id) 배열로 변환 (백엔드 전송용) */
+  /** 선택된 storage key들을 MeetingParticipant.id 배열로 변환 (백엔드 전송용)
+   * user_id/guest_id 대신 반드시 MeetingParticipant.id 사용 - user_id=1과 guest_id=1 충돌 방지 */
   const feeParticipantsToIds = useCallback((feeKey) => {
     const keys = feeParticipants[feeKey] || [];
     return keys
       .map((storageKey) => {
         const p = participants.find((q) => getParticipantStorageKey(q) === storageKey);
-        return p?.id ?? (storageKey.startsWith('id:') ? Number(storageKey.slice(3)) : null);
+        if (!p) {
+          if (storageKey.startsWith('id:')) return Number(storageKey.slice(3));
+          return null;
+        }
+        return p?.id ?? null;
       })
-      .filter((id) => id != null);
+      .filter((id) => id != null && id !== '');
   }, [feeParticipants, participants]);
 
+  /** 소셜 정산용: 선택된 참가자의 user_id 또는 guest_id 배열 (서버 settlement_targets 스키마) */
+  const settlementTargetsForSocial = useCallback(() => {
+    const keys = feeParticipants.other_fee || [];
+    return keys
+      .map((storageKey) => {
+        const p = participants.find((q) => getParticipantStorageKey(q) === storageKey);
+        if (!p) return null;
+        const uid = p?.user_id;
+        const gid = p?.guest_id;
+        if (uid != null) return uid;
+        if (gid != null) return gid;
+        return p?.id ?? null;
+      })
+      .filter((id) => id != null);
+  }, [feeParticipants.other_fee, participants]);
+
   const methods = meetingType === 'SOCIAL' ? SOCIAL_METHODS : ROUND_METHODS;
+
+  const handleOpenPayModal = useCallback((p) => {
+    setPayTarget(p);
+    setPayAmount(p?.amount_paid != null && p.amount_paid > 0 ? String(p.amount_paid) : '');
+    setPayModalOpen(true);
+  }, []);
+
+  const handleMarkPaid = useCallback(async () => {
+    if (!payTarget || !settlement?.id || !meetingId) return;
+    setPaySaving(true);
+    try {
+      const data = {
+        user_id: payTarget.user_id ?? null,
+        guest_id: payTarget.guest_id ?? null,
+        is_paid: true,
+        amount_paid: payAmount ? parseFloat(payAmount) : null,
+      };
+      await roundsApi.markParticipantPaid(meetingId, settlement.id, data);
+      setPayModalOpen(false);
+      setPayTarget(null);
+      setPayAmount('');
+      await fetchSettlement();
+    } catch (err) {
+      console.error('납부 완료 처리 실패:', err);
+    } finally {
+      setPaySaving(false);
+    }
+  }, [payTarget, payAmount, settlement?.id, meetingId, fetchSettlement]);
+
+  const handleMarkUnpaid = useCallback(async () => {
+    if (!payTarget || !settlement?.id || !meetingId) return;
+    setPaySaving(true);
+    try {
+      const data = {
+        user_id: payTarget.user_id ?? null,
+        guest_id: payTarget.guest_id ?? null,
+        is_paid: false,
+      };
+      await roundsApi.markParticipantPaid(meetingId, settlement.id, data);
+      setPayModalOpen(false);
+      setPayTarget(null);
+      setPayAmount('');
+      await fetchSettlement();
+    } catch (err) {
+      console.error('미납부 변경 실패:', err);
+    } finally {
+      setPaySaving(false);
+    }
+  }, [payTarget, settlement?.id, meetingId, fetchSettlement]);
 
   const totalCost = useMemo(
     () =>
@@ -223,6 +433,18 @@ export default function SettlementManager({
       ),
     [settlement]
   );
+
+  /** 정산 생성/수정 폼에서 항목별 비용 합계 (전체 비용 입력 없이 총합만 표기) */
+  const calculatedTotalCost = useMemo(() => {
+    if (meetingType === 'SOCIAL') {
+      return socialExpenseItems.reduce((sum, item) => sum + firstFiniteNumber(item.amount), 0);
+    }
+    const g = firstFiniteNumber(settlementForm.green_fee);
+    const caddy = firstFiniteNumber(settlementForm.caddy_fee);
+    const cart = firstFiniteNumber(settlementForm.cart_fee);
+    const other = firstFiniteNumber(settlementForm.other_fee);
+    return g + caddy + cart + other;
+  }, [meetingType, socialExpenseItems, settlementForm.green_fee, settlementForm.caddy_fee, settlementForm.cart_fee, settlementForm.other_fee]);
 
   const targetCount = useMemo(() => {
     const fromField = firstFiniteNumber(
@@ -241,36 +463,84 @@ export default function SettlementManager({
     return Math.round(totalCost / targetCount);
   }, [settlement?.amount_per_person, targetCount, totalCost]);
 
-  const costFields = useMemo(
-    () => [
-      {
-        key: 'total_cost',
-        label: '전체 비용 (원)',
-        value: formatInputNumber(totalCost),
-      },
-      {
-        key: 'green_fee',
-        label: '그린피 (원)',
-        value: formatInputNumber(settlement?.green_fee),
-      },
-      {
-        key: 'caddy_fee',
-        label: '캐디피 (원)',
-        value: formatInputNumber(settlement?.caddy_fee),
-      },
-      {
-        key: 'cart_fee',
-        label: '카트비 (원)',
-        value: formatInputNumber(settlement?.cart_fee),
-      },
-      {
-        key: 'other_fee',
-        label: '기타 비용 (원)',
-        value: formatInputNumber(settlement?.other_fee),
-      },
-    ],
-    [settlement?.caddy_fee, settlement?.cart_fee, settlement?.green_fee, settlement?.other_fee, totalCost]
-  );
+  /** 개별 정산일 때 비용별·인당 부담액 (정산 정보 카드용) */
+  const individualBreakdown = useMemo(() => {
+    if (method !== 'INDIVIDUAL' || !settlement) return [];
+    const rows = [];
+    const findName = (id) => {
+      const numId = Number(id);
+      if (!Number.isFinite(numId)) return `#${id}`;
+      const p = participants.find((q) => Number(q?.id) === numId)
+        ?? participants.find((q) => Number(q?.user_id) === numId)
+        ?? participants.find((q) => Number(q?.guest_id) === numId);
+      return p ? getParticipantDisplayName(p) : `#${id}`;
+    };
+    if (meetingType === 'ROUND') {
+      [
+        { key: 'green_fee', label: '그린피', amount: firstFiniteNumber(settlement.green_fee), ids: settlement.green_fee_participants || [] },
+        { key: 'caddy_fee', label: '캐디피', amount: firstFiniteNumber(settlement.caddy_fee), ids: settlement.caddy_fee_participants || [] },
+        { key: 'cart_fee', label: '카트비', amount: firstFiniteNumber(settlement.cart_fee), ids: settlement.cart_fee_participants || [] },
+      ].forEach(({ label, amount, ids }) => {
+        if (amount <= 0) return;
+        const count = ids.length || 1;
+        const perPerson = Math.round(amount / count);
+        const names = ids.length ? ids.map(findName) : ['-'];
+        rows.push({
+          label,
+          total: amount,
+          lines: names.map((name) => ({ name, amount: perPerson })),
+        });
+      });
+      (settlement.other_expense_items || []).forEach((item) => {
+        const amount = firstFiniteNumber(item.amount);
+        const ids = item.participants || [];
+        if (amount <= 0) return;
+        const count = ids.length || 1;
+        const perPerson = Math.round(amount / count);
+        const names = ids.length ? ids.map(findName) : ['-'];
+        rows.push({
+          label: item.title || '기타',
+          total: amount,
+          lines: names.map((name) => ({ name, amount: perPerson })),
+        });
+      });
+    } else {
+      (settlement.expense_items || []).forEach((item) => {
+        const amount = firstFiniteNumber(item.amount);
+        const ids = item.participants || [];
+        if (amount <= 0) return;
+        const count = ids.length || 1;
+        const perPerson = Math.round(amount / count);
+        const names = ids.length ? ids.map(findName) : ['-'];
+        rows.push({
+          label: item.title || '기타',
+          total: amount,
+          lines: names.map((name) => ({ name, amount: perPerson })),
+        });
+      });
+    }
+    return rows;
+  }, [method, meetingType, settlement, participants]);
+
+  const costFields = useMemo(() => {
+    const all = [
+      { key: 'total_cost', label: '전체 비용 (원)', value: formatInputNumber(totalCost) },
+      { key: 'green_fee', label: '그린피 (원)', value: formatInputNumber(settlement?.green_fee) },
+      { key: 'caddy_fee', label: '캐디피 (원)', value: formatInputNumber(settlement?.caddy_fee) },
+      { key: 'cart_fee', label: '카트비 (원)', value: formatInputNumber(settlement?.cart_fee) },
+      { key: 'other_fee', label: '기타 비용 (원)', value: formatInputNumber(settlement?.other_fee) },
+    ];
+    if (meetingType === 'SOCIAL') {
+      if (settlement?.expense_items?.length > 0) {
+        const items = settlement.expense_items.map(
+          (item) => ({ key: `item_${item.id}`, label: item.title || '항목', value: formatInputNumber(item.amount) })
+        );
+        return [{ key: 'total_cost', label: '총 비용 (원)', value: formatInputNumber(totalCost) }, ...items];
+      }
+      return all.filter((f) => ['total_cost', 'other_fee'].includes(f.key));
+    }
+    return all;
+  }, [meetingType, settlement?.caddy_fee, settlement?.cart_fee, settlement?.expense_items, settlement?.green_fee, settlement?.other_fee, totalCost]);
 
   const canCreateSettlement = useMemo(
     () => Boolean(!settlement && canManageSettlement && canSettle),
@@ -305,18 +575,37 @@ export default function SettlementManager({
     }));
   }, []);
 
+  const addSocialExpenseItem = useCallback(() => {
+    setSocialExpenseItems((prev) => [
+      ...prev,
+      { id: String(Date.now()), title: '기타', amount: '' },
+    ]);
+  }, []);
+
+  const removeSocialExpenseItem = useCallback((id) => {
+    setSocialExpenseItems((prev) => prev.filter((item) => item.id !== id));
+  }, []);
+
+  const updateSocialExpenseItem = useCallback((id, field, value) => {
+    setSocialExpenseItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, [field]: field === 'amount' ? onlyDigits(value) : value } : item
+      )
+    );
+  }, []);
+
   const handleSaveSettlement = useCallback(async () => {
     if (!meetingId) return;
 
-    const numericTotalCost = Number(settlementForm.total_cost);
-    if (!Number.isFinite(numericTotalCost) || numericTotalCost < 0) {
-      setError('총 비용을 올바르게 입력해주세요.');
+    const numericTotalCost = calculatedTotalCost;
+    if (!Number.isFinite(numericTotalCost) || numericTotalCost <= 0) {
+      setError('비용 항목을 입력해주세요. (총합이 0보다 커야 합니다)');
       return;
     }
 
-    const greenFee = firstFiniteNumber(settlementForm.green_fee);
-    const caddyFee = firstFiniteNumber(settlementForm.caddy_fee);
-    const cartFee = firstFiniteNumber(settlementForm.cart_fee);
+    const greenFee = meetingType === 'ROUND' ? firstFiniteNumber(settlementForm.green_fee) : 0;
+    const caddyFee = meetingType === 'ROUND' ? firstFiniteNumber(settlementForm.caddy_fee) : 0;
+    const cartFee = meetingType === 'ROUND' ? firstFiniteNumber(settlementForm.cart_fee) : 0;
 
     if (meetingType === 'ROUND') {
       if (greenFee > 0 && (feeParticipants.green_fee || []).length === 0) {
@@ -329,6 +618,23 @@ export default function SettlementManager({
       }
       if (cartFee > 0 && (feeParticipants.cart_fee || []).length === 0) {
         setError('카트비의 정산 대상자를 선택해주세요.');
+        return;
+      }
+      const otherFeeAmount = firstFiniteNumber(settlementForm.other_fee);
+      if (otherFeeAmount > 0 && method === 'INDIVIDUAL' && (feeParticipants.other_fee || []).length === 0) {
+        setError('기타 비용의 정산 대상자를 선택해주세요.');
+        return;
+      }
+    }
+
+    if (meetingType === 'SOCIAL') {
+      const validItems = socialExpenseItems.filter((item) => firstFiniteNumber(item.amount) > 0);
+      if (validItems.length === 0) {
+        setError('비용 항목을 1개 이상 입력해주세요. (점심비, 회의비, 대여비 등)');
+        return;
+      }
+      if (numericTotalCost > 0 && method === 'EQUAL_SPLIT' && (feeParticipants.other_fee || []).length === 0) {
+        setError('정산 대상자를 선택해주세요.');
         return;
       }
     }
@@ -347,19 +653,116 @@ export default function SettlementManager({
       };
 
       if (meetingType === 'ROUND') {
-        payload.green_fee_participants = greenFee > 0 ? feeParticipantsToIds('green_fee') : [];
-        payload.caddy_fee_participants = caddyFee > 0 ? feeParticipantsToIds('caddy_fee') : [];
-        payload.cart_fee_participants = cartFee > 0 ? feeParticipantsToIds('cart_fee') : [];
+        payload.green_fee_participants = greenFee > 0 ? [...feeParticipantsToIds('green_fee')] : [];
+        if (method === 'EQUAL_SPLIT') {
+          const ids = feeParticipantsToIds('green_fee');
+          payload.extra_payer_id = extraPayerId ?? (ids[0] ?? null);
+        } else if (method === 'INDIVIDUAL') {
+          const gIds = feeParticipantsToIds('green_fee');
+          const cIds = feeParticipantsToIds('caddy_fee');
+          const kIds = feeParticipantsToIds('cart_fee');
+          payload.green_fee_extra_payer_id = extraPayerByFee.green_fee ?? gIds[0] ?? null;
+          payload.caddy_fee_extra_payer_id = extraPayerByFee.caddy_fee ?? cIds[0] ?? null;
+          payload.cart_fee_extra_payer_id = extraPayerByFee.cart_fee ?? kIds[0] ?? null;
+        }
+        payload.caddy_fee_participants = caddyFee > 0 ? [...feeParticipantsToIds('caddy_fee')] : [];
+        payload.cart_fee_participants = cartFee > 0 ? [...feeParticipantsToIds('cart_fee')] : [];
+        const otherFeeAmount = firstFiniteNumber(settlementForm.other_fee);
+        if (otherFeeAmount > 0) {
+          const otherParticipantIds = method === 'INDIVIDUAL'
+            ? [...feeParticipantsToIds('other_fee')]
+            : (() => {
+                const greenIds = payload.green_fee_participants || [];
+                const caddyIds = payload.caddy_fee_participants || [];
+                const cartIds = payload.cart_fee_participants || [];
+                let ids = greenIds.length ? greenIds : caddyIds.length ? caddyIds : cartIds.length ? cartIds : [];
+                if (ids.length === 0) ids = participants.map((p) => p.id).filter((id) => id != null);
+                return ids;
+              })();
+          if (otherParticipantIds.length === 0) {
+            setError('기타 비용의 정산 대상자를 선택해주세요.');
+            setSaving(false);
+            return;
+          }
+          payload.other_expense_items = [
+            {
+              title: '기타 비용',
+              amount: otherFeeAmount,
+              participants: otherParticipantIds,
+              extra_payer_id:
+                (method === 'INDIVIDUAL' && (extraPayerByFee.other_fee ?? otherParticipantIds[0])) ?? null,
+            },
+          ];
+        } else {
+          payload.other_expense_items = [];
+        }
       }
 
       if (meetingType === 'SOCIAL') {
-        await roundsApi.createEventSettlement(meetingId, payload);
-      } else {
-        await roundsApi.createRoundingSettlement(meetingId, payload);
+        const validItems = socialExpenseItems.filter((item) => firstFiniteNumber(item.amount) > 0);
+        payload.expense_items = validItems.map((item) => ({
+          title: (item.title || '항목').trim() || '항목',
+          amount: firstFiniteNumber(item.amount),
+        }));
+        payload.total_cost = numericTotalCost;
+        payload.exclude_remaining_amount = method === 'CLUB_FUND' || method === 'TREASURER_PREPAID';
+        if (method === 'EQUAL_SPLIT') {
+          payload.settlement_targets = settlementTargetsForSocial();
+        } else {
+          payload.settlement_targets = [];
+        }
       }
 
+      if (meetingType === 'SOCIAL') {
+        if (settlement?.id != null) {
+          await roundsApi.updateEventSettlement(meetingId, payload);
+        } else {
+          await roundsApi.createEventSettlement(meetingId, payload);
+        }
+      } else {
+        if (settlement?.id != null) {
+          await roundsApi.updateRoundingSettlement(meetingId, payload);
+        } else {
+          await roundsApi.createRoundingSettlement(meetingId, payload);
+        }
+      }
+
+      if (typeof onSyncMeetingToSettlement === 'function') {
+        const meetingPayload =
+          meetingType === 'ROUND'
+            ? {
+                green_fee: greenFee,
+                caddy_fee: caddyFee,
+                cart_fee: cartFee,
+                other_fee: firstFiniteNumber(settlementForm.other_fee),
+                total_cost: numericTotalCost,
+                total_amount: numericTotalCost,
+                settlement_method: method,
+              }
+            : {
+                other_fee: firstFiniteNumber(settlementForm.other_fee),
+                total_cost: numericTotalCost,
+                total_amount: numericTotalCost,
+                settlement_method: method,
+              };
+        try {
+          const result = onSyncMeetingToSettlement(meetingPayload);
+          if (result && typeof result.then === 'function') {
+            await result;
+          }
+        } catch (syncError) {
+          console.warn('모임 정보 동기화 실패:', syncError);
+        }
+      }
+
+      // 저장 직후 선택한 정산 방법을 UI에 즉시 반영 (refetch 전에도 개별정산 등으로 표시)
+      setMethod(String(method || 'EQUAL_SPLIT'));
+
       if (onSettlementCreated) {
-        onSettlementCreated();
+        const result = onSettlementCreated();
+        if (result && typeof result.then === 'function') {
+          await result;
+        }
       }
 
       setShowEditForm(false);
@@ -371,6 +774,7 @@ export default function SettlementManager({
       setSaving(false);
     }
   }, [
+    calculatedTotalCost,
     fetchSettlement,
     feeParticipants,
     feeParticipantsToIds,
@@ -378,7 +782,12 @@ export default function SettlementManager({
     meetingType,
     method,
     onSettlementCreated,
+    onSyncMeetingToSettlement,
+    settlement,
     settlementForm,
+    settlementTargetsForSocial,
+    extraPayerId,
+    extraPayerByFee,
   ]);
 
   return (
@@ -397,8 +806,28 @@ export default function SettlementManager({
               </Pressable>
             </View>
             <Text style={styles.summaryLine}>총 비용: {formatCurrency(totalCost)}</Text>
-            <Text style={styles.summaryLine}>정산 대상자: {targetCount}명</Text>
-            <Text style={styles.summaryLine}>인당 비용: {formatCurrency(amountPerPerson)}</Text>
+            {method === 'INDIVIDUAL' && individualBreakdown.length > 0 ? (
+              individualBreakdown.map((row, idx) => (
+                <View key={`breakdown-${row.label}-${idx}`} style={styles.summaryBreakdownBlock}>
+                  <Text style={styles.summaryBreakdownLabel}>
+                    {row.label} {formatCurrency(row.total)}
+                  </Text>
+                  {row.lines.map((line, idx) => (
+                    <Text key={idx} style={styles.summaryBreakdownLine}>
+                      {line.name}: {formatCurrency(line.amount)}
+                    </Text>
+                  ))}
+                </View>
+              ))
+            ) : (
+              <>
+                <Text style={styles.summaryLine}>정산 대상자: {targetCount}명</Text>
+                <Text style={styles.summaryLine}>
+                  {method === 'INDIVIDUAL' ? '인당 비용 (총합 기준): ' : '인당 비용: '}
+                  {formatCurrency(amountPerPerson)}
+                </Text>
+              </>
+            )}
           </View>
 
           <View style={styles.costSection}>
@@ -412,6 +841,39 @@ export default function SettlementManager({
               </View>
             ))}
           </View>
+
+          {canManageSettlement && !meeting?.settlement_confirmed && settlement?.participants?.length > 0 && (
+            <View style={styles.paymentSection}>
+              <Text style={styles.costTitle}>납부 현황</Text>
+              {settlement.participants.map((p, idx) => (
+                <View key={p.id ?? idx} style={styles.paymentRow}>
+                  <View style={styles.paymentNameBlock}>
+                    <Text style={styles.paymentName}>{p.user_name ?? p.user_nickname ?? '-'}</Text>
+                    <Text style={styles.paymentAmountLabel}>
+                      부담금 {formatCurrency(p.amount ?? settlement?.amount_per_person ?? 0)}
+                      {p.amount_paid != null && p.amount_paid > 0
+                        ? ` · 납부액 ${formatCurrency(p.amount_paid)}`
+                        : ''}
+                    </Text>
+                  </View>
+                  <View style={styles.paymentStatusRow}>
+                    {p.is_paid ? (
+                      <Text style={styles.paymentStatusPaid}>납부완료</Text>
+                    ) : (
+                      <Text style={styles.paymentStatusUnpaid}>미납부</Text>
+                    )}
+                    <Pressable
+                      style={styles.paymentBtn}
+                      onPress={() => handleOpenPayModal(p)}
+                    >
+                      <FontAwesome5 name="check-circle" size={14} color={colors.primary[600]} />
+                      <Text style={styles.paymentBtnText}>수정</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       ) : (
         <Text style={styles.helperText}>정산 정보가 아직 없습니다.</Text>
@@ -420,25 +882,68 @@ export default function SettlementManager({
       {shouldShowForm ? (
         <View style={styles.formCard}>
           <Text style={styles.formTitle}>{settlement ? '정산 수정' : '정산 생성'}</Text>
-          {[
-            { key: 'total_cost', label: '전체 비용 (원)', placeholder: '예: 210000' },
-            { key: 'green_fee', label: '그린피 (원)', placeholder: '예: 150000' },
-            { key: 'caddy_fee', label: '캐디피 (원)', placeholder: '예: 30000' },
-            { key: 'cart_fee', label: '카트비 (원)', placeholder: '예: 30000' },
-            { key: 'other_fee', label: '기타 비용 (원)', placeholder: '예: 0' },
-          ].map((field) => (
-            <View key={field.key} style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>{field.label}</Text>
-              <TextInput
-                value={settlementForm[field.key]}
-                onChangeText={(value) => updateNumericField(field.key, value)}
-                placeholder={field.placeholder}
-                keyboardType="number-pad"
-                style={styles.editInput}
-                placeholderTextColor={colors.neutral[400]}
-              />
+          <View style={styles.fieldBlock}>
+            <Text style={styles.fieldLabel}>전체 비용 (총합)</Text>
+            <View style={styles.readonlyInput}>
+              <Text style={styles.readonlyValue}>{formatCurrency(calculatedTotalCost)}</Text>
             </View>
-          ))}
+          </View>
+          {meetingType === 'SOCIAL' ? (
+            <View style={styles.socialExpenseItemsBlock}>
+              <Text style={styles.fieldLabel}>비용 항목 (점심비, 회의비, 대여비, 커피비 등)</Text>
+              <Text style={styles.socialExpenseItemsHint}>
+                여러 항목을 추가하고 금액을 입력하세요. 총액을 정산 대상자 수로 균등 분배합니다.
+              </Text>
+              {socialExpenseItems.map((item, idx) => (
+                <View key={`expense-${item.id}-${idx}`} style={styles.socialExpenseItemRow}>
+                  <TextInput
+                    style={[styles.editInput, styles.socialExpenseItemTitle]}
+                    value={item.title}
+                    onChangeText={(v) => updateSocialExpenseItem(item.id, 'title', v)}
+                    placeholder="항목명"
+                    placeholderTextColor={colors.neutral[400]}
+                  />
+                  <TextInput
+                    style={[styles.editInput, styles.socialExpenseItemAmount]}
+                    value={item.amount}
+                    onChangeText={(v) => updateSocialExpenseItem(item.id, 'amount', v)}
+                    placeholder="금액"
+                    placeholderTextColor={colors.neutral[400]}
+                    keyboardType="number-pad"
+                  />
+                  <Pressable
+                    style={styles.socialExpenseItemRemove}
+                    onPress={() => removeSocialExpenseItem(item.id)}
+                  >
+                    <FontAwesome5 name="times-circle" size={20} color={colors.error[500]} />
+                  </Pressable>
+                </View>
+              ))}
+              <Pressable style={styles.addExpenseItemBtn} onPress={addSocialExpenseItem}>
+                <FontAwesome5 name="plus-circle" size={16} color={colors.primary[600]} />
+                <Text style={styles.addExpenseItemBtnText}>항목 추가</Text>
+              </Pressable>
+            </View>
+          ) : (
+            [
+              { key: 'green_fee', label: '그린피 (원)', placeholder: '예: 150000' },
+              { key: 'caddy_fee', label: '캐디피 (원)', placeholder: '예: 30000' },
+              { key: 'cart_fee', label: '카트비 (원)', placeholder: '예: 30000' },
+              { key: 'other_fee', label: '기타 비용 (원)', placeholder: '예: 0' },
+            ].map((field) => (
+              <View key={field.key} style={styles.fieldBlock}>
+                <Text style={styles.fieldLabel}>{field.label}</Text>
+                <TextInput
+                  value={settlementForm[field.key]}
+                  onChangeText={(value) => updateNumericField(field.key, value)}
+                  placeholder={field.placeholder}
+                  keyboardType="number-pad"
+                  style={styles.editInput}
+                  placeholderTextColor={colors.neutral[400]}
+                />
+              </View>
+            ))
+          )}
 
           <Text style={styles.fieldLabel}>정산 방식</Text>
           <View style={styles.methodRow}>
@@ -449,7 +954,19 @@ export default function SettlementManager({
                   styles.methodChip,
                   method === option.value && styles.methodChipActive,
                 ]}
-                onPress={() => setMethod(option.value)}
+                onPress={() => {
+                  const newMethod = option.value;
+                  setMethod(newMethod);
+                  if (newMethod === 'INDIVIDUAL' && meetingType === 'ROUND') {
+                    setFeeParticipants((prev) => ({
+                      ...prev,
+                      green_fee: [...(prev.green_fee || [])],
+                      caddy_fee: [...(prev.caddy_fee || [])],
+                      cart_fee: [...(prev.cart_fee || [])],
+                      other_fee: [...(prev.other_fee || [])],
+                    }));
+                  }
+                }}
               >
                 <Text
                   style={[
@@ -463,7 +980,71 @@ export default function SettlementManager({
             ))}
           </View>
 
-          {meetingType === 'ROUND' && (firstFiniteNumber(settlementForm.green_fee) > 0 || firstFiniteNumber(settlementForm.caddy_fee) > 0 || firstFiniteNumber(settlementForm.cart_fee) > 0) ? (
+          {meetingType === 'SOCIAL' && calculatedTotalCost > 0 && method === 'EQUAL_SPLIT' ? (
+            <View style={styles.participantSection}>
+              <Text style={styles.participantSectionTitle}>정산 대상자 (N분의 1)</Text>
+              <Text style={styles.participantSectionHint}>
+                선택한 참가자에게 비용을 균등 분배합니다.
+              </Text>
+              <View style={styles.feeParticipantBlock}>
+                    <View style={styles.feeParticipantHeader}>
+                      <Text style={styles.feeParticipantLabel}>대상자 선택</Text>
+                      <View style={styles.feeParticipantActions}>
+                        <Pressable
+                          style={styles.feeParticipantActionBtn}
+                          onPress={() => setFeeParticipants((prev) => ({ ...prev, other_fee: [...participantStorageKeys] }))}
+                        >
+                          <Text style={styles.feeParticipantActionText}>전체</Text>
+                        </Pressable>
+                        <Pressable
+                          style={styles.feeParticipantActionBtn}
+                          onPress={() => setFeeParticipants((prev) => ({ ...prev, other_fee: [] }))}
+                        >
+                          <Text style={styles.feeParticipantActionText}>초기화</Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                    <View style={styles.feeParticipantList}>
+                      {participants.map((p, idx) => {
+                        const storageKey = getParticipantStorageKey(p);
+                        if (!storageKey) return null;
+                        const isSelected = (feeParticipants.other_fee || []).includes(storageKey);
+                        return (
+                          <Pressable
+                            key={getParticipantKey(p, idx)}
+                            style={[
+                              styles.feeParticipantChip,
+                              isSelected && styles.feeParticipantChipActive,
+                            ]}
+                            onPress={() => {
+                              const current = feeParticipants.other_fee || [];
+                              const next = isSelected
+                                ? current.filter((k) => k !== storageKey)
+                                : [...current, storageKey];
+                              setFeeParticipants((prev) => ({ ...prev, other_fee: next }));
+                            }}
+                          >
+                            <FontAwesome5
+                              name={isSelected ? 'check-circle' : 'circle'}
+                              size={14}
+                              color={isSelected ? colors.primary[600] : colors.neutral[400]}
+                              style={styles.feeParticipantIcon}
+                            />
+                            <Text
+                              style={[
+                                styles.feeParticipantChipText,
+                                isSelected && styles.feeParticipantChipTextActive,
+                              ]}
+                            >
+                              {getParticipantDisplayName(p)}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </View>
+            </View>
+          ) : meetingType === 'ROUND' && (firstFiniteNumber(settlementForm.green_fee) > 0 || firstFiniteNumber(settlementForm.caddy_fee) > 0 || firstFiniteNumber(settlementForm.cart_fee) > 0) ? (
             <View style={styles.participantSection}>
               {method === 'EQUAL_SPLIT' ? (
                 <>
@@ -529,6 +1110,46 @@ export default function SettlementManager({
                       })}
                     </View>
                   </View>
+                  <View style={[styles.feeParticipantBlock, { marginTop: tokens.spacing.sm }]}>
+                    <Text style={styles.feeParticipantLabel}>나머지 10원 부담자</Text>
+                    <Text style={styles.participantSectionHint}>
+                      금액이 나누어떨어지지 않을 때 10원 단위 나머지를 부담할 참가자
+                    </Text>
+                    <View style={styles.feeParticipantList}>
+                      {(feeParticipants.green_fee || []).map((storageKey) => {
+                        const p = participants.find((q) => getParticipantStorageKey(q) === storageKey);
+                        if (!p) return null;
+                        const pid = p?.id ?? null;
+                        if (pid == null) return null;
+                        const isSelected = extraPayerId === pid;
+                        return (
+                          <Pressable
+                            key={storageKey}
+                            style={[
+                              styles.feeParticipantChip,
+                              isSelected && styles.feeParticipantChipActive,
+                            ]}
+                            onPress={() => setExtraPayerId(pid)}
+                          >
+                            <FontAwesome5
+                              name={isSelected ? 'check-circle' : 'circle'}
+                              size={14}
+                              color={isSelected ? colors.primary[600] : colors.neutral[400]}
+                              style={styles.feeParticipantIcon}
+                            />
+                            <Text
+                              style={[
+                                styles.feeParticipantChipText,
+                                isSelected && styles.feeParticipantChipTextActive,
+                              ]}
+                            >
+                              {getParticipantDisplayName(p)}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </View>
                 </>
               ) : (
                 <>
@@ -540,6 +1161,7 @@ export default function SettlementManager({
                     { key: 'green_fee', label: '그린피', amount: firstFiniteNumber(settlementForm.green_fee) },
                     { key: 'caddy_fee', label: '캐디피', amount: firstFiniteNumber(settlementForm.caddy_fee) },
                     { key: 'cart_fee', label: '카트비', amount: firstFiniteNumber(settlementForm.cart_fee) },
+                    { key: 'other_fee', label: '기타 비용', amount: firstFiniteNumber(settlementForm.other_fee) },
                   ].filter((f) => f.amount > 0).map((fee) => (
                     <View key={fee.key} style={styles.feeParticipantBlock}>
                       <View style={styles.feeParticipantHeader}>
@@ -560,37 +1182,63 @@ export default function SettlementManager({
                         </View>
                       </View>
                       <View style={styles.feeParticipantList}>
-                        {participants.map((p, idx) => {
-                          const storageKey = getParticipantStorageKey(p);
-                          if (!storageKey) return null;
-                          const isSelected = (feeParticipants[fee.key] || []).includes(storageKey);
-                          return (
-                            <Pressable
-                              key={getParticipantKey(p, idx)}
-                              style={[
-                                styles.feeParticipantChip,
-                                isSelected && styles.feeParticipantChipActive,
-                              ]}
-                              onPress={() => toggleFeeParticipant(fee.key, storageKey)}
-                            >
-                              <FontAwesome5
-                                name={isSelected ? 'check-circle' : 'circle'}
-                                size={14}
-                                color={isSelected ? colors.primary[600] : colors.neutral[400]}
-                                style={styles.feeParticipantIcon}
-                              />
-                              <Text
-                                style={[
-                                  styles.feeParticipantChipText,
-                                  isSelected && styles.feeParticipantChipTextActive,
-                                ]}
-                              >
-                                {getParticipantDisplayName(p)}
-                              </Text>
-                            </Pressable>
-                          );
-                        })}
+                        {participants.map((p, idx) => (
+                          <ParticipantChip
+                            key={`${fee.key}-${getParticipantKey(p, idx)}`}
+                            feeKey={fee.key}
+                            participant={p}
+                            isSelected={(feeParticipants[fee.key] || []).includes(getParticipantStorageKey(p))}
+                            onToggle={toggleFeeParticipant}
+                            chipStyles={styles}
+                          />
+                        ))}
                       </View>
+                      {(feeParticipants[fee.key] || []).length > 0 && (
+                        <View style={[styles.feeParticipantBlock, { marginTop: tokens.spacing.xs2 }]}>
+                          <Text style={styles.feeParticipantLabel}>{fee.label} 나머지 10원 부담자</Text>
+                          <View style={styles.feeParticipantList}>
+                            {(feeParticipants[fee.key] || []).map((storageKey) => {
+                              const p = participants.find((q) => getParticipantStorageKey(q) === storageKey);
+                              if (!p) return null;
+                              const pid = p?.id ?? null;
+                              if (pid == null) return null;
+                              const keys = feeParticipants[fee.key] || [];
+                              const firstP = keys[0]
+                                ? participants.find((q) => getParticipantStorageKey(q) === keys[0])
+                                : null;
+                              const effectiveExtra = extraPayerByFee[fee.key] ?? firstP?.id ?? pid;
+                              const isSelected = effectiveExtra === pid;
+                              return (
+                                <Pressable
+                                  key={storageKey}
+                                  style={[
+                                    styles.feeParticipantChip,
+                                    isSelected && styles.feeParticipantChipActive,
+                                  ]}
+                                  onPress={() =>
+                                    setExtraPayerByFee((prev) => ({ ...prev, [fee.key]: pid }))
+                                  }
+                                >
+                                  <FontAwesome5
+                                    name={isSelected ? 'check-circle' : 'circle'}
+                                    size={14}
+                                    color={isSelected ? colors.primary[600] : colors.neutral[400]}
+                                    style={styles.feeParticipantIcon}
+                                  />
+                                  <Text
+                                    style={[
+                                      styles.feeParticipantChipText,
+                                      isSelected && styles.feeParticipantChipTextActive,
+                                    ]}
+                                  >
+                                    {getParticipantDisplayName(p)}
+                                  </Text>
+                                </Pressable>
+                              );
+                            })}
+                          </View>
+                        </View>
+                      )}
                     </View>
                   ))}
                 </>
@@ -639,6 +1287,60 @@ export default function SettlementManager({
           <Text style={styles.confirmedNoticeText}>정산이 확정되었습니다.</Text>
         </View>
       ) : null}
+
+      <Modal
+        visible={payModalOpen}
+        title="납부 완료"
+        onClose={() => !paySaving && setPayModalOpen(false)}
+        footer={(
+          <View style={styles.payModalFooter}>
+            {payTarget?.is_paid && (
+              <Pressable
+                style={[styles.payModalBtn, styles.payModalBtnUnpaid]}
+                onPress={handleMarkUnpaid}
+                disabled={paySaving}
+              >
+                <Text style={styles.payModalBtnTextUnpaid}>미납부로 변경</Text>
+              </Pressable>
+            )}
+            <Pressable
+              style={[styles.payModalBtn, styles.payModalBtnCancel]}
+              onPress={() => setPayModalOpen(false)}
+              disabled={paySaving}
+            >
+              <Text style={styles.payModalBtnText}>취소</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.payModalBtn, styles.payModalBtnConfirm]}
+              onPress={handleMarkPaid}
+              disabled={paySaving}
+            >
+              {paySaving ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <Text style={styles.payModalBtnTextWhite}>납부 완료</Text>
+              )}
+            </Pressable>
+          </View>
+        )}
+      >
+        {payTarget && (
+          <View>
+            <Text style={styles.payModalLabel}>
+              {payTarget.user_name ?? payTarget.user_nickname ?? '-'} 참가자
+            </Text>
+            <TextInput
+              style={styles.payModalInput}
+              placeholder="납부 금액 (비워두면 부담금 전액)"
+              placeholderTextColor={colors.neutral[400]}
+              value={payAmount}
+              onChangeText={setPayAmount}
+              keyboardType="number-pad"
+            />
+            <Text style={styles.payModalHint}>빈 값이면 정산 부담금 전액으로 납부 완료 처리됩니다.</Text>
+          </View>
+        )}
+      </Modal>
 
       <SettlementViewModal
         visible={showViewModal}
@@ -700,6 +1402,24 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.lg,
     color: '#1D4ED8',
     marginBottom: tokens.spacing.xs,
+  },
+  summaryBreakdownBlock: {
+    marginTop: tokens.spacing.xs,
+    marginBottom: tokens.spacing.xs,
+    paddingLeft: tokens.spacing.sm,
+    borderLeftWidth: 3,
+    borderLeftColor: '#93C5FD',
+  },
+  summaryBreakdownLabel: {
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
+    color: '#1E3A8A',
+    marginBottom: 2,
+  },
+  summaryBreakdownLine: {
+    fontSize: tokens.font.sm,
+    color: '#1D4ED8',
+    marginBottom: 2,
   },
   costSection: {
     gap: tokens.spacing.sm,
@@ -899,5 +1619,153 @@ const styles = StyleSheet.create({
   feeParticipantChipTextActive: {
     color: colors.primary[700],
     fontWeight: tokens.fontWeight.semibold,
+  },
+  socialExpenseItemsBlock: {
+    marginBottom: tokens.spacing.sm2,
+  },
+  socialExpenseItemsHint: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+    marginBottom: tokens.spacing.xs2,
+  },
+  socialExpenseItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.xs2,
+    marginBottom: tokens.spacing.xs2,
+  },
+  socialExpenseItemTitle: {
+    flex: 1,
+    minWidth: 80,
+  },
+  socialExpenseItemAmount: {
+    width: 100,
+  },
+  socialExpenseItemRemove: {
+    padding: tokens.padding.xs2,
+  },
+  addExpenseItemBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: tokens.padding.xs2,
+    marginTop: tokens.spacing.xs2,
+  },
+  addExpenseItemBtnText: {
+    fontSize: tokens.font.sm,
+    color: colors.primary[600],
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  paymentSection: {
+    marginTop: tokens.spacing.sm2,
+    paddingTop: tokens.spacing.sm2,
+    borderTopWidth: 1,
+    borderTopColor: colors.neutral[200],
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: tokens.padding.xs2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.neutral[100],
+  },
+  paymentNameBlock: {
+    flex: 1,
+  },
+  paymentName: {
+    fontSize: tokens.font.sm,
+    color: colors.neutral[800],
+    fontWeight: tokens.fontWeight.medium,
+  },
+  paymentAmountLabel: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+    marginTop: 2,
+  },
+  paymentAmount: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+  },
+  paymentStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.xs2,
+  },
+  paymentStatusPaid: {
+    fontSize: tokens.font.xs,
+    color: colors.success[600],
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  paymentStatusUnpaid: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+  },
+  paymentBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: tokens.padding.xs2,
+    paddingVertical: 4,
+  },
+  paymentBtnText: {
+    fontSize: tokens.font.xs,
+    color: colors.primary[600],
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  payModalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: tokens.spacing.xs2,
+    padding: tokens.padding.sm,
+  },
+  payModalBtn: {
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs2,
+    borderRadius: tokens.radius.md,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  payModalBtnCancel: {
+    backgroundColor: colors.neutral[200],
+  },
+  payModalBtnUnpaid: {
+    backgroundColor: colors.error[100],
+  },
+  payModalBtnConfirm: {
+    backgroundColor: colors.primary[600],
+  },
+  payModalBtnText: {
+    fontSize: tokens.font.sm,
+    color: colors.neutral[800],
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  payModalBtnTextUnpaid: {
+    fontSize: tokens.font.sm,
+    color: colors.error[700],
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  payModalBtnTextWhite: {
+    fontSize: tokens.font.sm,
+    color: colors.white,
+    fontWeight: tokens.fontWeight.semibold,
+  },
+  payModalLabel: {
+    fontSize: tokens.font.sm,
+    color: colors.neutral[600],
+    marginBottom: tokens.spacing.xs2,
+  },
+  payModalInput: {
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+    borderRadius: tokens.radius.md,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.sm,
+    fontSize: tokens.font.base,
+    marginBottom: tokens.spacing.xs2,
+  },
+  payModalHint: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
   },
 });
