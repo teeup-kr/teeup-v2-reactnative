@@ -130,7 +130,7 @@ export default function ScoreInputScreen() {
     setEditingScore(score);
     setForm({
       hole_number: String(score?.hole_number ?? '1'),
-      score: String(score?.score ?? ''),
+      score: String(score?.strokes ?? score?.score ?? ''),
       par: String(score?.par ?? '4'),
     });
     setModalVisible(true);
@@ -162,7 +162,7 @@ export default function ScoreInputScreen() {
       return;
     }
 
-    const payload = { hole_number: holeNumber, score, par };
+    const payload = { hole_number: holeNumber, strokes: score, par };
 
     const isCompleted = await ensureMeetingProfile();
     if (!isCompleted) return;
@@ -295,9 +295,10 @@ export default function ScoreInputScreen() {
         ) : (
           <View style={styles.scoreGrid}>
             {orderedScores.map((score) => {
-              const type = getScoreType(score?.score, score?.par);
+              const scoreValue = score?.strokes ?? score?.score;
+              const type = getScoreType(scoreValue, score?.par);
               return (
-                <Card key={score?.id || `${score?.hole_number}-${score?.score}`} style={styles.scoreCard}>
+                <Card key={score?.id || `${score?.hole_number}-${scoreValue}`} style={styles.scoreCard}>
                   <View style={styles.scoreHeader}>
                     <View style={styles.holeBadge}>
                       <Text style={styles.holeText}>{score?.hole_number}</Text>
@@ -312,9 +313,9 @@ export default function ScoreInputScreen() {
                     </View>
                   </View>
 
-                  <Text style={styles.scoreMain}>{score?.score ?? '-'}</Text>
-                  <Text style={[styles.scoreDiff, { color: getScoreDiffColor(score?.score, score?.par) }]}>
-                    {getScoreDiff(score?.score, score?.par)}
+                  <Text style={styles.scoreMain}>{scoreValue ?? '-'}</Text>
+                  <Text style={[styles.scoreDiff, { color: getScoreDiffColor(scoreValue, score?.par) }]}>
+                    {getScoreDiff(scoreValue, score?.par)}
                   </Text>
                   <Text style={styles.scorePar}>PAR {score?.par ?? '-'}</Text>
 

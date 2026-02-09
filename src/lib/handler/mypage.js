@@ -1051,10 +1051,16 @@ export function createFetchMeetingsHandler({
             }
             // pickData가 있으면 사용 (records.js)
             else if (pickData) {
-                const data = pickData(response) || response || {};
-                const list = data?.data ?? data?.list ?? [];
-                setMeetings(Array.isArray(list) ? list : []);
-                setTotalPages(Number(data?.total_pages) || 1);
+                const data = pickData(response);
+                if (Array.isArray(data)) {
+                    setMeetings(data);
+                    setTotalPages(Number(response?.total_pages) || 1);
+                } else {
+                    const normalized = data || response || {};
+                    const list = normalized?.data ?? normalized?.list ?? [];
+                    setMeetings(Array.isArray(list) ? list : []);
+                    setTotalPages(Number(normalized?.total_pages ?? response?.total_pages) || 1);
+                }
             }
             // 둘 다 없으면 기본 처리
             else {

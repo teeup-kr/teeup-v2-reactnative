@@ -163,7 +163,21 @@ async function apiRequest(path, options = {}) {
     const error = new Error(payload?.detail || payload?.message || '요청에 실패했습니다.');
 
     const hasAuthHeader = Boolean(requestHeaders.Authorization);
-    if (response.status === 401 && hasAuthHeader) {
+    const detailText =
+      typeof payload?.detail === 'string'
+        ? payload.detail
+        : typeof payload?.message === 'string'
+          ? payload.message
+          : '';
+    const isAuthForbidden =
+      response.status === 403 &&
+      hasAuthHeader &&
+      (
+        detailText.toLowerCase().includes('not authenticated') ||
+        payload?.detail?.code === 'NOT_AUTHENTICATED'
+      );
+
+    if ((response.status === 401 && hasAuthHeader) || isAuthForbidden) {
       console.info('[Auth] Token expired → logout');
       await tokenStorage.clearTokens();
       await tokenStorage.clearUser();

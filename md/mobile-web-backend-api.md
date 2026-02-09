@@ -153,7 +153,7 @@ Covered by `usersApi`, `notificationsApi`, and `usersApi.*` helpers.
 | `calculateHandicap` | `GET /users/handicap/calculate/{id}` | Returns `HandicapResponse` derived from `average_score`. |
 | `getUserScoreHistory` | `GET /users/{id}/score-history?limit=...` | Returns list of `ScoreHistoryResponse` (`users.py#1620-1708`). |
 | `getLastMeetingResult` | `GET /users/{id}/last-meeting-result` | `MeetingResultResponse` with `gross_score`, `rank`, `handicap_used`. |
-| `getMyRoundingMeetings` | `GET /users/me/rounding-meetings` | Returns paginated `RoundingMeetingItem` list plus `has_score`, `gross_score`, `net_score`. |
+| `getMyRoundingMeetings` | `GET /users/me/rounding-meetings` | Returns paginated `RoundingMeetingItem` list plus `has_score`, `has_hole_scores`, `gross_score`, `net_score` (`has_hole_scores` is served from participant-side cached flag). |
 | `getRoundingStats` | `GET /users/me/rounding-stats` | `RoundingStatsResponse` (totals + averages). |
 | `getMyMeetings` | `GET /users/my-meetings` | Filters by `status_filter`, `meeting_type_filter`, `start_date`, `end_date`; returns `PaginatedResponse` of meeting summaries. |
 

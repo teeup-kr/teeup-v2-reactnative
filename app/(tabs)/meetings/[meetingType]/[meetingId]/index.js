@@ -418,6 +418,7 @@ export default function MeetingDetailScreen() {
       setTeamPreviewOpen,
       setPreviewFormation,
       setTeams,
+      fetchTeams,
     ]
   );
 

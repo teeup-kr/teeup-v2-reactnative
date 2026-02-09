@@ -272,6 +272,8 @@ export function createAutoFormTeamsHandler({
     setTeamPreviewOpen,
     setTeams,
     setPreviewFormation,
+    fetchTeams,
+    onCloseTeamFormation,
     alert,
 }) {
     return async function (payload = {}) {
