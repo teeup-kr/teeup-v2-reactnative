@@ -9,21 +9,19 @@ import {
     View
 } from 'react-native';
 
-import ComingSoonModal from '@/components/mypage/ComingSoonModal';
+import HoleScoreTableModal from '@/components/mypage/HoleScoreTableModal';
 import RecordMeetingCard from '@/components/mypage/RecordMeetingCard';
 import RoundingStatsCard from '@/components/mypage/RoundingStatsCard';
 import SimpleScoreInputModal from '@/components/mypage/SimpleScoreInputModal';
 import Card from '@/components/ui/Card';
 import { mypageApi } from '@/lib/api/api';
 import {
-    createCloseComingSoonHandler,
     createCloseScoreModalHandler,
     createFetchHandicapHandler,
     createFetchMeetingsHandler,
     createFetchStatsHandler,
     createGoToDetailHandler,
     createNextPageHandler,
-    createOpenComingSoonHandler,
     createOpenScoreModalHandler,
     createPrevPageHandler,
     createScoreStatusHandler,
@@ -55,7 +53,7 @@ export default function RecordsTab() {
   const [currentHandicap, setCurrentHandicap] = useState(null);
 
   const [showScoreModal, setShowScoreModal] = useState(false);
-  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+  const [showHoleScoreModal, setShowHoleScoreModal] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState(null);
   const [selectedParticipantId, setSelectedParticipantId] = useState(null);
 
@@ -146,13 +144,14 @@ export default function RecordsTab() {
       }),
     [setShowScoreModal, setSelectedMeeting, setSelectedParticipantId]
   );
-  const handleOpenComingSoon = useMemo(
-    () => createOpenComingSoonHandler({ setShowComingSoonModal }),
-    [setShowComingSoonModal]
-  );
-  const handleCloseComingSoon = useMemo(
-    () => createCloseComingSoonHandler({ setShowComingSoonModal }),
-    [setShowComingSoonModal]
+  const handleCloseHoleScoreModal = useMemo(
+    () =>
+      createCloseScoreModalHandler({
+        setShowScoreModal: setShowHoleScoreModal,
+        setSelectedMeeting,
+        setSelectedParticipantId,
+      }),
+    [setShowHoleScoreModal, setSelectedMeeting, setSelectedParticipantId]
   );
   const handleOpenScoreModal = useMemo(
     () =>
@@ -167,6 +166,19 @@ export default function RecordsTab() {
       }),
     [setSelectedParticipantId, setSelectedMeeting, setShowScoreModal]
   );
+  const handleOpenHoleScoreModal = useMemo(
+    () =>
+      createOpenScoreModalHandler({
+        fetchRoundParticipants: mypageApi.fetchRoundParticipants,
+        fetchMyProfile: mypageApi.fetchMyProfile,
+        pickData,
+        setSelectedParticipantId,
+        setSelectedMeeting,
+        setShowScoreModal: setShowHoleScoreModal,
+        alert: Alert.alert,
+      }),
+    [setSelectedParticipantId, setSelectedMeeting, setShowHoleScoreModal]
+  );
   const handleScoreSuccess = useMemo(
     () =>
       createScoreSuccessHandler({
@@ -179,6 +191,25 @@ export default function RecordsTab() {
       }),
     [
       setShowScoreModal,
+      setSelectedMeeting,
+      setSelectedParticipantId,
+      fetchMeetings,
+      fetchStats,
+      fetchHandicap,
+    ]
+  );
+  const handleHoleScoreSuccess = useMemo(
+    () =>
+      createScoreSuccessHandler({
+        setShowScoreModal: setShowHoleScoreModal,
+        setSelectedMeeting,
+        setSelectedParticipantId,
+        fetchMeetings,
+        fetchStats,
+        fetchHandicap,
+      }),
+    [
+      setShowHoleScoreModal,
       setSelectedMeeting,
       setSelectedParticipantId,
       fetchMeetings,
@@ -322,7 +353,7 @@ export default function RecordsTab() {
                   currentHandicap={currentHandicap}
                   onOpenDetail={handleGoToDetail}
                   onOpenScore={handleOpenScoreModal}
-                  onOpenComingSoon={handleOpenComingSoon}
+                  onOpenHoleScore={handleOpenHoleScoreModal}
                   styles={styles}
                 />
               ))}
@@ -352,7 +383,7 @@ export default function RecordsTab() {
                   currentHandicap={currentHandicap}
                   onOpenDetail={handleGoToDetail}
                   onOpenScore={handleOpenScoreModal}
-                  onOpenComingSoon={handleOpenComingSoon}
+                  onOpenHoleScore={handleOpenHoleScoreModal}
                   styles={styles}
                 />
               ))}
@@ -423,9 +454,13 @@ export default function RecordsTab() {
         shouldCompleteRounding={false}
       />
 
-      <ComingSoonModal
-        visible={showComingSoonModal}
-        onClose={handleCloseComingSoon}
+      <HoleScoreTableModal
+        visible={showHoleScoreModal}
+        onClose={handleCloseHoleScoreModal}
+        meetingId={selectedMeeting?.meeting_id}
+        participantId={selectedParticipantId}
+        holeCount={selectedMeeting?.hole_count}
+        onSuccess={handleHoleScoreSuccess}
       />
     </View>
   );

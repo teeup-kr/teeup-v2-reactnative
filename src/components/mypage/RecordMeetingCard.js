@@ -12,21 +12,27 @@ export default function RecordMeetingCard({
   currentHandicap,
   onOpenDetail,
   onOpenScore,
-  onOpenComingSoon,
+  onOpenHoleScore,
   styles,
 }) {
+  const hasHoleScores = Boolean(meeting?.has_hole_scores);
   const handleOpenDetail = useMemo(
     () => onOpenDetail(meeting.meeting_id),
     [onOpenDetail, meeting.meeting_id]
   );
   const handleOpenScore = useMemo(
-    () => onOpenScore(meeting),
+    () => () => onOpenScore(meeting),
     [onOpenScore, meeting]
   );
-  const handleOpenComingSoon = useMemo(
-    () => onOpenComingSoon(),
-    [onOpenComingSoon]
+  const handleOpenHoleScore = useMemo(
+    () => () => onOpenHoleScore(meeting),
+    [onOpenHoleScore, meeting]
   );
+  const detailButtonStyle = hasHoleScores ? styles.softPrimaryBtn : styles.outlineBtn;
+  const detailButtonTextStyle = hasHoleScores
+    ? styles.softPrimaryBtnText
+    : styles.outlineBtnText;
+  const detailButtonText = hasHoleScores ? '상세 수정' : '상세입력';
 
   return (
     <View
@@ -87,13 +93,13 @@ export default function RecordMeetingCard({
             </Pressable>
 
             <Pressable
-              onPress={handleOpenComingSoon}
+              onPress={handleOpenHoleScore}
               style={({ pressed }) => [
-                styles.outlineBtn,
+                detailButtonStyle,
                 pressed && { opacity: 0.9 },
               ]}
             >
-              <Text style={styles.outlineBtnText}>상세 입력</Text>
+              <Text style={detailButtonTextStyle}>{detailButtonText}</Text>
             </Pressable>
           </>
         ) : (
@@ -116,13 +122,13 @@ export default function RecordMeetingCard({
             </Pressable>
 
             <Pressable
-              onPress={handleOpenComingSoon}
+              onPress={handleOpenHoleScore}
               style={({ pressed }) => [
-                styles.softPrimaryBtn,
+                detailButtonStyle,
                 pressed && { opacity: 0.9 },
               ]}
             >
-              <Text style={styles.softPrimaryBtnText}>상세 수정</Text>
+              <Text style={detailButtonTextStyle}>{detailButtonText}</Text>
             </Pressable>
           </>
         )}

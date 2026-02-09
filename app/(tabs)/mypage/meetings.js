@@ -272,7 +272,7 @@ export default function MyMeetingsScreen() {
             <Card key={meetingId || index} style={styles.meetingCard}>
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle} numberOfLines={1}>
-                  {meeting?.meeting_name || meeting?.title}
+                  {meeting?.name || meeting?.meeting_name || meeting?.title || '모임명 없음'}
                 </Text>
                 <View style={styles.badgeRow}>
                   <View style={[styles.badge, { backgroundColor: type.bg }]}>
