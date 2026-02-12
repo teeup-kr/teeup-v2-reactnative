@@ -97,6 +97,51 @@ export function createFetchFeesHandler({ clubId, fetchClubFees, extractList, set
         }
     };
 }
+
+export function createFeeCreateHandler({ router, clubId }) {
+    return () => {
+        if (!clubId) return;
+        router.push(`/clubs/${clubId}/fees/create`);
+    };
+}
+
+export function createFeePressHandler({ router, clubId }) {
+    return (feeId) =>
+        () => {
+            if (!clubId || !feeId) return;
+            router.push(`/clubs/${clubId}/fees/${feeId}/edit`);
+        };
+}
+
+export function createFetchFeeDetailHandler({
+    clubId,
+    feeId,
+    fetchClubFee,
+    extractData,
+    setFee,
+    setIsLoading,
+    setError,
+}) {
+    return async function () {
+        setError('');
+        if (!clubId || !feeId) {
+            setFee(null);
+            setIsLoading(false);
+            return;
+        }
+        try {
+            setIsLoading(true);
+            const response = await fetchClubFee(clubId, feeId);
+            const data = extractData(response);
+            setFee(data);
+        } catch (error) {
+            console.error('회비 상세 조회 실패:', error);
+            setError(error?.message || '회비 정보를 불러오는데 실패했습니다.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+}
 export function createDebouncedSearchHandler({ searchTerm, setDebouncedSearchTerm, setCurrentPage }) {
     return () => {
         setDebouncedSearchTerm(searchTerm);
@@ -543,7 +588,67 @@ export function createRegulationEditHandler({ router, clubId }) {
         router.push(`/clubs/${clubId}/regulations/create`);
     };
 }
-export function createFetchStatsHandler({ clubId, fetchClubStats, extractData, setStatsData, setIsLoading, setError }) {
+
+export function createNoticeCreateHandler({ router, clubId }) {
+    return () => {
+        router.push(`/clubs/${clubId}/notices/create`);
+    };
+}
+
+export function createNoticePressHandler({ router, clubId }) {
+    return (noticeId) =>
+        () => {
+            if (!clubId || !noticeId) return;
+            router.push(`/clubs/${clubId}/notices/${noticeId}`);
+        };
+}
+
+export function createNoticeEditHandler({ router, clubId }) {
+    return (noticeId) =>
+        () => {
+            if (!clubId || !noticeId) return;
+            router.push(`/clubs/${clubId}/notices/${noticeId}/edit`);
+        };
+}
+
+export function createFetchNoticeDetailHandler({
+    clubId,
+    noticeId,
+    fetchClubNotice,
+    extractData,
+    setNotice,
+    setIsLoading,
+    setError,
+}) {
+    return async function () {
+        setError('');
+        if (!clubId || !noticeId) {
+            setNotice(null);
+            setIsLoading(false);
+            return;
+        }
+        try {
+            setIsLoading(true);
+            const response = await fetchClubNotice(clubId, noticeId);
+            const data = extractData(response);
+            setNotice(data);
+        } catch (error) {
+            console.error('클럽 공지 상세 조회 실패:', error);
+            setError(error?.message || '공지사항을 불러오는데 실패했습니다.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+}
+export function createFetchStatsHandler({
+    clubId,
+    fetchClubStats,
+    extractData,
+    setStatsData,
+    setIsLoading,
+    setError,
+    params = {},
+}) {
     return async function () {
         setError('');
         if (!clubId) {
@@ -553,7 +658,7 @@ export function createFetchStatsHandler({ clubId, fetchClubStats, extractData, s
         }
         try {
             setIsLoading(true);
-            const response = await fetchClubStats(clubId);
+            const response = await fetchClubStats(clubId, params);
             const data = extractData(response);
             setStatsData(data);
         } catch (error) {

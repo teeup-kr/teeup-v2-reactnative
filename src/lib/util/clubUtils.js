@@ -113,10 +113,25 @@ export function buildClubDetailDisplay(club) {
   const clubSubtitle = clubDescription || '-';
   const clubIntro = clubDescription || '등록된 소개가 없습니다.';
   const location = club?.location || '-';
-  const memberCount = club?.member_count ?? '-';
+  const memberCount = club?.current_member_count ?? club?.member_count ?? '-';
   const representativeName = club?.representative_name || '-';
   const contactInfo = club?.contact_info || '-';
   const additionalInfo = club?.additional_info || '-';
+
+  const createdAt = club?.created_at;
+  const createdAtDisplay = createdAt
+    ? formatClubDate(createdAt)
+    : '-';
+
+  const feeSummary = club?.fee_summary;
+  let feeSummaryDisplay = '-';
+  if (feeSummary?.has_regular_fee && feeSummary?.amount != null) {
+    const amountStr = `${Number(feeSummary.amount).toLocaleString('ko-KR')}원`;
+    const cycleStr = feeSummary?.cycle_label || feeSummary?.cycle || '';
+    feeSummaryDisplay = cycleStr ? `${cycleStr} ${amountStr}` : amountStr;
+  } else if (feeSummary?.has_regular_fee) {
+    feeSummaryDisplay = '회비 있음 (상세는 가입 후 확인)';
+  }
 
   return {
     clubStatusLabel,
@@ -129,6 +144,8 @@ export function buildClubDetailDisplay(club) {
     representativeName,
     contactInfo,
     additionalInfo,
+    createdAtDisplay,
+    feeSummaryDisplay,
   };
 };
 export function buildFeeSummary(fees) {
@@ -151,13 +168,13 @@ export function buildFeeSummary(fees) {
 };
 
 export function normalizeFeeItem(fee) {
-  const title = fee?.title || fee?.type || '회비';
+  const title = fee?.name || fee?.title || fee?.type || '회비';
   const amountValue = fee?.amount;
   const amount =
     amountValue !== undefined && amountValue !== null
       ? `${Number(amountValue).toLocaleString('ko-KR')}원`
       : '-';
-  const status = fee?.status || fee?.payment_status || '';
+  const status = fee?.status ?? fee?.payment_status ?? (fee?.is_active === false ? '비활성' : '활성');
 
   return {
     id: fee?.id || fee?.fee_id || title,

@@ -12,10 +12,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { clubsApi } from '@/lib/api/api';
+import { clubsApi, regionApi } from '@/lib/api/api';
 import { createFetchClubDetailHandler, createJoinRequestHandler, createOpenManageHandler } from '@/lib/handler/clubs';
 import { buildClubDetailDisplay } from '@/lib/util/clubUtils';
-import { extractData } from '@/lib/util/responseUtils';
+import { extractData, extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
@@ -30,6 +30,7 @@ export default function ClubDetailScreen() {
   const [club, setClub] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [regionLabel, setRegionLabel] = useState('');
 
   const loadClub = useMemo(
     () =>
@@ -48,7 +49,68 @@ export default function ClubDetailScreen() {
     loadClub();
   }, [loadClub]);
 
+  useEffect(() => {
+    if (!club) {
+      setRegionLabel('');
+      return;
+    }
+    let isActive = true;
+    const sidoCode = club?.sido_code || club?.sidoCode || '';
+    const rawGunguCodes = club?.gungu_codes || club?.gunguCodes || [];
+    const gunguCodes = Array.isArray(rawGunguCodes) ? rawGunguCodes : [];
+
+    if (!sidoCode) {
+      setRegionLabel('');
+      return () => {
+        isActive = false;
+      };
+    }
+
+    const fetchRegionLabel = async () => {
+      try {
+        const [sidoRes, gunguRes] = await Promise.all([
+          regionApi.getSidoList(),
+          regionApi.getGunguList(sidoCode),
+        ]);
+        const sidoList = extractList(sidoRes);
+        const gunguList = extractList(gunguRes);
+        if (!isActive) return;
+
+        const sidoName = sidoList.find((o) => String(o.code) === String(sidoCode))?.name || '';
+        const gunguNameMap = Object.fromEntries(
+          gunguList.map((o) => [String(o.code), o.name])
+        );
+        const gunguNames = gunguCodes
+          .map((code) => gunguNameMap[String(code)])
+          .filter(Boolean);
+        const label = sidoName
+          ? gunguNames.length > 0
+            ? `${sidoName}, ${gunguNames.join(', ')}`
+            : sidoName
+          : gunguNames.length > 0
+            ? gunguNames.join(', ')
+            : '';
+        setRegionLabel(label);
+      } catch (err) {
+        console.error('시도군구 조회 실패:', err);
+        if (isActive) setRegionLabel('');
+      }
+    };
+
+    fetchRegionLabel();
+    return () => {
+      isActive = false;
+    };
+  }, [club]);
+
   const display = useMemo(() => buildClubDetailDisplay(club), [club]);
+  const hasRegionCodes = !!(
+    club?.sido_code ||
+    club?.sidoCode ||
+    (Array.isArray(club?.gungu_codes || club?.gunguCodes) && (club?.gungu_codes || club?.gunguCodes).length > 0)
+  );
+  const locationDisplay =
+    regionLabel || (!hasRegionCodes ? display.location : null) || '-';
   const handleManagePress = useMemo(
     () => createOpenManageHandler({ clubId: resolvedId, router }),
     [resolvedId, router]
@@ -81,7 +143,7 @@ export default function ClubDetailScreen() {
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
                   <FontAwesome5 name="map-marker-alt" size={12} color={colors.neutral[500]} />
-                  <Text style={styles.metaText}>{display.location}</Text>
+                  <Text style={styles.metaText}>{locationDisplay}</Text>
                 </View>
                 <View style={styles.metaItem}>
                   <FontAwesome5 name="users" size={12} color={colors.neutral[500]} />
@@ -105,6 +167,18 @@ export default function ClubDetailScreen() {
 
             <Card style={styles.sectionCard}>
               <Text style={styles.sectionTitle}>운영 정보</Text>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>개설일</Text>
+                <Text style={styles.infoValue}>{display.createdAtDisplay}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>회비</Text>
+                <Text style={styles.infoValue}>{display.feeSummaryDisplay}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>활동 지역</Text>
+                <Text style={styles.infoValue}>{locationDisplay}</Text>
+              </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>대표자</Text>
                 <Text style={styles.infoValue}>{display.representativeName}</Text>
