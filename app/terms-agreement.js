@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import HtmlContent from '@/components/ui/HtmlContent';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { termsTabs } from '@/constants/termsConstants';
 import { useAuth } from '@/context/AuthContext';
@@ -207,7 +208,7 @@ export default function TermsAgreementScreen() {
             {expandedTerm === term.id && (
               <View style={styles.termContent}>
                 {termsData[term.key] ? (
-                  <Text style={styles.termText}>{termsData[term.key]}</Text>
+                  <HtmlContent html={termsData[term.key]} baseStyle={styles.termText} />
                 ) : (
                   <Text style={styles.termTextEmpty}>
                     약관 내용을 불러올 수 없습니다.
@@ -254,7 +255,7 @@ export default function TermsAgreementScreen() {
             {expandedTerm === term.id && (
               <View style={styles.termContent}>
                 {termsData[term.key] ? (
-                  <Text style={styles.termText}>{termsData[term.key]}</Text>
+                  <HtmlContent html={termsData[term.key]} baseStyle={styles.termText} />
                 ) : (
                   <Text style={styles.termTextEmpty}>
                     약관 내용을 불러올 수 없습니다.
