@@ -1,6 +1,11 @@
+import { Platform } from 'react-native';
+
 import { tokenStorage } from '../tokenStorage';
+import { getNativePushToken } from '../util/pushToken';
 
 import { apiClient } from './apiClient';
+
+const AUTH_PREFIX = '/auth';
 
 async function saveAuthData(authResponse) {
   if (!authResponse?.access_token) {
@@ -35,8 +40,27 @@ function buildClubStatusParams(params = {}) {
   };
 }
 
+async function syncPushToken({ enabled = true } = {}) {
+  if (Platform.OS === 'web') {
+    return null;
+  }
+
+  const pushToken = await getNativePushToken();
+  if (!pushToken) {
+    console.warn('푸시 토큰 동기화 스킵: 디바이스 토큰 없음');
+    return null;
+  }
+
+  console.log('푸시 토큰 동기화 요청');
+  return apiClient.post(`${AUTH_PREFIX}/push-token`, {
+    push_token: pushToken,
+    token_type: 'FCM',
+    enabled,
+  });
+}
+
 async function login(credentials) {
-  const response = await apiClient.post('/auth/login', credentials, { auth: false });
+  const response = await apiClient.post(`${AUTH_PREFIX}/login`, credentials, { auth: false });
   await saveAuthData(response);
   return response;
 }
@@ -46,15 +70,15 @@ async function register(userData) {
 }
 
 async function refreshToken(refreshToken) {
-  return apiClient.post('/auth/refresh', { refresh_token: refreshToken }, { auth: false });
+  return apiClient.post(`${AUTH_PREFIX}/refresh`, { refresh_token: refreshToken }, { auth: false });
 }
 
 async function getCurrentUser() {
-  return apiClient.get('/auth/me');
+  return apiClient.get(`${AUTH_PREFIX}/me`);
 }
 
 async function changePassword(passwordData) {
-  return apiClient.put('/auth/change-password', null, {
+  return apiClient.put(`${AUTH_PREFIX}/change-password`, null, {
     params: {
       current_password: passwordData.current_password,
       new_password: passwordData.new_password,
@@ -64,32 +88,32 @@ async function changePassword(passwordData) {
 }
 
 async function requestPasswordReset(data) {
-  return apiClient.post('/auth/request-password-reset', data, { auth: false });
+  return apiClient.post(`${AUTH_PREFIX}/request-password-reset`, data, { auth: false });
 }
 
 async function resetPassword(token, newPassword) {
-  return apiClient.post('/auth/reset-password', { token, new_password: newPassword }, { auth: false });
+  return apiClient.post(`${AUTH_PREFIX}/reset-password`, { token, new_password: newPassword }, { auth: false });
 }
 
 async function verifyEmail(token) {
-  return apiClient.post('/auth/verify-email', { token }, { auth: false });
+  return apiClient.post(`${AUTH_PREFIX}/verify-email`, { token }, { auth: false });
 }
 
 async function resendVerification() {
-  return apiClient.post('/auth/resend-verification', null, { auth: false });
+  return apiClient.post(`${AUTH_PREFIX}/resend-verification`, null, { auth: false });
 }
 
 async function checkEmail(email) {
-  return apiClient.get('/auth/check-email', { params: { email }, auth: false });
+  return apiClient.get(`${AUTH_PREFIX}/check-email`, { params: { email }, auth: false });
 }
 
 async function checkNickname(nickname) {
-  return apiClient.get('/auth/check-nickname', { params: { nickname }, auth: false });
+  return apiClient.get(`${AUTH_PREFIX}/check-nickname`, { params: { nickname }, auth: false });
 }
 
 async function googleLogin(oauthData) {
   try {
-    const response = await apiClient.post('/auth/oauth/google/callback', oauthData, { auth: false });
+    const response = await apiClient.post(`${AUTH_PREFIX}/oauth/google/callback`, oauthData, { auth: false });
     await saveAuthData(response);
     return response;
   } catch (error) {
@@ -108,13 +132,13 @@ async function agreeToTerms(termsIds) {
   if (!termsToken) {
     throw new Error('약관 동의 토큰이 없습니다.');
   }
-  
+
   // 백엔드는 약관 ID 배열을 받음
   // termsIds는 [1, 2, 3] 형식의 약관 ID 배열
   if (!Array.isArray(termsIds) || termsIds.length === 0) {
     throw new Error('약관 ID가 필요합니다.');
   }
-  
+
   // 약관 동의 전용 토큰을 사용하여 API 호출
   // apiClient의 auth 옵션 대신 직접 헤더에 토큰 추가
   const response = await apiClient.post(
@@ -130,7 +154,7 @@ async function agreeToTerms(termsIds) {
       },
     }
   );
-  
+
   // 약관 동의 완료 후 정상 토큰 저장
   // 백엔드 응답에 토큰이 포함되어 있지 않을 수 있으므로
   // 약관 동의 완료 후 다시 로그인 시도해야 할 수도 있음
@@ -140,8 +164,20 @@ async function agreeToTerms(termsIds) {
 }
 
 async function logout() {
-  await tokenStorage.clearTokens();
-  await tokenStorage.clearUser();
+  try {
+    await syncPushToken({ enabled: false });
+  } catch (error) {
+    console.warn('로그아웃 토큰 전송 실패:', error?.message || error);
+  }
+
+  try {
+    await apiClient.post(`${AUTH_PREFIX}/logout`);
+  } catch (error) {
+    console.warn('로그아웃 API 호출 실패:', error?.message || error);
+  } finally {
+    await tokenStorage.clearTokens();
+    await tokenStorage.clearUser();
+  }
 }
 
 async function deleteAccount() {
@@ -162,6 +198,7 @@ export const authApi = {
   checkNickname,
   googleLogin,
   agreeToTerms,
+  syncPushToken,
   logout,
   deleteAccount,
 };
