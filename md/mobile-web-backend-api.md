@@ -23,7 +23,8 @@ Tracks the helpers in `apps/mobile-web/src/lib/auth.js`.
 | `POST` | `/auth/register` | Creates a local user; returns the same login payload plus tokens. | `RegisterRequest` requires `email`, `password`, `nickname`, `terms_agreement`, `privacy_*` (see `auth.py#L302-322`). | `LoginResponse`. |
 | `POST` | `/auth/refresh` | Refresh access tokens using saved `refresh_token`. | `{ refresh_token }` (`TokenRefreshRequest` at `auth.py#L820`). | `TokenResponse` (`access_token`, `refresh_token`, `user`). |
 | `GET` | `/auth/me` | Returns `UserResponse` (`backends/schemas.py#940-984`). | None (requires `Authorization`). | Authenticated user record. |
-| `POST` | `/auth/logout` | Clears tokens server-side (mostly no-op). | None (Bearer token). | `MessageResponse`. |
+| `POST` | `/auth/push-token` | Registers/unregisters the current device token. Called only when user is authenticated. | `{ push_token, token_type: "FCM", enabled }` with Bearer token. | `MessageResponse`. |
+| `POST` | `/auth/logout` | Logs out current session. | None (Bearer token). | `MessageResponse`. |
 | `PUT` | `/auth/change-password` | Sends `current_password`, `new_password`, `confirm_password` via query params (see `auth.js` line 56). | Query params (no body). | `204`/`MessageResponse` style. |
 | `POST` | `/auth/oauth/google/callback` | Google login callback (front calls `googleLogin`). | `{ provider:"google", code, state }`. | Aliased login data (tokens + user). |
 | `POST` | `/auth/verify-email`, `/auth/resend-verification`, `/auth/request-password-reset`, `/auth/reset-password`, `/auth/withdraw` | Standard verification/password flows (see `auth.js`). | Minimal payloads (`{ token }`, `{ token, new_password }`, etc.) | `MessageResponse`. |
@@ -31,6 +32,7 @@ Tracks the helpers in `apps/mobile-web/src/lib/auth.js`.
 | `GET` | `/auth/csrf-token` | Supplies CSRF token for mutating requests; invoked before every non-GET request in `api.js`. | None. | `{ csrf_token, expires_in }` (see `auth.py#L1095-1121`). |
 
 > Tokens are persisted via `tokenManager.setTokens` (auth.js lines 65‑95), and invalidated via `tokenManager.clearTokens` plus `csrfManager.clearToken` when logout/withdraw occurs.
+> RN app behavior: unauthenticated users do not request notification permissions; on app start, if already logged in and permission granted, it posts `/auth/push-token` with `enabled=true`.
 
 ## 3. Club & membership management (routers/clubs.py + clubsApi.js)
 `apps/mobile-web/src/lib/clubApi.js` (wrapped around `clubsApi`) drives these routes.

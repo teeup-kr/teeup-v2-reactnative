@@ -1,21 +1,134 @@
 
 import * as NavigationBar from 'expo-navigation-bar';
+import * as Notifications from 'expo-notifications';
 import {
-  Slot
+  Slot,
+  useRouter
 } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BottomNavigationBar, { bottomNavHeight } from '@/components/layout/BottomNavigationBar';
 import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
-import { AuthProvider } from '@/context/AuthContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { authApi } from '@/lib/api/api';
 import { colors } from '@/styles/colors';
+
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
+
+function getNotificationRoute(data = {}) {
+  const category = data?.category || data?.type || data?.notification_type;
+  const targetId = data?.target_id || data?.targetId || data?.id;
+  const meetingType = data?.meeting_type || data?.meetingType;
+  const clubId = data?.club_id || data?.clubId;
+
+  if (category === 'meeting' && targetId) {
+    const slug = meetingType === 'social' ? 'social' : 'rounding';
+    return `/meetings/${slug}/${targetId}`;
+  }
+
+  // 선택한 알림 카테고리에 따라 라우팅 경로 반환
+  if (category === 'meeting_rounding' && targetId) return `/meetings/rounding/${targetId}`;
+  if (category === 'meeting_social' && targetId) return `/meetings/social/${targetId}`;
+  if (category === 'club' && targetId) return `/clubs/${targetId}`;
+  if (category === 'club_notice' && clubId) return `/clubs/${clubId}/notices`;
+  if (category === 'notice' && targetId) return `/notices/${targetId}`;
+
+  return null;
+}
+
+function routeByNotification(router, notification) {
+  const data = notification?.request?.content?.data;
+  if (!data || typeof data !== 'object') return;
+  const route = getNotificationRoute(data);
+  if (!route) return;
+  router.push(route);
+}
+
+async function setupNotificationChannel() {
+  if (Platform.OS !== 'android') return;
+  await Notifications.setNotificationChannelAsync('default', {
+    name: '기본',
+    importance: Notifications.AndroidImportance.DEFAULT,
+  });
+}
+
+async function ensureNotificationPermission() {
+  const permission = await Notifications.getPermissionsAsync();
+  if (permission.granted) return true;
+  const requested = await Notifications.requestPermissionsAsync();
+  return Boolean(requested.granted);
+}
+
 function AppShell() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
+  const handledNotificationIdsRef = useRef(new Set());
+
+  useEffect(() => {
+    if (Platform.OS === 'web') return undefined;
+    if (isLoading || !isAuthenticated) return undefined;
+
+    let isUnmounted = false;
+
+    const handleRouteOnce = (notification) => {
+      const identifier = notification?.request?.identifier;
+      if (!identifier) {
+        routeByNotification(router, notification);
+        return;
+      }
+
+      if (handledNotificationIdsRef.current.has(identifier)) return;
+      handledNotificationIdsRef.current.add(identifier);
+      routeByNotification(router, notification);
+    };
+
+    const setup = async () => {
+      try {
+        await setupNotificationChannel();
+        const granted = await ensureNotificationPermission();
+        await authApi.syncPushToken({ enabled: true });
+        if (!granted || isUnmounted) return;
+
+        const initialResponse = await Notifications.getLastNotificationResponseAsync();
+        if (initialResponse?.notification && !isUnmounted) {
+          handleRouteOnce(initialResponse.notification);
+        }
+      } catch (error) {
+        console.warn('알림 초기화 실패:', error?.message || error);
+      }
+    };
+
+    const receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
+      const data = notification?.request?.content?.data;
+      console.log('[Push Received]', data);
+    });
+
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      handleRouteOnce(response?.notification);
+    });
+
+    setup();
+
+    return () => {
+      isUnmounted = true;
+      receivedSubscription.remove();
+      responseSubscription.remove();
+    };
+  }, [isAuthenticated, isLoading, router]);
 
   return (
     <View style={styles.root}>

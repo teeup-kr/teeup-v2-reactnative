@@ -20,6 +20,7 @@
         "foregroundImage": "./public/icons/icon-512.png",
         "backgroundColor": "#ffffff"
       },
+      "googleServicesFile": "./google-services.json",
       "edgeToEdgeEnabled": false,
       "package": "com.pixencrew.teeup"
     },
@@ -32,7 +33,8 @@
       "bundleIdentifier": "com.pixencrew.teeup"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-notifications"
     ]
   }
 }
