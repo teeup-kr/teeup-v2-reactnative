@@ -376,7 +376,7 @@ export function getMyPageTabContent({ activeTab, tabs }) {
             return tabs.overview;
     }
 };
-export function openWebDateInput({ value, onChange, anchorRect }) {
+export function openWebDateInput({ value, onChange, anchorRect, min }) {
     const doc = globalThis?.document;
     if (!doc || typeof doc.createElement !== 'function') return false;
 
@@ -390,6 +390,7 @@ export function openWebDateInput({ value, onChange, anchorRect }) {
     input.id = 'web-date-input-temp';
     input.type = 'date';
     input.value = value || '';
+    if (min) input.min = min;
     input.style.position = 'fixed';
     if (anchorRect && typeof anchorRect.left === 'number' && typeof anchorRect.top === 'number') {
         input.style.left = `${anchorRect.left}px`;
