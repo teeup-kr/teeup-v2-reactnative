@@ -8,6 +8,69 @@ async function ensureMeetingProfileCompleted(router) {
     });
 }
 
+function getClubRoleValue(club) {
+    return String(club?.my_role || club?.membership_role || club?.role || '').toUpperCase();
+}
+
+function canManageClubMeetings(club) {
+    const role = getClubRoleValue(club);
+    return role === 'LEADER' || role === 'MANAGER';
+}
+
+function dedupeMeetingsById(meetings = []) {
+    const byId = new Map();
+    meetings.forEach((meeting) => {
+        const meetingId = meeting?.id ?? meeting?.meeting_id;
+        if (meetingId === null || meetingId === undefined || meetingId === '') return;
+        byId.set(String(meetingId), {
+            ...meeting,
+            id: meeting?.id ?? meetingId,
+        });
+    });
+    return Array.from(byId.values());
+}
+
+function matchMeetingSearch(meeting, normalizedSearch) {
+    if (!normalizedSearch) return true;
+    const meetingName = String(meeting?.name || meeting?.meeting_name || '').toLowerCase();
+    return meetingName.includes(normalizedSearch);
+}
+
+async function fetchManagedClubMeetings({ manageableClubIds, fetchClubMeetings, extractList }) {
+    if (typeof fetchClubMeetings !== 'function') return [];
+    if (!Array.isArray(manageableClubIds) || manageableClubIds.length === 0) return [];
+
+    const allClubMeetings = [];
+    for (const clubId of manageableClubIds) {
+        if (clubId === null || clubId === undefined || clubId === '') continue;
+
+        let currentPage = 1;
+        let hasMore = true;
+
+        while (hasMore && currentPage <= 10) {
+            const response = await fetchClubMeetings(clubId, {
+                page: currentPage,
+                limit: 100,
+            });
+            const pageMeetings = extractList(response);
+            if (pageMeetings.length === 0) {
+                hasMore = false;
+                continue;
+            }
+
+            allClubMeetings.push(...pageMeetings);
+            const totalPages = response?.total_pages || 1;
+            if (currentPage >= totalPages) {
+                hasMore = false;
+            } else {
+                currentPage += 1;
+            }
+        }
+    }
+
+    return allClubMeetings;
+}
+
 export function createFetchUserInfoHandler({
     fetchMyProfile,
     fetchUserHandicap,
@@ -455,10 +518,12 @@ export function createFetchExpensesHandler({ meetingId, fetchRoundExpenses, extr
 }
 export function createFetchRoundingMeetingsHandler({
     fetchRounds,
+    fetchClubMeetings,
     extractList,
     filterByDate,
     filterByStatus,
     getDateRange,
+    manageableClubIds,
     roundingPage,
     roundingSearchQuery,
     roundingStartDate,
@@ -496,8 +561,25 @@ export function createFetchRoundingMeetingsHandler({
                 }
             }
 
+            const managedClubMeetings = await fetchManagedClubMeetings({
+                manageableClubIds,
+                fetchClubMeetings,
+                extractList,
+            });
+            const managedRounds = managedClubMeetings.filter((meeting) => {
+                const typeValue = String(
+                    getMeetingTypeValue(meeting) || meeting?.meeting_type || meeting?.type || ''
+                ).toUpperCase();
+                return typeValue === 'ROUND' || typeValue === 'ROUNDING';
+            });
+
+            // club meetings 엔드포인트의 search 파라미터 스펙이 코드상 확정되지 않아 병합 후 클라이언트 검색으로 정규화
+            const normalizedSearch = String(search || '').trim().toLowerCase();
+            const mergedMeetings = dedupeMeetingsById([...allPagesMeetings, ...managedRounds]);
+            const searchedMeetings = mergedMeetings.filter((meeting) => matchMeetingSearch(meeting, normalizedSearch));
+
             const dateRange = getDateRange(roundingStartDate, roundingEndDate);
-            let filteredMeetings = filterByDate(allPagesMeetings, dateRange);
+            let filteredMeetings = filterByDate(searchedMeetings, dateRange);
             filteredMeetings = filterByStatus(filteredMeetings, roundingStatusFilter);
 
             const itemsPerPage = 6;
@@ -523,10 +605,12 @@ export function createFetchRoundingMeetingsHandler({
 
 export function createFetchSocialMeetingsHandler({
     fetchSocials,
+    fetchClubMeetings,
     extractList,
     filterByDate,
     filterByStatus,
     getDateRange,
+    manageableClubIds,
     socialPage,
     socialSearchQuery,
     socialStartDate,
@@ -564,15 +648,31 @@ export function createFetchSocialMeetingsHandler({
                 }
             }
 
-            const socials = allPagesMeetings.map((social) => ({
+            const managedClubMeetings = await fetchManagedClubMeetings({
+                manageableClubIds,
+                fetchClubMeetings,
+                extractList,
+            });
+            const managedSocials = managedClubMeetings.filter((meeting) => {
+                const typeValue = String(
+                    getMeetingTypeValue(meeting) || meeting?.meeting_type || meeting?.type || ''
+                ).toUpperCase();
+                return typeValue === 'SOCIAL';
+            });
+
+            const socials = dedupeMeetingsById([...allPagesMeetings, ...managedSocials]).map((social) => ({
                 ...social,
                 meeting_type: 'SOCIAL',
                 meeting_time: social.meeting_time,
                 participant_count: social.participant_count || 0,
             }));
 
+            // club meetings 엔드포인트의 search 파라미터 스펙이 코드상 확정되지 않아 병합 후 클라이언트 검색으로 정규화
+            const normalizedSearch = String(search || '').trim().toLowerCase();
+            const searchedSocials = socials.filter((meeting) => matchMeetingSearch(meeting, normalizedSearch));
+
             const dateRange = getDateRange(socialStartDate, socialEndDate);
-            let filteredSocials = filterByDate(socials, dateRange);
+            let filteredSocials = filterByDate(searchedSocials, dateRange);
             filteredSocials = filterByStatus(filteredSocials, socialStatusFilter);
 
             const itemsPerPage = 6;
@@ -942,7 +1042,18 @@ export function createOptionPressHandler({ onChange, field }) {
         };
 }
 
-export function createFetchClubsHandler({ fetchMyClubs, extractList, isEditMode, setClubs, setClubsLoading, setForm, setHasClubs, setError }) {
+export function createFetchClubsHandler({
+    fetchMyClubs,
+    extractList,
+    isEditMode,
+    onlyManageableClubs,
+    setClubs,
+    setClubsLoading,
+    setForm,
+    setHasClubs,
+    setManageableClubIds,
+    setError,
+}) {
     return async function () {
         try {
             if (setClubsLoading) {
@@ -953,19 +1064,29 @@ export function createFetchClubsHandler({ fetchMyClubs, extractList, isEditMode,
             const activeClubs = list.filter(
                 (club) => club.status === 'ACTIVE' || club.status === 'APPROVED'
             );
+            const manageableClubs = activeClubs.filter((club) => canManageClubMeetings(club));
+            const targetClubs = onlyManageableClubs ? manageableClubs : activeClubs;
             
             // setClubs가 있으면 클럽 목록 설정 (기존 동작)
             if (setClubs) {
-                setClubs(activeClubs);
+                setClubs(targetClubs);
             }
             
             // setHasClubs가 있으면 클럽 존재 여부 설정 (meetings/index.js용)
             if (setHasClubs) {
                 setHasClubs(activeClubs.length > 0);
             }
+
+            if (setManageableClubIds) {
+                setManageableClubIds(
+                    manageableClubs
+                        .map((club) => club?.id)
+                        .filter((clubId) => clubId !== null && clubId !== undefined && clubId !== '')
+                );
+            }
             
-            if (!isEditMode && activeClubs.length === 1 && setForm) {
-                setForm((prev) => ({ ...prev, club_id: activeClubs[0].id }));
+            if (!isEditMode && targetClubs.length === 1 && setForm) {
+                setForm((prev) => ({ ...prev, club_id: targetClubs[0].id }));
             }
         } catch (error) {
             console.error('클럽 목록 조회 실패:', error);
@@ -974,6 +1095,9 @@ export function createFetchClubsHandler({ fetchMyClubs, extractList, isEditMode,
             }
             if (setHasClubs) {
                 setHasClubs(false);
+            }
+            if (setManageableClubIds) {
+                setManageableClubIds([]);
             }
             if (setError) {
                 setError(error);
@@ -1103,6 +1227,7 @@ export function createSubmitHandler({
     form,
     participantType,
     isEditMode,
+    canCreateMeeting,
     meetingIdValue,
     createSocial,
     updateSocial,
@@ -1136,6 +1261,10 @@ export function createSubmitHandler({
         }
         if (!isEditMode && typeof createMeeting !== 'function') {
             alert('오류', '모임 생성 API가 준비되지 않았습니다.');
+            return;
+        }
+        if (!isEditMode && canCreateMeeting === false) {
+            alert('권한 없음', '모임은 클럽 리더/매니저만 개설할 수 있습니다.');
             return;
         }
 

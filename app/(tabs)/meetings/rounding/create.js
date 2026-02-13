@@ -229,6 +229,10 @@ export function RoundingForm({ mode = 'create' }) {
     () => getRoundingMeetingTitle(isEditMode),
     [isEditMode]
   );
+  const canCreateMeeting = useMemo(
+    () => isEditMode || clubs.length > 0,
+    [isEditMode, clubs.length]
+  );
 
   const fetchClubs = useMemo(
     () =>
@@ -236,6 +240,7 @@ export function RoundingForm({ mode = 'create' }) {
         fetchMyClubs: meetingsApi.fetchMyClubs,
         extractList,
         isEditMode,
+        onlyManageableClubs: !isEditMode,
         setClubs,
         setClubsLoading,
         setForm,
@@ -664,6 +669,7 @@ export function RoundingForm({ mode = 'create' }) {
       createSubmitHandler({
         form,
         isEditMode,
+        canCreateMeeting,
         meetingIdValue,
         createRound: meetingsApi.createRound,
         updateRound: meetingsApi.updateRound,
@@ -679,6 +685,7 @@ export function RoundingForm({ mode = 'create' }) {
     [
       form,
       isEditMode,
+      canCreateMeeting,
       meetingIdValue,
       router,
       setSaving,
@@ -813,7 +820,11 @@ export function RoundingForm({ mode = 'create' }) {
                 {clubsLoading ? (
                   <ActivityIndicator size="small" color={colors.primary[600]} />
                 ) : clubs.length === 0 ? (
-                  <Text style={styles.helperText}>가입된 클럽이 없습니다.</Text>
+                  <Text style={styles.helperText}>
+                    {isEditMode
+                      ? '가입된 클럽이 없습니다.'
+                      : '모임 생성 권한(리더/매니저)이 있는 클럽이 없습니다.'}
+                  </Text>
                 ) : (
                   <View style={styles.chipRow}>
                     {clubs.map((club) => (
@@ -1256,6 +1267,7 @@ export function RoundingForm({ mode = 'create' }) {
                 size="lg"
                 onPress={handleSubmit}
                 loading={saving}
+                disabled={!canCreateMeeting}
                 style={styles.submitButton}
               >
                 {isEditMode ? '수정 완료' : '라운딩 모임 생성'}

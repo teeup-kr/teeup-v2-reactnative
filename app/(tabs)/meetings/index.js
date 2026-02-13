@@ -18,7 +18,7 @@ import MeetingDateField from '@/components/meetings/MeetingDateField';
 import Button from '@/components/ui/Button';
 import { meetingTabs, meetingValidTabs } from '@/constants/meetingConstants';
 import { useAuth } from '@/context/AuthContext';
-import { meetingsApi } from '@/lib/api/api';
+import { clubsApi, meetingsApi } from '@/lib/api/api';
 import {
     createCreateMeetingHandler,
     createDateChangeHandler,
@@ -67,6 +67,7 @@ export default function MeetingsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasClubs, setHasClubs] = useState(false);
+  const [manageableClubIds, setManageableClubIds] = useState([]);
 
   const [roundingPage, setRoundingPage] = useState(1);
   const [socialPage, setSocialPage] = useState(1);
@@ -105,19 +106,22 @@ export default function MeetingsScreen() {
         fetchMyClubs: meetingsApi.fetchMyClubs,
         extractList,
         setHasClubs,
+        setManageableClubIds,
         setError,
       }),
-    [setHasClubs, setError]
+    [setHasClubs, setManageableClubIds, setError]
   );
 
   const fetchRoundingMeetings = useMemo(
     () =>
       createFetchRoundingMeetingsHandler({
         fetchRounds: meetingsApi.fetchRounds,
+        fetchClubMeetings: clubsApi.getClubMeetings,
         extractList,
         filterByDate,
         filterByStatus,
         getDateRange,
+        manageableClubIds,
         roundingPage,
         roundingSearchQuery,
         roundingStartDate,
@@ -132,6 +136,7 @@ export default function MeetingsScreen() {
       roundingStartDate,
       roundingEndDate,
       roundingStatusFilter,
+      manageableClubIds,
       setRoundingMeetings,
       setRoundingTotalPages,
     ]
@@ -141,10 +146,12 @@ export default function MeetingsScreen() {
     () =>
       createFetchSocialMeetingsHandler({
         fetchSocials: meetingsApi.fetchSocials,
+        fetchClubMeetings: clubsApi.getClubMeetings,
         extractList,
         filterByDate,
         filterByStatus,
         getDateRange,
+        manageableClubIds,
         socialPage,
         socialSearchQuery,
         socialStartDate,
@@ -159,6 +166,7 @@ export default function MeetingsScreen() {
       socialStartDate,
       socialEndDate,
       socialStatusFilter,
+      manageableClubIds,
       setSocialMeetings,
       setSocialTotalPages,
     ]
@@ -517,6 +525,10 @@ export default function MeetingsScreen() {
       ? '소셜'
       : '내가 참가한';
   const showCreateFromEmpty = activeTab === 'rounding' || activeTab === 'social';
+  const canCreateMeeting = useMemo(
+    () => manageableClubIds.length > 0,
+    [manageableClubIds.length]
+  );
 
   if (authLoading) {
     return (
@@ -570,30 +582,34 @@ export default function MeetingsScreen() {
           <>
             <View style={styles.headerRow}>
               <Text style={styles.title}>모임 목록</Text>
-              <View style={styles.createRow}>
-                <Pressable
-                  onPress={handleCreateMeeting('rounding')}
-                  style={({ pressed }) => [
-                    styles.createButton,
-                    styles.createButtonRounding,
-                    pressed && styles.createButtonPressed,
-                  ]}
-                >
-                  <FontAwesome5 name="plus" size={12} color={colors.white} />
-                  <Text style={styles.createButtonText}>라운딩 생성</Text>
-                </Pressable>
-                <Pressable
-                  onPress={handleCreateMeeting('social')}
-                  style={({ pressed }) => [
-                    styles.createButton,
-                    styles.createButtonSocial,
-                    pressed && styles.createButtonPressed,
-                  ]}
-                >
-                  <FontAwesome5 name="plus" size={12} color={colors.white} />
-                  <Text style={styles.createButtonText}>소셜 생성</Text>
-                </Pressable>
-              </View>
+              {canCreateMeeting ? (
+                <View style={styles.createRow}>
+                  <Pressable
+                    onPress={handleCreateMeeting('rounding')}
+                    style={({ pressed }) => [
+                      styles.createButton,
+                      styles.createButtonRounding,
+                      pressed && styles.createButtonPressed,
+                    ]}
+                  >
+                    <FontAwesome5 name="plus" size={12} color={colors.white} />
+                    <Text style={styles.createButtonText}>라운딩 생성</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={handleCreateMeeting('social')}
+                    style={({ pressed }) => [
+                      styles.createButton,
+                      styles.createButtonSocial,
+                      pressed && styles.createButtonPressed,
+                    ]}
+                  >
+                    <FontAwesome5 name="plus" size={12} color={colors.white} />
+                    <Text style={styles.createButtonText}>소셜 생성</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Text style={styles.createHint}>모임 생성은 클럽 리더/매니저만 가능합니다.</Text>
+              )}
             </View>
 
             <View style={styles.tabBar}>
@@ -708,7 +724,7 @@ export default function MeetingsScreen() {
                         ? '완료되거나 취소된 모임이 없습니다.'
                         : '현재 진행 중이거나 진행 예정인 모임이 없습니다.'}
                     </Text>
-                    {statusFilter !== 'completed' && showCreateFromEmpty ? (
+                    {statusFilter !== 'completed' && showCreateFromEmpty && canCreateMeeting ? (
                       <Pressable
                         onPress={handleCreateMeeting(activeTab)}
                         style={[
@@ -876,6 +892,11 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
+  },
+  createHint: {
+    marginTop: tokens.spacing.xs2,
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
   },
   tabBar: {
     borderBottomWidth: 1,

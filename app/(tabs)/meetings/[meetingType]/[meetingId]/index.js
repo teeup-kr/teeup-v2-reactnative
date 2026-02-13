@@ -871,11 +871,6 @@ export default function MeetingDetailScreen() {
     [organizerId, user?.id]
   );
 
-  const canManageParticipantApplications = useMemo(
-    () => isOrganizer,
-    [isOrganizer]
-  );
-
   const isParticipant = useMemo(
     () => Boolean(isJoined || myParticipant),
     [isJoined, myParticipant]
@@ -897,13 +892,18 @@ export default function MeetingDetailScreen() {
   );
 
   const hasManagerPermission = useMemo(
-    () => Boolean(isAdmin || isOrganizer || (isParticipant && isClubLeaderOrManager)),
-    [isAdmin, isOrganizer, isParticipant, isClubLeaderOrManager]
+    () => Boolean(isAdmin || isOrganizer || isClubLeaderOrManager),
+    [isAdmin, isOrganizer, isClubLeaderOrManager]
   );
 
   const isManager = useMemo(
     () => hasManagerPermission,
     [hasManagerPermission]
+  );
+
+  const canManageParticipantApplications = useMemo(
+    () => isManager,
+    [isManager]
   );
 
   const meetingStatusMeta = useMemo(
@@ -1067,14 +1067,14 @@ export default function MeetingDetailScreen() {
   const canEditTopActions = useMemo(
     () =>
       Boolean(
-        isOrganizer &&
+        hasManagerPermission &&
           normalizedStatus !== 'CANCELED' &&
           normalizedStatus !== 'COMPLETED' &&
           displayStatus !== 'CANCELED' &&
           displayStatus !== '종료' &&
           displayStatus !== '완료'
       ),
-    [isOrganizer, normalizedStatus, displayStatus]
+    [hasManagerPermission, normalizedStatus, displayStatus]
   );
 
   /** 소셜: 주최/참가자가 아니고 취소·완료가 아니면 참가 버튼 표시 (API 상태와 무관하게) */
