@@ -11,6 +11,7 @@ import { useEffect, useRef } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import DebugConsoleOverlay from '@/components/debug/DebugConsoleOverlay';
 import BottomNavigationBar, { bottomNavHeight } from '@/components/layout/BottomNavigationBar';
 import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
@@ -140,7 +141,7 @@ function AppShell() {
       <BottomNavigationBar />
       <FullMenu />
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 TODO 출시시 삭제 !!!!!!!!!!!!!!!!!!!!!! */}
-      {/* <DebugConsoleOverlay /> */}
+      <DebugConsoleOverlay />
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 !!!!!!!!!!!!!!!!!!!!!! */}
     </View>
   );
