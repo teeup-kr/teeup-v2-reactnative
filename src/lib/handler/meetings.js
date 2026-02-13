@@ -596,16 +596,100 @@ export function createFetchSocialMeetingsHandler({
     };
 }
 
-export function createTabChangeHandler({ setActiveTab, setRoundingPage, setSocialPage, router }) {
+export function createFetchParticipatingMeetingsHandler({
+    fetchMyParticipatingMeetings,
+    extractList,
+    filterByDate,
+    filterByStatus,
+    getDateRange,
+    participatingPage,
+    participatingSearchQuery,
+    participatingStartDate,
+    participatingEndDate,
+    participatingStatusFilter,
+    setParticipatingMeetings,
+    setParticipatingTotalPages,
+}) {
+    return async function (page = participatingPage, search = participatingSearchQuery) {
+        try {
+            const allPagesMeetings = [];
+            let currentPage = 1;
+            let hasMore = true;
+
+            while (hasMore && currentPage <= 10) {
+                const requestParams = {
+                    page: currentPage,
+                    limit: 100,
+                };
+
+                const pageResponse = await fetchMyParticipatingMeetings(requestParams);
+                const pageMeetings = extractList(pageResponse);
+
+                if (pageMeetings.length === 0) {
+                    hasMore = false;
+                } else {
+                    allPagesMeetings.push(...pageMeetings);
+                    const totalPages = pageResponse?.total_pages || 1;
+                    if (currentPage >= totalPages) {
+                        hasMore = false;
+                    } else {
+                        currentPage += 1;
+                    }
+                }
+            }
+
+            // /meetings/my/participating 엔드포인트 스펙상 search 파라미터가 없어 클라이언트 필터로 처리
+            const normalizedSearch = String(search || '').trim().toLowerCase();
+            const searchedMeetings = normalizedSearch
+                ? allPagesMeetings.filter((meeting) =>
+                    String(meeting.name).toLowerCase().includes(normalizedSearch)
+                )
+                : allPagesMeetings;
+
+            const dateRange = getDateRange(participatingStartDate, participatingEndDate);
+            let filteredMeetings = filterByDate(searchedMeetings, dateRange);
+            // status_filter는 MeetingStatus enum 값이 필요하지만 현재 화면 필터(active/completed)와 직접 매핑 정보가 없어 클라이언트 필터를 적용
+            filteredMeetings = filterByStatus(filteredMeetings, participatingStatusFilter);
+
+            const itemsPerPage = 6;
+            const calculatedTotalPages = Math.max(
+                1,
+                Math.ceil(filteredMeetings.length / itemsPerPage)
+            );
+            const startIndex = (page - 1) * itemsPerPage;
+            const paginatedMeetings = filteredMeetings.slice(
+                startIndex,
+                startIndex + itemsPerPage
+            );
+
+            setParticipatingMeetings(paginatedMeetings);
+            setParticipatingTotalPages(calculatedTotalPages);
+        } catch (error) {
+            console.error('내가 참가한 모임 조회 실패:', error);
+            setParticipatingMeetings([]);
+            setParticipatingTotalPages(1);
+        }
+    };
+}
+
+export function createTabChangeHandler({
+    setActiveTab,
+    setRoundingPage,
+    setSocialPage,
+    setParticipatingPage,
+    router,
+}) {
     return (tab) => {
-        const nextTab = tab === 'social' ? 'social' : 'rounding';
+        const nextTab = tab === 'social' || tab === 'participating' ? tab : 'rounding';
         setActiveTab(nextTab);
         router.setParams({ tab: nextTab });
 
         if (nextTab === 'rounding') {
             setRoundingPage(1);
-        } else {
+        } else if (nextTab === 'social') {
             setSocialPage(1);
+        } else {
+            setParticipatingPage(1);
         }
     };
 }
@@ -614,18 +698,24 @@ export function createSearchHandler({
     activeTab,
     roundingSearchInput,
     socialSearchInput,
+    participatingSearchInput,
     setRoundingSearchQuery,
     setSocialSearchQuery,
+    setParticipatingSearchQuery,
     setRoundingPage,
     setSocialPage,
+    setParticipatingPage,
 }) {
     return () => {
         if (activeTab === 'rounding') {
             setRoundingSearchQuery(roundingSearchInput);
             setRoundingPage(1);
-        } else {
+        } else if (activeTab === 'social') {
             setSocialSearchQuery(socialSearchInput);
             setSocialPage(1);
+        } else {
+            setParticipatingSearchQuery(participatingSearchInput);
+            setParticipatingPage(1);
         }
     };
 }
@@ -654,61 +744,115 @@ export function createMeetingPressHandler({ router }) {
         };
 }
 
-export function createDateChangeHandler({ activeTab, setRoundingDate, setSocialDate, setRoundingPage, setSocialPage }) {
+export function createDateChangeHandler({
+    activeTab,
+    setRoundingDate,
+    setSocialDate,
+    setParticipatingDate,
+    setRoundingPage,
+    setSocialPage,
+    setParticipatingPage,
+}) {
     return (value) => {
         if (activeTab === 'rounding') {
             setRoundingDate(value);
             setRoundingPage(1);
-        } else {
+        } else if (activeTab === 'social') {
             setSocialDate(value);
             setSocialPage(1);
+        } else {
+            setParticipatingDate(value);
+            setParticipatingPage(1);
         }
     };
 }
 
-export function createResetDatesHandler({ activeTab, setRoundingStartDate, setRoundingEndDate, setSocialStartDate, setSocialEndDate, setRoundingPage, setSocialPage }) {
+export function createResetDatesHandler({
+    activeTab,
+    setRoundingStartDate,
+    setRoundingEndDate,
+    setSocialStartDate,
+    setSocialEndDate,
+    setParticipatingStartDate,
+    setParticipatingEndDate,
+    setRoundingPage,
+    setSocialPage,
+    setParticipatingPage,
+}) {
     return () => {
         if (activeTab === 'rounding') {
             setRoundingStartDate('');
             setRoundingEndDate('');
             setRoundingPage(1);
-        } else {
+        } else if (activeTab === 'social') {
             setSocialStartDate('');
             setSocialEndDate('');
             setSocialPage(1);
+        } else {
+            setParticipatingStartDate('');
+            setParticipatingEndDate('');
+            setParticipatingPage(1);
         }
     };
 }
 
-export function createSearchInputChangeHandler({ activeTab, setRoundingSearchInput, setSocialSearchInput }) {
+export function createSearchInputChangeHandler({
+    activeTab,
+    setRoundingSearchInput,
+    setSocialSearchInput,
+    setParticipatingSearchInput,
+}) {
     return (value) => {
         if (activeTab === 'rounding') {
             setRoundingSearchInput(value);
-        } else {
+        } else if (activeTab === 'social') {
             setSocialSearchInput(value);
+        } else {
+            setParticipatingSearchInput(value);
         }
     };
 }
 
-export function createStatusFilterHandler({ activeTab, setRoundingStatusFilter, setSocialStatusFilter, setRoundingPage, setSocialPage }) {
+export function createStatusFilterHandler({
+    activeTab,
+    setRoundingStatusFilter,
+    setSocialStatusFilter,
+    setParticipatingStatusFilter,
+    setRoundingPage,
+    setSocialPage,
+    setParticipatingPage,
+}) {
     return (nextStatus) =>
         () => {
             if (activeTab === 'rounding') {
                 setRoundingStatusFilter(nextStatus);
                 setRoundingPage(1);
-            } else {
+            } else if (activeTab === 'social') {
                 setSocialStatusFilter(nextStatus);
                 setSocialPage(1);
+            } else {
+                setParticipatingStatusFilter(nextStatus);
+                setParticipatingPage(1);
             }
         };
 }
 
-export function createPrevPageHandler({ activeTab, roundingPage, socialPage, setRoundingPage, setSocialPage }) {
+export function createPrevPageHandler({
+    activeTab,
+    roundingPage,
+    socialPage,
+    participatingPage,
+    setRoundingPage,
+    setSocialPage,
+    setParticipatingPage,
+}) {
     return () => {
         if (activeTab === 'rounding') {
             setRoundingPage(Math.max(1, roundingPage - 1));
-        } else {
+        } else if (activeTab === 'social') {
             setSocialPage(Math.max(1, socialPage - 1));
+        } else {
+            setParticipatingPage(Math.max(1, participatingPage - 1));
         }
     };
 }
@@ -717,27 +861,39 @@ export function createNextPageHandler({
     activeTab,
     roundingPage,
     socialPage,
+    participatingPage,
     roundingTotalPages,
     socialTotalPages,
+    participatingTotalPages,
     setRoundingPage,
     setSocialPage,
+    setParticipatingPage,
 }) {
     return () => {
         if (activeTab === 'rounding') {
             setRoundingPage(Math.min(roundingTotalPages, roundingPage + 1));
-        } else {
+        } else if (activeTab === 'social') {
             setSocialPage(Math.min(socialTotalPages, socialPage + 1));
+        } else {
+            setParticipatingPage(Math.min(participatingTotalPages, participatingPage + 1));
         }
     };
 }
 
-export function createPageNumberHandler({ activeTab, setRoundingPage, setSocialPage }) {
+export function createPageNumberHandler({
+    activeTab,
+    setRoundingPage,
+    setSocialPage,
+    setParticipatingPage,
+}) {
     return (pageNum) =>
         () => {
             if (activeTab === 'rounding') {
                 setRoundingPage(pageNum);
-            } else {
+            } else if (activeTab === 'social') {
                 setSocialPage(pageNum);
+            } else {
+                setParticipatingPage(pageNum);
             }
         };
 }

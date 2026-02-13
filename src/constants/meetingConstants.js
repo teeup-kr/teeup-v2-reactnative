@@ -1,9 +1,10 @@
 export const meetingTabs = [
   { id: 'rounding', label: '라운딩 모임' },
   { id: 'social', label: '소셜 모임' },
+  { id: 'participating', label: '내가 참가한 모임' },
 ];
 
-export const meetingValidTabs = ['rounding', 'social'];
+export const meetingValidTabs = ['rounding', 'social', 'participating'];
 
 export const socialTypeOptions = [
   { id: 'CASUAL', label: '친목' },

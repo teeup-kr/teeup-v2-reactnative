@@ -420,11 +420,17 @@ export function getActiveFilters({
   socialSearchQuery,
   socialStartDate,
   socialEndDate,
+  participatingSearchQuery,
+  participatingStartDate,
+  participatingEndDate,
 }) {
   if (activeTab === 'rounding') {
     return Boolean(roundingSearchQuery || roundingStartDate || roundingEndDate);
   }
-  return Boolean(socialSearchQuery || socialStartDate || socialEndDate);
+  if (activeTab === 'social') {
+    return Boolean(socialSearchQuery || socialStartDate || socialEndDate);
+  }
+  return Boolean(participatingSearchQuery || participatingStartDate || participatingEndDate);
 };
 export function getTypeSlug(meetingType) { return meetingType === 'social' ? 'social' : 'rounding'; }
 

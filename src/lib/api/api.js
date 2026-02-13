@@ -1179,6 +1179,10 @@ async function fetchMyMeetings(params) {
   return apiClient.get('/users/my-meetings', { params });
 }
 
+async function fetchMyParticipatingMeetings(params) {
+  return apiClient.get('/meetings/my/participating', { params });
+}
+
 async function fetchMyRoundingMeetings(params) {
   return apiClient.get('/users/me/rounding-meetings', { params });
 }
@@ -1228,6 +1232,7 @@ export const meetingsApi = {
   joinSocialByMeeting,
   leaveSocial,
   leaveSocialByMeeting,
+  fetchMyParticipatingMeetings,
 };
 
 export const mypageApi = {
