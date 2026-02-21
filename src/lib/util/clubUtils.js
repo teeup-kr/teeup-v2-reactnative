@@ -186,22 +186,27 @@ export function normalizeFeeItem(fee) {
 export function normalizeClubMembers(members) {
   let pendingCount = 0;
   const normalizedMembers = members.map((member) => {
-    const status = member?.status || member?.membership_status || 'ACTIVE';
+    const status = String(member?.status || member?.membership_status || 'ACTIVE').toUpperCase();
     if (status === 'PENDING' || status === 'WAITING') {
       pendingCount += 1;
     }
 
     return {
       id: member?.id || member?.member_id || member?.user_id,
+      userId: member?.user_id || member?.id || member?.member_id,
       name:
         member?.user?.name ||
         member?.user?.realname ||
         member?.user?.nickname ||
+        member?.user_name ||
+        member?.user_realname ||
+        member?.user_nickname ||
         member?.name ||
         member?.nickname ||
         '-',
-      role: member?.role || member?.membership_role || '-',
+      role: String(member?.role || member?.membership_role || '-').toUpperCase(),
       status,
+      isPending: status === 'PENDING' || status === 'WAITING',
     };
   });
 

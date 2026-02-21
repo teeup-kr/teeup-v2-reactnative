@@ -1078,11 +1078,18 @@ export function createFetchClubsHandler({
             }
 
             if (setManageableClubIds) {
-                setManageableClubIds(
-                    manageableClubs
-                        .map((club) => club?.id)
-                        .filter((clubId) => clubId !== null && clubId !== undefined && clubId !== '')
-                );
+                const nextManageableClubIds = manageableClubs
+                    .map((club) => club?.id)
+                    .filter((clubId) => clubId !== null && clubId !== undefined && clubId !== '');
+
+                setManageableClubIds((prevClubIds = []) => {
+                    const hasSameLength = prevClubIds.length === nextManageableClubIds.length;
+                    const hasSameMembers =
+                        hasSameLength &&
+                        prevClubIds.every((clubId) => nextManageableClubIds.includes(clubId)) &&
+                        nextManageableClubIds.every((clubId) => prevClubIds.includes(clubId));
+                    return hasSameMembers ? prevClubIds : nextManageableClubIds;
+                });
             }
             
             if (!isEditMode && targetClubs.length === 1 && setForm) {
@@ -1097,7 +1104,9 @@ export function createFetchClubsHandler({
                 setHasClubs(false);
             }
             if (setManageableClubIds) {
-                setManageableClubIds([]);
+                setManageableClubIds((prevClubIds = []) =>
+                    prevClubIds.length === 0 ? prevClubIds : []
+                );
             }
             if (setError) {
                 setError(error);

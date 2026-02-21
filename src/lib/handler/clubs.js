@@ -70,10 +70,57 @@ export function createOpenManageHandler({ clubId, router }) {
     };
 }
 
-export function createJoinRequestHandler({ clubId, router }) {
+export function createOpenMembersHandler({ clubId, router, manage = false }) {
     return () => {
         if (!clubId) return;
+        if (manage) {
+            router.push({ pathname: `/clubs/${clubId}/members`, params: { manage: '1' } });
+            return;
+        }
         router.push(`/clubs/${clubId}/members`);
+    };
+}
+
+export function createOpenJoinApplicationsHandler({ router }) {
+    return () => {
+        router.replace({ pathname: '/clubs', params: { tab: 'join-applications' } });
+    };
+}
+
+export function createJoinRequestHandler({
+    clubId,
+    requestJoinClub,
+    setIsSubmitting,
+    onSuccess,
+    alert,
+    onOpenJoinApplications,
+}) {
+    return async () => {
+        if (!clubId) return;
+        if (!requestJoinClub) return;
+        try {
+            if (setIsSubmitting) setIsSubmitting(true);
+            const response = await requestJoinClub(clubId);
+            const message = response?.message || '클럽 가입 신청이 완료되었습니다.';
+            alert('가입 신청 완료', message, [
+                { text: '닫기', style: 'cancel' },
+                {
+                    text: '가입 신청 내역 보기',
+                    onPress: () => {
+                        if (onOpenJoinApplications) onOpenJoinApplications();
+                    },
+                },
+            ]);
+            if (onSuccess) {
+                await onSuccess();
+            }
+        } catch (error) {
+            console.error('클럽 가입 신청 실패:', error);
+            const errorMessage = error?.message || '클럽 가입 신청 중 오류가 발생했습니다.';
+            alert('가입 신청 실패', errorMessage);
+        } finally {
+            if (setIsSubmitting) setIsSubmitting(false);
+        }
     };
 }
 export function createFetchFeesHandler({ clubId, fetchClubFees, extractList, setFees, setIsLoading, setError }) {
@@ -267,7 +314,7 @@ export function createClubPressHandler({ router, alert }) {
     };
 }
 
-export function createCardPressHandler({ router, onClubPress }) {
+export function createCardPressHandler({ onClubPress }) {
     return (club) => () => {
         onClubPress(club);
     };
@@ -339,10 +386,22 @@ export function createManageSectionHandler({ clubId, router }) {
     return (route) =>
         () => {
             if (!clubId) return;
+            if (route === 'members') {
+                router.push({ pathname: `/clubs/${clubId}/members`, params: { manage: '1' } });
+                return;
+            }
             router.push(`/clubs/${clubId}/${route}`);
         };
 }
-export function createFetchMembersHandler({ clubId, fetchClubMembers, extractList, setMembers, setIsLoading, setError }) {
+export function createFetchMembersHandler({
+    clubId,
+    includePending = false,
+    fetchClubMembers,
+    extractList,
+    setMembers,
+    setIsLoading,
+    setError,
+}) {
     return async function () {
         setError('');
         if (!clubId) {
@@ -352,7 +411,11 @@ export function createFetchMembersHandler({ clubId, fetchClubMembers, extractLis
         }
         try {
             setIsLoading(true);
-            const response = await fetchClubMembers(clubId, { page: 1, limit: 50 });
+            const response = await fetchClubMembers(clubId, {
+                page: 1,
+                limit: 50,
+                ...(includePending ? { all_members: true } : {}),
+            });
             const list = extractList(response);
             setMembers(list);
         } catch (error) {

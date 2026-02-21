@@ -789,6 +789,10 @@ async function getClubMembers(clubId, params = {}) {
   return apiClient.get(`/clubs/${clubId}/members`, { params });
 }
 
+async function approveClubMembership(clubId, userId) {
+  return apiClient.post(`/clubs/${clubId}/members/${userId}/approve`);
+}
+
 async function searchClubMembersByName(params = {}) {
   return apiClient.get('/clubs/members/search', { params });
 }
@@ -927,6 +931,7 @@ export const clubsApi = {
   joinClub,
   leaveClub,
   getClubMembers,
+  approveClubMembership,
   searchClubMembersByName,
   updateClubMemberRole,
   removeClubMember,

@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
-    Pressable,
+    Alert,
     ScrollView, StyleSheet, Text,
     View
 } from 'react-native';
@@ -12,8 +12,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { clubsApi, regionApi } from '@/lib/api/api';
-import { createFetchClubDetailHandler, createJoinRequestHandler, createOpenManageHandler } from '@/lib/handler/clubs';
+import { clubsApi } from '@/lib/api/api';
+import {
+  createFetchClubDetailHandler,
+  createJoinRequestHandler,
+  createOpenJoinApplicationsHandler,
+  createOpenManageHandler,
+  createOpenMembersHandler,
+} from '@/lib/handler/clubs';
 import { buildClubDetailDisplay } from '@/lib/util/clubUtils';
 import { extractData, extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
@@ -30,7 +36,7 @@ export default function ClubDetailScreen() {
   const [club, setClub] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [regionLabel, setRegionLabel] = useState('');
+  const [isJoinSubmitting, setIsJoinSubmitting] = useState(false);
 
   const loadClub = useMemo(
     () =>
@@ -115,10 +121,37 @@ export default function ClubDetailScreen() {
     () => createOpenManageHandler({ clubId: resolvedId, router }),
     [resolvedId, router]
   );
-  const handleJoinPress = useMemo(
-    () => createJoinRequestHandler({ clubId: resolvedId, router }),
+  const handleOpenMemberListPress = useMemo(
+    () => createOpenMembersHandler({ clubId: resolvedId, router }),
     [resolvedId, router]
   );
+  const handleOpenApplicationStatusPress = useMemo(
+    () => createOpenMembersHandler({ clubId: resolvedId, router, manage: true }),
+    [resolvedId, router]
+  );
+  const handleOpenJoinApplications = useMemo(
+    () => createOpenJoinApplicationsHandler({ router }),
+    [router]
+  );
+  const handleJoinPress = useMemo(
+    () =>
+      createJoinRequestHandler({
+        clubId: resolvedId,
+        requestJoinClub: clubsApi.joinClub,
+        setIsSubmitting: setIsJoinSubmitting,
+        onSuccess: loadClub,
+        alert: Alert.alert,
+        onOpenJoinApplications: handleOpenJoinApplications,
+      }),
+    [resolvedId, loadClub, handleOpenJoinApplications]
+  );
+
+  const membershipStatus = String(club?.membership_status || '').toUpperCase().trim();
+  const membershipRole = String(club?.membership_role || '').toUpperCase().trim();
+  const isApprovedMember = membershipStatus === 'ACTIVE' || membershipStatus === 'APPROVED';
+  const isManagerOrLeader = isApprovedMember && ['LEADER', 'MANAGER'].includes(membershipRole);
+  const isGeneralMember = isApprovedMember && membershipRole === 'MEMBER';
+  const isPendingApplicant = membershipStatus === 'PENDING';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -195,14 +228,32 @@ export default function ClubDetailScreen() {
           </>
         )}
 
-        <View style={styles.actionRow}>
-          <Button variant="primary" size="lg" onPress={handleManagePress}>
-            클럽 관리
-          </Button>
-          <Pressable style={styles.secondaryButton} onPress={handleJoinPress}>
-            <Text style={styles.secondaryButtonText}>가입 신청</Text>
-          </Pressable>
-        </View>
+        {!isLoading && !error ? (
+          <View style={styles.actionRow}>
+            {isManagerOrLeader ? (
+              <>
+                <Button variant="primary" size="lg" onPress={handleManagePress}>
+                  클럽 관리
+                </Button>
+                <Button variant="outline" size="lg" onPress={handleOpenApplicationStatusPress} style={styles.actionGap}>
+                  가입 신청 현황
+                </Button>
+              </>
+            ) : isGeneralMember ? (
+              <Button variant="outline" size="lg" onPress={handleOpenMemberListPress}>
+                회원목록
+              </Button>
+            ) : isPendingApplicant ? (
+              <Button variant="outline" size="lg" onPress={handleOpenJoinApplications}>
+                가입 신청 내역 보기
+              </Button>
+            ) : (
+              <Button variant="primary" size="lg" onPress={handleJoinPress} loading={isJoinSubmitting}>
+                클럽 가입 신청
+              </Button>
+            )}
+          </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -292,10 +343,8 @@ const styles = StyleSheet.create({
   actionRow: {
     marginTop: tokens.spacing.xs2,
   },
-  secondaryButton: {
-    ...base.btnOutline,
+  actionGap: {
     marginTop: tokens.spacing.sm2,
   },
-  secondaryButtonText: { ...base.btnOutlineText, fontSize: tokens.font.base },
   errorText: base.textSmError,
 });
