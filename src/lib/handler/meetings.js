@@ -8,6 +8,69 @@ async function ensureMeetingProfileCompleted(router) {
     });
 }
 
+function getClubRoleValue(club) {
+    return String(club?.my_role || club?.membership_role || club?.role || '').toUpperCase();
+}
+
+function canManageClubMeetings(club) {
+    const role = getClubRoleValue(club);
+    return role === 'LEADER' || role === 'MANAGER';
+}
+
+function dedupeMeetingsById(meetings = []) {
+    const byId = new Map();
+    meetings.forEach((meeting) => {
+        const meetingId = meeting?.id ?? meeting?.meeting_id;
+        if (meetingId === null || meetingId === undefined || meetingId === '') return;
+        byId.set(String(meetingId), {
+            ...meeting,
+            id: meeting?.id ?? meetingId,
+        });
+    });
+    return Array.from(byId.values());
+}
+
+function matchMeetingSearch(meeting, normalizedSearch) {
+    if (!normalizedSearch) return true;
+    const meetingName = String(meeting?.name || meeting?.meeting_name || '').toLowerCase();
+    return meetingName.includes(normalizedSearch);
+}
+
+async function fetchManagedClubMeetings({ manageableClubIds, fetchClubMeetings, extractList }) {
+    if (typeof fetchClubMeetings !== 'function') return [];
+    if (!Array.isArray(manageableClubIds) || manageableClubIds.length === 0) return [];
+
+    const allClubMeetings = [];
+    for (const clubId of manageableClubIds) {
+        if (clubId === null || clubId === undefined || clubId === '') continue;
+
+        let currentPage = 1;
+        let hasMore = true;
+
+        while (hasMore && currentPage <= 10) {
+            const response = await fetchClubMeetings(clubId, {
+                page: currentPage,
+                limit: 100,
+            });
+            const pageMeetings = extractList(response);
+            if (pageMeetings.length === 0) {
+                hasMore = false;
+                continue;
+            }
+
+            allClubMeetings.push(...pageMeetings);
+            const totalPages = response?.total_pages || 1;
+            if (currentPage >= totalPages) {
+                hasMore = false;
+            } else {
+                currentPage += 1;
+            }
+        }
+    }
+
+    return allClubMeetings;
+}
+
 export function createFetchUserInfoHandler({
     fetchMyProfile,
     fetchUserHandicap,
@@ -455,10 +518,12 @@ export function createFetchExpensesHandler({ meetingId, fetchRoundExpenses, extr
 }
 export function createFetchRoundingMeetingsHandler({
     fetchRounds,
+    fetchClubMeetings,
     extractList,
     filterByDate,
     filterByStatus,
     getDateRange,
+    manageableClubIds,
     roundingPage,
     roundingSearchQuery,
     roundingStartDate,
@@ -496,8 +561,25 @@ export function createFetchRoundingMeetingsHandler({
                 }
             }
 
+            const managedClubMeetings = await fetchManagedClubMeetings({
+                manageableClubIds,
+                fetchClubMeetings,
+                extractList,
+            });
+            const managedRounds = managedClubMeetings.filter((meeting) => {
+                const typeValue = String(
+                    getMeetingTypeValue(meeting) || meeting?.meeting_type || meeting?.type || ''
+                ).toUpperCase();
+                return typeValue === 'ROUND' || typeValue === 'ROUNDING';
+            });
+
+            // club meetings 엔드포인트의 search 파라미터 스펙이 코드상 확정되지 않아 병합 후 클라이언트 검색으로 정규화
+            const normalizedSearch = String(search || '').trim().toLowerCase();
+            const mergedMeetings = dedupeMeetingsById([...allPagesMeetings, ...managedRounds]);
+            const searchedMeetings = mergedMeetings.filter((meeting) => matchMeetingSearch(meeting, normalizedSearch));
+
             const dateRange = getDateRange(roundingStartDate, roundingEndDate);
-            let filteredMeetings = filterByDate(allPagesMeetings, dateRange);
+            let filteredMeetings = filterByDate(searchedMeetings, dateRange);
             filteredMeetings = filterByStatus(filteredMeetings, roundingStatusFilter);
 
             const itemsPerPage = 6;
@@ -523,10 +605,12 @@ export function createFetchRoundingMeetingsHandler({
 
 export function createFetchSocialMeetingsHandler({
     fetchSocials,
+    fetchClubMeetings,
     extractList,
     filterByDate,
     filterByStatus,
     getDateRange,
+    manageableClubIds,
     socialPage,
     socialSearchQuery,
     socialStartDate,
@@ -564,15 +648,31 @@ export function createFetchSocialMeetingsHandler({
                 }
             }
 
-            const socials = allPagesMeetings.map((social) => ({
+            const managedClubMeetings = await fetchManagedClubMeetings({
+                manageableClubIds,
+                fetchClubMeetings,
+                extractList,
+            });
+            const managedSocials = managedClubMeetings.filter((meeting) => {
+                const typeValue = String(
+                    getMeetingTypeValue(meeting) || meeting?.meeting_type || meeting?.type || ''
+                ).toUpperCase();
+                return typeValue === 'SOCIAL';
+            });
+
+            const socials = dedupeMeetingsById([...allPagesMeetings, ...managedSocials]).map((social) => ({
                 ...social,
                 meeting_type: 'SOCIAL',
                 meeting_time: social.meeting_time,
                 participant_count: social.participant_count || 0,
             }));
 
+            // club meetings 엔드포인트의 search 파라미터 스펙이 코드상 확정되지 않아 병합 후 클라이언트 검색으로 정규화
+            const normalizedSearch = String(search || '').trim().toLowerCase();
+            const searchedSocials = socials.filter((meeting) => matchMeetingSearch(meeting, normalizedSearch));
+
             const dateRange = getDateRange(socialStartDate, socialEndDate);
-            let filteredSocials = filterByDate(socials, dateRange);
+            let filteredSocials = filterByDate(searchedSocials, dateRange);
             filteredSocials = filterByStatus(filteredSocials, socialStatusFilter);
 
             const itemsPerPage = 6;
@@ -596,16 +696,100 @@ export function createFetchSocialMeetingsHandler({
     };
 }
 
-export function createTabChangeHandler({ setActiveTab, setRoundingPage, setSocialPage, router }) {
+export function createFetchParticipatingMeetingsHandler({
+    fetchMyParticipatingMeetings,
+    extractList,
+    filterByDate,
+    filterByStatus,
+    getDateRange,
+    participatingPage,
+    participatingSearchQuery,
+    participatingStartDate,
+    participatingEndDate,
+    participatingStatusFilter,
+    setParticipatingMeetings,
+    setParticipatingTotalPages,
+}) {
+    return async function (page = participatingPage, search = participatingSearchQuery) {
+        try {
+            const allPagesMeetings = [];
+            let currentPage = 1;
+            let hasMore = true;
+
+            while (hasMore && currentPage <= 10) {
+                const requestParams = {
+                    page: currentPage,
+                    limit: 100,
+                };
+
+                const pageResponse = await fetchMyParticipatingMeetings(requestParams);
+                const pageMeetings = extractList(pageResponse);
+
+                if (pageMeetings.length === 0) {
+                    hasMore = false;
+                } else {
+                    allPagesMeetings.push(...pageMeetings);
+                    const totalPages = pageResponse?.total_pages || 1;
+                    if (currentPage >= totalPages) {
+                        hasMore = false;
+                    } else {
+                        currentPage += 1;
+                    }
+                }
+            }
+
+            // /meetings/my/participating 엔드포인트 스펙상 search 파라미터가 없어 클라이언트 필터로 처리
+            const normalizedSearch = String(search || '').trim().toLowerCase();
+            const searchedMeetings = normalizedSearch
+                ? allPagesMeetings.filter((meeting) =>
+                    String(meeting.name).toLowerCase().includes(normalizedSearch)
+                )
+                : allPagesMeetings;
+
+            const dateRange = getDateRange(participatingStartDate, participatingEndDate);
+            let filteredMeetings = filterByDate(searchedMeetings, dateRange);
+            // status_filter는 MeetingStatus enum 값이 필요하지만 현재 화면 필터(active/completed)와 직접 매핑 정보가 없어 클라이언트 필터를 적용
+            filteredMeetings = filterByStatus(filteredMeetings, participatingStatusFilter);
+
+            const itemsPerPage = 6;
+            const calculatedTotalPages = Math.max(
+                1,
+                Math.ceil(filteredMeetings.length / itemsPerPage)
+            );
+            const startIndex = (page - 1) * itemsPerPage;
+            const paginatedMeetings = filteredMeetings.slice(
+                startIndex,
+                startIndex + itemsPerPage
+            );
+
+            setParticipatingMeetings(paginatedMeetings);
+            setParticipatingTotalPages(calculatedTotalPages);
+        } catch (error) {
+            console.error('내가 참가한 모임 조회 실패:', error);
+            setParticipatingMeetings([]);
+            setParticipatingTotalPages(1);
+        }
+    };
+}
+
+export function createTabChangeHandler({
+    setActiveTab,
+    setRoundingPage,
+    setSocialPage,
+    setParticipatingPage,
+    router,
+}) {
     return (tab) => {
-        const nextTab = tab === 'social' ? 'social' : 'rounding';
+        const nextTab = tab === 'social' || tab === 'participating' ? tab : 'rounding';
         setActiveTab(nextTab);
         router.setParams({ tab: nextTab });
 
         if (nextTab === 'rounding') {
             setRoundingPage(1);
-        } else {
+        } else if (nextTab === 'social') {
             setSocialPage(1);
+        } else {
+            setParticipatingPage(1);
         }
     };
 }
@@ -614,18 +798,24 @@ export function createSearchHandler({
     activeTab,
     roundingSearchInput,
     socialSearchInput,
+    participatingSearchInput,
     setRoundingSearchQuery,
     setSocialSearchQuery,
+    setParticipatingSearchQuery,
     setRoundingPage,
     setSocialPage,
+    setParticipatingPage,
 }) {
     return () => {
         if (activeTab === 'rounding') {
             setRoundingSearchQuery(roundingSearchInput);
             setRoundingPage(1);
-        } else {
+        } else if (activeTab === 'social') {
             setSocialSearchQuery(socialSearchInput);
             setSocialPage(1);
+        } else {
+            setParticipatingSearchQuery(participatingSearchInput);
+            setParticipatingPage(1);
         }
     };
 }
@@ -654,61 +844,115 @@ export function createMeetingPressHandler({ router }) {
         };
 }
 
-export function createDateChangeHandler({ activeTab, setRoundingDate, setSocialDate, setRoundingPage, setSocialPage }) {
+export function createDateChangeHandler({
+    activeTab,
+    setRoundingDate,
+    setSocialDate,
+    setParticipatingDate,
+    setRoundingPage,
+    setSocialPage,
+    setParticipatingPage,
+}) {
     return (value) => {
         if (activeTab === 'rounding') {
             setRoundingDate(value);
             setRoundingPage(1);
-        } else {
+        } else if (activeTab === 'social') {
             setSocialDate(value);
             setSocialPage(1);
+        } else {
+            setParticipatingDate(value);
+            setParticipatingPage(1);
         }
     };
 }
 
-export function createResetDatesHandler({ activeTab, setRoundingStartDate, setRoundingEndDate, setSocialStartDate, setSocialEndDate, setRoundingPage, setSocialPage }) {
+export function createResetDatesHandler({
+    activeTab,
+    setRoundingStartDate,
+    setRoundingEndDate,
+    setSocialStartDate,
+    setSocialEndDate,
+    setParticipatingStartDate,
+    setParticipatingEndDate,
+    setRoundingPage,
+    setSocialPage,
+    setParticipatingPage,
+}) {
     return () => {
         if (activeTab === 'rounding') {
             setRoundingStartDate('');
             setRoundingEndDate('');
             setRoundingPage(1);
-        } else {
+        } else if (activeTab === 'social') {
             setSocialStartDate('');
             setSocialEndDate('');
             setSocialPage(1);
+        } else {
+            setParticipatingStartDate('');
+            setParticipatingEndDate('');
+            setParticipatingPage(1);
         }
     };
 }
 
-export function createSearchInputChangeHandler({ activeTab, setRoundingSearchInput, setSocialSearchInput }) {
+export function createSearchInputChangeHandler({
+    activeTab,
+    setRoundingSearchInput,
+    setSocialSearchInput,
+    setParticipatingSearchInput,
+}) {
     return (value) => {
         if (activeTab === 'rounding') {
             setRoundingSearchInput(value);
-        } else {
+        } else if (activeTab === 'social') {
             setSocialSearchInput(value);
+        } else {
+            setParticipatingSearchInput(value);
         }
     };
 }
 
-export function createStatusFilterHandler({ activeTab, setRoundingStatusFilter, setSocialStatusFilter, setRoundingPage, setSocialPage }) {
+export function createStatusFilterHandler({
+    activeTab,
+    setRoundingStatusFilter,
+    setSocialStatusFilter,
+    setParticipatingStatusFilter,
+    setRoundingPage,
+    setSocialPage,
+    setParticipatingPage,
+}) {
     return (nextStatus) =>
         () => {
             if (activeTab === 'rounding') {
                 setRoundingStatusFilter(nextStatus);
                 setRoundingPage(1);
-            } else {
+            } else if (activeTab === 'social') {
                 setSocialStatusFilter(nextStatus);
                 setSocialPage(1);
+            } else {
+                setParticipatingStatusFilter(nextStatus);
+                setParticipatingPage(1);
             }
         };
 }
 
-export function createPrevPageHandler({ activeTab, roundingPage, socialPage, setRoundingPage, setSocialPage }) {
+export function createPrevPageHandler({
+    activeTab,
+    roundingPage,
+    socialPage,
+    participatingPage,
+    setRoundingPage,
+    setSocialPage,
+    setParticipatingPage,
+}) {
     return () => {
         if (activeTab === 'rounding') {
             setRoundingPage(Math.max(1, roundingPage - 1));
-        } else {
+        } else if (activeTab === 'social') {
             setSocialPage(Math.max(1, socialPage - 1));
+        } else {
+            setParticipatingPage(Math.max(1, participatingPage - 1));
         }
     };
 }
@@ -717,27 +961,39 @@ export function createNextPageHandler({
     activeTab,
     roundingPage,
     socialPage,
+    participatingPage,
     roundingTotalPages,
     socialTotalPages,
+    participatingTotalPages,
     setRoundingPage,
     setSocialPage,
+    setParticipatingPage,
 }) {
     return () => {
         if (activeTab === 'rounding') {
             setRoundingPage(Math.min(roundingTotalPages, roundingPage + 1));
-        } else {
+        } else if (activeTab === 'social') {
             setSocialPage(Math.min(socialTotalPages, socialPage + 1));
+        } else {
+            setParticipatingPage(Math.min(participatingTotalPages, participatingPage + 1));
         }
     };
 }
 
-export function createPageNumberHandler({ activeTab, setRoundingPage, setSocialPage }) {
+export function createPageNumberHandler({
+    activeTab,
+    setRoundingPage,
+    setSocialPage,
+    setParticipatingPage,
+}) {
     return (pageNum) =>
         () => {
             if (activeTab === 'rounding') {
                 setRoundingPage(pageNum);
-            } else {
+            } else if (activeTab === 'social') {
                 setSocialPage(pageNum);
+            } else {
+                setParticipatingPage(pageNum);
             }
         };
 }
@@ -786,7 +1042,18 @@ export function createOptionPressHandler({ onChange, field }) {
         };
 }
 
-export function createFetchClubsHandler({ fetchMyClubs, extractList, isEditMode, setClubs, setClubsLoading, setForm, setHasClubs, setError }) {
+export function createFetchClubsHandler({
+    fetchMyClubs,
+    extractList,
+    isEditMode,
+    onlyManageableClubs,
+    setClubs,
+    setClubsLoading,
+    setForm,
+    setHasClubs,
+    setManageableClubIds,
+    setError,
+}) {
     return async function () {
         try {
             if (setClubsLoading) {
@@ -797,19 +1064,29 @@ export function createFetchClubsHandler({ fetchMyClubs, extractList, isEditMode,
             const activeClubs = list.filter(
                 (club) => club.status === 'ACTIVE' || club.status === 'APPROVED'
             );
+            const manageableClubs = activeClubs.filter((club) => canManageClubMeetings(club));
+            const targetClubs = onlyManageableClubs ? manageableClubs : activeClubs;
             
             // setClubs가 있으면 클럽 목록 설정 (기존 동작)
             if (setClubs) {
-                setClubs(activeClubs);
+                setClubs(targetClubs);
             }
             
             // setHasClubs가 있으면 클럽 존재 여부 설정 (meetings/index.js용)
             if (setHasClubs) {
                 setHasClubs(activeClubs.length > 0);
             }
+
+            if (setManageableClubIds) {
+                setManageableClubIds(
+                    manageableClubs
+                        .map((club) => club?.id)
+                        .filter((clubId) => clubId !== null && clubId !== undefined && clubId !== '')
+                );
+            }
             
-            if (!isEditMode && activeClubs.length === 1 && setForm) {
-                setForm((prev) => ({ ...prev, club_id: activeClubs[0].id }));
+            if (!isEditMode && targetClubs.length === 1 && setForm) {
+                setForm((prev) => ({ ...prev, club_id: targetClubs[0].id }));
             }
         } catch (error) {
             console.error('클럽 목록 조회 실패:', error);
@@ -818,6 +1095,9 @@ export function createFetchClubsHandler({ fetchMyClubs, extractList, isEditMode,
             }
             if (setHasClubs) {
                 setHasClubs(false);
+            }
+            if (setManageableClubIds) {
+                setManageableClubIds([]);
             }
             if (setError) {
                 setError(error);
@@ -947,6 +1227,7 @@ export function createSubmitHandler({
     form,
     participantType,
     isEditMode,
+    canCreateMeeting,
     meetingIdValue,
     createSocial,
     updateSocial,
@@ -980,6 +1261,10 @@ export function createSubmitHandler({
         }
         if (!isEditMode && typeof createMeeting !== 'function') {
             alert('오류', '모임 생성 API가 준비되지 않았습니다.');
+            return;
+        }
+        if (!isEditMode && canCreateMeeting === false) {
+            alert('권한 없음', '모임은 클럽 리더/매니저만 개설할 수 있습니다.');
             return;
         }
 

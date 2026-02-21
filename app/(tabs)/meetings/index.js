@@ -18,11 +18,12 @@ import MeetingDateField from '@/components/meetings/MeetingDateField';
 import Button from '@/components/ui/Button';
 import { meetingTabs, meetingValidTabs } from '@/constants/meetingConstants';
 import { useAuth } from '@/context/AuthContext';
-import { meetingsApi } from '@/lib/api/api';
+import { clubsApi, meetingsApi } from '@/lib/api/api';
 import {
     createCreateMeetingHandler,
     createDateChangeHandler,
     createFetchClubsHandler,
+    createFetchParticipatingMeetingsHandler,
     createFetchRoundingMeetingsHandler,
     createFetchSocialMeetingsHandler,
     createMeetingPressHandler,
@@ -55,21 +56,25 @@ export default function MeetingsScreen() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   const initialTab = useMemo(
-    () => (tabParam === 'social' ? 'social' : 'rounding'),
+    () => (meetingValidTabs.includes(tabParam) ? tabParam : 'rounding'),
     [tabParam]
   );
   const [activeTab, setActiveTab] = useState(initialTab);
 
   const [roundingMeetings, setRoundingMeetings] = useState([]);
   const [socialMeetings, setSocialMeetings] = useState([]);
+  const [participatingMeetings, setParticipatingMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasClubs, setHasClubs] = useState(false);
+  const [manageableClubIds, setManageableClubIds] = useState([]);
 
   const [roundingPage, setRoundingPage] = useState(1);
   const [socialPage, setSocialPage] = useState(1);
+  const [participatingPage, setParticipatingPage] = useState(1);
   const [roundingTotalPages, setRoundingTotalPages] = useState(1);
   const [socialTotalPages, setSocialTotalPages] = useState(1);
+  const [participatingTotalPages, setParticipatingTotalPages] = useState(1);
 
   const [roundingSearchInput, setRoundingSearchInput] = useState('');
   const [roundingSearchQuery, setRoundingSearchQuery] = useState('');
@@ -83,6 +88,12 @@ export default function MeetingsScreen() {
   const [socialEndDate, setSocialEndDate] = useState('');
   const [socialStatusFilter, setSocialStatusFilter] = useState('active');
 
+  const [participatingSearchInput, setParticipatingSearchInput] = useState('');
+  const [participatingSearchQuery, setParticipatingSearchQuery] = useState('');
+  const [participatingStartDate, setParticipatingStartDate] = useState('');
+  const [participatingEndDate, setParticipatingEndDate] = useState('');
+  const [participatingStatusFilter, setParticipatingStatusFilter] = useState('active');
+
   useEffect(() => {
     if (!tabParam) return;
     if (!meetingValidTabs.includes(tabParam)) return;
@@ -95,19 +106,22 @@ export default function MeetingsScreen() {
         fetchMyClubs: meetingsApi.fetchMyClubs,
         extractList,
         setHasClubs,
+        setManageableClubIds,
         setError,
       }),
-    [setHasClubs, setError]
+    [setHasClubs, setManageableClubIds, setError]
   );
 
   const fetchRoundingMeetings = useMemo(
     () =>
       createFetchRoundingMeetingsHandler({
         fetchRounds: meetingsApi.fetchRounds,
+        fetchClubMeetings: clubsApi.getClubMeetings,
         extractList,
         filterByDate,
         filterByStatus,
         getDateRange,
+        manageableClubIds,
         roundingPage,
         roundingSearchQuery,
         roundingStartDate,
@@ -122,6 +136,7 @@ export default function MeetingsScreen() {
       roundingStartDate,
       roundingEndDate,
       roundingStatusFilter,
+      manageableClubIds,
       setRoundingMeetings,
       setRoundingTotalPages,
     ]
@@ -131,10 +146,12 @@ export default function MeetingsScreen() {
     () =>
       createFetchSocialMeetingsHandler({
         fetchSocials: meetingsApi.fetchSocials,
+        fetchClubMeetings: clubsApi.getClubMeetings,
         extractList,
         filterByDate,
         filterByStatus,
         getDateRange,
+        manageableClubIds,
         socialPage,
         socialSearchQuery,
         socialStartDate,
@@ -149,8 +166,36 @@ export default function MeetingsScreen() {
       socialStartDate,
       socialEndDate,
       socialStatusFilter,
+      manageableClubIds,
       setSocialMeetings,
       setSocialTotalPages,
+    ]
+  );
+
+  const fetchParticipatingMeetings = useMemo(
+    () =>
+      createFetchParticipatingMeetingsHandler({
+        fetchMyParticipatingMeetings: meetingsApi.fetchMyParticipatingMeetings,
+        extractList,
+        filterByDate,
+        filterByStatus,
+        getDateRange,
+        participatingPage,
+        participatingSearchQuery,
+        participatingStartDate,
+        participatingEndDate,
+        participatingStatusFilter,
+        setParticipatingMeetings,
+        setParticipatingTotalPages,
+      }),
+    [
+      participatingPage,
+      participatingSearchQuery,
+      participatingStartDate,
+      participatingEndDate,
+      participatingStatusFilter,
+      setParticipatingMeetings,
+      setParticipatingTotalPages,
     ]
   );
 
@@ -168,8 +213,10 @@ export default function MeetingsScreen() {
         await fetchClubs();
         if (activeTab === 'rounding') {
           await fetchRoundingMeetings(roundingPage, roundingSearchQuery);
-        } else {
+        } else if (activeTab === 'social') {
           await fetchSocialMeetings(socialPage, socialSearchQuery);
+        } else {
+          await fetchParticipatingMeetings(participatingPage, participatingSearchQuery);
         }
       } finally {
         setLoading(false);
@@ -180,9 +227,15 @@ export default function MeetingsScreen() {
   }, [
     activeTab,
     fetchClubs,
+    fetchParticipatingMeetings,
     fetchRoundingMeetings,
     fetchSocialMeetings,
     isAuthenticated,
+    participatingEndDate,
+    participatingPage,
+    participatingSearchQuery,
+    participatingStartDate,
+    participatingStatusFilter,
     roundingEndDate,
     roundingPage,
     roundingSearchQuery,
@@ -201,9 +254,10 @@ export default function MeetingsScreen() {
         setActiveTab,
         setRoundingPage,
         setSocialPage,
+        setParticipatingPage,
         router,
       }),
-    [setActiveTab, setRoundingPage, setSocialPage, router]
+    [setActiveTab, setRoundingPage, setSocialPage, setParticipatingPage, router]
   );
 
   const handleTabPress = useMemo(
@@ -217,19 +271,25 @@ export default function MeetingsScreen() {
         activeTab,
         roundingSearchInput,
         socialSearchInput,
+        participatingSearchInput,
         setRoundingSearchQuery,
         setSocialSearchQuery,
+        setParticipatingSearchQuery,
         setRoundingPage,
         setSocialPage,
+        setParticipatingPage,
       }),
     [
       activeTab,
       roundingSearchInput,
       socialSearchInput,
+      participatingSearchInput,
       setRoundingSearchQuery,
       setSocialSearchQuery,
+      setParticipatingSearchQuery,
       setRoundingPage,
       setSocialPage,
+      setParticipatingPage,
     ]
   );
 
@@ -250,15 +310,19 @@ export default function MeetingsScreen() {
         activeTab,
         setRoundingDate: setRoundingStartDate,
         setSocialDate: setSocialStartDate,
+        setParticipatingDate: setParticipatingStartDate,
         setRoundingPage,
         setSocialPage,
+        setParticipatingPage,
       }),
     [
       activeTab,
       setRoundingStartDate,
       setSocialStartDate,
+      setParticipatingStartDate,
       setRoundingPage,
       setSocialPage,
+      setParticipatingPage,
     ]
   );
 
@@ -268,15 +332,19 @@ export default function MeetingsScreen() {
         activeTab,
         setRoundingDate: setRoundingEndDate,
         setSocialDate: setSocialEndDate,
+        setParticipatingDate: setParticipatingEndDate,
         setRoundingPage,
         setSocialPage,
+        setParticipatingPage,
       }),
     [
       activeTab,
       setRoundingEndDate,
       setSocialEndDate,
+      setParticipatingEndDate,
       setRoundingPage,
       setSocialPage,
+      setParticipatingPage,
     ]
   );
 
@@ -288,8 +356,11 @@ export default function MeetingsScreen() {
         setRoundingEndDate,
         setSocialStartDate,
         setSocialEndDate,
+        setParticipatingStartDate,
+        setParticipatingEndDate,
         setRoundingPage,
         setSocialPage,
+        setParticipatingPage,
       }),
     [
       activeTab,
@@ -297,8 +368,11 @@ export default function MeetingsScreen() {
       setRoundingEndDate,
       setSocialStartDate,
       setSocialEndDate,
+      setParticipatingStartDate,
+      setParticipatingEndDate,
       setRoundingPage,
       setSocialPage,
+      setParticipatingPage,
     ]
   );
 
@@ -308,8 +382,9 @@ export default function MeetingsScreen() {
         activeTab,
         setRoundingSearchInput,
         setSocialSearchInput,
+        setParticipatingSearchInput,
       }),
-    [activeTab, setRoundingSearchInput, setSocialSearchInput]
+    [activeTab, setRoundingSearchInput, setSocialSearchInput, setParticipatingSearchInput]
   );
 
   const handleStatusFilterChange = useMemo(
@@ -318,15 +393,19 @@ export default function MeetingsScreen() {
         activeTab,
         setRoundingStatusFilter,
         setSocialStatusFilter,
+        setParticipatingStatusFilter,
         setRoundingPage,
         setSocialPage,
+        setParticipatingPage,
       }),
     [
       activeTab,
       setRoundingStatusFilter,
       setSocialStatusFilter,
+      setParticipatingStatusFilter,
       setRoundingPage,
       setSocialPage,
+      setParticipatingPage,
     ]
   );
 
@@ -336,10 +415,20 @@ export default function MeetingsScreen() {
         activeTab,
         roundingPage,
         socialPage,
+        participatingPage,
         setRoundingPage,
         setSocialPage,
+        setParticipatingPage,
       }),
-    [activeTab, roundingPage, socialPage, setRoundingPage, setSocialPage]
+    [
+      activeTab,
+      roundingPage,
+      socialPage,
+      participatingPage,
+      setRoundingPage,
+      setSocialPage,
+      setParticipatingPage,
+    ]
   );
 
   const handleNextPage = useMemo(
@@ -348,25 +437,31 @@ export default function MeetingsScreen() {
         activeTab,
         roundingPage,
         socialPage,
+        participatingPage,
         roundingTotalPages,
         socialTotalPages,
+        participatingTotalPages,
         setRoundingPage,
         setSocialPage,
+        setParticipatingPage,
       }),
     [
       activeTab,
       roundingPage,
       socialPage,
+      participatingPage,
       roundingTotalPages,
       socialTotalPages,
+      participatingTotalPages,
       setRoundingPage,
       setSocialPage,
+      setParticipatingPage,
     ]
   );
 
   const handlePageNumberChange = useMemo(
-    () => createPageNumberHandler({ activeTab, setRoundingPage, setSocialPage }),
-    [activeTab, setRoundingPage, setSocialPage]
+    () => createPageNumberHandler({ activeTab, setRoundingPage, setSocialPage, setParticipatingPage }),
+    [activeTab, setRoundingPage, setSocialPage, setParticipatingPage]
   );
 
   const hasActiveFilters = getActiveFilters({
@@ -377,22 +472,63 @@ export default function MeetingsScreen() {
     socialSearchQuery,
     socialStartDate,
     socialEndDate,
+    participatingSearchQuery,
+    participatingStartDate,
+    participatingEndDate,
   });
 
-  const currentMeetings = activeTab === 'rounding' ? roundingMeetings : socialMeetings;
-  const currentPage = activeTab === 'rounding' ? roundingPage : socialPage;
-  const totalPages = activeTab === 'rounding' ? roundingTotalPages : socialTotalPages;
+  const currentMeetings = activeTab === 'rounding'
+    ? roundingMeetings
+    : activeTab === 'social'
+      ? socialMeetings
+      : participatingMeetings;
+  const currentPage = activeTab === 'rounding'
+    ? roundingPage
+    : activeTab === 'social'
+      ? socialPage
+      : participatingPage;
+  const totalPages = activeTab === 'rounding'
+    ? roundingTotalPages
+    : activeTab === 'social'
+      ? socialTotalPages
+      : participatingTotalPages;
 
   const pageNumbers = useMemo(
     () => getPageNumbers({ currentPage, totalPages }),
     [currentPage, totalPages]
   );
 
-  const startDate = activeTab === 'rounding' ? roundingStartDate : socialStartDate;
-  const endDate = activeTab === 'rounding' ? roundingEndDate : socialEndDate;
+  const startDate = activeTab === 'rounding'
+    ? roundingStartDate
+    : activeTab === 'social'
+      ? socialStartDate
+      : participatingStartDate;
+  const endDate = activeTab === 'rounding'
+    ? roundingEndDate
+    : activeTab === 'social'
+      ? socialEndDate
+      : participatingEndDate;
   const showResetDates = Boolean(startDate || endDate);
-  const statusFilter = activeTab === 'rounding' ? roundingStatusFilter : socialStatusFilter;
-  const searchInput = activeTab === 'rounding' ? roundingSearchInput : socialSearchInput;
+  const statusFilter = activeTab === 'rounding'
+    ? roundingStatusFilter
+    : activeTab === 'social'
+      ? socialStatusFilter
+      : participatingStatusFilter;
+  const searchInput = activeTab === 'rounding'
+    ? roundingSearchInput
+    : activeTab === 'social'
+      ? socialSearchInput
+      : participatingSearchInput;
+  const activeTabLabel = activeTab === 'rounding'
+    ? '라운딩'
+    : activeTab === 'social'
+      ? '소셜'
+      : '내가 참가한';
+  const showCreateFromEmpty = activeTab === 'rounding' || activeTab === 'social';
+  const canCreateMeeting = useMemo(
+    () => manageableClubIds.length > 0,
+    [manageableClubIds.length]
+  );
 
   if (authLoading) {
     return (
@@ -446,30 +582,34 @@ export default function MeetingsScreen() {
           <>
             <View style={styles.headerRow}>
               <Text style={styles.title}>모임 목록</Text>
-              <View style={styles.createRow}>
-                <Pressable
-                  onPress={handleCreateMeeting('rounding')}
-                  style={({ pressed }) => [
-                    styles.createButton,
-                    styles.createButtonRounding,
-                    pressed && styles.createButtonPressed,
-                  ]}
-                >
-                  <FontAwesome5 name="plus" size={12} color={colors.white} />
-                  <Text style={styles.createButtonText}>라운딩 생성</Text>
-                </Pressable>
-                <Pressable
-                  onPress={handleCreateMeeting('social')}
-                  style={({ pressed }) => [
-                    styles.createButton,
-                    styles.createButtonSocial,
-                    pressed && styles.createButtonPressed,
-                  ]}
-                >
-                  <FontAwesome5 name="plus" size={12} color={colors.white} />
-                  <Text style={styles.createButtonText}>소셜 생성</Text>
-                </Pressable>
-              </View>
+              {canCreateMeeting ? (
+                <View style={styles.createRow}>
+                  <Pressable
+                    onPress={handleCreateMeeting('rounding')}
+                    style={({ pressed }) => [
+                      styles.createButton,
+                      styles.createButtonRounding,
+                      pressed && styles.createButtonPressed,
+                    ]}
+                  >
+                    <FontAwesome5 name="plus" size={12} color={colors.white} />
+                    <Text style={styles.createButtonText}>라운딩 생성</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={handleCreateMeeting('social')}
+                    style={({ pressed }) => [
+                      styles.createButton,
+                      styles.createButtonSocial,
+                      pressed && styles.createButtonPressed,
+                    ]}
+                  >
+                    <FontAwesome5 name="plus" size={12} color={colors.white} />
+                    <Text style={styles.createButtonText}>소셜 생성</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Text style={styles.createHint}>모임 생성은 클럽 리더/매니저만 가능합니다.</Text>
+              )}
             </View>
 
             <View style={styles.tabBar}>
@@ -568,7 +708,7 @@ export default function MeetingsScreen() {
                 {hasActiveFilters ? (
                   <>
                     <Text style={styles.emptyTitle}>
-                      조건에 해당하는 {activeTab === 'rounding' ? '라운딩' : '소셜'} 모임이 없습니다
+                      조건에 해당하는 {activeTabLabel} 모임이 없습니다
                     </Text>
                     <Text style={styles.emptySubtitle}>검색 조건을 변경해보세요.</Text>
                   </>
@@ -576,15 +716,15 @@ export default function MeetingsScreen() {
                   <>
                     <Text style={styles.emptyTitle}>
                       {statusFilter === 'completed'
-                        ? `완료/취소된 ${activeTab === 'rounding' ? '라운딩' : '소셜'} 모임이 없습니다`
-                        : `진행 중인 ${activeTab === 'rounding' ? '라운딩' : '소셜'} 모임이 없습니다`}
+                        ? `완료/취소된 ${activeTabLabel} 모임이 없습니다`
+                        : `진행 중인 ${activeTabLabel} 모임이 없습니다`}
                     </Text>
                     <Text style={styles.emptySubtitle}>
                       {statusFilter === 'completed'
                         ? '완료되거나 취소된 모임이 없습니다.'
                         : '현재 진행 중이거나 진행 예정인 모임이 없습니다.'}
                     </Text>
-                    {statusFilter !== 'completed' ? (
+                    {statusFilter !== 'completed' && showCreateFromEmpty && canCreateMeeting ? (
                       <Pressable
                         onPress={handleCreateMeeting(activeTab)}
                         style={[
@@ -752,6 +892,11 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.bold,
+  },
+  createHint: {
+    marginTop: tokens.spacing.xs2,
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
   },
   tabBar: {
     borderBottomWidth: 1,

@@ -139,6 +139,9 @@ function AppShell() {
       </View>
       <BottomNavigationBar />
       <FullMenu />
+      {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 TODO 출시시 삭제 !!!!!!!!!!!!!!!!!!!!!! */}
+      {/* <DebugConsoleOverlay /> */}
+      {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 !!!!!!!!!!!!!!!!!!!!!! */}
     </View>
   );
 }

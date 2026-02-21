@@ -163,7 +163,7 @@ function isPastDateTime(value) {
 }
 
 function getMeetingStatusMeta(meeting) {
-  const status = String(meeting?.status || '').toUpperCase();
+  const status = String(meeting?.status || meeting?.application_status || '').toUpperCase();
   if (status === 'IN_PROGRESS') return { label: '진행중', tone: 'warning' };
   if (status === 'COMPLETED') return { label: '완료', tone: 'success' };
   if (status === 'CANCELED') return { label: '취소', tone: 'danger' };
@@ -341,9 +341,28 @@ export default function MeetingDetailScreen() {
   }, [fetchSettlement]);
 
   useEffect(() => {
-    fetchParticipants();
-    fetchTeams();
-    fetchStatus();
+    let mounted = true;
+
+    const fetchDetailCollections = async () => {
+      setParticipantsLoaded(false);
+      try {
+        await Promise.all([
+          fetchParticipants(),
+          fetchTeams(),
+          fetchStatus(),
+        ]);
+      } finally {
+        if (mounted) {
+          setParticipantsLoaded(true);
+        }
+      }
+    };
+
+    fetchDetailCollections();
+
+    return () => {
+      mounted = false;
+    };
   }, [fetchParticipants, fetchTeams, fetchStatus]);
 
   const handleUpdateUserInfo = useMemo(
@@ -873,13 +892,18 @@ export default function MeetingDetailScreen() {
   );
 
   const hasManagerPermission = useMemo(
-    () => Boolean(isAdmin || isOrganizer || (isParticipant && isClubLeaderOrManager)),
-    [isAdmin, isOrganizer, isParticipant, isClubLeaderOrManager]
+    () => Boolean(isAdmin || isOrganizer || isClubLeaderOrManager),
+    [isAdmin, isOrganizer, isClubLeaderOrManager]
   );
 
   const isManager = useMemo(
     () => hasManagerPermission,
     [hasManagerPermission]
+  );
+
+  const canManageParticipantApplications = useMemo(
+    () => isManager,
+    [isManager]
   );
 
   const meetingStatusMeta = useMemo(
@@ -894,8 +918,8 @@ export default function MeetingDetailScreen() {
   }, [participants.length, meeting?.participant_count]);
 
   const normalizedStatus = useMemo(
-    () => String(meeting?.status || '').toUpperCase(),
-    [meeting?.status]
+    () => String(meeting?.status || meeting?.application_status || '').toUpperCase(),
+    [meeting?.status, meeting?.application_status]
   );
 
   const isApplicationClosed = useMemo(() => {
@@ -1011,7 +1035,7 @@ export default function MeetingDetailScreen() {
         !isOrganizer &&
         !isParticipant &&
         (meeting?.max_participants == null ||
-          Number(meeting?.participant_count || participants.length) < Number(meeting?.max_participants)) &&
+          participantCount < Number(meeting?.max_participants)) &&
         !isApplicationClosed
       ),
     [
@@ -1019,8 +1043,7 @@ export default function MeetingDetailScreen() {
       isOrganizer,
       isParticipant,
       meeting?.max_participants,
-      meeting?.participant_count,
-      participants.length,
+      participantCount,
       isApplicationClosed,
     ]
   );
@@ -1044,14 +1067,14 @@ export default function MeetingDetailScreen() {
   const canEditTopActions = useMemo(
     () =>
       Boolean(
-        (isOrganizer || (isParticipant && isClubLeaderOrManager)) &&
+        hasManagerPermission &&
           normalizedStatus !== 'CANCELED' &&
           normalizedStatus !== 'COMPLETED' &&
           displayStatus !== 'CANCELED' &&
           displayStatus !== '종료' &&
           displayStatus !== '완료'
       ),
-    [isOrganizer, isParticipant, isClubLeaderOrManager, normalizedStatus, displayStatus]
+    [hasManagerPermission, normalizedStatus, displayStatus]
   );
 
   /** 소셜: 주최/참가자가 아니고 취소·완료가 아니면 참가 버튼 표시 (API 상태와 무관하게) */
@@ -1110,7 +1133,7 @@ export default function MeetingDetailScreen() {
   const canCloseApplication = useMemo(
     () =>
       Boolean(
-        isManager &&
+        canManageParticipantApplications &&
         isRoundingMeeting &&
         !isApplicationClosed &&
         normalizedStatus === 'SCHEDULED' &&
@@ -1118,7 +1141,7 @@ export default function MeetingDetailScreen() {
         !processingAction
       ),
     [
-      isManager,
+      canManageParticipantApplications,
       isRoundingMeeting,
       isApplicationClosed,
       normalizedStatus,
@@ -1130,7 +1153,7 @@ export default function MeetingDetailScreen() {
   const canStartTeamFormation = useMemo(
     () =>
       Boolean(
-        isManager &&
+        canManageParticipantApplications &&
         isRoundingMeeting &&
         normalizedStatus === 'SCHEDULED' &&
         participantCount >= 4 &&
@@ -1140,7 +1163,7 @@ export default function MeetingDetailScreen() {
         !processingAction
       ),
     [
-      isManager,
+      canManageParticipantApplications,
       isRoundingMeeting,
       normalizedStatus,
       participantCount,
@@ -1152,8 +1175,8 @@ export default function MeetingDetailScreen() {
   );
 
   const canModifyTeams = useMemo(
-    () => Boolean(isManager && isRoundingMeeting && !meeting?.rounding_started_at && !processingAction),
-    [isManager, isRoundingMeeting, meeting?.rounding_started_at, processingAction]
+    () => Boolean(canManageParticipantApplications && isRoundingMeeting && !meeting?.rounding_started_at && !processingAction),
+    [canManageParticipantApplications, isRoundingMeeting, meeting?.rounding_started_at, processingAction]
   );
 
   useEffect(() => {
@@ -1675,7 +1698,7 @@ export default function MeetingDetailScreen() {
             meeting={meeting}
             participants={participants}
             teams={teams}
-            isManager={isManager}
+            isManager={canManageParticipantApplications}
             applicationStatus={applicationStatus}
             onCloseApplicationEarly={handleCloseApplicationEarly}
             onAutoFormTeams={openTeamFormation}
@@ -1764,7 +1787,7 @@ export default function MeetingDetailScreen() {
           <View style={styles.tabContentWrap}>
             {activeTab === 'participants' && (
               <View style={styles.tabSection}>
-                {isManager && isRoundingMeeting ? (
+                {canManageParticipantApplications && isRoundingMeeting ? (
                   <View style={styles.participantSummaryCard}>
                     <View style={styles.participantSummaryHeader}>
                       <View style={styles.participantSummaryHeaderText}>
@@ -1921,7 +1944,7 @@ export default function MeetingDetailScreen() {
                     </Text>
                   </View>
                 ) : null}
-                {isManager && teams.length > 0 ? (
+                {canManageParticipantApplications && teams.length > 0 ? (
                   <View style={styles.teamEditRow}>
                     <Pressable
                       style={({ pressed }) => [
