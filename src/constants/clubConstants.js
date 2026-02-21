@@ -87,4 +87,5 @@ export const clubFeeCycles = [
   { id: 'MONTHLY', label: '월 1회' },
   { id: 'QUARTERLY', label: '분기 1회' },
   { id: 'YEARLY', label: '연 1회' },
+  { id: 'ONE_TIME', label: '일회성' },
 ];

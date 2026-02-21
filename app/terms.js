@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/ui/Card';
+import HtmlContent from '@/components/ui/HtmlContent';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { termsTabs } from '@/constants/termsConstants';
 import { termsApi } from '@/lib/api/api';
@@ -74,13 +75,7 @@ export default function TermsScreen() {
     loadTerms();
   }, []);
 
-  const contentList = useMemo(() => {
-    const content = termsData[activeTab];
-    if (content) {
-      return String(content).split('\n').filter(Boolean);
-    }
-    return [];
-  }, [activeTab, termsData]);
+  const activeContent = termsData[activeTab] ?? '';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -103,15 +98,11 @@ export default function TermsScreen() {
             <Text style={styles.loadingText}>약관을 불러오는 중입니다...</Text>
           ) : error ? (
             <Text style={styles.errorText}>{error}</Text>
-          ) : contentList.length === 0 ? (
+          ) : !activeContent || String(activeContent).trim() === '' ? (
             <Text style={styles.loadingText}>등록된 약관이 없습니다.</Text>
           ) : (
             <View style={styles.contentBox}>
-              {contentList.map((line) => (
-                <Text key={line} style={styles.contentText}>
-                  {line}
-                </Text>
-              ))}
+              <HtmlContent html={activeContent} baseStyle={styles.contentText} />
             </View>
           )}
         </Card>

@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 
+import HtmlContent from '@/components/ui/HtmlContent';
 import { termsApi } from '@/lib/api/api';
 
 const TermsAgreeScreen = () => {
@@ -192,10 +193,11 @@ const TermsAgreeScreen = () => {
             </Text>
 
             <ScrollView style={styles.modalContent}>
-              <Text>
-                {terms[currentTermsKey]?.content ??
-                  '약관 내용이 준비되지 않았습니다.'}
-              </Text>
+              {terms[currentTermsKey]?.content ? (
+                <HtmlContent html={terms[currentTermsKey].content} />
+              ) : (
+                <Text>약관 내용이 준비되지 않았습니다.</Text>
+              )}
             </ScrollView>
 
             <View style={styles.modalFooter}>

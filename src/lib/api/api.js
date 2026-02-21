@@ -809,6 +809,10 @@ async function getClubNotices(clubId, params = {}) {
   return apiClient.get(`/clubs/${clubId}/notices`, { params });
 }
 
+async function getClubNotice(clubId, noticeId) {
+  return apiClient.get(`/clubs/${clubId}/notices/${noticeId}`);
+}
+
 async function createClubNotice(clubId, data) {
   return apiClient.post(`/clubs/${clubId}/notices`, data);
 }
@@ -824,6 +828,22 @@ async function deleteClubNotice(clubId, noticeId) {
 async function getClubRegulations(clubId, params = {}) {
   // 백엔드: GET /regulations → { categories } / GET /regulations/list → { data }. 목록은 /list 사용.
   return apiClient.get(`/clubs/${clubId}/regulations/list`, { params });
+}
+
+async function getClubRegulationCategories(clubId) {
+  return apiClient.get(`/clubs/${clubId}/regulations/categories`);
+}
+
+async function createClubRegulationCategory(clubId, data) {
+  return apiClient.post(`/clubs/${clubId}/regulations/categories`, data);
+}
+
+async function updateClubRegulationCategory(clubId, categoryId, data) {
+  return apiClient.put(`/clubs/${clubId}/regulations/categories/${categoryId}`, data);
+}
+
+async function deleteClubRegulationCategory(clubId, categoryId) {
+  return apiClient.delete(`/clubs/${clubId}/regulations/categories/${categoryId}`);
 }
 
 async function getClubRegulation(clubId, regulationId) {
@@ -848,6 +868,10 @@ async function getClubMeetings(clubId, params = {}) {
 
 async function getClubFees(clubId, params = {}) {
   return apiClient.get(`/clubs/${clubId}/fees`, { params });
+}
+
+async function getClubFee(clubId, feeId) {
+  return apiClient.get(`/clubs/${clubId}/fees/${feeId}`);
 }
 
 async function createClubFee(clubId, data) {
@@ -878,8 +902,8 @@ async function deleteClubActivity(clubId, activityId) {
   return apiClient.delete(`/clubs/${clubId}/activities/${activityId}`);
 }
 
-async function getClubStats(clubId) {
-  return apiClient.get(`/clubs/${clubId}/stats`);
+async function getClubStats(clubId, params = {}) {
+  return apiClient.get(`/clubs/${clubId}/stats`, { params });
 }
 
 async function uploadClubFile(clubId, formData) {
@@ -912,16 +936,22 @@ export const clubsApi = {
   updateClubMemberRole,
   removeClubMember,
   getClubNotices,
+  getClubNotice,
   createClubNotice,
   updateClubNotice,
   deleteClubNotice,
   getClubRegulations,
+  getClubRegulationCategories,
+  createClubRegulationCategory,
+  updateClubRegulationCategory,
+  deleteClubRegulationCategory,
   getClubRegulation,
   createClubRegulation,
   updateClubRegulation,
   deleteClubRegulation,
   getClubMeetings,
   getClubFees,
+  getClubFee,
   createClubFee,
   updateClubFee,
   deleteClubFee,
