@@ -974,8 +974,10 @@ const styles = StyleSheet.create({
     opacity: 0.95,
   },
   card: {
+    ...base.card,
     padding: tokens.padding.md,
     borderRadius: tokens.radius.md,
+    marginBottom: 0,
   },
   cardHeader: {
     ...base.rowBetween,
