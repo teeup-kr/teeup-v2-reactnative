@@ -1,15 +1,34 @@
-import 'dotenv/config';
-import appJson from './app.json';
+import fs from 'fs';
+import dotenv from 'dotenv';
+
+/**
+ * .env 강제 reload (캐싱 방지)
+ */
+function reloadEnv() {
+  Object.keys(process.env).forEach((k) => {
+    if (k.startsWith('EXPO_')) {
+      delete process.env[k];
+    }
+  });
+
+  dotenv.config({ override: true });
+
+  console.log('ENV reloaded:', new Date().toISOString());
+}
+
+/**
+ * app.json 캐시 제거 후 재로드
+ */
+function loadAppJson() {
+  delete require.cache[require.resolve('./app.json')];
+  return JSON.parse(fs.readFileSync('./app.json', 'utf8'));
+}
 
 /**
  * 플랫폼 결정
- * - 로컬 dev: EXPO_OS
- * - EAS 빌드: EAS_BUILD_PLATFORM
  */
 function resolvePlatform() {
-  const platform =
-    process.env.EXPO_OS ||
-    process.env.EAS_BUILD_PLATFORM;
+  const platform = process.env.EAS_BUILD_PLATFORM;
 
   if (!platform) {
     throw new Error(
@@ -17,18 +36,19 @@ function resolvePlatform() {
     );
   }
 
-  const normalized = platform.toLowerCase();
+  const normalized = platform.toLowerCase().trim();
+
   if (!['ios', 'android', 'web'].includes(normalized)) {
     throw new Error(`Unsupported platform: ${platform}`);
   }
 
-  console.log('!!! Platform detected !!!:', normalized);
+  console.log('Platform detected:', normalized);
   return normalized;
 }
 
 /**
- * 플랫폼별 env 선택 헬퍼
- * 예: EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB
+ * 플랫폼별 env 선택
+ * EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB 등
  */
 function pickPlatformEnv(prefix, platform) {
   const key = `${prefix}_${platform.toUpperCase()}`;
@@ -42,30 +62,25 @@ function pickPlatformEnv(prefix, platform) {
 }
 
 /**
- * API Base URL 빌드 (빌드 타임 1회)
+ * API Base URL 생성
  */
 function buildApiBaseUrl(origin, version) {
   const trimmed = origin.replace(/\/+$/, '');
   const v = version.replace(/^\/+/, '');
 
-  if (trimmed.endsWith(`/api/${v}`)) {
-    return trimmed;
-  }
-
-  if (trimmed.endsWith('/api')) {
-    return `${trimmed}/${v}`;
-  }
+  if (trimmed.endsWith(`/api/${v}`)) return trimmed;
+  if (trimmed.endsWith('/api')) return `${trimmed}/${v}`;
 
   return `${trimmed}/api/${v}`;
 }
 
 export default () => {
+  reloadEnv();
+
+  const appJson = loadAppJson();
   const base = appJson.expo;
   const platform = resolvePlatform();
 
-  /**
-   * 공통 EXPO_PUBLIC 값
-   */
   const {
     EXPO_PUBLIC_WEB_ORIGIN,
     EXPO_PUBLIC_API_BASE_URL,
@@ -73,45 +88,28 @@ export default () => {
   } = process.env;
 
   if (!EXPO_PUBLIC_API_BASE_URL) {
-    throw new Error('EXPO_PUBLIC_API_BASE_URL is missing');
+    throw new Error('EXPO_PUBLIC_API_BASE_URL missing');
   }
 
   if (!EXPO_PUBLIC_API_VERSION) {
-    throw new Error('EXPO_PUBLIC_API_VERSION is missing');
+    throw new Error('EXPO_PUBLIC_API_VERSION missing');
   }
 
-  /**
-   * Google OAuth (플랫폼별)
-   */
   const googleClientId = pickPlatformEnv(
     'EXPO_PUBLIC_GOOGLE_CLIENT_ID',
-    platform,
+    platform
   );
 
   const googleRedirectUri = pickPlatformEnv(
     'EXPO_PUBLIC_GOOGLE_REDIRECT_URI',
-    platform,
+    platform
   );
 
-  // // Web은 origin + path 조합
-  // if (platform === 'web') {
-  //   if (!EXPO_PUBLIC_WEB_ORIGIN) {
-  //     throw new Error('EXPO_PUBLIC_WEB_ORIGIN is missing for web');
-  //   }
-  //   googleRedirectUri = EXPO_PUBLIC_GOOGLE_REDIRECT_URI_WEB;
-  // }
-
-  /**
-   * API URL 최종 확정 (빌드 타임)
-   */
   const apiBaseUrlFinal = buildApiBaseUrl(
     EXPO_PUBLIC_API_BASE_URL,
-    EXPO_PUBLIC_API_VERSION,
+    EXPO_PUBLIC_API_VERSION
   );
 
-  /**
-   * expo.extra (런타임에서 그대로 사용)
-   */
   const extra = {
     ...(base.extra ?? {}),
     webOrigin: EXPO_PUBLIC_WEB_ORIGIN,
@@ -123,8 +121,7 @@ export default () => {
     },
   };
 
-  // console.log('!!! Generated expo extra !!!');
-  // console.log(extra);
+  console.log('Generated expo.extra:', extra);
 
   return {
     ...base,

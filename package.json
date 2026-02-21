@@ -11,7 +11,6 @@
     "web:dev": "EXPO_OS=web expo start -c --web --port 8081",
     "web:dev:debug": "EXPO_OS=web NODE_OPTIONS=--inspect-brk expo start -c --web --port 8081",
     "web:static": "EXPO_OS=web npx expo export",
-    "web:release": "EXPO_OS=web npx expo export --platform --web --port 8081 --clear",
     "test": "npm run lint && jest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
