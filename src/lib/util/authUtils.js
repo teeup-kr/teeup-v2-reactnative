@@ -1,6 +1,9 @@
-
+import { Platform } from 'react-native';
+import { authorize } from 'react-native-app-auth';
 
 import { googleAuthConfig } from '../../constants/authConstants';
+import { authApi } from '../api/api';
+import { tokenStorage } from '../tokenStorage';
 
 export function buildGoogleAuthConfig(state) {
   return {
@@ -37,6 +40,65 @@ export function buildGoogleAuthPayload(authState, oauthState) {
 }
 
 export function generateOauthState() { return `google_${Date.now()}_${Math.random().toString(36).slice(2)}`; }
+
+export async function signInWithGoogle({
+  refreshAuth,
+  router,
+  setLoading,
+  setErrorMessage,
+}) {
+  setErrorMessage('');
+  setLoading(true);
+
+  if (!googleAuthConfig.clientId || !googleAuthConfig.redirectUrl) {
+    setErrorMessage('Google 로그인 설정(clientId/redirectUrl)이 누락되었습니다.');
+    setLoading(false);
+    return;
+  }
+
+  const shouldClearState = Platform.OS !== 'web';
+
+  try {
+    const oauthState = generateOauthState();
+    await tokenStorage.setOauthState(oauthState);
+
+    if (Platform.OS === 'web') {
+      const codeVerifier = generateCodeVerifier();
+      const codeChallenge = await generateCodeChallenge(codeVerifier);
+
+      await tokenStorage.setCodeVerifier(codeVerifier);
+
+      const authUrl = buildGoogleAuthorizeUrl({
+        state: oauthState,
+        codeChallenge,
+        codeChallengeMethod: 'S256',
+      });
+
+      window.location.assign(authUrl);
+      return;
+    }
+
+    const authState = await authorize(buildGoogleAuthConfig(oauthState));
+    const payload = buildGoogleAuthPayload(authState, oauthState);
+    await authApi.googleLogin(payload);
+
+    if (refreshAuth) {
+      await refreshAuth();
+    }
+
+    if (router) {
+      router.replace('/app');
+    }
+  } catch (error) {
+    const message = error?.message || 'Google 로그인에 실패했습니다.';
+    setErrorMessage(message);
+  } finally {
+    if (shouldClearState) {
+      await tokenStorage.clearOauthState();
+    }
+    setLoading(false);
+  }
+}
 
 // export const authUtils = {
 //   buildGoogleAuthConfig,

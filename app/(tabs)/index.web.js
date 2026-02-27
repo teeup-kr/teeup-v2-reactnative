@@ -5,46 +5,26 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/context/AuthContext';
+import { signInWithGoogle } from '@/lib/util/authUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
 export default function LandingScreen() {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, refreshAuth } = useAuth();
   const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
   const [googleLoginError, setGoogleLoginError] = useState('');
 
-  // const handleGoogleLogin = async () => {
-  //   if (isGoogleRedirecting) return;
-  //   setGoogleLoginError('');
-  //   setIsGoogleRedirecting(true);
+  const handleGoogleSignIn = async () => {
+    if (isGoogleRedirecting) return;
 
-  //   if (!googleAuthConfig.clientId || !googleAuthConfig.redirectUrl) {
-  //     setGoogleLoginError('Google 로그인 설정(clientId/redirectUrl)이 누락되었습니다.');
-  //     setIsGoogleRedirecting(false);
-  //     return;
-  //   }
-
-  //   try {
-  //     const oauthState = generateOauthState();
-  //     const codeVerifier = generateCodeVerifier();
-  //     const codeChallenge = await generateCodeChallenge(codeVerifier);
-
-  //     await tokenStorage.setOauthState(oauthState);
-  //     await tokenStorage.setCodeVerifier(codeVerifier);
-
-  //     const authUrl = buildGoogleAuthorizeUrl({
-  //       state: oauthState,
-  //       codeChallenge,
-  //       codeChallengeMethod: 'S256',
-  //     });
-
-  //     window.location.assign(authUrl);
-  //   } catch (error) {
-  //     setGoogleLoginError(error?.message || 'Google 로그인 연결에 실패했습니다.');
-  //     setIsGoogleRedirecting(false);
-  //   }
-  // };
+    await signInWithGoogle({
+      refreshAuth,
+      router,
+      setLoading: setIsGoogleRedirecting,
+      setErrorMessage: setGoogleLoginError,
+    });
+  };
 
   if (isLoading) {
     return (
@@ -77,7 +57,8 @@ export default function LandingScreen() {
         <View style={styles.ctaRow}>
           <Pressable
             style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}
-            onPress={signInWithGoogle}
+            onPress={handleGoogleSignIn}
+            disabled={isGoogleRedirecting}
           >
             <Text style={styles.primaryButtonText}>
               {isGoogleRedirecting ? 'Google 로그인으로 이동 중...' : 'Google로 로그인'}

@@ -11,22 +11,13 @@ import {
   ScrollView, StyleSheet, Text,
   View
 } from 'react-native';
-import { authorize } from 'react-native-app-auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import { googleAuthConfig } from '@/constants/authConstants';
 import { useAuth } from '@/context/AuthContext';
-import { authApi } from '@/lib/api/api';
-import { tokenStorage } from '@/lib/tokenStorage';
 import {
-  buildGoogleAuthConfig,
-  buildGoogleAuthPayload,
-  buildGoogleAuthorizeUrl,
-  generateCodeChallenge,
-  generateCodeVerifier,
-  generateOauthState
+  signInWithGoogle
 } from '@/lib/util/authUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -43,72 +34,17 @@ export default function LoginScreen() {
   });
   const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
 
-  const signInWithGoogle = async () => {
-    console.log('Starting Google Sign-In process...');
-    console.log('Google Auth Config:', googleAuthConfig);
-    console.log('!!! Current redirectUrl:', googleAuthConfig.redirectUrl);
-    setErrors((prev) => ({ ...prev, general: '' }));
-    setIsGoogleSigningIn(true);
+  const setGeneralError = (message) => {
+    setErrors((prev) => ({ ...prev, general: message }));
+  };
 
-    if (!googleAuthConfig.clientId || !googleAuthConfig.redirectUrl) {
-      setErrors((prev) => ({
-        ...prev,
-        general: 'Google 로그인 설정(clientId/redirectUrl)이 누락되었습니다.',
-      }));
-      setIsGoogleSigningIn(false);
-      return;
-    }
-
-    const shouldClearState = Platform.OS !== 'web';
-
-    try {
-      const oauthState = generateOauthState();
-      await tokenStorage.setOauthState(oauthState);
-
-      // Web 플랫폼에서는 별도의 브라우저 리디렉션 처리
-      if (Platform.OS === 'web') {
-        const oauthState = generateOauthState();
-
-        const codeVerifier = generateCodeVerifier();
-        const codeChallenge = await generateCodeChallenge(codeVerifier);
-
-        await tokenStorage.setOauthState(oauthState);
-        await tokenStorage.setCodeVerifier(codeVerifier);
-
-        const authUrl = buildGoogleAuthorizeUrl({
-          state: oauthState,
-          codeChallenge,
-          codeChallengeMethod: 'S256',
-        });
-
-        // // 디버깅: 실제 사용되는 redirect_uri 확인
-        // const urlObj = new URL(authUrl);
-        // const redirectUri = urlObj.searchParams.get('redirect_uri');
-        // alert(`사용되는 redirect_uri:\n${redirectUri}\n\n전체 URL:\n${authUrl}`);
-
-        console.log('!!! Redirecting to Google OAuth URL:', authUrl);
-        window.location.assign(authUrl);
-        return;
-      }
-
-      // Native 플랫폼에서는 react-native-app-auth 사용
-      console.log('!!! Google Login Payload: !!! \n', payload);
-
-      const authState = await authorize(buildGoogleAuthConfig(oauthState));
-      const payload = buildGoogleAuthPayload(authState);
-      await authApi.googleLogin(payload);
-      await refreshAuth();
-      router.replace('/app');
-    } catch (error) {
-      console.error('Google 로그인 에러:', error);
-      const message = error?.message || 'Google 로그인에 실패했습니다.';
-      setErrors((prev) => ({ ...prev, general: message }));
-    } finally {
-      if (shouldClearState) {
-        await tokenStorage.clearOauthState();
-      }
-      setIsGoogleSigningIn(false);
-    }
+  const handleGoogleSignIn = async () => {
+    await signInWithGoogle({
+      refreshAuth,
+      router,
+      setLoading: setIsGoogleSigningIn,
+      setErrorMessage: setGeneralError,
+    });
   };
 
   return (
@@ -138,7 +74,7 @@ export default function LoginScreen() {
               <Button
                 variant="primary"
                 size="lg"
-                onPress={signInWithGoogle}
+                onPress={handleGoogleSignIn}
                 loading={isGoogleSigningIn}
                 disabled={isGoogleSigningIn}
                 style={styles.buttonSpacing}
