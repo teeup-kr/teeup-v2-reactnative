@@ -27,7 +27,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./public/icons/icon-192.png"
+      "favicon": "./public/icons/icon-192-transparent.png"
     },
     "ios": {
       "bundleIdentifier": "com.pixencrew.teeup"
