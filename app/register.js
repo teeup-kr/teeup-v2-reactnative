@@ -97,7 +97,7 @@ export default function RegisterScreen() {
 
       await authApi.googleLogin(payload);
       await refreshAuth();
-      router.replace('/');
+      router.replace('/app');
     } catch (error) {
       console.error('Google 회원가입 에러:', error);
       const message = error?.message || 'Google 회원가입에 실패했습니다.';

@@ -98,7 +98,7 @@ export default function LoginScreen() {
       const payload = buildGoogleAuthPayload(authState);
       await authApi.googleLogin(payload);
       await refreshAuth();
-      router.replace('/');
+      router.replace('/app');
     } catch (error) {
       console.error('Google 로그인 에러:', error);
       const message = error?.message || 'Google 로그인에 실패했습니다.';

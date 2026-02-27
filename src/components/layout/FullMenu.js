@@ -48,7 +48,7 @@ export default function FullMenu() {
   const menuCategories = [
     {
       items: [
-        { icon: 'home', label: '홈', onPress: () => navigate('/') },
+        { icon: 'home', label: '홈', onPress: () => navigate('/app') },
         { icon: 'users', label: '클럽 찾기', onPress: () => navigate('/clubs') },
         { icon: 'list', label: '모임 목록', onPress: () => navigate('/meetings') },
         ...(isAuthenticated

@@ -3,6 +3,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import * as Notifications from 'expo-notifications';
 import {
   Slot,
+  usePathname,
   useRouter
 } from 'expo-router';
 import Head from 'expo-router/head';
@@ -75,9 +76,11 @@ async function ensureNotificationPermission() {
 
 function AppShell() {
   const insets = useSafeAreaInsets();
+  const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
   const handledNotificationIdsRef = useRef(new Set());
+  const isRootEntry = pathname === '/';
 
   useEffect(() => {
     if (Platform.OS === 'web') return undefined;
@@ -133,13 +136,13 @@ function AppShell() {
 
   return (
     <View style={styles.root}>
-      <View style={[styles.shell, { paddingBottom: bottomNavHeight(insets) }]}>
+      <View style={[styles.shell, { paddingBottom: isRootEntry ? 0 : bottomNavHeight(insets) }]}>
         <View style={styles.main}>
           <Slot />
         </View>
       </View>
-      <BottomNavigationBar />
-      <FullMenu />
+      {!isRootEntry ? <BottomNavigationBar /> : null}
+      {!isRootEntry ? <FullMenu /> : null}
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 TODO 출시시 삭제 !!!!!!!!!!!!!!!!!!!!!! */}
       <DebugConsoleOverlay />
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 !!!!!!!!!!!!!!!!!!!!!! */}
