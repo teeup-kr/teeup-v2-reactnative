@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
 import { router } from "expo-router";
 import { URLSearchParams } from 'react-native-url-polyfill';
+import { Alert } from 'react-native';
 
 import { tokenStorage } from '../tokenStorage';
 
@@ -316,11 +317,19 @@ async function apiRequest(path, options = {}) {
       payload?.detail?.code === "PROFILE_NOT_COMPLETED"
     ) {
       const redirect = payload.detail.redirect ?? "/mypage/edit";
+      const message =
+        typeof payload?.detail?.message === "string"
+          ? payload.detail.message
+          : "프로필을 먼저 완성해주세요.";
 
-      console.info("[Auth] Terms not agreed → redirect", redirect);
+      console.info("[Auth] Profile not completed → redirect", redirect);
 
-      // 뒤로가기 방지
-      router.replace(redirect);
+      Alert.alert("안내", message, [
+        {
+          text: "확인",
+          onPress: () => router.replace(redirect),
+        },
+      ]);
       return; // throw 하지 않음
     }
 

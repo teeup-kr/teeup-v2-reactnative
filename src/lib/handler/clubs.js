@@ -101,6 +101,7 @@ export function createJoinRequestHandler({
         try {
             if (setIsSubmitting) setIsSubmitting(true);
             const response = await requestJoinClub(clubId);
+            if (!response) return;
             const message = response?.message || '클럽 가입 신청이 완료되었습니다.';
             alert('가입 신청 완료', message, [
                 { text: '닫기', style: 'cancel' },

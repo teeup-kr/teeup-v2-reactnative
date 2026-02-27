@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { clubsApi } from '@/lib/api/api';
+import { clubsApi, regionApi } from '@/lib/api/api';
 import {
   createFetchClubDetailHandler,
   createJoinRequestHandler,
@@ -34,6 +34,7 @@ export default function ClubDetailScreen() {
   const { clubId } = useLocalSearchParams();
   const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
   const [club, setClub] = useState(null);
+  const [regionLabel, setRegionLabel] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isJoinSubmitting, setIsJoinSubmitting] = useState(false);
