@@ -691,7 +691,7 @@ export const faqApi = {
 };
 
 async function getMyInquiries(params = {}) {
-  return apiClient.get('/inquiries', { params });
+  return apiClient.get('/inquiries/', { params });
 }
 
 async function getInquiry(inquiryId) {
@@ -699,7 +699,7 @@ async function getInquiry(inquiryId) {
 }
 
 async function createInquiry(data) {
-  return apiClient.post('/inquiries', data);
+  return apiClient.post('/inquiries/', data);
 }
 
 async function getInquiryTypes() {

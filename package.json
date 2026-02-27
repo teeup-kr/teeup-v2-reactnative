@@ -13,7 +13,9 @@
     "web:static": "EAS_BUILD_PLATFORM=web npx expo export",
     "test": "npm run lint && jest",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
