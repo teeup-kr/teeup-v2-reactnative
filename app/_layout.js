@@ -163,7 +163,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       {/* 2. 웹 PWA를 위한 Head 설정 추가 */}
       <Head>
-        <title>TeeUp</title>
+        <title>티업링크</title>
         <link rel="manifest" href="/manifest.json" />
 
         {/* iOS PWA */}
