@@ -124,8 +124,9 @@ const TermsAgreeScreen = () => {
 
     try {
       await termsApi.postAgreementsBulk(payload);
-      Alert.alert('완료', '약관 동의가 완료되었습니다.');
-      router.replace('/app');
+      Alert.alert('완료', '약관 동의가 완료되었습니다.', [
+        { text: '확인', onPress: () => router.replace('/app') },
+      ]);
     } catch (e) {
       console.error(e);
       Alert.alert('오류', '약관 동의 처리에 실패했습니다.');

@@ -1,6 +1,7 @@
 
 import { FontAwesome5 } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { usePathname } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Platform,
@@ -9,6 +10,7 @@ import {
   TextInput,
   View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppToast from '@/components/ui/AppToast';
 import { mypageApi } from '@/lib/api/api';
@@ -32,6 +34,7 @@ import {
   calcHandicapFromAvg,
   formatDateYYYYMMDD,
   getBirthDateValue,
+  getAverageScoreInitError,
   isNicknameSame as isNicknameSameValue
 } from '@/lib/util/mypageUtils';
 import { extractData } from '@/lib/util/responseUtils';
@@ -46,6 +49,8 @@ import { base, tokens } from '@/styles/style';
    Component
 =========================== */
 export default function UserProfileEditForm() {
+  const pathname = usePathname();
+  const safeAreaEdges = pathname === '/mypage/edit' && Platform.OS !== 'web' ? ['top'] : [];
   const [isNameComposing, setIsNameComposing] = useState(false);
   const [showBirthPicker, setShowBirthPicker] = useState(false);
   const maxBirthDate = useMemo(() => new Date(), []);
@@ -85,6 +90,20 @@ export default function UserProfileEditForm() {
   const [toast, setToast] = useState({ open: false, tone: 'success', message: '' });
 
   const hasFinalAverageScore = useMemo(() => { return profile?.average_score != null; }, [profile]);
+  const initialAverageScoreInit = useMemo(() => {
+    if (hasFinalAverageScore) return '';
+    if (profile?.average_score_init == null) return '';
+    return String(profile.average_score_init);
+  }, [hasFinalAverageScore, profile?.average_score_init]);
+  const isAverageScoreInitChanged = useMemo(() => {
+    return String(formData.average_score_init ?? '') !== initialAverageScoreInit;
+  }, [formData.average_score_init, initialAverageScoreInit]);
+  const averageScoreInitValidationError = useMemo(() => {
+    if (hasFinalAverageScore || !isAverageScoreInitChanged) return '';
+    return getAverageScoreInitError(formData.average_score_init);
+  }, [formData.average_score_init, hasFinalAverageScore, isAverageScoreInitChanged]);
+  const averageScoreInitErrorMessage = errors.average_score_init || averageScoreInitValidationError;
+  const isSaveDisabled = updateProfilePending || (!hasFinalAverageScore && Boolean(averageScoreInitErrorMessage));
 
 
   const birthDateValue = useMemo(() => {
@@ -194,10 +213,26 @@ export default function UserProfileEditForm() {
     [handleInputChange],
   );
 
-  const handleAverageScoreChange = useMemo(
-    () => createFieldChangeHandler(handleInputChange, 'average_score'),
-    [handleInputChange],
-  );
+  const handleAverageScoreInitChange = useCallback((value) => {
+    if (!/^\d*$/.test(value)) {
+      setErrors((prev) => ({
+        ...prev,
+        average_score_init: '초기 평균 타수는 숫자만 입력 가능합니다.',
+      }));
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      average_score_init: value,
+      calculatedHandicap: calcHandicapFromAvg(value),
+    }));
+    const shouldValidate = value !== initialAverageScoreInit;
+    setErrors((prev) => ({
+      ...prev,
+      average_score_init: shouldValidate ? getAverageScoreInitError(value) : '',
+    }));
+  }, [initialAverageScoreInit, setErrors, setFormData]);
 
   const checkNicknameDuplicate = useMemo(
     () => createCheckNicknameDuplicateHandler({
@@ -224,9 +259,11 @@ export default function UserProfileEditForm() {
       formData,
       isNicknameSame,
       nicknameChecked,
+      hasFinalAverageScore,
+      shouldValidateAverageScoreInit: isAverageScoreInitChanged,
       setErrors,
     }),
-    [formData, isNicknameSame, nicknameChecked, setErrors],
+    [formData, isNicknameSame, nicknameChecked, hasFinalAverageScore, isAverageScoreInitChanged, setErrors],
   );
 
   const fetchProfile = useCallback(async () => {
@@ -304,14 +341,15 @@ export default function UserProfileEditForm() {
   );
 
   return (
-    <View style={styles.root}>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* 카드 */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>회원정보 수정</Text>
+    <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
+      <View style={styles.root}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* 카드 */}
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>회원정보 수정</Text>
 
           <View style={styles.stackLg}>
             {/* 이메일 */}
@@ -612,18 +650,12 @@ export default function UserProfileEditForm() {
 
                 <TextInput
                   value={formData.average_score_init}
-                  onChangeText={(v) =>
-                    setFormData(prev => ({
-                      ...prev,
-                      average_score_init: v,
-                      calculatedHandicap: calcHandicapFromAvg(v),
-                    }))
-                  }
+                  onChangeText={handleAverageScoreInitChange}
                   placeholder="초기 평균 타수를 입력하세요 (55-144)"
                   placeholderTextColor={colors.gray[400]}
                   style={[
                     styles.input,
-                    errors.average_score_init
+                    averageScoreInitErrorMessage
                       ? styles.inputError
                       : styles.inputNormal,
                   ]}
@@ -643,9 +675,9 @@ export default function UserProfileEditForm() {
                   </View>
                 )}
 
-                {!!errors.average_score_init && (
+                {!!averageScoreInitErrorMessage && (
                   <Text style={styles.errorText}>
-                    {errors.average_score_init}
+                    {averageScoreInitErrorMessage}
                   </Text>
                 )}
               </View>
@@ -657,12 +689,12 @@ export default function UserProfileEditForm() {
           <View style={styles.footer}>
             <Pressable
               onPress={handleSave}
-              disabled={updateProfilePending}
+              disabled={isSaveDisabled}
               style={({ pressed }) => [
                 styles.saveBtn,
-                updateProfilePending && styles.btnDisabled,
+                isSaveDisabled && styles.saveBtnDisabled,
                 pressed &&
-                !updateProfilePending &&
+                !isSaveDisabled &&
                 styles.btnPressed,
               ]}
             >
@@ -672,22 +704,24 @@ export default function UserProfileEditForm() {
               </Text>
             </Pressable>
           </View>
-        </View>
+          </View>
 
-      </ScrollView>
+        </ScrollView>
 
-      <AppToast
-        toast={toast?.open ? { tone: toast.tone, message: toast.message } : null}
-        autoHideMs={2200}
-        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
-      />
-    </View>
+        <AppToast
+          toast={toast?.open ? { tone: toast.tone, message: toast.message } : null}
+          autoHideMs={2200}
+          onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const PRIMARY_600 = colors.green[600];
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: colors.bg },
   root: { flex: 1, backgroundColor: colors.bg },
   container: base.container,
 
@@ -847,6 +881,9 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.md,
     backgroundColor: PRIMARY_600,
     alignItems: 'center',
+  },
+  saveBtnDisabled: {
+    backgroundColor: colors.neutral[300],
   },
   saveBtnText: { color: colors.white, fontWeight: tokens.fontWeight.extrabold, fontSize: tokens.font.sm },
   genderSelectRow: {
