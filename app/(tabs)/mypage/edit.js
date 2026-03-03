@@ -1,7 +1,7 @@
 
 import { FontAwesome5 } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { usePathname } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Platform,
@@ -48,8 +48,9 @@ import { base, tokens } from '@/styles/style';
 /* ===========================
    Component
 =========================== */
-export default function UserProfileEditForm() {
+export default function UserProfileEditForm({ onMoveToWithdraw }) {
   const pathname = usePathname();
+  const router = useRouter();
   const safeAreaEdges = pathname === '/mypage/edit' && Platform.OS !== 'web' ? ['top'] : [];
   const [isNameComposing, setIsNameComposing] = useState(false);
   const [showBirthPicker, setShowBirthPicker] = useState(false);
@@ -115,6 +116,14 @@ export default function UserProfileEditForm() {
   }, [formData.nickname, profile?.nickname]);
 
   const selectedGender = profile.gender ?? formData.gender;
+
+  const handleMoveToWithdraw = useCallback(() => {
+    if (typeof onMoveToWithdraw === 'function') {
+      onMoveToWithdraw();
+      return;
+    }
+    router.push('/mypage/withdraw');
+  }, [onMoveToWithdraw, router]);
 
   useEffect(() => {
     if (isNicknameSame) {
@@ -688,6 +697,15 @@ export default function UserProfileEditForm() {
           {/* 저장 */}
           <View style={styles.footer}>
             <Pressable
+              onPress={handleMoveToWithdraw}
+              style={({ pressed }) => [
+                styles.withdrawMoveBtn,
+                pressed && styles.btnPressed,
+              ]}
+            >
+              <Text style={styles.withdrawMoveBtnText}>회원탈퇴</Text>
+            </Pressable>
+            <Pressable
               onPress={handleSave}
               disabled={isSaveDisabled}
               style={({ pressed }) => [
@@ -871,7 +889,26 @@ const styles = StyleSheet.create({
     paddingTop: tokens.padding.md,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    alignItems: 'flex-end',
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: tokens.spacing.xs2,
+  },
+  withdrawMoveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.xs2,
+    paddingHorizontal: tokens.padding.md,
+    paddingVertical: tokens.padding.sm,
+    borderRadius: tokens.radius.md,
+    borderWidth: 1,
+    borderColor: colors.error[300],
+    backgroundColor: colors.error[50],
+  },
+  withdrawMoveBtnText: {
+    color: colors.error[700],
+    fontWeight: tokens.fontWeight.bold,
+    fontSize: tokens.font.sm,
   },
   saveBtn: {
     flexDirection: 'row',

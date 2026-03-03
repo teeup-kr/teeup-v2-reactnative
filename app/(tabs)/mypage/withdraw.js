@@ -110,7 +110,12 @@ export default function WithdrawScreen() {
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
         </Card>
 
-        <Button style={styles.withdrawButton} onPress={handleSubmit} color={colors.red[600]}>
+        <Button
+          style={styles.withdrawButton}
+          onPress={handleSubmit}
+          color={colors.red[600]}
+          disabled={!agreed}
+        >
           회원 탈퇴
         </Button>
         {resultMessage ? <Text style={styles.successText}>{resultMessage}</Text> : null}

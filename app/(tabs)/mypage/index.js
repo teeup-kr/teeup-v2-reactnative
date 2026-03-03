@@ -24,7 +24,6 @@ const TABS = [
   { id: 'records', label: '기록' },
   { id: 'notifications', label: '알림' },
   { id: 'edit', label: '회원정보 수정' },
-  { id: 'withdraw', label: '회원탈퇴' },
 ];
 
 export default function MyPageScreen() {
@@ -45,7 +44,7 @@ export default function MyPageScreen() {
           meetings: <MyMeetingsScreen />,
           records: <RecordsScreen />,
           notifications: <NotificationsScreen />,
-          edit: <UserProfileEditTab />,
+          edit: <UserProfileEditTab onMoveToWithdraw={() => setActiveTab('withdraw')} />,
           withdraw: <WithdrawScreen />,
         },
       }),
@@ -84,7 +83,7 @@ export default function MyPageScreen() {
             }}
           >
             {TABS.map((tab) => {
-              const active = activeTab === tab.id;
+              const active = activeTab === tab.id || (activeTab === 'withdraw' && tab.id === 'edit');
 
               return (
                 <Pressable
