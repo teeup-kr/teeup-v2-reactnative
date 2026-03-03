@@ -2,6 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   ActivityIndicator,
   Pressable,
   ScrollView,
@@ -139,7 +140,9 @@ export default function TermsAgreementScreen() {
       // 사용자에게 다시 로그인하도록 안내하거나, 백엔드에서 정상 토큰을 발급해주는지 확인 필요
       // 일단 홈으로 이동하고 refreshAuth로 상태 확인
       await refreshAuth();
-      router.replace('/app');
+      Alert.alert('완료', '약관 동의가 완료되었습니다.', [
+        { text: '확인', onPress: () => router.replace('/app') },
+      ]);
     } catch (err) {
       console.error('약관 동의 실패:', err);
       setError(err?.message || '약관 동의에 실패했습니다.');

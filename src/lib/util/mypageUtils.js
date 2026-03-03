@@ -49,6 +49,32 @@ export function calcHandicapFromAvg(avgStr) {
   return Math.max(0, Math.min(72, Math.round(num - 72)));
 };
 
+const AVERAGE_SCORE_INIT_MIN = 55;
+const AVERAGE_SCORE_INIT_MAX = 144;
+
+export function getAverageScoreInitError(value) {
+  const raw = String(value ?? '').trim();
+
+  if (!raw) {
+    return '초기 평균 타수를 입력해주세요.';
+  }
+
+  if (!/^\d+$/.test(raw)) {
+    return '초기 평균 타수는 숫자만 입력 가능합니다.';
+  }
+
+  const score = Number(raw);
+  if (
+    !Number.isInteger(score) ||
+    score < AVERAGE_SCORE_INIT_MIN ||
+    score > AVERAGE_SCORE_INIT_MAX
+  ) {
+    return '초기 평균 타수는 55~144 사이의 정수만 입력 가능합니다.';
+  }
+
+  return '';
+}
+
 // export function formatDateYYYYMMDD(date) {
 //   if (!date) return '';
 //   const year = date.getFullYear();
@@ -137,6 +163,8 @@ export function validateProfileForm({
   formData,
   isNicknameSameValue,
   nicknameChecked,
+  hasFinalAverageScore,
+  shouldValidateAverageScoreInit = true,
 }) {
   const nextErrors = {};
   const nickname = formData.nickname?.trim();
@@ -161,6 +189,13 @@ export function validateProfileForm({
 
   if (!formData.birthdate) {
     nextErrors.birthdate = '생년월일을 선택해주세요.';
+  }
+
+  if (!hasFinalAverageScore && shouldValidateAverageScoreInit) {
+    const averageScoreInitError = getAverageScoreInitError(formData.average_score_init);
+    if (averageScoreInitError) {
+      nextErrors.average_score_init = averageScoreInitError;
+    }
   }
 
   return nextErrors;

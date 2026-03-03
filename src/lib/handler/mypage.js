@@ -220,6 +220,8 @@ export function createValidateProfileFormHandler({
     formData,
     isNicknameSame,
     nicknameChecked,
+    hasFinalAverageScore,
+    shouldValidateAverageScoreInit,
     setErrors,
 }) {
     return () => {
@@ -227,6 +229,8 @@ export function createValidateProfileFormHandler({
             formData,
             isNicknameSameValue: isNicknameSame,
             nicknameChecked,
+            hasFinalAverageScore,
+            shouldValidateAverageScoreInit,
         });
         setErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
