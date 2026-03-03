@@ -20,18 +20,23 @@ export function AuthProvider({ children }) {
     setIsLoading(true);
     setAuthError(null);
     try {
-      const [storedUser, accessToken] = await Promise.all([
+      const [storedUser, accessToken, refreshToken] = await Promise.all([
         tokenStorage.getUser(),
         tokenStorage.getAccessToken(),
+        tokenStorage.getRefreshToken(),
       ]);
 
       if (storedUser) {
         setUser(storedUser);
       }
 
-      if (!accessToken) {
+      if (!accessToken && !refreshToken) {
         setUser(null);
         return;
+      }
+
+      if (!accessToken && refreshToken) {
+        await authApi.refreshToken(refreshToken);
       }
 
       const currentUser = await authApi.getCurrentUser();

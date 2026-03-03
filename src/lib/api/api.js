@@ -70,7 +70,9 @@ async function register(userData) {
 }
 
 async function refreshToken(refreshToken) {
-  return apiClient.post(`${AUTH_PREFIX}/refresh`, { refresh_token: refreshToken }, { auth: false });
+  const response = await apiClient.post(`${AUTH_PREFIX}/refresh`, { refresh_token: refreshToken }, { auth: false });
+  await tokenStorage.setTokens(response.access_token, response.refresh_token);
+  return response;
 }
 
 async function getCurrentUser() {
@@ -164,6 +166,8 @@ async function agreeToTerms(termsIds) {
 }
 
 async function logout() {
+  const refreshToken = await tokenStorage.getRefreshToken();
+
   try {
     await syncPushToken({ enabled: false });
   } catch (error) {
@@ -171,7 +175,7 @@ async function logout() {
   }
 
   try {
-    await apiClient.post(`${AUTH_PREFIX}/logout`);
+    await apiClient.post(`${AUTH_PREFIX}/logout`, { refresh_token: refreshToken });
   } catch (error) {
     console.warn('로그아웃 API 호출 실패:', error?.message || error);
   } finally {

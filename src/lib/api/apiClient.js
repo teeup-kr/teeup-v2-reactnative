@@ -37,6 +37,8 @@ console.log('!!! apiClient.js - extra (after fix):', JSON.stringify(extra, null,
 console.log('!!! apiClient.js - API_BASE_URL:', API_BASE_URL);
 
 const sensitiveKeys = ['password', 'token', 'authorization', 'refresh', 'access'];
+const REFRESH_PATH = '/auth/refresh';
+let refreshPromise = null;
 
 function maskValue(value) {
   if (typeof value !== 'string') return value;
@@ -62,6 +64,11 @@ function sanitizePayload(payload) {
   }
   return payload;
 };
+
+async function parseJsonPayload(response) {
+  const isJson = response.headers.get('content-type')?.includes('application/json');
+  return isJson ? await response.json() : null;
+}
 
 function buildQuery(params = {}) {
   const entries = Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '');
@@ -91,6 +98,62 @@ function buildRequestConfig(config = {}) {
     auth: config.auth !== false,
   };
 };
+
+async function requestTokenRefresh() {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
+  refreshPromise = (async () => {
+    const refreshToken = await tokenStorage.getRefreshToken();
+    if (!refreshToken) {
+      return null;
+    }
+
+    const refreshUrl = buildUrl(REFRESH_PATH);
+    let refreshResponse;
+    try {
+      refreshResponse = await fetch(refreshUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+    } catch (error) {
+      console.warn('[Auth Refresh Network Error]', {
+        url: refreshUrl,
+        message: error?.message,
+      });
+      return null;
+    }
+
+    const refreshPayload = await parseJsonPayload(refreshResponse);
+    console.log('[Auth Refresh Response]', {
+      url: refreshUrl,
+      status: refreshResponse.status,
+      payload: sanitizePayload(refreshPayload),
+    });
+
+    if (!refreshResponse.ok || !refreshPayload?.access_token) {
+      return null;
+    }
+
+    await tokenStorage.setTokens(refreshPayload.access_token, refreshPayload.refresh_token);
+    return refreshPayload.access_token;
+  })();
+
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
+  }
+}
+
+async function handleAuthExpired() {
+  console.info('[Auth] Session expired → logout');
+  await tokenStorage.clearTokens();
+  await tokenStorage.clearUser();
+  router.replace('/login');
+}
 
 async function apiRequest(path, options = {}) {
   const {
@@ -130,24 +193,28 @@ async function apiRequest(path, options = {}) {
     body: isForm ? '[FormData]' : sanitizePayload(body),
   });
 
-  let response;
-  try {
-    response = await fetch(url, {
-      method,
-      headers: requestHeaders,
-      body: isForm ? formData : (body ? JSON.stringify(body) : undefined),
-    });
-  } catch (networkError) {
-    console.warn('[API Network Error]', {
-      method,
-      url,
-      message: networkError?.message,
-    });
-    throw networkError;
-  }
+  const requestOnce = async (headersToUse) => {
+    const result = {};
+    try {
+      result.response = await fetch(url, {
+        method,
+        headers: headersToUse,
+        body: isForm ? formData : (body ? JSON.stringify(body) : undefined),
+      });
+    } catch (networkError) {
+      console.warn('[API Network Error]', {
+        method,
+        url,
+        message: networkError?.message,
+      });
+      throw networkError;
+    }
 
-  const isJson = response.headers.get('content-type')?.includes('application/json');
-  const payload = isJson ? await response.json() : null;
+    result.payload = await parseJsonPayload(result.response);
+    return result;
+  };
+
+  let { response, payload } = await requestOnce(requestHeaders);
 
   console.log(
     '[API Response]\n' +
@@ -160,8 +227,6 @@ async function apiRequest(path, options = {}) {
   );
 
   if (!response.ok) {
-    const error = new Error(payload?.detail || payload?.message || '요청에 실패했습니다.');
-
     const hasAuthHeader = Boolean(requestHeaders.Authorization);
     const detailText =
       typeof payload?.detail === 'string'
@@ -176,14 +241,61 @@ async function apiRequest(path, options = {}) {
         detailText.toLowerCase().includes('not authenticated') ||
         payload?.detail?.code === 'NOT_AUTHENTICATED'
       );
+    const isAuthFailure = auth && ((response.status === 401 && hasAuthHeader) || isAuthForbidden);
 
-    if ((response.status === 401 && hasAuthHeader) || isAuthForbidden) {
-      console.info('[Auth] Token expired → logout');
-      await tokenStorage.clearTokens();
-      await tokenStorage.clearUser();
-      router.replace('/login');
-      return;
+    if (isAuthFailure) {
+      const refreshedAccessToken = await requestTokenRefresh();
+      if (refreshedAccessToken) {
+        const retryHeaders = {
+          ...requestHeaders,
+          Authorization: `Bearer ${refreshedAccessToken}`,
+        };
+        const retryResult = await requestOnce(retryHeaders);
+        response = retryResult.response;
+        payload = retryResult.payload;
+
+        console.log(
+          '[API Retry Response]\n' +
+          JSON.stringify({
+            method,
+            url,
+            status: response.status,
+            payload: sanitizePayload(payload),
+          }, null, 2)
+        );
+
+        if (response.ok) {
+          return payload;
+        }
+
+        const retryHasAuthHeader = Boolean(retryHeaders.Authorization);
+        const retryDetailText =
+          typeof payload?.detail === 'string'
+            ? payload.detail
+            : typeof payload?.message === 'string'
+              ? payload.message
+              : '';
+        const retryIsAuthForbidden =
+          response.status === 403 &&
+          retryHasAuthHeader &&
+          (
+            retryDetailText.toLowerCase().includes('not authenticated') ||
+            payload?.detail?.code === 'NOT_AUTHENTICATED'
+          );
+
+        if ((response.status === 401 && retryHasAuthHeader) || retryIsAuthForbidden) {
+          await handleAuthExpired();
+          return;
+        }
+      } else {
+        await handleAuthExpired();
+        return;
+      }
     }
+
+    const error = new Error(payload?.detail || payload?.message || '요청에 실패했습니다.');
+    error.status = response.status;
+    error.payload = payload;
 
     // 요청 실패, 약관동의 요구 받은경우
     if (
@@ -211,9 +323,6 @@ async function apiRequest(path, options = {}) {
       router.replace(redirect);
       return; // throw 하지 않음
     }
-
-    error.status = response.status;
-    error.payload = payload;
 
     // // 403 응답이고 약관 동의 토큰이 헤더에 있는 경우
     // if (response.status === 403) {
