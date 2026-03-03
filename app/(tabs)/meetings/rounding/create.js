@@ -5,11 +5,15 @@ import {
     ActivityIndicator,
     Alert,
     Modal,
+    Platform,
     Pressable,
-    ScrollView, StyleSheet, Text,
+    ScrollView,
+    StyleSheet,
+    Text,
     TextInput,
-    View
+    View,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ChipOption from '@/components/meetings/ChipOption';
@@ -149,7 +153,7 @@ export function RoundingForm({ mode = 'create' }) {
     course_name: '',
     reservation_name: '',
     hole_count: '18',
-    tee_times: '',
+    tee_times: [],
     max_participants: '',
     team_size: '4',
     team_formation_mode: 'GENDER_SEPARATED',
@@ -174,6 +178,8 @@ export function RoundingForm({ mode = 'create' }) {
   const [participantSearchResults, setParticipantSearchResults] = useState([]);
   const [outsideParticipantPage, setOutsideParticipantPage] = useState(1);
   const [modalParticipantPage, setModalParticipantPage] = useState(1);
+  const [teeTimeHour, setTeeTimeHour] = useState(7);
+  const [teeTimeMinute, setTeeTimeMinute] = useState(0);
 
   const estimatedTotalCost = useMemo(() => {
     const greenFee = Number(form.green_fee) || 0;
@@ -193,7 +199,7 @@ export function RoundingForm({ mode = 'create' }) {
           form.club_id ||
           form.course_name.trim() ||
           form.reservation_name.trim() ||
-          form.tee_times.trim() ||
+          (Array.isArray(form.tee_times) && form.tee_times.length > 0) ||
           form.max_participants ||
           Number(form.green_fee) > 0 ||
           Number(form.caddy_fee) > 0 ||
@@ -208,6 +214,25 @@ export function RoundingForm({ mode = 'create' }) {
     () => createFieldChangeHandler({ setForm }),
     [setForm]
   );
+
+  const addTeeTime = useCallback(() => {
+    const h = String(teeTimeHour).padStart(2, '0');
+    const m = String(teeTimeMinute).padStart(2, '0');
+    const timeStr = `${h}:${m}`;
+    setForm((prev) => {
+      const list = Array.isArray(prev.tee_times) ? [...prev.tee_times] : [];
+      if (list.includes(timeStr)) return prev;
+      return { ...prev, tee_times: [...list, timeStr].sort() };
+    });
+  }, [teeTimeHour, teeTimeMinute]);
+
+  const removeTeeTime = useCallback((timeStr) => {
+    setForm((prev) => {
+      const list = Array.isArray(prev.tee_times) ? prev.tee_times : [];
+      return { ...prev, tee_times: list.filter((t) => t !== timeStr) };
+    });
+  }, []);
+
   const handleClubSelect = useMemo(
     () => createOptionPressHandler({ onChange: handleFieldChange, field: 'club_id' }),
     [handleFieldChange]
@@ -853,7 +878,7 @@ export function RoundingForm({ mode = 'create' }) {
                 <TextInput
                   value={form.course_name}
                   onChangeText={handleFieldChange('course_name')}
-                  placeholder="예: 한강 GC"
+                  placeholder="예: 한강 CC"
                   style={[styles.input, fieldErrors.course_name && styles.inputError]}
                   placeholderTextColor={colors.neutral[400]}
                 />
@@ -876,34 +901,69 @@ export function RoundingForm({ mode = 'create' }) {
                 )}
               </View>
 
-              <View style={styles.row}>
-                <View style={styles.halfField}>
-                  <Text style={styles.label}>홀 수</Text>
-                  <TextInput
-                    value={form.hole_count}
-                    onChangeText={handleFieldChange('hole_count')}
-                    placeholder="18"
-                    keyboardType="numeric"
-                    style={[styles.input, fieldErrors.hole_count && styles.inputError]}
-                    placeholderTextColor={colors.neutral[400]}
-                  />
-                  {fieldErrors.hole_count && (
-                    <Text style={styles.errorText}>{fieldErrors.hole_count}</Text>
-                  )}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>홀 수</Text>
+                <TextInput
+                  value={form.hole_count}
+                  onChangeText={handleFieldChange('hole_count')}
+                  placeholder="18"
+                  keyboardType="numeric"
+                  style={[styles.input, fieldErrors.hole_count && styles.inputError]}
+                  placeholderTextColor={colors.neutral[400]}
+                />
+                {fieldErrors.hole_count && (
+                  <Text style={styles.errorText}>{fieldErrors.hole_count}</Text>
+                )}
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>티타임</Text>
+                <View style={styles.teeTimeRow}>
+                  <View style={styles.teeTimePickerWrap}>
+                    <Picker
+                      selectedValue={teeTimeHour}
+                      onValueChange={(v) => setTeeTimeHour(Number(v))}
+                      style={styles.teeTimePicker}
+                      mode={Platform.OS === 'android' ? 'dropdown' : 'dialog'}
+                      dropdownIconColor={colors.neutral[600]}
+                    >
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <Picker.Item key={i} label={`${String(i).padStart(2, '0')}시`} value={i} />
+                      ))}
+                    </Picker>
+                  </View>
+                  <View style={styles.teeTimePickerWrap}>
+                    <Picker
+                      selectedValue={teeTimeMinute}
+                      onValueChange={(v) => setTeeTimeMinute(Number(v))}
+                      style={styles.teeTimePicker}
+                      mode={Platform.OS === 'android' ? 'dropdown' : 'dialog'}
+                      dropdownIconColor={colors.neutral[600]}
+                    >
+                      {Array.from({ length: 60 }, (_, m) => (
+                        <Picker.Item key={m} label={`${String(m).padStart(2, '0')}분`} value={m} />
+                      ))}
+                    </Picker>
+                  </View>
+                  <Button variant="outline" size="md" onPress={addTeeTime} style={styles.teeTimeAddBtn}>
+                    추가
+                  </Button>
                 </View>
-                <View style={[styles.halfField, styles.halfFieldLast]}>
-                  <Text style={styles.label}>티타임</Text>
-                  <TextInput
-                    value={form.tee_times}
-                    onChangeText={handleFieldChange('tee_times')}
-                    placeholder="예: 09:00, 09:10"
-                    style={[styles.input, fieldErrors.tee_times && styles.inputError]}
-                    placeholderTextColor={colors.neutral[400]}
-                  />
-                  {fieldErrors.tee_times && (
-                    <Text style={styles.errorText}>{fieldErrors.tee_times}</Text>
-                  )}
+                <View style={styles.teeTimeBadgeWrap}>
+                  {(Array.isArray(form.tee_times) ? form.tee_times : []).map((timeStr) => (
+                    <Pressable
+                      key={timeStr}
+                      style={styles.teeTimeBadge}
+                      onPress={() => removeTeeTime(timeStr)}
+                    >
+                      <Text style={styles.teeTimeBadgeText}>{timeStr}</Text>
+                      <Text style={styles.teeTimeBadgeRemove}>×</Text>
+                    </Pressable>
+                  ))}
                 </View>
+                {fieldErrors.tee_times && (
+                  <Text style={styles.errorText}>{fieldErrors.tee_times}</Text>
+                )}
               </View>
             </Card>
 
@@ -1184,6 +1244,9 @@ export function RoundingForm({ mode = 'create' }) {
             <Card style={styles.card}>
               <Text style={styles.sectionTitle}>정산 정보</Text>
               <Text style={styles.sectionSubtitle}>비용 정보를 입력해주세요.</Text>
+              <Text style={styles.settlementNotice}>
+                안내를 위한 설정이며, 실제 정산 작업 시 일부는 변경할 수 있습니다.
+              </Text>
 
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>그린피</Text>
@@ -1511,6 +1574,11 @@ const styles = StyleSheet.create({
   loadingText: { ...base.textSmMuted, marginTop: tokens.spacing.sm2, fontSize: tokens.font.base },
   sectionTitle: base.sectionTitle,
   sectionSubtitle: { ...base.sectionSubtitle, marginTop: tokens.spacing.xxs, marginBottom: tokens.spacing.sm2 },
+  settlementNotice: {
+    fontSize: tokens.font.xs,
+    color: colors.error[600],
+    marginBottom: tokens.spacing.sm2,
+  },
   label: base.labelSm,
   helperText: base.textSmSubtle,
   input: {
@@ -1543,6 +1611,54 @@ const styles = StyleSheet.create({
   },
   halfFieldLast: {
     marginRight: 0,
+  },
+  teeTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.xs,
+    marginBottom: tokens.spacing.xs2,
+  },
+  teeTimePickerWrap: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+    borderRadius: tokens.radius.base,
+    backgroundColor: colors.white,
+    minHeight: 44,
+  },
+  teeTimePicker: {
+    height: 44,
+  },
+  teeTimeAddBtn: {
+    minWidth: 64,
+  },
+  teeTimeBadgeWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: tokens.spacing.xs2,
+    marginTop: tokens.spacing.xs2,
+  },
+  teeTimeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: tokens.padding.xs2,
+    paddingHorizontal: tokens.padding.sm,
+    borderRadius: tokens.radius.pill,
+    backgroundColor: colors.primary[50],
+    borderWidth: 1,
+    borderColor: colors.primary[200],
+  },
+  teeTimeBadgeText: {
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
+    color: colors.primary[800],
+  },
+  teeTimeBadgeRemove: {
+    fontSize: 18,
+    lineHeight: 20,
+    color: colors.primary[600],
+    paddingLeft: 2,
   },
   chipRow: {
     flexDirection: 'row',

@@ -2,6 +2,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState
@@ -15,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppFooter from '@/components/layout/AppFooter';
+import { useAuth } from '@/context/AuthContext';
 import Card from '@/components/ui/Card';
 import { mypageApi } from '@/lib/api/api';
 import {
@@ -38,6 +40,7 @@ import { base, tokens } from '@/styles/style';
 
 export default function OverviewScreen() {
   const router = useRouter();
+  const { logout } = useAuth();
   const [profile, setProfile] = useState(null);
   const [handicapInfo, setHandicapInfo] = useState(null);
   const [clubs, setClubs] = useState([]);
@@ -99,6 +102,11 @@ export default function OverviewScreen() {
     () => (clubId) => createOpenClubDetailHandler(router, clubId),
     [router],
   );
+
+  const handleLogout = useCallback(async () => {
+    await logout();
+    router.replace('/');
+  }, [logout, router]);
 
   if (loading) {
     return (
@@ -238,6 +246,13 @@ export default function OverviewScreen() {
         ))}
       </Card>
 
+      <Pressable
+        style={({ pressed }) => [styles.logoutBtn, pressed && styles.logoutBtnPressed]}
+        onPress={handleLogout}
+      >
+        <Text style={styles.logoutBtnText}>로그아웃</Text>
+      </Pressable>
+
       <AppFooter />
     </ScrollView >
   );
@@ -342,5 +357,24 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.xxs,
     color: colors.primary[700],
     fontWeight: tokens.fontWeight.semibold,
+  },
+  logoutBtn: {
+    marginTop: tokens.spacing.lg,
+    marginBottom: tokens.spacing.md,
+    paddingVertical: tokens.padding.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+    borderRadius: tokens.radius.base,
+    backgroundColor: colors.white,
+  },
+  logoutBtnPressed: {
+    backgroundColor: colors.neutral[100],
+  },
+  logoutBtnText: {
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
+    color: colors.neutral[600],
   },
 });

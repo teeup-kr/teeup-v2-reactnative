@@ -385,6 +385,9 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
                 <FontAwesome5 name="user" size={14} style={styles.labelIcon} />
                 닉네임 <Text style={styles.required}>*</Text>
               </Text>
+              <Text style={styles.helperText}>
+                닉네임은 영문, 한글, 숫자만 입력 가능합니다.(공백 불가)
+              </Text>
 
               <View style={styles.rowGap}>
                 <TextInput

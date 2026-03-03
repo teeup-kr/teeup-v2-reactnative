@@ -50,6 +50,12 @@ export function buildRoundingFormFromData({ data, fallback }) {
       ? buildParticipantDetails(data.selected_participant_details)
       : buildParticipantDetails(data.selected_participants);
 
+  const teeTimesArray = Array.isArray(data.tee_times)
+    ? [...data.tee_times]
+    : data.tee_times
+      ? parseTeeTimes(String(data.tee_times))
+      : [];
+
   return ({
     ...fallback,
     name: data.name ?? '',
@@ -61,7 +67,7 @@ export function buildRoundingFormFromData({ data, fallback }) {
     course_name: data.course_name ?? '',
     reservation_name: data.reservation_name ?? '',
     hole_count: data.hole_count ? String(data.hole_count) : '18',
-    tee_times: Array.isArray(data.tee_times) ? data.tee_times.join(', ') : data.tee_times ?? '',
+    tee_times: teeTimesArray,
     max_participants: data.max_participants !== undefined ? String(data.max_participants) : '',
     team_size: data.team_size !== undefined ? String(data.team_size) : '',
     team_formation_mode: data.team_formation_mode || fallback.team_formation_mode,
@@ -77,11 +83,18 @@ export function buildRoundingFormFromData({ data, fallback }) {
   });
 }
 
+function getTeeTimesArray(formTeeTimes) {
+  if (Array.isArray(formTeeTimes)) {
+    return formTeeTimes.map((t) => String(t).trim()).filter((t) => t.length > 0);
+  }
+  return parseTeeTimes(formTeeTimes);
+}
+
 export function validateRoundingForm(input) {
   const form = input?.form ?? input ?? {};
   console.log('Validating rounding form:', form);
   const errors = {};
-  const teeTimes = parseTeeTimes(form.tee_times);
+  const teeTimes = getTeeTimesArray(form.tee_times);
 
   if (!form.name?.trim()) errors.name = '모임명을 입력해주세요.';
   if (!form.location?.trim()) errors.location = '장소를 입력해주세요.';
@@ -144,7 +157,7 @@ export function validateRoundingForm(input) {
 export function resolveSettlementMethod(method, settlementMethods) { return settlementMethods.some((item) => item.id === method) ? method : 'EQUAL_SPLIT'; }
 
 export function buildRoundingPayload({ form, settlementMethods }) {
-  const teeTimes = parseTeeTimes(form.tee_times);
+  const teeTimes = getTeeTimesArray(form.tee_times);
   const greenFee = normalizeNumber(form.green_fee, 0);
   const caddyFee = normalizeNumber(form.caddy_fee, 0);
   const cartFee = normalizeNumber(form.cart_fee, 0);
