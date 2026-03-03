@@ -532,9 +532,7 @@ export async function ensureProfileCompleted({
 
     if (!isCompleted) {
       alert(alertMessage);
-      if (router?.replace) {
-        router.replace(redirectPath);
-      }
+      router.replace(redirectPath);
       return false;
     }
 
