@@ -63,7 +63,7 @@ export default function GoogleOAuthCallback() {
         });
 
         await refreshAuth();
-        router.replace('/');
+        router.replace('/app');
       } catch (err) {
         console.error('Google OAuth callback error:', err);
         setIsLoading(false);

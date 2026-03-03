@@ -13,7 +13,7 @@ export default function AppHeader() {
     <View style={styles.container}>
       <View style={styles.inner}>
         <View style={styles.left}>
-          <Pressable onPress={() => router.push('/')} style={styles.brand}>
+          <Pressable onPress={() => router.push('/app')} style={styles.brand}>
             <Image source={logoImage} style={styles.logo} resizeMode="contain" />
             <Text style={styles.brandText}>티업링크</Text>
           </Pressable>

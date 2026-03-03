@@ -15,7 +15,6 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import HtmlContent from '@/components/ui/HtmlContent';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { termsTabs } from '@/constants/termsConstants';
 import { useAuth } from '@/context/AuthContext';
 import { authApi, termsApi } from '@/lib/api/api';
 import { tokenStorage } from '@/lib/tokenStorage';
@@ -34,7 +33,7 @@ const OPTIONAL_TERMS = [
 
 export default function TermsAgreementScreen() {
   const router = useRouter();
-  const { refreshAuth, setAuthError } = useAuth();
+  const { refreshAuth } = useAuth();
 
   const [agreements, setAgreements] = useState({
     TERMS_OF_SERVICE: false,
@@ -140,7 +139,7 @@ export default function TermsAgreementScreen() {
       // 사용자에게 다시 로그인하도록 안내하거나, 백엔드에서 정상 토큰을 발급해주는지 확인 필요
       // 일단 홈으로 이동하고 refreshAuth로 상태 확인
       await refreshAuth();
-      router.replace('/');
+      router.replace('/app');
     } catch (err) {
       console.error('약관 동의 실패:', err);
       setError(err?.message || '약관 동의에 실패했습니다.');

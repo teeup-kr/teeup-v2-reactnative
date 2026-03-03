@@ -3,15 +3,18 @@ import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import HtmlContent from '@/components/ui/HtmlContent';
 import { termsApi } from '@/lib/api/api';
+import { colors } from '@/styles/colors';
 
 const TermsAgreeScreen = () => {
   const router = useRouter();
@@ -122,25 +125,36 @@ const TermsAgreeScreen = () => {
     try {
       await termsApi.postAgreementsBulk(payload);
       Alert.alert('완료', '약관 동의가 완료되었습니다.');
-      router.replace("/")
+      router.replace('/app');
     } catch (e) {
       console.error(e);
       Alert.alert('오류', '약관 동의 처리에 실패했습니다.');
     }
   };
 
+  const allRequiredChecked = checked.service && checked.privacy && checked.collection;
+
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <Text>로딩 중...</Text>
-      </View>
+      <SafeAreaView
+        style={styles.safeArea}
+        edges={Platform.OS === 'web' ? [] : ['top']}
+      >
+        <View style={styles.center}>
+          <Text>로딩 중...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>약관 동의</Text>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={Platform.OS === 'web' ? [] : ['top']}
+    >
+      <View style={styles.container}>
+        <Text style={styles.title}>약관 동의</Text>
 
       {/* 전체 동의 */}
       <CheckRow
@@ -180,38 +194,46 @@ const TermsAgreeScreen = () => {
       />
 
       {/* 하단 버튼 */}
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+      <TouchableOpacity
+        style={[
+          styles.submitButton,
+          !allRequiredChecked && styles.submitButtonDisabled,
+        ]}
+        onPress={handleSubmit}
+        disabled={!allRequiredChecked}
+      >
         <Text style={styles.submitText}>동의</Text>
       </TouchableOpacity>
 
-      {/* 중앙 모달 */}
-      <Modal visible={modalVisible} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>
-              {terms[currentTermsKey]?.title ?? '약관'}
-            </Text>
+        {/* 중앙 모달 */}
+        <Modal visible={modalVisible} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalBox}>
+              <Text style={styles.modalTitle}>
+                {terms[currentTermsKey]?.title ?? '약관'}
+              </Text>
 
-            <ScrollView style={styles.modalContent}>
-              {terms[currentTermsKey]?.content ? (
-                <HtmlContent html={terms[currentTermsKey].content} />
-              ) : (
-                <Text>약관 내용이 준비되지 않았습니다.</Text>
-              )}
-            </ScrollView>
+              <ScrollView style={styles.modalContent}>
+                {terms[currentTermsKey]?.content ? (
+                  <HtmlContent html={terms[currentTermsKey].content} />
+                ) : (
+                  <Text>약관 내용이 준비되지 않았습니다.</Text>
+                )}
+              </ScrollView>
 
-            <View style={styles.modalFooter}>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Text style={styles.cancel}>취소</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={acceptFromModal}>
-                <Text style={styles.accept}>동의</Text>
-              </TouchableOpacity>
+              <View style={styles.modalFooter}>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <Text style={styles.cancel}>취소</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={acceptFromModal}>
+                  <Text style={styles.accept}>동의</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -236,6 +258,7 @@ const CheckRow = ({ label, checked, onPress, onView }) => (
  * 스타일 TODO : 스타일 통일
  * -------------------------------------------------- */
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#fff' },
   container: { flex: 1, padding: 20, backgroundColor: '#fff' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 18, fontWeight: 'bold', marginBottom: 20 },
@@ -249,10 +272,13 @@ const styles = StyleSheet.create({
 
   submitButton: {
     marginTop: 'auto',
-    backgroundColor: '#7ccfb2',
+    backgroundColor: colors.primary[600],
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  submitButtonDisabled: {
+    backgroundColor: colors.neutral[300],
   },
   submitText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 

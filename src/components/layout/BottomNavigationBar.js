@@ -11,7 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 const TAB_HEIGHT = 56;
 
 const isPathActive = (pathname, target) => {
-  if (target === '/') return pathname === '/';
+  if (target === '/app') return pathname === '/app';
   return pathname.startsWith(target);
 };
 
@@ -35,16 +35,16 @@ export default function BottomNavigationBar() {
           <FontAwesome5 name="th-large" size={18} color={colors.neutral[500]} />
           <Text style={styles.label}>전체</Text>
         </Pressable>
-        <Pressable onPress={() => handleNavigate('/')} style={styles.item}>
+        <Pressable onPress={() => handleNavigate('/app')} style={styles.item}>
           <FontAwesome5
             name="home"
             size={18}
-            color={isPathActive(pathname, '/') ? colors.primary[600] : colors.neutral[500]}
+            color={isPathActive(pathname, '/app') ? colors.primary[600] : colors.neutral[500]}
           />
           <Text
             style={[
               styles.label,
-              isPathActive(pathname, '/') && styles.activeLabel,
+              isPathActive(pathname, '/app') && styles.activeLabel,
             ]}
           >
             홈

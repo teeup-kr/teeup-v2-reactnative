@@ -18,7 +18,7 @@ export default function RegisterSuccessScreen() {
       <View style={styles.container}>
         <Text style={styles.title}>회원가입 완료</Text>
         <Text style={styles.subtitle}>Google 계정으로 회원가입이 완료되었습니다.</Text>
-        <Pressable onPress={() => router.replace('/')} style={styles.button}>
+        <Pressable onPress={() => router.replace('/app')} style={styles.button}>
           <Text style={styles.buttonText}>홈으로 이동</Text>
         </Pressable>
       </View>
