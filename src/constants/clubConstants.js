@@ -48,7 +48,7 @@ export const clubTypeBadgeConfig = {
 export const clubRoleBadgeConfig = {
   LEADER: { text: '리더', bg: colors.accent[50], fg: colors.accent[700] },
   MANAGER: { text: '매니저', bg: colors.info[50], fg: colors.info[700] },
-  MEMBER: { text: '일반회원', bg: colors.neutral[100], fg: colors.neutral[800] },
+  MEMBER: { text: '일반멤버', bg: colors.neutral[100], fg: colors.neutral[800] },
 };
 
 export const clubDetailTypeLabel = {
@@ -75,7 +75,7 @@ export const clubManageSections = [
   { id: 'regulations', label: '클럽 규정', icon: 'file-alt', route: 'regulations' },
   { id: 'fees', label: '회비 관리', icon: 'money-bill-wave', route: 'fees' },
   { id: 'stats', label: '통계', icon: 'chart-line', route: 'stats' },
-  { id: 'activities', label: '활동 내역', icon: 'clipboard-list', route: 'activities' },
+  { id: 'member-roles', label: '멤버 권한 관리', icon: 'user-shield', route: 'member-roles' },
 ];
 
 export const clubRegisterTypes = [

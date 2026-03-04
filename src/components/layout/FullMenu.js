@@ -42,7 +42,7 @@ export default function FullMenu() {
   const handleLogout = async () => {
     await logout();
     closeMenu();
-    router.replace('/');
+    router.replace('/app');
   };
 
   const menuCategories = [
@@ -98,8 +98,14 @@ export default function FullMenu() {
       <View style={styles.sheet}>
         <View style={[styles.sheetHeader, { paddingTop: insets.top, height: 56 + insets.top }]}>
           <Text style={styles.sheetTitle}>전체메뉴</Text>
-          <Pressable onPress={closeMenu} style={styles.closeButton}>
-            <FontAwesome5 name="times" size={20} color={colors.neutral[400]} />
+          <Pressable
+            onPress={closeMenu}
+            style={styles.closeButton}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="전체메뉴 닫기"
+          >
+            <FontAwesome5 name="times" size={18} color={colors.neutral[700]} />
           </Pressable>
         </View>
         <ScrollView contentContainerStyle={styles.sheetContent}>
@@ -156,7 +162,12 @@ const styles = StyleSheet.create({
     color: colors.neutral[900],
   },
   closeButton: {
-    padding: tokens.padding.xs2,
+    width: 32,
+    height: 32,
+    borderRadius: tokens.radius.pill,
+    backgroundColor: colors.neutral[100],
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sheetContent: {
     paddingHorizontal: tokens.padding.md,

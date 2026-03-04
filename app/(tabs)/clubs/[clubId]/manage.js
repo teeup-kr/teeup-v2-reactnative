@@ -1,24 +1,59 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubManageSections } from '@/constants/clubConstants';
+import { clubsApi } from '@/lib/api/api';
 import { createManageSectionHandler } from '@/lib/handler/clubs';
+import { extractData } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+const CAN_MANAGE_MEMBER_ROLES = ['LEADER', 'MANAGER'];
 
 export default function ClubManageScreen() {
   const { clubId } = useLocalSearchParams();
   const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
   const router = useRouter();
+  const [canManageMemberRoles, setCanManageMemberRoles] = useState(false);
+  const [isLoadingRole, setIsLoadingRole] = useState(true);
+
+  const loadRole = useCallback(async () => {
+    if (!resolvedId) {
+      setCanManageMemberRoles(false);
+      setIsLoadingRole(false);
+      return;
+    }
+    try {
+      setIsLoadingRole(true);
+      const club = extractData(await clubsApi.getClub(resolvedId));
+      const role = String(club?.membership_role || club?.my_role || '').toUpperCase();
+      setCanManageMemberRoles(CAN_MANAGE_MEMBER_ROLES.includes(role));
+    } catch {
+      setCanManageMemberRoles(false);
+    } finally {
+      setIsLoadingRole(false);
+    }
+  }, [resolvedId]);
+
+  useEffect(() => {
+    loadRole();
+  }, [loadRole]);
 
   const handleSectionPress = useMemo(
     () => createManageSectionHandler({ clubId: resolvedId, router }),
     [resolvedId, router]
+  );
+  const visibleSections = useMemo(
+    () =>
+      clubManageSections.filter((section) =>
+        section.id === 'member-roles' ? canManageMemberRoles : true
+      ),
+    [canManageMemberRoles]
   );
 
   return (
@@ -31,22 +66,29 @@ export default function ClubManageScreen() {
         </Card>
 
         <View style={styles.sectionList}>
-          {clubManageSections.map((section) => (
-            <Pressable
-              key={section.id}
-              style={styles.sectionItem}
-              onPress={handleSectionPress(section.route)}
-            >
-              <View style={styles.sectionIcon}>
-                <FontAwesome5 name={section.icon} size={16} color={colors.primary[600]} />
-              </View>
-              <View style={styles.sectionTextWrap}>
-                <Text style={styles.sectionLabel}>{section.label}</Text>
-                <Text style={styles.sectionHint}>관리 페이지로 이동</Text>
-              </View>
-              <FontAwesome5 name="chevron-right" size={12} color={colors.neutral[400]} />
-            </Pressable>
-          ))}
+          {isLoadingRole ? (
+            <View style={styles.stateRow}>
+              <ActivityIndicator size="small" color={colors.primary[600]} />
+              <Text style={styles.stateText}>관리 메뉴를 불러오는 중...</Text>
+            </View>
+          ) : (
+            visibleSections.map((section) => (
+              <Pressable
+                key={section.id}
+                style={styles.sectionItem}
+                onPress={handleSectionPress(section.route)}
+              >
+                <View style={styles.sectionIcon}>
+                  <FontAwesome5 name={section.icon} size={16} color={colors.primary[600]} />
+                </View>
+                <View style={styles.sectionTextWrap}>
+                  <Text style={styles.sectionLabel}>{section.label}</Text>
+                  <Text style={styles.sectionHint}>관리 페이지로 이동</Text>
+                </View>
+                <FontAwesome5 name="chevron-right" size={12} color={colors.neutral[400]} />
+              </Pressable>
+            ))
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -92,6 +134,8 @@ const styles = StyleSheet.create({
   sectionTextWrap: {
     flex: 1,
   },
+  stateRow: base.stateRow,
+  stateText: base.stateText,
   sectionLabel: {
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,

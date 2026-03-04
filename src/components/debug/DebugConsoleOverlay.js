@@ -95,7 +95,7 @@ export default function DebugConsoleOverlay() {
     <View pointerEvents="box-none" style={styles.root}>
       <Pressable
         onPress={() => setIsOpen((prev) => !prev)}
-        style={[styles.toggleButton, { top: insets.top + 8 }]}
+        style={[styles.toggleButton, { top: insets.top + 4 }]}
       >
         <Text style={styles.toggleText}>{isOpen ? 'CLOSE' : 'DBG'}</Text>
       </Pressable>
@@ -139,11 +139,11 @@ const styles = StyleSheet.create({
   },
   toggleButton: {
     position: 'absolute',
-    right: 12,
-    minWidth: 56,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    left: '50%',
+    transform: [{ translateX: -20 }],
+    width: 40,
+    height: 22,
+    borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#111827',
@@ -152,9 +152,9 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     color: '#f8fafc',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 0.4,
+    letterSpacing: 0.2,
   },
   panel: {
     position: 'absolute',

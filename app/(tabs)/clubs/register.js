@@ -66,6 +66,14 @@ export default function ClubRegisterScreen() {
     () => createFieldChangeHandler({ setFormData }),
     [setFormData]
   );
+  const handleContactChange = useMemo(
+    () => (value) => {
+      const digitsOnly = String(value ?? '').replace(/\D/g, '').slice(0, 11);
+      setFormData((prev) => ({ ...prev, contact: digitsOnly }));
+      setErrors((prev) => ({ ...prev, contact: '' }));
+    },
+    [setFormData, setErrors]
+  );
   const handleToggleRegularFee = useMemo(
     () =>
       createToggleRegularFeeHandler({
@@ -89,6 +97,7 @@ export default function ClubRegisterScreen() {
         setIsSubmitting,
         defaultErrors: defaultClubRegisterErrors,
         router,
+        successPath: '/app',
         successParams: { toast: 'club_registered' },
       }),
     [formData, setErrors, setIsSubmitting, router]
@@ -343,12 +352,19 @@ export default function ClubRegisterScreen() {
             <Text style={styles.label}>대표 연락처</Text>
             <TextInput
               value={formData.contact}
-              onChangeText={handleChange('contact')}
+              onChangeText={handleContactChange}
               placeholder="01012345678"
               keyboardType="numeric"
-              style={styles.input}
+              style={[
+                styles.input,
+                errors.contact && styles.inputError,
+              ]}
               placeholderTextColor={colors.neutral[400]}
+              maxLength={11}
             />
+            {errors.contact ? (
+              <Text style={styles.errorText}>{errors.contact}</Text>
+            ) : null}
           </View>
 
           <View style={styles.fieldGroup}>
@@ -559,7 +575,6 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.sm,
     color: colors.neutral[500],
   },
-  errorText: base.textSmError,
   loadingRow: {
     flexDirection: 'row',
     alignItems: 'center',

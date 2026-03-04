@@ -187,6 +187,12 @@ export function normalizeClubMembers(members) {
   let pendingCount = 0;
   const normalizedMembers = members.map((member) => {
     const status = String(member?.status || member?.membership_status || 'ACTIVE').toUpperCase();
+    const role = String(member?.role || member?.membership_role || '-').toUpperCase();
+    const roleConfig = clubRoleBadgeConfig[role] || clubRoleBadgeConfig.MEMBER;
+    const statusConfig = clubMembershipStatusBadgeConfig[status] || clubStatusBadgeConfig[status];
+    const statusLabel = status === 'WAITING'
+      ? (clubMembershipStatusBadgeConfig.PENDING?.text || '가입 대기')
+      : (statusConfig?.text || status || '-');
     if (status === 'PENDING' || status === 'WAITING') {
       pendingCount += 1;
     }
@@ -204,8 +210,10 @@ export function normalizeClubMembers(members) {
         member?.name ||
         member?.nickname ||
         '-',
-      role: String(member?.role || member?.membership_role || '-').toUpperCase(),
+      role,
+      roleLabel: roleConfig?.text || role || '-',
       status,
+      statusLabel,
       isPending: status === 'PENDING' || status === 'WAITING',
     };
   });

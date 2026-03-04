@@ -1,7 +1,6 @@
-
 import { FontAwesome5 } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { usePathname, useRouter } from 'expo-router';
+import { useLocalSearchParams, usePathname, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Platform,
@@ -33,8 +32,8 @@ import {
 import {
   calcHandicapFromAvg,
   formatDateYYYYMMDD,
-  getBirthDateValue,
   getAverageScoreInitError,
+  getBirthDateValue,
   isNicknameSame as isNicknameSameValue
 } from '@/lib/util/mypageUtils';
 import { extractData } from '@/lib/util/responseUtils';
@@ -49,6 +48,7 @@ import { base, tokens } from '@/styles/style';
    Component
 =========================== */
 export default function UserProfileEditForm({ onMoveToWithdraw }) {
+  const { profile_required: profileRequiredParam } = useLocalSearchParams();
   const pathname = usePathname();
   const router = useRouter();
   const safeAreaEdges = pathname === '/mypage/edit' && Platform.OS !== 'web' ? ['top'] : [];
@@ -114,6 +114,7 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
   const isNicknameSame = useMemo(() => {
     return isNicknameSameValue(profile?.nickname, formData.nickname);
   }, [formData.nickname, profile?.nickname]);
+  const isProfileRequiredFlow = profileRequiredParam === '1';
 
   const selectedGender = profile.gender ?? formData.gender;
 
@@ -364,7 +365,6 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
             {/* 이메일 */}
             <View>
               <Text style={styles.label}>
-                <FontAwesome5 name="envelope" size={14} style={styles.labelIcon} />
                 아이디(이메일)
               </Text>
 
@@ -382,7 +382,6 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
             {/* 닉네임 */}
             <View>
               <Text style={styles.label}>
-                <FontAwesome5 name="user" size={14} style={styles.labelIcon} />
                 닉네임 <Text style={styles.required}>*</Text>
               </Text>
               <Text style={styles.helperText}>
@@ -446,7 +445,6 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
             {/* 실명 */}
             <View>
               <Text style={styles.label}>
-                <FontAwesome5 name="user" size={14} style={styles.labelIcon} />
                 실명 <Text style={styles.required}>*</Text>
               </Text>
 
@@ -475,7 +473,6 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
             {/* 전화번호 */}
             <View>
               <Text style={styles.label}>
-                <FontAwesome5 name="phone" size={14} style={styles.labelIcon} />
                 전화번호 <Text style={styles.required}>*</Text>
               </Text>
 
@@ -506,11 +503,6 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
             {/* 생년월일 */}
             <View>
               <Text style={styles.label}>
-                <FontAwesome5
-                  name="calendar-alt"
-                  size={14}
-                  style={styles.labelIcon}
-                />
                 생년월일 <Text style={styles.required}>*</Text>
               </Text>
 
@@ -631,11 +623,6 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
             {hasFinalAverageScore ? (
               <View>
                 <Text style={styles.label}>
-                  <FontAwesome5
-                    name="chart-line"
-                    size={14}
-                    style={styles.labelIcon}
-                  />
                   평균 타수
                 </Text>
 
@@ -652,11 +639,6 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
             ) : (
               <View>
                 <Text style={styles.label}>
-                  <FontAwesome5
-                    name="chart-line"
-                    size={14}
-                    style={styles.labelIcon}
-                  />
                   초기 평균 타수 <Text style={styles.required}>*</Text>
                 </Text>
 
@@ -699,15 +681,17 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
 
           {/* 저장 */}
           <View style={styles.footer}>
-            <Pressable
-              onPress={handleMoveToWithdraw}
-              style={({ pressed }) => [
-                styles.withdrawMoveBtn,
-                pressed && styles.btnPressed,
-              ]}
-            >
-              <Text style={styles.withdrawMoveBtnText}>회원탈퇴</Text>
-            </Pressable>
+            {!isProfileRequiredFlow && (
+              <Pressable
+                onPress={handleMoveToWithdraw}
+                style={({ pressed }) => [
+                  styles.withdrawMoveBtn,
+                  pressed && styles.btnPressed,
+                ]}
+              >
+                <Text style={styles.withdrawMoveBtnText}>회원탈퇴</Text>
+              </Pressable>
+            )}
             <Pressable
               onPress={handleSave}
               disabled={isSaveDisabled}

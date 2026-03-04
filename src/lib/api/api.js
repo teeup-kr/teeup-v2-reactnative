@@ -797,6 +797,10 @@ async function approveClubMembership(clubId, userId) {
   return apiClient.post(`/clubs/${clubId}/members/${userId}/approve`);
 }
 
+async function rejectClubMembership(clubId, userId) {
+  return apiClient.post(`/clubs/${clubId}/members/${userId}/reject`);
+}
+
 async function searchClubMembersByName(params = {}) {
   return apiClient.get('/clubs/members/search', { params });
 }
@@ -936,6 +940,7 @@ export const clubsApi = {
   leaveClub,
   getClubMembers,
   approveClubMembership,
+  rejectClubMembership,
   searchClubMembersByName,
   updateClubMemberRole,
   removeClubMember,

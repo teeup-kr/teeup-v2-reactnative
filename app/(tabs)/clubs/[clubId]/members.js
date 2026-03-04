@@ -1,11 +1,13 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView, StyleSheet, Text,
-    View
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,37 +18,62 @@ import { clubMemberStatusColors } from '@/constants/clubConstants';
 import { clubsApi } from '@/lib/api/api';
 import { createFetchMembersHandler } from '@/lib/handler/clubs';
 import { buildMemberSummary, normalizeClubMembers } from '@/lib/util/clubUtils';
-import { extractList } from '@/lib/util/responseUtils';
+import { extractData, extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
-
-
-
+const CAN_MANAGE_ROLES = ['LEADER', 'MANAGER'];
+const MEMBER_ROLE_OPTIONS = ['MEMBER', 'MANAGER'];
 
 export default function ClubMemberManageScreen() {
-  const { clubId, manage } = useLocalSearchParams();
+  const { clubId, manage, role_manage } = useLocalSearchParams();
   const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
   const resolvedManage = Array.isArray(manage) ? manage[0] : manage;
+  const resolvedRoleManage = Array.isArray(role_manage) ? role_manage[0] : role_manage;
   const isManageMode = String(resolvedManage || '') === '1' || String(resolvedManage || '').toLowerCase() === 'true';
+  const isRoleManageMode =
+    String(resolvedRoleManage || '') === '1' || String(resolvedRoleManage || '').toLowerCase() === 'true';
+
   const [members, setMembers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [approvingUserId, setApprovingUserId] = useState(null);
+  const [rejectingUserId, setRejectingUserId] = useState(null);
+  const [updatingRoleUserId, setUpdatingRoleUserId] = useState(null);
+  const [canManageRole, setCanManageRole] = useState(false);
+  const [isRoleLoading, setIsRoleLoading] = useState(false);
+
+  const loadRole = useCallback(async () => {
+    if (!resolvedId || !isRoleManageMode) return;
+    try {
+      setIsRoleLoading(true);
+      const club = extractData(await clubsApi.getClub(resolvedId));
+      const role = String(club?.membership_role || club?.my_role || '').toUpperCase();
+      setCanManageRole(CAN_MANAGE_ROLES.includes(role));
+    } catch {
+      setCanManageRole(false);
+    } finally {
+      setIsRoleLoading(false);
+    }
+  }, [resolvedId, isRoleManageMode]);
 
   const loadMembers = useMemo(
     () =>
       createFetchMembersHandler({
         clubId: resolvedId,
-        includePending: isManageMode,
+        includePending: isManageMode && !isRoleManageMode,
         fetchClubMembers: clubsApi.getClubMembers,
         extractList,
         setMembers,
         setIsLoading,
         setError,
       }),
-    [resolvedId, isManageMode, setMembers, setIsLoading, setError]
+    [resolvedId, isManageMode, isRoleManageMode, setMembers, setIsLoading, setError]
   );
+
+  useEffect(() => {
+    loadRole();
+  }, [loadRole]);
 
   useEffect(() => {
     loadMembers();
@@ -58,8 +85,11 @@ export default function ClubMemberManageScreen() {
   );
 
   const summaryText = useMemo(
-    () => buildMemberSummary({ total: normalizedMembers.length, pending: pendingCount }),
-    [normalizedMembers.length, pendingCount]
+    () =>
+      isRoleManageMode
+        ? '일반멤버와 매니저 권한을 변경할 수 있습니다.'
+        : buildMemberSummary({ total: normalizedMembers.length, pending: pendingCount }),
+    [isRoleManageMode, normalizedMembers.length, pendingCount]
   );
 
   const handleApprovePress = async (member) => {
@@ -77,20 +107,67 @@ export default function ClubMemberManageScreen() {
     }
   };
 
+  const handleRejectPress = async (member) => {
+    if (!resolvedId || !member?.userId) return;
+    try {
+      setRejectingUserId(member.userId);
+      await clubsApi.rejectClubMembership(resolvedId, member.userId);
+      Alert.alert('가입 거절 완료', `${member.name}님의 가입 신청을 거절했습니다.`);
+      await loadMembers();
+    } catch (rejectError) {
+      console.error('가입 거절 실패:', rejectError);
+      Alert.alert('가입 거절 실패', rejectError?.message || '가입 거절 처리 중 오류가 발생했습니다.');
+    } finally {
+      setRejectingUserId(null);
+    }
+  };
+
+  const updateMemberRole = async (member, nextRole) => {
+    if (!resolvedId || !member?.userId) return;
+    try {
+      setUpdatingRoleUserId(member.userId);
+      await clubsApi.updateClubMemberRole(resolvedId, member.userId, { role: nextRole });
+      const nextRoleLabel = nextRole === 'MANAGER' ? '매니저' : '일반멤버';
+      Alert.alert('권한 변경 완료', `${member.name}님의 권한을 ${nextRoleLabel}로 변경했습니다.`);
+      await loadMembers();
+    } catch (updateError) {
+      console.error('멤버 권한 변경 실패:', updateError);
+      Alert.alert('권한 변경 실패', updateError?.message || '멤버 권한 변경 중 오류가 발생했습니다.');
+    } finally {
+      setUpdatingRoleUserId(null);
+    }
+  };
+
+  const handleRoleMenuPress = (member) => {
+    const availableRoles = MEMBER_ROLE_OPTIONS.filter((role) => role !== member.role);
+    const buttons = availableRoles.map((role) => ({
+      text: role === 'MANAGER' ? '매니저' : '일반멤버',
+      onPress: () => updateMemberRole(member, role),
+    }));
+
+    Alert.alert(`${member.name} 권한 변경`, '변경할 권한을 선택하세요.', [
+      ...buttons,
+      { text: '취소', style: 'cancel' },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScreenHeader title={isManageMode ? '멤버 관리' : '회원목록'} />
+      <ScreenHeader title={isRoleManageMode ? '멤버 권한 관리' : isManageMode ? '멤버 관리' : '회원목록'} />
       <ScrollView contentContainerStyle={styles.container}>
         <Card style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>{isManageMode ? '멤버 현황' : '회원 현황'}</Text>
+          <Text style={styles.summaryTitle}>{isRoleManageMode ? '멤버 권한' : isManageMode ? '멤버 현황' : '회원 현황'}</Text>
           <Text style={styles.summaryText}>{summaryText}</Text>
+          {isRoleManageMode && !isRoleLoading && !canManageRole ? (
+            <Text style={styles.permissionHint}>리더/매니저만 멤버 권한을 변경할 수 있습니다.</Text>
+          ) : null}
         </Card>
 
         <View style={styles.listCard}>
-          {isLoading ? (
+          {isLoading || (isRoleManageMode && isRoleLoading) ? (
             <View style={styles.stateRow}>
               <ActivityIndicator size="small" color={colors.primary[600]} />
-              <Text style={styles.stateText}>멤버를 불러오는 중...</Text>
+              <Text style={styles.stateText}>{isRoleManageMode ? '권한 정보를 불러오는 중...' : '멤버를 불러오는 중...'}</Text>
             </View>
           ) : error ? (
             <View style={styles.stateRow}>
@@ -108,7 +185,7 @@ export default function ClubMemberManageScreen() {
                 </View>
                 <View style={styles.memberInfo}>
                   <Text style={styles.memberName}>{member.name}</Text>
-                  <Text style={styles.memberRole}>{member.role}</Text>
+                  <Text style={styles.memberRole}>{member.roleLabel}</Text>
                 </View>
                 <View
                   style={[
@@ -116,18 +193,47 @@ export default function ClubMemberManageScreen() {
                     { backgroundColor: clubMemberStatusColors[member.status] || colors.neutral[400] },
                   ]}
                 >
-                  <Text style={styles.statusText}>{member.status}</Text>
+                  <Text style={styles.statusText}>{member.statusLabel}</Text>
                 </View>
-                {isManageMode && member.isPending ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onPress={() => handleApprovePress(member)}
-                    loading={approvingUserId === member.userId}
-                    textStyle={styles.approveButtonText}
-                  >
-                    가입 승인
-                  </Button>
+                {isManageMode && !isRoleManageMode && member.isPending ? (
+                  <View style={styles.actionButtons}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onPress={() => handleApprovePress(member)}
+                      loading={approvingUserId === member.userId}
+                      disabled={rejectingUserId === member.userId}
+                      textStyle={styles.approveButtonText}
+                    >
+                      가입 승인
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onPress={() => handleRejectPress(member)}
+                      loading={rejectingUserId === member.userId}
+                      disabled={approvingUserId === member.userId}
+                      textStyle={styles.rejectButtonText}
+                    >
+                      가입 거절
+                    </Button>
+                  </View>
+                ) : isRoleManageMode &&
+                  canManageRole &&
+                  (member.status === 'ACTIVE' || member.status === 'APPROVED') &&
+                  MEMBER_ROLE_OPTIONS.includes(member.role) ? (
+                  <View style={styles.actionButtons}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onPress={() => handleRoleMenuPress(member)}
+                      loading={updatingRoleUserId === member.userId}
+                      disabled={updatingRoleUserId !== null && updatingRoleUserId !== member.userId}
+                      textStyle={styles.roleButtonText}
+                    >
+                      권한 변경
+                    </Button>
+                  </View>
                 ) : null}
               </View>
             ))
@@ -153,6 +259,11 @@ const styles = StyleSheet.create({
   summaryText: {
     fontSize: tokens.font.sm,
     color: colors.neutral[600],
+  },
+  permissionHint: {
+    marginTop: tokens.spacing.xs2,
+    fontSize: tokens.font.xs,
+    color: colors.warning[700],
   },
   listCard: {
     backgroundColor: colors.white,
@@ -201,8 +312,21 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: tokens.fontWeight.semibold,
   },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.xs2,
+  },
   approveButtonText: {
     fontSize: tokens.font.xs,
     color: colors.neutral[700],
+  },
+  rejectButtonText: {
+    fontSize: tokens.font.xs,
+    color: colors.error[700],
+  },
+  roleButtonText: {
+    fontSize: tokens.font.xs,
+    color: colors.info[700],
   },
 });

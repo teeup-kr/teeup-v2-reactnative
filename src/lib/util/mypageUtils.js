@@ -533,7 +533,7 @@ export function buildRoundingPayload({ form, settlementMethods }) {
 export async function ensureProfileCompleted({
   router,
   alertMessage = '클럽 이용 전 프로필을 완성해 주세요!',
-  redirectPath = '/mypage/edit',
+  redirectPath = '/mypage/edit?profile_required=1',
 } = {}) {
   try {
     const response = await mypageApi.fetchMyProfile();

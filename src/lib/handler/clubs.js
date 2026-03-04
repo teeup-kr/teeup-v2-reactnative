@@ -391,6 +391,10 @@ export function createManageSectionHandler({ clubId, router }) {
                 router.push({ pathname: `/clubs/${clubId}/members`, params: { manage: '1' } });
                 return;
             }
+            if (route === 'member-roles') {
+                router.push({ pathname: `/clubs/${clubId}/members`, params: { manage: '1', role_manage: '1' } });
+                return;
+            }
             router.push(`/clubs/${clubId}/${route}`);
         };
 }
@@ -554,11 +558,26 @@ export function createSubmitClubRegisterHandler({
     setIsSubmitting,
     defaultErrors,
     router,
-    successPath = '/',
+    successPath = '/app',
     successParams,
 }) {
     return async function () {
         setErrors(defaultErrors);
+        const contact = String(formData.contact ?? '').trim();
+        if (!contact) {
+            setErrors((prev) => ({
+                ...prev,
+                contact: '대표 연락처를 입력해주세요.',
+            }));
+            return;
+        }
+        if (!/^\d{11}$/.test(contact)) {
+            setErrors((prev) => ({
+                ...prev,
+                contact: '대표 연락처는 숫자 11자리로 입력해주세요.',
+            }));
+            return;
+        }
 
         try {
             setIsSubmitting(true);

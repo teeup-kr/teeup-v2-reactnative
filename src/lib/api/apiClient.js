@@ -316,7 +316,19 @@ async function apiRequest(path, options = {}) {
       response.status === 403 &&
       payload?.detail?.code === "PROFILE_NOT_COMPLETED"
     ) {
-      const redirect = payload.detail.redirect ?? "/mypage/edit";
+      const requestPath = path.startsWith('/') ? path : `/${path}`;
+      const isClubJoinRequest =
+        method.toUpperCase() === 'POST' &&
+        /^\/clubs\/[^/]+\/join\/?$/.test(requestPath);
+      const rawRedirect = payload.detail.redirect ?? "/mypage/edit";
+      const redirect = (() => {
+        if (!rawRedirect.startsWith('/mypage/edit')) return rawRedirect;
+        const [path, queryString = ''] = rawRedirect.split('?');
+        const params = new URLSearchParams(queryString);
+        params.set('profile_required', '1');
+        const nextQueryString = params.toString();
+        return nextQueryString ? `${path}?${nextQueryString}` : path;
+      })();
       const message =
         typeof payload?.detail?.message === "string"
           ? payload.detail.message
@@ -324,12 +336,25 @@ async function apiRequest(path, options = {}) {
 
       console.info("[Auth] Profile not completed → redirect", redirect);
 
-      Alert.alert("안내", message, [
-        {
-          text: "확인",
-          onPress: () => router.replace(redirect),
-        },
-      ]);
+      const alertButtons = isClubJoinRequest
+        ? [
+          {
+            text: "다음에 하기",
+            style: 'cancel',
+          },
+          {
+            text: "확인",
+            onPress: () => router.replace(redirect),
+          },
+        ]
+        : [
+          {
+            text: "확인",
+            onPress: () => router.replace(redirect),
+          },
+        ];
+
+      Alert.alert("안내", message, alertButtons);
       return; // throw 하지 않음
     }
 

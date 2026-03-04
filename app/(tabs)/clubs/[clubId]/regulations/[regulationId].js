@@ -1,38 +1,51 @@
-
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    Pressable,
-    ScrollView, StyleSheet, Text,
-    View
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/api/api';
 import {
-    createFetchRegulationDetailHandler,
-    createRegulationEditHandler,
+  createFetchRegulationDetailHandler,
+  createRegulationEditHandler,
 } from '@/lib/handler/clubs';
 import { getRegulationUpdatedDate } from '@/lib/util/clubUtils';
 import { extractData } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
-
-
-
+const CAN_MANAGE_ROLES = ['LEADER', 'MANAGER'];
 
 export default function ClubRegulationDetailScreen() {
   const router = useRouter();
   const { clubId, regulationId } = useLocalSearchParams();
   const resolvedClubId = Array.isArray(clubId) ? clubId[0] : clubId;
   const resolvedRegulationId = Array.isArray(regulationId) ? regulationId[0] : regulationId;
+
   const [regulation, setRegulation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [canManage, setCanManage] = useState(false);
+
+  const loadClub = useCallback(async () => {
+    if (!resolvedClubId) return;
+    try {
+      const club = extractData(await clubsApi.getClub(resolvedClubId));
+      const role = club?.membership_role || club?.my_role;
+      setCanManage(CAN_MANAGE_ROLES.includes(String(role).toUpperCase()));
+    } catch {
+      setCanManage(false);
+    }
+  }, [resolvedClubId]);
 
   const loadRegulation = useMemo(
     () =>
@@ -47,6 +60,10 @@ export default function ClubRegulationDetailScreen() {
       }),
     [resolvedClubId, resolvedRegulationId, setRegulation, setIsLoading, setError]
   );
+
+  useEffect(() => {
+    loadClub();
+  }, [loadClub]);
 
   useEffect(() => {
     loadRegulation();
@@ -65,6 +82,35 @@ export default function ClubRegulationDetailScreen() {
       }),
     [router, resolvedClubId, clubId]
   );
+
+  const handleDelete = useCallback(() => {
+    Alert.alert(
+      '규정 삭제',
+      '이 규정을 삭제하시겠습니까?',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await clubsApi.deleteClubRegulation(resolvedClubId, resolvedRegulationId);
+              Alert.alert('삭제 완료', '규정이 삭제되었습니다.', [
+                {
+                  text: '확인',
+                  onPress: () => router.replace(`/clubs/${resolvedClubId}/regulations`),
+                },
+              ]);
+            } catch (err) {
+              const msg =
+                err?.response?.data?.detail || err?.message || '삭제에 실패했습니다.';
+              Alert.alert('삭제 실패', msg);
+            }
+          },
+        },
+      ]
+    );
+  }, [resolvedClubId, resolvedRegulationId, router]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -87,11 +133,27 @@ export default function ClubRegulationDetailScreen() {
           )}
         </Card>
 
-        <Pressable style={styles.editButton} onPress={handleEditPress}>
-          <Text style={styles.editButtonText}>수정하기</Text>
-        </Pressable>
-        <Text style={styles.helperText}>규정 수정 화면은 동일한 작성 화면으로 연결됩니다.</Text>
-        <Text style={styles.helperText}>Regulation ID: {resolvedRegulationId || regulationId}</Text>
+        {canManage && !isLoading && !error && (
+          <View style={styles.actions}>
+            <Button
+              variant="primary"
+              size="lg"
+              onPress={handleEditPress}
+              style={styles.actionBtn}
+            >
+              수정하기
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              onPress={handleDelete}
+              style={styles.deleteBtn}
+              textStyle={styles.deleteBtnText}
+            >
+              삭제하기
+            </Button>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -119,32 +181,19 @@ const styles = StyleSheet.create({
     color: colors.neutral[700],
     lineHeight: 18,
   },
-  stateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  stateText: {
-    marginLeft: tokens.spacing.xs2,
-    fontSize: tokens.font.sm,
-    color: colors.neutral[500],
-  },
+  stateRow: base.stateRow,
+  stateText: base.stateText,
   errorText: base.textSmError,
-  editButton: {
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
-    paddingVertical: tokens.padding.base,
-    borderRadius: tokens.radius.md,
-    alignItems: 'center',
+  actions: {
+    gap: tokens.spacing.sm2,
   },
-  editButtonText: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.semibold,
-    color: colors.neutral[700],
+  actionBtn: {
+    marginBottom: tokens.spacing.xs,
   },
-  helperText: {
-    marginTop: tokens.spacing.xs2,
-    fontSize: tokens.font.xs,
-    color: colors.neutral[500],
-    textAlign: 'center',
+  deleteBtn: {
+    borderColor: colors.error[300],
+  },
+  deleteBtnText: {
+    color: colors.error[600],
   },
 });
