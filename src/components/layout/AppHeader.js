@@ -4,7 +4,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
-const logoImage = require('../../../public/icons/icon-512-transparent.png');
+const logoImage = require('../../../public/icons/icon-600-transparent-full.png');
 
 export default function AppHeader() {
   const router = useRouter();

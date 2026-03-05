@@ -10,7 +10,7 @@
     "android:release:aab": "EAS_BUILD_PLATFORM=android cd android && EAS_BUILD_PLATFORM=android ./gradlew :app:bundleRelease",
     "web:dev": "EAS_BUILD_PLATFORM=web expo start -c --web --port 8081",
     "web:dev:debug": "EAS_BUILD_PLATFORM=web NODE_OPTIONS=--inspect-brk expo start -c --web --port 8081",
-    "web:static": "EAS_BUILD_PLATFORM=web npx expo export",
+    "web:static": "EAS_BUILD_PLATFORM=web npx expo export -p web",
     "test": "npm run lint && jest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

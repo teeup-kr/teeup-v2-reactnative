@@ -89,11 +89,43 @@ function formatMeetingDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '일정 미정';
 
-  return date.toLocaleDateString('ko-KR', {
+  return date.toLocaleString('ko-KR', {
     year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
   });
+}
+
+function getMeetingStatusBadgeConfig(status) {
+  const key = String(status || '').toUpperCase();
+  if (key === 'IN_PROGRESS') {
+    return {
+      label: '진행중',
+      backgroundColor: colors.success[50],
+      textColor: colors.success[700],
+    };
+  }
+  if (key === 'COMPLETED') {
+    return {
+      label: '완료',
+      backgroundColor: colors.neutral[100],
+      textColor: colors.neutral[700],
+    };
+  }
+  if (key === 'CANCELED') {
+    return {
+      label: '취소',
+      backgroundColor: colors.error[50],
+      textColor: colors.error[700],
+    };
+  }
+  return {
+    label: '예정',
+    backgroundColor: colors.info[50],
+    textColor: colors.info[700],
+  };
 }
 
 export default function HomeScreen() {
@@ -115,6 +147,10 @@ export default function HomeScreen() {
   const bannerImageUrls = useMemo(
     () => CAROUSEL_IMAGE_NAMES.map((name) => `${baseUrl}/image/${name}`),
     [baseUrl]
+  );
+  const visibleUpcomingMeetings = useMemo(
+    () => upcomingMeetings.filter((meeting) => getMeetingId(meeting)).slice(0, 2),
+    [upcomingMeetings]
   );
 
   useEffect(() => {
@@ -318,39 +354,52 @@ export default function HomeScreen() {
           <View style={styles.stateCard}>
             <Text style={styles.errorText}>{meetingError}</Text>
           </View>
-        ) : upcomingMeetings.length === 0 ? (
+        ) : visibleUpcomingMeetings.length === 0 ? (
           <View style={styles.stateCard}>
             <Text style={styles.stateText}>예정된 라운딩이 없습니다.</Text>
           </View>
         ) : (
           <View style={styles.meetingList}>
-            {upcomingMeetings.map((meeting) => {
+            {visibleUpcomingMeetings.map((meeting) => {
               const meetingId = getMeetingId(meeting);
               const participantCount = meeting?.participant_count ?? 0;
               const maxParticipants = meeting?.max_participants
                 ? `/${meeting.max_participants}`
                 : '';
+              const statusBadge = getMeetingStatusBadgeConfig(meeting?.status);
 
               return (
-                <View key={String(meetingId)} style={styles.meetingCard}>
-                  <Text style={styles.meetingClub}>{meeting?.club_name || '클럽'}</Text>
-                  <Text style={styles.meetingName}>{meeting?.name || meeting?.meeting_name || '모임'}</Text>
-                  <Text style={styles.meetingPlace}>{meeting?.location || meeting?.venue_name || '장소 미정'}</Text>
-
-                  <View style={styles.meetingMetaRow}>
-                    <FontAwesome5 name="clock" size={12} color={colors.neutral[600]} />
-                    <Text style={styles.meetingMetaText}>{formatMeetingDate(meeting?.meeting_time)}</Text>
+                <Pressable key={String(meetingId)} style={styles.meetingCard} onPress={handleOpenMeeting(meeting)}>
+                  <View style={styles.meetingIconWrap}>
+                    <FontAwesome5 name="golf-ball" size={13} color={colors.primary[600]} />
                   </View>
 
-                  <View style={styles.meetingMetaRow}>
-                    <FontAwesome5 name="users" size={12} color={colors.neutral[600]} />
-                    <Text style={styles.meetingMetaText}>총원 {participantCount}{maxParticipants}명</Text>
+                  <View style={styles.meetingInfo}>
+                    <Text style={styles.meetingName}>{meeting?.name || meeting?.meeting_name || '모임'}</Text>
+                    <Text style={styles.meetingDate}>{formatMeetingDate(meeting?.meeting_time)}</Text>
+                    {(meeting?.location || meeting?.venue_name) ? (
+                      <View style={styles.meetingMetaRow}>
+                        <FontAwesome5 name="map-marker-alt" size={11} color={colors.neutral[500]} />
+                        <Text style={styles.meetingMetaText} numberOfLines={1}>
+                          {meeting?.location || meeting?.venue_name}
+                        </Text>
+                      </View>
+                    ) : null}
+                    <View style={styles.meetingMetaRow}>
+                      <FontAwesome5 name="users" size={11} color={colors.neutral[500]} />
+                      <Text style={styles.meetingMetaText}>총원 {participantCount}{maxParticipants}명</Text>
+                    </View>
+                    <View style={styles.meetingBadgeRow}>
+                      <Text style={styles.meetingTypeBadge}>라운딩</Text>
+                    </View>
                   </View>
 
-                  <Pressable style={styles.detailButton} onPress={handleOpenMeeting(meeting)}>
-                    <Text style={styles.detailButtonText}>상세보기</Text>
-                  </Pressable>
-                </View>
+                  <View style={[styles.meetingStatusBadge, { backgroundColor: statusBadge.backgroundColor }]}>
+                    <Text style={[styles.meetingStatusBadgeText, { color: statusBadge.textColor }]}>
+                      {statusBadge.label}
+                    </Text>
+                  </View>
+                </Pressable>
               );
             })}
           </View>
@@ -542,54 +591,71 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.md,
   },
   meetingCard: {
-    borderLeftWidth: 2,
-    borderLeftColor: colors.neutral[300],
-    paddingLeft: tokens.padding.md,
-    paddingVertical: tokens.padding.base,
-    marginBottom: tokens.spacing.md,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    borderRadius: tokens.radius.lg,
+    backgroundColor: colors.white,
+    paddingHorizontal: tokens.padding.lg,
+    paddingVertical: tokens.padding.md,
+    marginBottom: tokens.spacing.sm2,
   },
-  meetingClub: {
-    color: colors.neutral[900],
-    fontSize: tokens.font.xxl,
-    fontWeight: tokens.fontWeight.bold,
-    marginBottom: tokens.spacing.xs,
+  meetingIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: tokens.radius.lg,
+    backgroundColor: colors.primary[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: tokens.spacing.sm2,
+  },
+  meetingInfo: {
+    flex: 1,
   },
   meetingName: {
-    color: colors.neutral[900],
-    fontSize: 30,
-    lineHeight: 36,
-    fontWeight: tokens.fontWeight.bold,
-    marginBottom: tokens.spacing.xs2,
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
+    color: colors.neutral[800],
   },
-  meetingPlace: {
-    color: colors.neutral[600],
-    fontSize: tokens.font.lg,
-    marginBottom: tokens.spacing.sm,
+  meetingDate: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+    marginTop: tokens.spacing.hairline,
   },
   meetingMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: tokens.spacing.xs,
+    gap: 4,
+    marginTop: 4,
   },
   meetingMetaText: {
-    color: colors.neutral[900],
-    fontSize: tokens.font.xl,
-    fontWeight: tokens.fontWeight.semibold,
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+    maxWidth: 190,
+  },
+  meetingBadgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 5,
+  },
+  meetingTypeBadge: {
+    fontSize: tokens.font.xs,
+    color: colors.info[700],
+    backgroundColor: colors.info[50],
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: tokens.radius.pill,
+  },
+  meetingStatusBadge: {
     marginLeft: tokens.spacing.xs,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: tokens.radius.pill,
   },
-  detailButton: {
-    marginTop: tokens.spacing.sm,
-    alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    backgroundColor: colors.neutral[50],
-    paddingVertical: tokens.padding.xs,
-    paddingHorizontal: tokens.padding.md,
-  },
-  detailButtonText: {
-    color: colors.neutral[700],
-    fontSize: tokens.font.lg,
+  meetingStatusBadgeText: {
+    fontSize: tokens.font.xs,
     fontWeight: tokens.fontWeight.semibold,
   },
 });
