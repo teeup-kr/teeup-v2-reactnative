@@ -4,20 +4,20 @@
     "shortName": "TeeUp",
     "slug": "teeup",
     "scheme": "teeup",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./public/icons/icon-512.png",
+    "icon": "./public/icons/icon-1024.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#ffffff",
     "newArchEnabled": true,
     "splash": {
-      "image": "./public/icons/icon-512.png",
+      "image": "./public/icons/icon-1024.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./public/icons/icon-512.png",
+        "foregroundImage": "./public/icons/icon-1024-transparent.png",
         "backgroundColor": "#ffffff"
       },
       "googleServicesFile": "./google-services.json",
