@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import LoginRequired from '@/components/auth/LoginRequired';
+import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { useAuth } from '@/context/AuthContext';
@@ -110,13 +111,13 @@ export default function InquiryListScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.subtitle}>등록한 문의를 확인하고 답변을 받아보세요.</Text>
 
-        <Pressable
-          style={({ pressed }) => [styles.createButton, pressed && styles.createButtonPressed]}
+        <Button
+          style={styles.createButton}
           onPress={() => navigateWithCap(router, '/inquiries/create')}
         >
           <FontAwesome5 name="plus" size={14} color={colors.white} />
           <Text style={styles.createButtonText}>문의하기</Text>
-        </Pressable>
+        </Button>
 
         {isLoading ? (
           <Card style={styles.card}>

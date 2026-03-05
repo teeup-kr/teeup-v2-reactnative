@@ -11,19 +11,19 @@ const dateInputStyles = StyleSheet.create({
   inputLike: {
     flex: 1,
     minWidth: 0,
-    paddingHorizontal: tokens.padding.baseLg,
-    paddingVertical: tokens.padding.sm,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.base,
     borderWidth: 1,
-    borderColor: colors.inputBorder,
-    borderRadius: tokens.radius.md,
+    borderColor: colors.neutral[300],
+    borderRadius: tokens.radius.base,
     backgroundColor: colors.white,
   },
   inputLikeText: {
-    fontSize: tokens.font.lg,
-    color: colors.text,
+    fontSize: tokens.font.base,
+    color: colors.neutral[900],
   },
   inputPlaceholder: {
-    color: colors.textMuted,
+    color: colors.neutral[400],
   },
 });
 

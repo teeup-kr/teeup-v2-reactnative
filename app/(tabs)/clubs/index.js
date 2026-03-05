@@ -112,10 +112,14 @@ export default function ClubsScreen() {
 
   const handleDebouncedGunguSearch = useMemo(
     () => () => {
+      const isSameGunguCodes =
+        debouncedGunguCodes.length === selectedGunguCodes.length &&
+        debouncedGunguCodes.every((code, index) => code === selectedGunguCodes[index]);
+      if (isSameGunguCodes) return;
       setDebouncedGunguCodes(selectedGunguCodes);
       setCurrentPage(1);
     },
-    [selectedGunguCodes, setCurrentPage, setDebouncedGunguCodes]
+    [selectedGunguCodes, debouncedGunguCodes, setCurrentPage, setDebouncedGunguCodes]
   );
 
   useEffect(() => {
@@ -866,16 +870,16 @@ const styles = StyleSheet.create({
   searchBox: {
     ...base.row,
     paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.spacing.sm,
-    borderRadius: tokens.radius.md,
+    paddingVertical: tokens.padding.base,
+    borderRadius: tokens.radius.base,
     borderWidth: 1,
-    borderColor: colors.neutral[200],
+    borderColor: colors.neutral[300],
     backgroundColor: colors.white,
   },
   searchInput: {
     flex: 1,
     marginLeft: tokens.padding.xs,
-    fontSize: tokens.font.md,
+    fontSize: tokens.font.base,
     color: colors.neutral[900],
   },
   statusFilterWrap: {

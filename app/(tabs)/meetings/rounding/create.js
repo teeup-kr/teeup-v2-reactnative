@@ -978,10 +978,10 @@ export function RoundingForm({ mode = 'create' }) {
                       프라이빗 라운딩 참가자입니다. '나'는 기본으로 포함됩니다.
                     </Text>
                   </View>
-                  <Pressable style={styles.editParticipantsButton} onPress={handleOpenParticipantModal}>
+                  <Button size="sm" style={styles.editParticipantsButton} onPress={handleOpenParticipantModal}>
                     <FontAwesome5 name="edit" size={12} color={colors.white} />
                     <Text style={styles.editParticipantsButtonText}>편집</Text>
-                  </Pressable>
+                  </Button>
                 </View>
 
                 {sortedSelectedParticipants.length === 0 ? (

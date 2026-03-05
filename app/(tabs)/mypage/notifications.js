@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import AppToast from '@/components/ui/AppToast';
+import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { notificationsApi } from '@/lib/api/api';
 import {
@@ -244,18 +245,18 @@ export default function NotificationsTab() {
           <View style={styles.actionRow}>
             {selected.length > 0 && (
               <View style={{ flexDirection: 'row', gap: 8 }}>
-                <Pressable style={styles.bulkRead} onPress={bulkRead}>
+                <Button style={styles.bulkRead} onPress={bulkRead}>
                   <Text style={styles.bulkTextBlue}>읽음 처리</Text>
-                </Pressable>
-                <Pressable style={styles.bulkDelete} onPress={bulkDelete}>
+                </Button>
+                <Button style={styles.bulkDelete} onPress={bulkDelete}>
                   <Text style={styles.bulkTextRed}>삭제</Text>
-                </Pressable>
+                </Button>
               </View>
             )}
 
-            <Pressable style={styles.markAllBtn} onPress={markAllAsRead}>
+            <Button style={styles.markAllBtn} onPress={markAllAsRead}>
               <Text style={styles.markAllText}>전체 읽음</Text>
-            </Pressable>
+            </Button>
           </View>
 
           {notifications.length > 0 && (
@@ -272,12 +273,12 @@ export default function NotificationsTab() {
 
         {selected.length > 0 && (
           <View style={styles.bulkRow}>
-            <Pressable style={styles.bulkBtnBlue} onPress={bulkRead}>
+            <Button style={styles.bulkBtnBlue} onPress={bulkRead}>
               <Text style={styles.bulkText}>읽음 처리</Text>
-            </Pressable>
-            <Pressable style={styles.bulkBtnRed} onPress={bulkDelete}>
+            </Button>
+            <Button style={styles.bulkBtnRed} onPress={bulkDelete}>
               <Text style={styles.bulkText}>삭제</Text>
-            </Pressable>
+            </Button>
           </View>
         )}
 
@@ -333,15 +334,15 @@ export default function NotificationsTab() {
             <Text style={styles.modalTitle}>알림 삭제</Text>
             <Text style={{ marginBottom: tokens.spacing.md }}>이 알림을 삭제하시겠습니까?</Text>
             <View style={{ flexDirection: 'row', gap: 12 }}>
-              <Pressable style={styles.modalBtn} onPress={clearDeleteTarget}>
+              <Button style={styles.modalBtn} variant="outline" onPress={clearDeleteTarget}>
                 <Text>취소</Text>
-              </Pressable>
-              <Pressable
+              </Button>
+              <Button
                 style={[styles.modalBtn, { backgroundColor: colors.error[600] }]}
                 onPress={confirmDelete}
               >
                 <Text style={{ color: 'white' }}>삭제</Text>
-              </Pressable>
+              </Button>
             </View>
           </View>
         </View>

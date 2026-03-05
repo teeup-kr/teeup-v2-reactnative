@@ -1571,84 +1571,75 @@ export default function MeetingDetailScreen() {
             {canRenderTopActions && hasTopActions ? (
               <View style={styles.topButtonsWrap}>
                 {(canJoin || showJoinButtonForSocial) ? (
-                  <Pressable
-                    style={({ pressed }) => [
+                  <Button
+                    style={[
                       styles.topButtonBase,
                       styles.topButtonJoin,
-                      pressed && styles.topButtonPressed,
                     ]}
                     onPress={openJoinModal}
                   >
                     <FontAwesome5 name="users" size={12} color={colors.white} />
                     <Text style={styles.topButtonText}>참가 신청</Text>
-                  </Pressable>
+                  </Button>
                 ) : null}
 
                 {canLeave ? (
-                  <Pressable
-                    style={({ pressed }) => [
+                  <Button
+                    style={[
                       styles.topButtonBase,
                       styles.topButtonDanger,
                       !canLeaveActually && styles.topButtonDisabled,
-                      pressed && canLeaveActually && styles.topButtonPressed,
                     ]}
-                    onPress={() => {
-                      if (canLeaveActually) {
-                        handleLeave();
-                      }
-                    }}
+                    onPress={handleLeave}
                     disabled={!canLeaveActually}
                   >
                     <FontAwesome5 name="users" size={12} color={colors.white} />
                     <Text style={styles.topButtonText}>참가신청 취소</Text>
-                  </Pressable>
+                  </Button>
                 ) : null}
 
                 {canEditTopActions ? (
                   <>
-                    <Pressable
-                      style={({ pressed }) => [
+                    <Button
+                      style={[
                         styles.topButtonBase,
                         styles.topButtonEdit,
-                        pressed && styles.topButtonPressed,
                       ]}
                       onPress={handleEditMeeting}
                     >
                       <FontAwesome5 name="edit" size={12} color={colors.white} />
                       <Text style={styles.topButtonText}>수정</Text>
-                    </Pressable>
+                    </Button>
 
                     {isRoundingMeeting &&
                       normalizedStatus === 'SCHEDULED' &&
                       hasApplicationClosedEarlyFlag &&
                       !isApplicationDeadlinePassed ? (
-                      <Pressable
-                        style={({ pressed }) => [
+                      <Button
+                        style={[
                           styles.topButtonBase,
                           styles.topButtonWarning,
                           (processingAction || isApplicationClosedEarly || normalizedStatus === 'CANCELED') &&
                           styles.topButtonDisabled,
-                          pressed && styles.topButtonPressed,
                         ]}
                         onPress={handleCloseApplicationEarly}
                         disabled={processingAction || isApplicationClosedEarly || normalizedStatus === 'CANCELED'}
                       >
                         <Text style={styles.topButtonText}>신청 마감하기</Text>
-                      </Pressable>
+                      </Button>
                     ) : null}
 
                     {normalizedStatus === 'SCHEDULED' && !isMeetingTimePassed ? (
-                      <Pressable
-                        style={({ pressed }) => [
+                      <Button
+                        style={[
                           styles.topButtonBase,
                           styles.topButtonDanger,
-                          pressed && styles.topButtonPressed,
                         ]}
                         onPress={handleCancelMeeting}
                       >
                         <FontAwesome5 name="times" size={12} color={colors.white} />
                         <Text style={styles.topButtonText}>모임 취소</Text>
-                      </Pressable>
+                      </Button>
                     ) : null}
                   </>
                 ) : null}
@@ -2754,12 +2745,12 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.sm,
+    borderRadius: tokens.radius.base,
     backgroundColor: colors.white,
     color: colors.neutral[900],
-    fontSize: tokens.font.sm,
+    fontSize: tokens.font.base,
     paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs,
+    paddingVertical: tokens.padding.base,
   },
   guestGenderRow: {
     flexDirection: 'row',

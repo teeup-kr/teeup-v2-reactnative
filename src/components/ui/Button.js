@@ -1,9 +1,7 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
-const gradientColors = ['#059669', '#0F766E'];
 
 const getSizeStyle = (size) => {
   switch (size) {
@@ -29,61 +27,54 @@ export default function Button({
 }) {
   const isDisabled = disabled || loading;
   const sizeStyle = getSizeStyle(size);
+  const variantStyle = getVariantStyle(variant);
 
   return (
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
-      style={style}
+      style={(state) => [
+        styles.buttonBase,
+        sizeStyle,
+        variantStyle.container,
+        typeof style === 'function' ? style(state) : style,
+        state.pressed && !isDisabled && styles.pressed,
+        isDisabled && styles.disabled,
+      ]}
     >
-      {({ pressed }) => {
-        const containerStyles = [
-          styles.buttonBase,
-          sizeStyle,
-          variant === 'outline' && styles.outline,
-          pressed && !isDisabled && styles.pressed,
-          isDisabled && styles.disabled,
-        ];
-
-        const content = (
-          <View style={styles.content}>
-            {loading ? (
-              <ActivityIndicator color={variant === 'outline' ? colors.primary[600] : colors.white} />
-            ) : (
-              children
-            )}
-          </View>
-        );
-
-        if (variant === 'primary') {
-          return (
-            <LinearGradient
-              colors={gradientColors}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={containerStyles}
-            >
-              {typeof children === 'string' ? (
-                <Text style={[styles.textPrimary, textStyle]}>{children}</Text>
-              ) : (
-                content
-              )}
-            </LinearGradient>
-          );
-        }
-
-        return (
-          <View style={containerStyles}>
-            {typeof children === 'string' ? (
-              <Text style={[styles.textOutline, textStyle]}>{children}</Text>
-            ) : (
-              content
-            )}
-          </View>
-        );
-      }}
+      {loading ? (
+        <View style={styles.content}>
+          <ActivityIndicator color={variantStyle.loaderColor} />
+        </View>
+      ) : typeof children === 'string' ? (
+        <Text style={[variantStyle.text, textStyle]}>{children}</Text>
+      ) : (
+        <View style={styles.content}>{children}</View>
+      )}
     </Pressable>
   );
+}
+
+function getVariantStyle(variant) {
+  if (variant === 'outline') {
+    return {
+      container: styles.outline,
+      text: styles.textOutline,
+      loaderColor: colors.primary[600],
+    };
+  }
+  if (variant === 'secondary') {
+    return {
+      container: styles.secondary,
+      text: styles.textSecondary,
+      loaderColor: colors.primary[600],
+    };
+  }
+  return {
+    container: styles.primary,
+    text: styles.textPrimary,
+    loaderColor: colors.white,
+  };
 }
 
 const styles = StyleSheet.create({
@@ -104,10 +95,16 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.padding.baseLg,
     paddingHorizontal: tokens.padding.lg,
   },
+  primary: {
+    backgroundColor: colors.primary[600],
+  },
   outline: {
     borderWidth: 1,
     borderColor: colors.neutral[300],
     backgroundColor: colors.white,
+  },
+  secondary: {
+    backgroundColor: colors.primary[50],
   },
   pressed: {
     opacity: 0.9,
@@ -125,9 +122,15 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.title,
     fontWeight: tokens.fontWeight.semibold,
   },
+  textSecondary: {
+    color: colors.primary[700],
+    fontSize: tokens.font.title,
+    fontWeight: tokens.fontWeight.semibold,
+  },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
   },
 });

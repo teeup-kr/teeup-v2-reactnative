@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import FilterChip from '@/components/mypage/FilterChip';
+import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import {
     myMeetingsStatusConfig,
@@ -319,12 +320,12 @@ export default function MyMeetingsScreen() {
                 </View>
               </View>
 
-              <Pressable
+              <Button
                 style={styles.detailButton}
                 onPress={handleMeetingDetail(meetingId, slug)}
               >
                 <Text style={styles.detailButtonText}>상세 보기</Text>
-              </Pressable>
+              </Button>
             </Card>
           );
         })}

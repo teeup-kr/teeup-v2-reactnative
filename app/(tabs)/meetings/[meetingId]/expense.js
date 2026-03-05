@@ -295,10 +295,10 @@ export default function ExpenseScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>지출 목록</Text>
-          <Pressable style={styles.addButton} onPress={openCreateModal}>
+          <Button size="sm" style={styles.addButton} onPress={openCreateModal}>
             <FontAwesome5 name="plus" size={11} color={colors.white} />
             <Text style={styles.addButtonText}>지출 추가</Text>
-          </Pressable>
+          </Button>
         </View>
 
         {isLoading ? (
@@ -651,11 +651,12 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.md,
+    borderRadius: tokens.radius.base,
     paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs,
-    fontSize: tokens.font.sm,
+    paddingVertical: tokens.padding.base,
+    fontSize: tokens.font.base,
     color: colors.neutral[900],
+    backgroundColor: colors.white,
   },
   textArea: {
     minHeight: 64,

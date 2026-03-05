@@ -7,6 +7,7 @@ import { extractData } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
+import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 
 import SettlementViewModal from './SettlementViewModal';
@@ -860,13 +861,13 @@ export default function SettlementManager({
                     ) : (
                       <Text style={styles.paymentStatusUnpaid}>미납부</Text>
                     )}
-                    <Pressable
+                    <Button
                       style={styles.paymentBtn}
                       onPress={() => handleOpenPayModal(p)}
                     >
                       <FontAwesome5 name="check-circle" size={14} color={colors.primary[600]} />
                       <Text style={styles.paymentBtnText}>수정</Text>
-                    </Pressable>
+                    </Button>
                   </View>
                 </View>
               ))}
@@ -917,10 +918,10 @@ export default function SettlementManager({
                   </Pressable>
                 </View>
               ))}
-              <Pressable style={styles.addExpenseItemBtn} onPress={addSocialExpenseItem}>
+              <Button style={styles.addExpenseItemBtn} onPress={addSocialExpenseItem}>
                 <FontAwesome5 name="plus-circle" size={16} color={colors.primary[600]} />
                 <Text style={styles.addExpenseItemBtnText}>항목 추가</Text>
-              </Pressable>
+              </Button>
             </View>
           ) : (
             [
@@ -1249,7 +1250,7 @@ export default function SettlementManager({
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       {shouldShowForm ? (
-        <Pressable
+        <Button
           style={[
             styles.fullButton,
             styles.editButton,
@@ -1261,9 +1262,9 @@ export default function SettlementManager({
           <Text style={styles.fullButtonText}>
             {saving ? '저장 중...' : settlement ? '정산 수정' : '정산 생성'}
           </Text>
-        </Pressable>
+        </Button>
       ) : canEditSettlement ? (
-        <Pressable
+        <Button
           style={styles.fullButton}
           onPress={() => {
             setSettlementForm(makeSettlementForm(settlement, meeting));
@@ -1271,13 +1272,13 @@ export default function SettlementManager({
           }}
         >
           <Text style={styles.fullButtonText}>정산 수정</Text>
-        </Pressable>
+        </Button>
       ) : null}
 
       {canConfirmSettlement ? (
-        <Pressable style={[styles.fullButton, styles.confirmButton]} onPress={onConfirmSettlement}>
+        <Button style={[styles.fullButton, styles.confirmButton]} onPress={onConfirmSettlement}>
           <Text style={styles.fullButtonText}>정산 확정</Text>
-        </Pressable>
+        </Button>
       ) : null}
 
       {meeting?.settlement_confirmed ? (
@@ -1293,22 +1294,22 @@ export default function SettlementManager({
         footer={(
           <View style={styles.payModalFooter}>
             {payTarget?.is_paid && (
-              <Pressable
+              <Button
                 style={[styles.payModalBtn, styles.payModalBtnUnpaid]}
                 onPress={handleMarkUnpaid}
                 disabled={paySaving}
               >
                 <Text style={styles.payModalBtnTextUnpaid}>미납부로 변경</Text>
-              </Pressable>
+              </Button>
             )}
-            <Pressable
+            <Button
               style={[styles.payModalBtn, styles.payModalBtnCancel]}
               onPress={() => setPayModalOpen(false)}
               disabled={paySaving}
             >
               <Text style={styles.payModalBtnText}>취소</Text>
-            </Pressable>
-            <Pressable
+            </Button>
+            <Button
               style={[styles.payModalBtn, styles.payModalBtnConfirm]}
               onPress={handleMarkPaid}
               disabled={paySaving}
@@ -1318,7 +1319,7 @@ export default function SettlementManager({
               ) : (
                 <Text style={styles.payModalBtnTextWhite}>납부 완료</Text>
               )}
-            </Pressable>
+            </Button>
           </View>
         )}
       >
@@ -1462,13 +1463,13 @@ const styles = StyleSheet.create({
     color: colors.neutral[900],
   },
   editInput: {
-    borderRadius: tokens.radius.md,
+    borderRadius: tokens.radius.base,
     borderWidth: 1,
     borderColor: colors.neutral[300],
     backgroundColor: colors.white,
     paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.sm,
-    fontSize: tokens.font.lg,
+    paddingVertical: tokens.padding.base,
+    fontSize: tokens.font.base,
     color: colors.neutral[900],
   },
   methodRow: {
@@ -1756,10 +1757,12 @@ const styles = StyleSheet.create({
   payModalInput: {
     borderWidth: 1,
     borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.md,
+    borderRadius: tokens.radius.base,
     paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.sm,
+    paddingVertical: tokens.padding.base,
     fontSize: tokens.font.base,
+    color: colors.neutral[900],
+    backgroundColor: colors.white,
     marginBottom: tokens.spacing.xs2,
   },
   payModalHint: {

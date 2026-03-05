@@ -1,7 +1,8 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import Button from '@/components/ui/Button';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
@@ -198,78 +199,78 @@ export default function MeetingWorkflowStatus({
 
       <View style={styles.actionRow}>
         {canManage && onCloseApplicationEarly && !isApplicationClosed && (
-          <Pressable
-            style={({ pressed }) => [
+          <Button
+            style={[
               styles.actionButtonBase,
               styles.actionButtonAmberOutline,
-              pressed && styles.actionButtonPressed,
             ]}
             onPress={onCloseApplicationEarly}
+            textStyle={[styles.actionButtonText, styles.actionButtonTextAmber]}
           >
-            <Text style={[styles.actionButtonText, styles.actionButtonTextAmber]}>모집 마감</Text>
-          </Pressable>
+            모집 마감
+          </Button>
         )}
         {canManage && onAutoFormTeams && (
-          <Pressable
-            style={({ pressed }) => [
+          <Button
+            style={[
               styles.actionButtonBase,
               styles.actionButtonBlue,
               !canAutoFormTeams && styles.actionButtonDisabled,
-              pressed && canAutoFormTeams && styles.actionButtonPressed,
             ]}
             onPress={onAutoFormTeams}
             disabled={!canAutoFormTeams}
+            textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
           >
-            <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>팀 편성 시작</Text>
-          </Pressable>
+            팀 편성 시작
+          </Button>
         )}
         {canManage && onConfirmTeamFormation && workflowState === 'TEAM_FORMED' && (
-          <Pressable
-            style={({ pressed }) => [
+          <Button
+            style={[
               styles.actionButtonBase,
               styles.actionButtonGreen,
-              pressed && styles.actionButtonPressed,
             ]}
             onPress={onConfirmTeamFormation}
+            textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
           >
-            <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>팀 편성 확정</Text>
-          </Pressable>
+            팀 편성 확정
+          </Button>
         )}
         {canManage && onStartRounding && canStartRounding && (
-          <Pressable
-            style={({ pressed }) => [
+          <Button
+            style={[
               styles.actionButtonBase,
               styles.actionButtonBlue,
-              pressed && styles.actionButtonPressed,
             ]}
             onPress={onStartRounding}
+            textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
           >
-            <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>모임 진행 시작</Text>
-          </Pressable>
+            모임 진행 시작
+          </Button>
         )}
         {canManage && onCompleteRounding && canCompleteRounding && (
-          <Pressable
-            style={({ pressed }) => [
+          <Button
+            style={[
               styles.actionButtonBase,
               styles.actionButtonOrange,
-              pressed && styles.actionButtonPressed,
             ]}
             onPress={onCompleteRounding}
+            textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
           >
-            <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>라운딩 종료</Text>
-          </Pressable>
+            라운딩 종료
+          </Button>
         )}
         {canManage && onCompleteMeeting && canConfirmSettlement && (
-          <Pressable
-            style={({ pressed }) => [
+          <Button
+            style={[
               styles.actionButtonBase,
               styles.actionButtonPurple,
-              pressed && styles.actionButtonPressed,
             ]}
             onPress={onCompleteMeeting}
+            textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
           >
-            <Text style={[styles.actionButtonText, styles.actionButtonTextWhite]}>정산 완료 처리</Text>
-          </Pressable>
+            정산 완료 처리
+          </Button>
         )}
       </View>
 

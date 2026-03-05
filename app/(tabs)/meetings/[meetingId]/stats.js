@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api/api';
@@ -262,12 +263,12 @@ export default function MeetingStatsScreen() {
         </Card>
 
         <View style={styles.actionRow}>
-          <Pressable style={styles.actionButton} onPress={() => navigateWithCap(router, `/meetings/${resolvedId}/expense`)}>
+          <Button style={styles.actionButton} onPress={() => navigateWithCap(router, `/meetings/${resolvedId}/expense`)}>
             <Text style={styles.actionButtonText}>정산/경비</Text>
-          </Pressable>
-          <Pressable style={styles.actionButton} onPress={() => navigateWithCap(router, `/meetings/${resolvedId}/score`)}>
+          </Button>
+          <Button style={styles.actionButton} onPress={() => navigateWithCap(router, `/meetings/${resolvedId}/score`)}>
             <Text style={styles.actionButtonText}>점수 입력</Text>
-          </Pressable>
+          </Button>
         </View>
       </ScrollView>
     </SafeAreaView>

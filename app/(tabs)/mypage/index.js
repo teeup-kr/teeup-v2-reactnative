@@ -79,9 +79,29 @@ export default function MyPageScreen() {
 
         <View
           style={{
+            paddingHorizontal: tokens.padding.md,
+            paddingTop: tokens.padding.sm,
+            paddingBottom: tokens.padding.xs,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: tokens.font.xxl,
+              fontWeight: tokens.fontWeight.bold,
+              color: colors.neutral[900],
+            }}
+          >
+            마이페이지
+          </Text>
+        </View>
+
+        <View
+          style={{
             height: 56,
             justifyContent: 'center',
             backgroundColor: colors.neutral[50],
+            borderBottomWidth: 1,
+            borderBottomColor: colors.neutral[200],
           }}
         >
           <ScrollView
@@ -100,18 +120,18 @@ export default function MyPageScreen() {
                   key={tab.id}
                   onPress={handleTabPress(tab.id)}
                   style={{
-                    paddingVertical: tokens.padding.base,
-                    paddingHorizontal: tokens.padding.md,
-                    marginRight: tokens.spacing.xs2,
-                    borderRadius: tokens.radius.md,
-                    backgroundColor: active ? colors.emerald[600] : colors.white,
+                    paddingVertical: tokens.spacing.sm,
+                    paddingHorizontal: tokens.spacing.xs,
+                    marginRight: tokens.padding.sm,
+                    borderBottomWidth: 2,
+                    borderBottomColor: active ? colors.primary[500] : 'transparent',
                   }}
                 >
                   <Text
                     style={{
-                      fontSize: tokens.font.base,
+                      fontSize: tokens.font.sm,
                       fontWeight: tokens.fontWeight.semibold,
-                      color: active ? colors.white : colors.textStrong,
+                      color: active ? colors.primary[600] : colors.neutral[500],
                     }}
                   >
                     {tab.label}

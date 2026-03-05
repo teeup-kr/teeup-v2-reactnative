@@ -15,6 +15,7 @@ import AppFooter from '@/components/layout/AppFooter';
 import AppHeader from '@/components/layout/AppHeader';
 import MeetingCard from '@/components/meetings/MeetingCard';
 import MeetingDateField from '@/components/meetings/MeetingDateField';
+import Button from '@/components/ui/Button';
 import { meetingTabs, meetingValidTabs } from '@/constants/meetingConstants';
 import { useAuth } from '@/context/AuthContext';
 import { meetingsApi } from '@/lib/api/api';
@@ -533,28 +534,26 @@ export default function MeetingsScreen() {
             <View style={styles.headerRow}>
               <Text style={styles.title}>모임 목록</Text>
               <View style={styles.createRow}>
-                <Pressable
+                <Button
                   onPress={handleCreateMeeting('rounding')}
-                  style={({ pressed }) => [
+                  style={[
                     styles.createButton,
                     styles.createButtonRounding,
-                    pressed && styles.createButtonPressed,
                   ]}
                 >
                   <FontAwesome5 name="plus" size={12} color={colors.white} />
                   <Text style={styles.createButtonText}>라운딩 생성</Text>
-                </Pressable>
-                <Pressable
+                </Button>
+                <Button
                   onPress={handleCreateMeeting('social')}
-                  style={({ pressed }) => [
+                  style={[
                     styles.createButton,
                     styles.createButtonSocial,
-                    pressed && styles.createButtonPressed,
                   ]}
                 >
                   <FontAwesome5 name="plus" size={12} color={colors.white} />
                   <Text style={styles.createButtonText}>소셜 생성</Text>
-                </Pressable>
+                </Button>
               </View>
             </View>
 
@@ -671,7 +670,7 @@ export default function MeetingsScreen() {
                         : '현재 진행 중이거나 진행 예정인 모임이 없습니다.'}
                     </Text>
                     {statusFilter !== 'completed' && showCreateFromEmpty && canCreateMeeting ? (
-                      <Pressable
+                      <Button
                         onPress={handleCreateMeeting(activeTab)}
                         style={[
                           styles.emptyCreateButton,
@@ -683,7 +682,7 @@ export default function MeetingsScreen() {
                         <Text style={styles.emptyCreateButtonText}>
                           {activeTab === 'rounding' ? '라운딩' : '소셜'} 모임 생성하기
                         </Text>
-                      </Pressable>
+                      </Button>
                     ) : null}
                   </>
                 )}
@@ -928,13 +927,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.neutral[300],
     borderRadius: tokens.radius.base,
-    paddingHorizontal: tokens.padding.base,
+    paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.base,
     gap: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: tokens.font.sm,
+    fontSize: tokens.font.base,
     color: colors.neutral[900],
   },
   searchButton: {

@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import LoginRequired from '@/components/auth/LoginRequired';
+import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { useAuth } from '@/context/AuthContext';
@@ -189,10 +190,10 @@ export default function MyMeetingsScreen() {
             <Text style={styles.summaryValue}>{meetings.length}개</Text>
           </Card>
 
-          <Pressable style={styles.refreshButton} onPress={loadMeetings}>
+          <Button style={styles.refreshButton} onPress={loadMeetings}>
             <FontAwesome5 name="sync-alt" size={12} color={colors.neutral[700]} />
             <Text style={styles.refreshText}>새로고침</Text>
-          </Pressable>
+          </Button>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabRow}>

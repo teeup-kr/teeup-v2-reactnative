@@ -1,9 +1,10 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
 import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { signInWithGoogle } from '@/lib/util/authUtils';
@@ -56,21 +57,23 @@ export default function LandingScreen() {
           자동 조편성, 정산, 공지까지{'\n'}한 번에 관리하세요.
         </Text>
         <View style={styles.ctaRow}>
-          <Pressable
-            style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}
+          <Button
+            variant="primary"
+            style={styles.primaryButton}
+            textStyle={styles.primaryButtonText}
             onPress={handleGoogleSignIn}
             disabled={isGoogleRedirecting}
           >
-            <Text style={styles.primaryButtonText}>
-              {isGoogleRedirecting ? 'Google 로그인으로 이동 중...' : 'Google로 로그인'}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [styles.secondaryButton, pressed && styles.secondaryButtonPressed]}
+            {isGoogleRedirecting ? 'Google 로그인으로 이동 중...' : 'Google로 로그인'}
+          </Button>
+          <Button
+            variant="outline"
+            style={styles.secondaryButton}
+            textStyle={styles.secondaryButtonText}
             onPress={() => navigateWithCap(router, '/app')}
           >
-            <Text style={styles.secondaryButtonText}>서비스 둘러보기</Text>
-          </Pressable>
+            서비스 둘러보기
+          </Button>
           {googleLoginError ? <Text style={styles.errorText}>{googleLoginError}</Text> : null}
         </View>
       </LinearGradient>
@@ -128,9 +131,6 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.padding.baseLg,
     alignItems: 'center',
   },
-  primaryButtonPressed: {
-    opacity: 0.9,
-  },
   primaryButtonText: {
     color: colors.emerald[700],
     fontSize: tokens.font.base,
@@ -142,9 +142,6 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.md,
     paddingVertical: tokens.padding.baseLg,
     alignItems: 'center',
-  },
-  secondaryButtonPressed: {
-    opacity: 0.85,
   },
   secondaryButtonText: {
     color: colors.white,

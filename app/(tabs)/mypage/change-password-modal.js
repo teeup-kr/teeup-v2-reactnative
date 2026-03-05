@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import FormField from '@/components/mypage/FormField';
+import Button from '@/components/ui/Button';
 import { mypageApi } from '@/lib/api/api';
 import {
     createPasswordFieldChangeHandler,
@@ -174,10 +175,10 @@ export default function ChangePasswordModal({ isOpen, onClose, onLogout }) {
                                 {error && <Text style={styles.errorBox}>{error}</Text>}
 
                                 <View style={styles.buttonRow}>
-                                    <Pressable style={styles.cancelBtn} onPress={onClose}>
+                                    <Button variant="outline" style={styles.cancelBtn} onPress={onClose}>
                                         <Text>취소</Text>
-                                    </Pressable>
-                                    <Pressable
+                                    </Button>
+                                    <Button
                                         style={styles.submitBtn}
                                         onPress={handleSubmit}
                                         disabled={loading}
@@ -185,7 +186,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onLogout }) {
                                         <Text style={styles.submitText}>
                                             {loading ? '처리 중...' : '비밀번호 변경'}
                                         </Text>
-                                    </Pressable>
+                                    </Button>
                                 </View>
                             </View>
                         </>

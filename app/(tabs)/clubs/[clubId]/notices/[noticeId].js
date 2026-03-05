@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   ActivityIndicator,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -163,9 +162,9 @@ export default function ClubNoticeDetailScreen() {
             >
               수정하기
             </Button>
-            <Pressable style={styles.deleteBtn} onPress={handleDelete}>
+            <Button variant="outline" size="lg" style={styles.deleteBtn} onPress={handleDelete}>
               <Text style={styles.deleteBtnText}>삭제하기</Text>
-            </Pressable>
+            </Button>
           </View>
         )}
       </ScrollView>

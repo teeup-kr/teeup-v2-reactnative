@@ -208,13 +208,13 @@ export const base = {
     /* Inputs */
     input: {
         borderWidth: 1,
-        borderColor: colors.inputBorder,
-        borderRadius: tokens.radius.md,
-        paddingHorizontal: tokens.padding.md,
-        paddingVertical: tokens.padding.sm,
-        fontSize: tokens.font.md,
+        borderColor: colors.neutral[300],
+        borderRadius: tokens.radius.base,
+        paddingHorizontal: tokens.padding.sm,
+        paddingVertical: tokens.padding.base,
+        fontSize: tokens.font.base,
         backgroundColor: colors.white,
-        color: colors.text,
+        color: colors.neutral[900],
     },
     inputError: {
         borderColor: colors.red[500],
