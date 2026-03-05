@@ -1132,7 +1132,7 @@ async function fetchRounds(params) {
 }
 
 async function fetchSocials(params) {
-  return apiClient.get('/socials', { params });
+  return apiClient.get('/socials/', { params });
 }
 
 async function fetchRound(meetingId) {

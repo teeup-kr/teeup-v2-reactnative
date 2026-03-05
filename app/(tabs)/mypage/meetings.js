@@ -1,7 +1,7 @@
 
 import { FontAwesome5 } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
@@ -10,6 +10,7 @@ import {
     ScrollView, StyleSheet, Text,
     View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import FilterChip from '@/components/mypage/FilterChip';
 import Card from '@/components/ui/Card';
@@ -45,6 +46,8 @@ import { base, tokens } from '@/styles/style';
 
 export default function MyMeetingsScreen() {
   const router = useRouter();
+  const pathname = usePathname();
+  const safeAreaEdges = pathname === '/mypage/meetings' ? ['top'] : [];
 
   /* =========================
      State
@@ -168,7 +171,7 @@ export default function MyMeetingsScreen() {
   );
 
   return (
-    <View style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* =========================
             Filters
@@ -353,7 +356,7 @@ export default function MyMeetingsScreen() {
           </View>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

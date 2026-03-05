@@ -8,25 +8,18 @@ export const clubTabs = [
 ];
 
 export const clubStatusFilterOptions = [
-  { value: 'ALL', label: '전체 상태' },
-  { value: 'APPROVED', label: '승인됨' },
-  { value: 'PENDING', label: '승인 대기' },
-  { value: 'REJECTED', label: '거부됨' },
+  { value: 'ACTIVE', label: '활성' },
+  { value: 'SUSPENDED', label: '정지' },
 ];
 
 export const clubMyStatusOptions = [
-  { value: 'ACTIVE', label: '활성/승인' },
+  { value: 'ACTIVE', label: '활성' },
   { value: 'INACTIVE', label: '비공개' },
   { value: 'ALL', label: '전체' },
 ];
 
 export const clubStatusBadgeConfig = {
   ACTIVE: { text: '활성', bg: colors.success[50], fg: colors.success[700] },
-  APPROVED: { text: '활성', bg: colors.success[50], fg: colors.success[700] },
-  INACTIVE: { text: '비공개', bg: colors.neutral[100], fg: colors.neutral[800] },
-  PENDING: { text: '승인 대기', bg: colors.warning[50], fg: colors.warning[700] },
-  REJECTED: { text: '거부됨', bg: colors.error[50], fg: colors.error[700] },
-  CANCELED: { text: '취소됨', bg: colors.error[50], fg: colors.error[700] },
   SUSPENDED: { text: '정지', bg: colors.error[50], fg: colors.error[700] },
 };
 

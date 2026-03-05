@@ -1,5 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
     ActivityIndicator,
@@ -8,6 +8,7 @@ import {
     ScrollView, StyleSheet, Text,
     View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import HoleScoreTableModal from '@/components/mypage/HoleScoreTableModal';
 import RecordMeetingCard from '@/components/mypage/RecordMeetingCard';
@@ -36,6 +37,8 @@ import { base, tokens } from '@/styles/style';
 
 export default function RecordsTab() {
   const router = useRouter();
+  const pathname = usePathname();
+  const safeAreaEdges = pathname === '/mypage/records' ? ['top'] : [];
 
   const [scoreStatus, setScoreStatus] = useState('all');
   const [page, setPage] = useState(1);
@@ -224,19 +227,19 @@ export default function RecordsTab() {
 
   if (loading && meetings.length === 0) {
     return (
-      <View style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
         <View style={styles.centerBox}>
           <ActivityIndicator size="large" color={colors.primary[600]} />
           <Text style={styles.centerText}>로딩 중...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     const message = getRecordErrorMessage(error);
     return (
-      <View style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
         <Card style={styles.errorCard}>
           <View style={{ alignItems: 'center', gap: 10 }}>
             <FontAwesome5 name="times" size={36} color={colors.error[600]} />
@@ -244,7 +247,7 @@ export default function RecordsTab() {
             <Text style={styles.errorSub}>{message}</Text>
           </View>
         </Card>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -259,7 +262,7 @@ export default function RecordsTab() {
   const showEmpty = meetings.length === 0;
 
   return (
-    <View style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
       <ScrollView contentContainerStyle={styles.container}>
         <RoundingStatsCard stats={stats} isLoading={statsLoading} error={statsError} />
 
@@ -462,7 +465,7 @@ export default function RecordsTab() {
         holeCount={selectedMeeting?.hole_count}
         onSuccess={handleHoleScoreSuccess}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
