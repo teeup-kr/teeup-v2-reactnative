@@ -14,8 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import { clubsApi } from '@/lib/api/api';
 import { clubFeeCycles } from '@/constants/clubConstants';
+import { clubsApi } from '@/lib/api/api';
+import { backOrHome } from '@/lib/navigation/cappedHistory';
 import { extractData } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -155,7 +156,7 @@ export default function ClubFeeEditScreen() {
         <ScreenHeader title="회비 수정" />
         <View style={styles.loadingWrap}>
           <Text style={styles.errorText}>{fetchError}</Text>
-          <Button variant="outline" onPress={() => router.back()} style={{ marginTop: tokens.spacing.md }}>
+          <Button variant="outline" onPress={() => backOrHome(router)} style={{ marginTop: tokens.spacing.md }}>
             뒤로가기
           </Button>
         </View>

@@ -17,8 +17,8 @@ import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/api/api';
 import { createFetchStatsHandler } from '@/lib/handler/clubs';
 import { openWebDateInput } from '@/lib/handler/mypage';
-import { extractData } from '@/lib/util/responseUtils';
 import { fromYmd, toYmd } from '@/lib/util/mypageUtils';
+import { extractData } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
@@ -101,9 +101,7 @@ export default function ClubStatsScreen() {
   }, [loadStats]);
 
   useEffect(() => {
-    if (!pickDate) {
-      setPickDate(toYmd(new Date()));
-    }
+    setPickDate((prev) => prev || toYmd(new Date()));
   }, [period]);
 
   const handlePickChange = (e, date) => {

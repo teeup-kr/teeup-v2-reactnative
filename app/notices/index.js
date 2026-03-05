@@ -18,6 +18,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { noticeCategoryLabel } from '@/constants/noticesConstants';
 import { noticesApi } from '@/lib/api/api';
+import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { normalizeNotice } from '@/lib/util/noticeUtils';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
@@ -71,7 +72,7 @@ export default function NoticeListScreen() {
             <Pressable
               key={notice.id}
               style={({ pressed }) => [styles.noticeCard, pressed && styles.noticeCardPressed]}
-              onPress={() => router.push(`/notices/${notice.id}`)}
+              onPress={() => navigateWithCap(router, `/notices/${notice.id}`)}
             >
               <View style={styles.cardHeader}>
                 <View style={styles.badge}>
@@ -92,7 +93,7 @@ export default function NoticeListScreen() {
         )}
         <Pressable
           style={({ pressed }) => [styles.infoCard, pressed && styles.infoCardPressed]}
-          onPress={() => router.push('/inquiries')}
+          onPress={() => navigateWithCap(router, '/inquiries')}
         >
           <Text style={styles.infoTitle}>문의가 필요하신가요?</Text>
           <Text style={styles.infoText}>FAQ에서 답을 찾거나 1:1 문의를 등록해주세요.</Text>

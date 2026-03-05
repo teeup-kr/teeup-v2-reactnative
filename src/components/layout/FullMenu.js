@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
@@ -36,7 +37,7 @@ export default function FullMenu() {
   const navigate = (path, requiresAuth = false) => {
     closeMenu();
     if (requiresAuth && !isAuthenticated) return;
-    router.push(path);
+    navigateWithCap(router, path);
   };
 
   const handleLogout = async () => {

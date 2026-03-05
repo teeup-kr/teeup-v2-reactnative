@@ -14,9 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LoginRequired from '@/components/auth/LoginRequired';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
-import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
 import { inquiriesApi } from '@/lib/api/api';
+import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -57,8 +57,7 @@ export default function InquiryListScreen() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [list, setList] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -75,9 +74,7 @@ export default function InquiryListScreen() {
         setError('');
         const response = await inquiriesApi.getMyInquiries({ page, size });
         const inquiries = extractList(response);
-        const totalCount = response?.total ?? inquiries?.length ?? 0;
         setList(Array.isArray(inquiries) ? inquiries : []);
-        setTotal(totalCount);
       } catch (e) {
         setError(e?.message || '문의 목록을 불러오는 데 실패했습니다.');
       } finally {
@@ -115,7 +112,7 @@ export default function InquiryListScreen() {
 
         <Pressable
           style={({ pressed }) => [styles.createButton, pressed && styles.createButtonPressed]}
-          onPress={() => router.push('/inquiries/create')}
+          onPress={() => navigateWithCap(router, '/inquiries/create')}
         >
           <FontAwesome5 name="plus" size={14} color={colors.white} />
           <Text style={styles.createButtonText}>문의하기</Text>
@@ -140,7 +137,7 @@ export default function InquiryListScreen() {
             <Pressable
               key={item.id}
               style={({ pressed }) => [styles.itemCard, pressed && styles.itemCardPressed]}
-              onPress={() => router.push(`/inquiries/${item.id}`)}
+              onPress={() => navigateWithCap(router, `/inquiries/${item.id}`)}
             >
               <View style={styles.itemHeader}>
                 <View style={styles.typeBadge}>

@@ -22,13 +22,12 @@ import {
   createConditionalFieldChangeHandler,
   createFieldChangeHandler,
   createInputChangeHandler,
-  createPasswordModalCloseHandler,
-  createPasswordModalOpenHandler,
   createSaveProfileHandler,
   createShowToastHandler,
   createValidateProfileFormHandler,
   openWebDateInput,
 } from '@/lib/handler/mypage';
+import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import {
   calcHandicapFromAvg,
   formatDateYYYYMMDD,
@@ -81,12 +80,11 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
 
   const [errors, setErrors] = useState({});
   const [, setLoading] = useState(true);
-  const [handicapInfo, setHandicapInfo] = useState(null);
-  const [handicapLoading, setHandicapLoading] = useState(false);
+  const [, setHandicapInfo] = useState(null);
+  const [, setHandicapLoading] = useState(false);
   const [isCheckingNickname, setIsCheckingNickname] = useState(false);
   const [nicknameChecked, setNicknameChecked] = useState(false);
   const [nicknameMessage, setNicknameMessage] = useState('');
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [updateProfilePending, setUpdateProfilePending] = useState(false);
   const [toast, setToast] = useState({ open: false, tone: 'success', message: '' });
 
@@ -123,7 +121,7 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
       onMoveToWithdraw();
       return;
     }
-    router.push('/mypage/withdraw');
+    navigateWithCap(router, '/mypage/withdraw');
   }, [onMoveToWithdraw, router]);
 
   useEffect(() => {
@@ -134,16 +132,6 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
   }, [isNicknameSame]);
 
   const showToast = useMemo(() => createShowToastHandler(setToast), []);
-
-  const openPasswordModal = useMemo(
-    () => createPasswordModalOpenHandler(setShowPasswordModal),
-    [setShowPasswordModal],
-  );
-
-  const closePasswordModal = useMemo(
-    () => createPasswordModalCloseHandler(setShowPasswordModal),
-    [setShowPasswordModal],
-  );
 
   const handleCompositionStart = useMemo(
     () => createCompositionStartHandler(setIsNameComposing),

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { formatBirthdateForApi, normalizeBirthdateInput } from '@/lib/util/meetingUtils';
+import { formatBirthdateForApi } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
@@ -54,10 +54,6 @@ export default function TeamFormationModal({
       return;
     }
     if (onFormTeams) {
-      const guestsForApi = guests.map((g) => ({
-        ...g,
-        birthdate: formatBirthdateForApi(g.birthdate) || null,
-      }));
       onFormTeams({
         formation_mode: formationMode,
         team_size: Number(teamSize),

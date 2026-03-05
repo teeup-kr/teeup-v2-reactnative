@@ -16,8 +16,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppFooter from '@/components/layout/AppFooter';
-import { useAuth } from '@/context/AuthContext';
 import Card from '@/components/ui/Card';
+import { useAuth } from '@/context/AuthContext';
 import { mypageApi } from '@/lib/api/api';
 import {
   createFetchClubsHandler,
@@ -30,7 +30,6 @@ import {
   formatProfileDate,
   getAverageScoreDisplay,
   getGenderLabel,
-  getHandicapDisplay,
   getHandicapDisplayInfo,
   getProfileInfoIconName
 } from '@/lib/util/mypageUtils';
@@ -42,7 +41,7 @@ export default function OverviewScreen() {
   const router = useRouter();
   const { logout } = useAuth();
   const [profile, setProfile] = useState(null);
-  const [handicapInfo, setHandicapInfo] = useState(null);
+  const [, setHandicapInfo] = useState(null);
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -84,10 +83,6 @@ export default function OverviewScreen() {
     fetchProfile();
     fetchClubs();
   }, [fetchProfile, fetchClubs]);
-
-  const handicapDisplay = useMemo(() => {
-    return getHandicapDisplay(profile, handicapInfo);
-  }, [handicapInfo, profile]);
 
   const infoItems = useMemo(() => {
     return buildProfileInfoItems(profile, { formatProfileDate, getGenderLabel });

@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/context/AuthContext';
+import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { signInWithGoogle } from '@/lib/util/authUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -66,7 +67,7 @@ export default function LandingScreen() {
           </Pressable>
           <Pressable
             style={({ pressed }) => [styles.secondaryButton, pressed && styles.secondaryButtonPressed]}
-            onPress={() => router.push('/app')}
+            onPress={() => navigateWithCap(router, '/app')}
           >
             <Text style={styles.secondaryButtonText}>서비스 둘러보기</Text>
           </Pressable>

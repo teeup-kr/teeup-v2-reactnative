@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { roundsApi } from '@/lib/api/api';
 import { extractData } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
-import SettlementViewModal from './SettlementViewModal';
 import Modal from '../ui/Modal';
+
+import SettlementViewModal from './SettlementViewModal';
 
 const ROUND_METHODS = [
   { value: 'EQUAL_SPLIT', label: 'N분의 1' },
@@ -45,11 +46,6 @@ function firstFiniteNumber(...values) {
 
 function onlyDigits(value) {
   return String(value ?? '').replace(/[^0-9]/g, '');
-}
-
-/** participant.user_id 또는 guest_id (백엔드 전송용, 단일 타입일 때) */
-function getParticipantId(p) {
-  return p?.user_id ?? p?.guest_id ?? p?.id;
 }
 
 /** 선택 상태 저장/비교용 고유 키 (user_id=1과 guest_id=1 구분) */
@@ -788,6 +784,8 @@ export default function SettlementManager({
     settlementTargetsForSocial,
     extraPayerId,
     extraPayerByFee,
+    participants,
+    socialExpenseItems,
   ]);
 
   return (

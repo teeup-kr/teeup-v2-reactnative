@@ -441,7 +441,7 @@ export function openWebDateInput({ value, onChange, anchorRect, min }) {
             if (input.parentNode) {
                 try {
                     input.parentNode.removeChild(input);
-                } catch (e) {
+                } catch {
                     // 이미 제거된 경우 무시
                 }
             }
@@ -578,7 +578,7 @@ export function openWebDateTimeInput({ value, onChange, min, anchorRect }) {
         input.style.visibility = 'hidden';
         const removeInput = () => {
             if (input.parentNode) {
-                try { input.parentNode.removeChild(input); } catch (e) { /* noop */ }
+                try { input.parentNode.removeChild(input); } catch { /* noop */ }
             }
         };
         setTimeout(removeInput, 50);

@@ -3,9 +3,9 @@ import { useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { openWebDateInput } from '@/lib/handler/mypage';
+import { formatYmd, parseYmd } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
-import { formatYmd, parseYmd } from '@/lib/util/meetingUtils';
 
 const dateInputStyles = StyleSheet.create({
   inputLike: {

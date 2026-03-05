@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
@@ -25,10 +26,10 @@ export default function LoginRequired({
             <Text style={styles.title}>{message}</Text>
             <Text style={styles.subtitle}>{description}</Text>
             <View style={styles.actions}>
-              <Pressable onPress={() => router.push('/login')} style={styles.primaryButton}>
+              <Pressable onPress={() => navigateWithCap(router, '/login')} style={styles.primaryButton}>
                 <Text style={styles.primaryLabel}>로그인</Text>
               </Pressable>
-              <Pressable onPress={() => router.push('/register')} style={styles.secondaryButton}>
+              <Pressable onPress={() => navigateWithCap(router, '/register')} style={styles.secondaryButton}>
                 <Text style={styles.secondaryLabel}>회원가입</Text>
               </Pressable>
             </View>

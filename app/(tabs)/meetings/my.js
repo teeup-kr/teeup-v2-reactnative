@@ -16,6 +16,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { useAuth } from '@/context/AuthContext';
 import { mypageApi } from '@/lib/api/api';
+import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -154,7 +155,7 @@ export default function MyMeetingsScreen() {
     (meeting) => () => {
       const id = meeting?.id || meeting?.meeting_id;
       if (!id) return;
-      router.push(`/meetings/${getTypeSlug(meeting)}/${id}`);
+      navigateWithCap(router, `/meetings/${getTypeSlug(meeting)}/${id}`);
     },
     [router]
   );

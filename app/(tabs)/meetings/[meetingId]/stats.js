@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api/api';
+import { backOrHome, navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { extractData, extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -151,7 +152,7 @@ export default function MeetingStatsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScreenHeader title="모임 통계" />
       <ScrollView contentContainerStyle={styles.container}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
+        <Pressable style={styles.backButton} onPress={() => backOrHome(router)}>
           <FontAwesome5 name="arrow-left" size={13} color={colors.neutral[600]} />
           <Text style={styles.backText}>모임 상세</Text>
         </Pressable>
@@ -261,10 +262,10 @@ export default function MeetingStatsScreen() {
         </Card>
 
         <View style={styles.actionRow}>
-          <Pressable style={styles.actionButton} onPress={() => router.push(`/meetings/${resolvedId}/expense`)}>
+          <Pressable style={styles.actionButton} onPress={() => navigateWithCap(router, `/meetings/${resolvedId}/expense`)}>
             <Text style={styles.actionButtonText}>정산/경비</Text>
           </Pressable>
-          <Pressable style={styles.actionButton} onPress={() => router.push(`/meetings/${resolvedId}/score`)}>
+          <Pressable style={styles.actionButton} onPress={() => navigateWithCap(router, `/meetings/${resolvedId}/score`)}>
             <Text style={styles.actionButtonText}>점수 입력</Text>
           </Pressable>
         </View>

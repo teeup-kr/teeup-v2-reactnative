@@ -437,10 +437,11 @@ export default function ClubsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.safeArea}>
+      <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
         <AppHeader />
-
+      </SafeAreaView>
+      <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>클럽 목록</Text>
           <Button variant="primary" size="sm" onPress={handleCreateClub}>
@@ -708,12 +709,15 @@ export default function ClubsScreen() {
 
         <AppFooter />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: base.safeAreaWhite,
+  headerSafeArea: {
+    backgroundColor: colors.white,
+  },
   container: base.container,
   stateContainer: {
     flex: 1,

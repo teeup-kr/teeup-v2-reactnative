@@ -17,58 +17,10 @@ function canManageClubMeetings(club) {
     return role === 'LEADER' || role === 'MANAGER';
 }
 
-function dedupeMeetingsById(meetings = []) {
-    const byId = new Map();
-    meetings.forEach((meeting) => {
-        const meetingId = meeting?.id ?? meeting?.meeting_id;
-        if (meetingId === null || meetingId === undefined || meetingId === '') return;
-        byId.set(String(meetingId), {
-            ...meeting,
-            id: meeting?.id ?? meetingId,
-        });
-    });
-    return Array.from(byId.values());
-}
-
-function matchMeetingSearch(meeting, normalizedSearch) {
-    if (!normalizedSearch) return true;
-    const meetingName = String(meeting?.name || meeting?.meeting_name || '').toLowerCase();
-    return meetingName.includes(normalizedSearch);
-}
-
-async function fetchManagedClubMeetings({ manageableClubIds, fetchClubMeetings, extractList }) {
-    if (typeof fetchClubMeetings !== 'function') return [];
-    if (!Array.isArray(manageableClubIds) || manageableClubIds.length === 0) return [];
-
-    const allClubMeetings = [];
-    for (const clubId of manageableClubIds) {
-        if (clubId === null || clubId === undefined || clubId === '') continue;
-
-        let currentPage = 1;
-        let hasMore = true;
-
-        while (hasMore && currentPage <= 10) {
-            const response = await fetchClubMeetings(clubId, {
-                page: currentPage,
-                limit: 100,
-            });
-            const pageMeetings = extractList(response);
-            if (pageMeetings.length === 0) {
-                hasMore = false;
-                continue;
-            }
-
-            allClubMeetings.push(...pageMeetings);
-            const totalPages = response?.total_pages || 1;
-            if (currentPage >= totalPages) {
-                hasMore = false;
-            } else {
-                currentPage += 1;
-            }
-        }
-    }
-
-    return allClubMeetings;
+function getTotalPages(payload) {
+    const totalPages = Number(payload?.total_pages);
+    if (!Number.isFinite(totalPages) || totalPages <= 0) return 1;
+    return totalPages;
 }
 
 export function createFetchUserInfoHandler({
@@ -518,12 +470,7 @@ export function createFetchExpensesHandler({ meetingId, fetchRoundExpenses, extr
 }
 export function createFetchRoundingMeetingsHandler({
     fetchRounds,
-    fetchClubMeetings,
     extractList,
-    filterByDate,
-    filterByStatus,
-    getDateRange,
-    manageableClubIds,
     roundingPage,
     roundingSearchQuery,
     roundingStartDate,
@@ -534,67 +481,16 @@ export function createFetchRoundingMeetingsHandler({
 }) {
     return async function (page = roundingPage, search = roundingSearchQuery) {
         try {
-            const allPagesMeetings = [];
-            let currentPage = 1;
-            let hasMore = true;
-
-            while (hasMore && currentPage <= 10) {
-                const requestParams = {
-                    page: currentPage,
-                    limit: 100,
-                    ...(search ? { search } : {}),
-                };
-
-                const pageResponse = await fetchRounds(requestParams);
-                const pageMeetings = extractList(pageResponse);
-
-                if (pageMeetings.length === 0) {
-                    hasMore = false;
-                } else {
-                    allPagesMeetings.push(...pageMeetings);
-                    const totalPages = pageResponse?.total_pages || 1;
-                    if (currentPage >= totalPages) {
-                        hasMore = false;
-                    } else {
-                        currentPage += 1;
-                    }
-                }
-            }
-
-            const managedClubMeetings = await fetchManagedClubMeetings({
-                manageableClubIds,
-                fetchClubMeetings,
-                extractList,
+            const response = await fetchRounds({
+                page,
+                limit: 6,
+                ...(search ? { search } : {}),
+                ...(roundingStartDate ? { start_date: roundingStartDate } : {}),
+                ...(roundingEndDate ? { end_date: roundingEndDate } : {}),
+                status_group: roundingStatusFilter,
             });
-            const managedRounds = managedClubMeetings.filter((meeting) => {
-                const typeValue = String(
-                    getMeetingTypeValue(meeting) || meeting?.meeting_type || meeting?.type || ''
-                ).toUpperCase();
-                return typeValue === 'ROUND' || typeValue === 'ROUNDING';
-            });
-
-            // club meetings 엔드포인트의 search 파라미터 스펙이 코드상 확정되지 않아 병합 후 클라이언트 검색으로 정규화
-            const normalizedSearch = String(search || '').trim().toLowerCase();
-            const mergedMeetings = dedupeMeetingsById([...allPagesMeetings, ...managedRounds]);
-            const searchedMeetings = mergedMeetings.filter((meeting) => matchMeetingSearch(meeting, normalizedSearch));
-
-            const dateRange = getDateRange(roundingStartDate, roundingEndDate);
-            let filteredMeetings = filterByDate(searchedMeetings, dateRange);
-            filteredMeetings = filterByStatus(filteredMeetings, roundingStatusFilter);
-
-            const itemsPerPage = 6;
-            const calculatedTotalPages = Math.max(
-                1,
-                Math.ceil(filteredMeetings.length / itemsPerPage)
-            );
-            const startIndex = (page - 1) * itemsPerPage;
-            const paginatedMeetings = filteredMeetings.slice(
-                startIndex,
-                startIndex + itemsPerPage
-            );
-
-            setRoundingMeetings(paginatedMeetings);
-            setRoundingTotalPages(calculatedTotalPages);
+            setRoundingMeetings(extractList(response));
+            setRoundingTotalPages(getTotalPages(response));
         } catch (error) {
             console.error('라운딩 조회 실패:', error);
             setRoundingMeetings([]);
@@ -605,12 +501,7 @@ export function createFetchRoundingMeetingsHandler({
 
 export function createFetchSocialMeetingsHandler({
     fetchSocials,
-    fetchClubMeetings,
     extractList,
-    filterByDate,
-    filterByStatus,
-    getDateRange,
-    manageableClubIds,
     socialPage,
     socialSearchQuery,
     socialStartDate,
@@ -621,73 +512,16 @@ export function createFetchSocialMeetingsHandler({
 }) {
     return async function (page = socialPage, search = socialSearchQuery) {
         try {
-            // 날짜/상태 필터는 프론트에서 처리하므로 전체 페이지를 먼저 수집
-            const allPagesMeetings = [];
-            let currentPage = 1;
-            let hasMore = true;
-
-            while (hasMore && currentPage <= 10) {
-                const requestParams = {
-                    page: currentPage,
-                    limit: 100,
-                    ...(search ? { search } : {}),
-                };
-                const response = await fetchSocials(requestParams);
-                const pageMeetings = extractList(response);
-
-                if (pageMeetings.length === 0) {
-                    hasMore = false;
-                } else {
-                    allPagesMeetings.push(...pageMeetings);
-                    const totalPages = response?.total_pages || 1;
-                    if (currentPage >= totalPages) {
-                        hasMore = false;
-                    } else {
-                        currentPage += 1;
-                    }
-                }
-            }
-
-            const managedClubMeetings = await fetchManagedClubMeetings({
-                manageableClubIds,
-                fetchClubMeetings,
-                extractList,
+            const response = await fetchSocials({
+                page,
+                limit: 6,
+                ...(search ? { search } : {}),
+                ...(socialStartDate ? { start_date: socialStartDate } : {}),
+                ...(socialEndDate ? { end_date: socialEndDate } : {}),
+                status_group: socialStatusFilter,
             });
-            const managedSocials = managedClubMeetings.filter((meeting) => {
-                const typeValue = String(
-                    getMeetingTypeValue(meeting) || meeting?.meeting_type || meeting?.type || ''
-                ).toUpperCase();
-                return typeValue === 'SOCIAL';
-            });
-
-            const socials = dedupeMeetingsById([...allPagesMeetings, ...managedSocials]).map((social) => ({
-                ...social,
-                meeting_type: 'SOCIAL',
-                meeting_time: social.meeting_time,
-                participant_count: social.participant_count || 0,
-            }));
-
-            // club meetings 엔드포인트의 search 파라미터 스펙이 코드상 확정되지 않아 병합 후 클라이언트 검색으로 정규화
-            const normalizedSearch = String(search || '').trim().toLowerCase();
-            const searchedSocials = socials.filter((meeting) => matchMeetingSearch(meeting, normalizedSearch));
-
-            const dateRange = getDateRange(socialStartDate, socialEndDate);
-            let filteredSocials = filterByDate(searchedSocials, dateRange);
-            filteredSocials = filterByStatus(filteredSocials, socialStatusFilter);
-
-            const itemsPerPage = 6;
-            const calculatedTotalPages = Math.max(
-                1,
-                Math.ceil(filteredSocials.length / itemsPerPage)
-            );
-            const startIndex = (page - 1) * itemsPerPage;
-            const paginatedSocials = filteredSocials.slice(
-                startIndex,
-                startIndex + itemsPerPage
-            );
-
-            setSocialMeetings(paginatedSocials);
-            setSocialTotalPages(calculatedTotalPages);
+            setSocialMeetings(extractList(response));
+            setSocialTotalPages(getTotalPages(response));
         } catch (error) {
             console.error('소셜 모임 조회 실패:', error);
             setSocialMeetings([]);
@@ -699,9 +533,6 @@ export function createFetchSocialMeetingsHandler({
 export function createFetchParticipatingMeetingsHandler({
     fetchMyParticipatingMeetings,
     extractList,
-    filterByDate,
-    filterByStatus,
-    getDateRange,
     participatingPage,
     participatingSearchQuery,
     participatingStartDate,
@@ -712,58 +543,16 @@ export function createFetchParticipatingMeetingsHandler({
 }) {
     return async function (page = participatingPage, search = participatingSearchQuery) {
         try {
-            const allPagesMeetings = [];
-            let currentPage = 1;
-            let hasMore = true;
-
-            while (hasMore && currentPage <= 10) {
-                const requestParams = {
-                    page: currentPage,
-                    limit: 100,
-                };
-
-                const pageResponse = await fetchMyParticipatingMeetings(requestParams);
-                const pageMeetings = extractList(pageResponse);
-
-                if (pageMeetings.length === 0) {
-                    hasMore = false;
-                } else {
-                    allPagesMeetings.push(...pageMeetings);
-                    const totalPages = pageResponse?.total_pages || 1;
-                    if (currentPage >= totalPages) {
-                        hasMore = false;
-                    } else {
-                        currentPage += 1;
-                    }
-                }
-            }
-
-            // /meetings/my/participating 엔드포인트 스펙상 search 파라미터가 없어 클라이언트 필터로 처리
-            const normalizedSearch = String(search || '').trim().toLowerCase();
-            const searchedMeetings = normalizedSearch
-                ? allPagesMeetings.filter((meeting) =>
-                    String(meeting.name).toLowerCase().includes(normalizedSearch)
-                )
-                : allPagesMeetings;
-
-            const dateRange = getDateRange(participatingStartDate, participatingEndDate);
-            let filteredMeetings = filterByDate(searchedMeetings, dateRange);
-            // status_filter는 MeetingStatus enum 값이 필요하지만 현재 화면 필터(active/completed)와 직접 매핑 정보가 없어 클라이언트 필터를 적용
-            filteredMeetings = filterByStatus(filteredMeetings, participatingStatusFilter);
-
-            const itemsPerPage = 6;
-            const calculatedTotalPages = Math.max(
-                1,
-                Math.ceil(filteredMeetings.length / itemsPerPage)
-            );
-            const startIndex = (page - 1) * itemsPerPage;
-            const paginatedMeetings = filteredMeetings.slice(
-                startIndex,
-                startIndex + itemsPerPage
-            );
-
-            setParticipatingMeetings(paginatedMeetings);
-            setParticipatingTotalPages(calculatedTotalPages);
+            const response = await fetchMyParticipatingMeetings({
+                page,
+                limit: 6,
+                ...(search ? { search } : {}),
+                ...(participatingStartDate ? { start_date: participatingStartDate } : {}),
+                ...(participatingEndDate ? { end_date: participatingEndDate } : {}),
+                status_group: participatingStatusFilter,
+            });
+            setParticipatingMeetings(extractList(response));
+            setParticipatingTotalPages(getTotalPages(response));
         } catch (error) {
             console.error('내가 참가한 모임 조회 실패:', error);
             setParticipatingMeetings([]);

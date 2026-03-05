@@ -2,6 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { backOrHome } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 export default function ScreenHeader({ title, onBack }) {
@@ -12,7 +13,7 @@ export default function ScreenHeader({ title, onBack }) {
       onBack();
       return;
     }
-    router.back();
+    backOrHome(router);
   };
 
   return (

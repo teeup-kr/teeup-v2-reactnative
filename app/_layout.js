@@ -18,6 +18,7 @@ import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
+import { navigateWithCap, recordRoute } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 
 if (Platform.OS !== 'web') {
@@ -56,7 +57,7 @@ function routeByNotification(router, notification) {
   if (!data || typeof data !== 'object') return;
   const route = getNotificationRoute(data);
   if (!route) return;
-  router.push(route);
+  navigateWithCap(router, route);
 }
 
 async function setupNotificationChannel() {
@@ -81,6 +82,11 @@ function AppShell() {
   const { isAuthenticated, isLoading } = useAuth();
   const handledNotificationIdsRef = useRef(new Set());
   const isRootEntry = pathname === '/';
+
+  useEffect(() => {
+    if (isRootEntry) return;
+    recordRoute(pathname);
+  }, [pathname, isRootEntry]);
 
   useEffect(() => {
     if (Platform.OS === 'web') return undefined;

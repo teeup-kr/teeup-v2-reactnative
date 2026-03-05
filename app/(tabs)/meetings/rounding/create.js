@@ -1,4 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -13,7 +14,6 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ChipOption from '@/components/meetings/ChipOption';
@@ -35,6 +35,7 @@ import {
     createOptionPressHandler,
     createSubmitHandler,
 } from '@/lib/handler/meetings';
+import { backOrHome } from '@/lib/navigation/cappedHistory';
 import { extractData, extractList } from '@/lib/util/meetingUtils';
 import {
     buildRoundingFormFromData,
@@ -720,7 +721,7 @@ export function RoundingForm({ mode = 'create' }) {
 
   const handleCancel = useCallback(() => {
     if (!isEditMode && !hasDraft) {
-      router.back();
+      backOrHome(router);
       return;
     }
 
@@ -734,7 +735,7 @@ export function RoundingForm({ mode = 'create' }) {
         {
           text: '취소',
           style: 'destructive',
-          onPress: () => router.back(),
+          onPress: () => backOrHome(router),
         },
       ]
     );

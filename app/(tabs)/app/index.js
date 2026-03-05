@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AppToast, { toastMap } from '@/components/ui/AppToast';
 import { useAuth } from '@/context/AuthContext';
 import { mypageApi } from '@/lib/api/api';
+import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -35,7 +36,7 @@ const QUICK_ACTIONS = [
     id: 'rounding',
     icon: 'trophy',
     label: '라운딩',
-    route: '/meetings/rounding',
+    route: '/meetings?tab=rounding',
     bg: colors.success[50],
     fg: colors.success[700],
     fontColor : colors.neutral[900]
@@ -53,7 +54,7 @@ const QUICK_ACTIONS = [
     id: 'records',
     icon: 'edit',
     label: '기록',
-    route: '/mypage/records',
+    route: '/mypage?tab=records',
     bg: colors.success[50],
     fg: colors.success[700],
     fontColor : colors.neutral[900]
@@ -235,10 +236,10 @@ export default function HomeScreen() {
   const handleQuickActionPress = useCallback(
     (route) => () => {
       if (!isAuthenticated) {
-        router.push('/login');
+        navigateWithCap(router, '/login');
         return;
       }
-      router.push(route);
+      navigateWithCap(router, route);
     },
     [isAuthenticated, router]
   );
@@ -247,7 +248,7 @@ export default function HomeScreen() {
     (meeting) => () => {
       const meetingId = getMeetingId(meeting);
       if (!meetingId) return;
-      router.push(`/meetings/${getMeetingTypeSlug(meeting)}/${meetingId}`);
+      navigateWithCap(router, `/meetings/${getMeetingTypeSlug(meeting)}/${meetingId}`);
     },
     [router]
   );
@@ -326,7 +327,7 @@ export default function HomeScreen() {
 
           <Pressable
             style={styles.summaryCard}
-            onPress={() => router.push(isAuthenticated ? '/mypage/meetings' : '/login')}
+            onPress={() => navigateWithCap(router, isAuthenticated ? '/mypage?tab=meetings' : '/login')}
           >
             <Text style={styles.summaryTitle}>라운드 기록하기</Text>
             <Text style={styles.summarySubText}>스코어 등록</Text>
@@ -336,7 +337,7 @@ export default function HomeScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.summaryTitle}>다음 라운딩</Text>
-          <Pressable onPress={() => router.push(isAuthenticated ? '/meetings/my' : '/login')}>
+          <Pressable onPress={() => navigateWithCap(router, isAuthenticated ? '/meetings/my' : '/login')}>
             <Text style={styles.sectionMore}>더보기</Text>
           </Pressable>
         </View>

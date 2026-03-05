@@ -48,6 +48,7 @@ import {
   createTabPressHandler,
   createUpdateUserInfoHandler,
 } from '@/lib/handler/meetings';
+import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import {
   buildUserInfoFromProfile,
   extractData,
@@ -580,7 +581,7 @@ export default function MeetingDetailScreen() {
     () => async () => {
       const isCompleted = await ensureMeetingProfile();
       if (!isCompleted) return;
-      router.push(`/meetings/${typeSlug}/${meetingIdValue}/edit`);
+      navigateWithCap(router, `/meetings/${typeSlug}/${meetingIdValue}/edit`);
     },
     [router, typeSlug, meetingIdValue, ensureMeetingProfile]
   );
@@ -1123,11 +1124,6 @@ export default function MeetingDetailScreen() {
   const hasConfirmedTeams = useMemo(
     () => teams.some((team) => String(team?.status || '').toUpperCase() === 'CONFIRMED'),
     [teams]
-  );
-
-  const teamsForWorkflow = useMemo(
-    () => (teams.length > 0 ? teams : extractList(meeting?.teams) || []),
-    [teams, meeting?.teams]
   );
 
   const canCloseApplication = useMemo(

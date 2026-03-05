@@ -24,6 +24,7 @@ import {
     createParticipantTypeHandler,
     createSubmitHandler,
 } from '@/lib/handler/meetings';
+import { backOrHome } from '@/lib/navigation/cappedHistory';
 import { extractData, extractList } from '@/lib/util/meetingUtils';
 import {
     buildSocialFormFromData,
@@ -181,7 +182,7 @@ export function SocialForm({ mode = 'create' }) {
 
   const handleCancel = useCallback(() => {
     if (!isEditMode && !hasDraft) {
-      router.back();
+      backOrHome(router);
       return;
     }
 
@@ -195,7 +196,7 @@ export function SocialForm({ mode = 'create' }) {
         {
           text: '취소',
           style: 'destructive',
-          onPress: () => router.back(),
+          onPress: () => backOrHome(router),
         },
       ]
     );

@@ -3,6 +3,7 @@ import { usePathname, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
@@ -23,7 +24,7 @@ export default function BottomNavigationBar() {
   const { isAuthenticated } = useAuth();
 
   const handleNavigate = (path) => {
-    router.push(path);
+    navigateWithCap(router, path);
   };
 
   const isMyActive = pathname.startsWith('/mypage') || pathname.startsWith('/login');

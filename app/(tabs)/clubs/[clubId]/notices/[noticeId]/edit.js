@@ -16,6 +16,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/api/api';
+import { backOrHome } from '@/lib/navigation/cappedHistory';
 import { extractData } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -114,7 +115,7 @@ export default function ClubNoticeEditScreen() {
           <Text style={styles.errorText}>{fetchError}</Text>
           <Button
             variant="outline"
-            onPress={() => router.back()}
+            onPress={() => backOrHome(router)}
             style={{ marginTop: tokens.spacing.md }}
           >
             뒤로가기

@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -25,10 +26,19 @@ const TABS = [
   { id: 'notifications', label: '알림' },
   { id: 'edit', label: '회원정보 수정' },
 ];
+const VALID_TAB_IDS = ['overview', 'meetings', 'records', 'notifications', 'edit', 'withdraw'];
 
 export default function MyPageScreen() {
+  const params = useLocalSearchParams();
+  const tabParam = Array.isArray(params.tab) ? params.tab[0] : params.tab;
+  const initialTab = VALID_TAB_IDS.includes(tabParam) ? tabParam : 'overview';
   const { isAuthenticated, isLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  useEffect(() => {
+    if (!VALID_TAB_IDS.includes(tabParam)) return;
+    setActiveTab(tabParam);
+  }, [tabParam]);
 
   const handleTabPress = useMemo(
     () => createTabPressHandler({ setActiveTab }),

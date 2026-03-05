@@ -18,6 +18,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api/api';
+import { backOrHome } from '@/lib/navigation/cappedHistory';
 import { ensureProfileCompleted } from '@/lib/util/mypageUtils';
 import { extractData, extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
@@ -230,7 +231,7 @@ export default function ScoreInputScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScreenHeader title="점수 입력" />
       <ScrollView contentContainerStyle={styles.container}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
+        <Pressable style={styles.backButton} onPress={() => backOrHome(router)}>
           <FontAwesome5 name="arrow-left" size={13} color={colors.neutral[600]} />
           <Text style={styles.backText}>모임 상세</Text>
         </Pressable>

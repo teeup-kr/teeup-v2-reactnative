@@ -1,4 +1,3 @@
-import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -14,8 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import ScreenHeader from '@/components/ui/ScreenHeader';
 import HtmlContent from '@/components/ui/HtmlContent';
+import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/api/api';
 import { createFetchNoticeDetailHandler, createNoticeEditHandler } from '@/lib/handler/clubs';
 import { extractData } from '@/lib/util/responseUtils';

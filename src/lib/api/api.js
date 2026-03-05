@@ -40,6 +40,26 @@ function buildClubStatusParams(params = {}) {
   };
 }
 
+function buildMeetingListParams(params = {}) {
+  const {
+    page,
+    limit,
+    search,
+    start_date: startDate,
+    end_date: endDate,
+    status_group: statusGroup,
+  } = params;
+
+  return {
+    ...(page ? { page } : {}),
+    ...(limit ? { limit } : {}),
+    ...(search ? { search } : {}),
+    ...(startDate ? { start_date: startDate } : {}),
+    ...(endDate ? { end_date: endDate } : {}),
+    ...(statusGroup ? { status_group: statusGroup } : {}),
+  };
+}
+
 async function syncPushToken({ enabled = true } = {}) {
   if (Platform.OS === 'web') {
     return null;
@@ -1128,11 +1148,11 @@ async function fetchMyClubs(params) {
 }
 
 async function fetchRounds(params) {
-  return apiClient.get('/rounds/', { params });
+  return apiClient.get('/rounds/', { params: buildMeetingListParams(params) });
 }
 
 async function fetchSocials(params) {
-  return apiClient.get('/socials/', { params });
+  return apiClient.get('/socials/', { params: buildMeetingListParams(params) });
 }
 
 async function fetchRound(meetingId) {
@@ -1224,7 +1244,7 @@ async function fetchMyMeetings(params) {
 }
 
 async function fetchMyParticipatingMeetings(params) {
-  return apiClient.get('/meetings/my/participating', { params });
+  return apiClient.get('/meetings/my/participating', { params: buildMeetingListParams(params) });
 }
 
 async function fetchMyRoundingMeetings(params) {

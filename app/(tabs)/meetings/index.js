@@ -15,14 +15,12 @@ import AppFooter from '@/components/layout/AppFooter';
 import AppHeader from '@/components/layout/AppHeader';
 import MeetingCard from '@/components/meetings/MeetingCard';
 import MeetingDateField from '@/components/meetings/MeetingDateField';
-import Button from '@/components/ui/Button';
 import { meetingTabs, meetingValidTabs } from '@/constants/meetingConstants';
 import { useAuth } from '@/context/AuthContext';
-import { clubsApi, meetingsApi } from '@/lib/api/api';
+import { meetingsApi } from '@/lib/api/api';
 import {
     createCreateMeetingHandler,
     createDateChangeHandler,
-    createFetchClubsHandler,
     createFetchParticipatingMeetingsHandler,
     createFetchRoundingMeetingsHandler,
     createFetchSocialMeetingsHandler,
@@ -39,10 +37,7 @@ import {
 } from '@/lib/handler/meetings';
 import {
     extractList,
-    filterByDate,
-    filterByStatus,
     getActiveFilters,
-    getDateRange,
     getPageNumbers,
 } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
@@ -66,8 +61,6 @@ export default function MeetingsScreen() {
   const [participatingMeetings, setParticipatingMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [hasClubs, setHasClubs] = useState(false);
-  const [manageableClubIds, setManageableClubIds] = useState([]);
 
   const [roundingPage, setRoundingPage] = useState(1);
   const [socialPage, setSocialPage] = useState(1);
@@ -100,28 +93,11 @@ export default function MeetingsScreen() {
     setActiveTab(tabParam);
   }, [tabParam]);
 
-  const fetchClubs = useMemo(
-    () =>
-      createFetchClubsHandler({
-        fetchMyClubs: meetingsApi.fetchMyClubs,
-        extractList,
-        setHasClubs,
-        setManageableClubIds,
-        setError,
-      }),
-    [setHasClubs, setManageableClubIds, setError]
-  );
-
   const fetchRoundingMeetings = useMemo(
     () =>
       createFetchRoundingMeetingsHandler({
         fetchRounds: meetingsApi.fetchRounds,
-        fetchClubMeetings: clubsApi.getClubMeetings,
         extractList,
-        filterByDate,
-        filterByStatus,
-        getDateRange,
-        manageableClubIds,
         roundingPage,
         roundingSearchQuery,
         roundingStartDate,
@@ -136,7 +112,6 @@ export default function MeetingsScreen() {
       roundingStartDate,
       roundingEndDate,
       roundingStatusFilter,
-      manageableClubIds,
       setRoundingMeetings,
       setRoundingTotalPages,
     ]
@@ -146,12 +121,7 @@ export default function MeetingsScreen() {
     () =>
       createFetchSocialMeetingsHandler({
         fetchSocials: meetingsApi.fetchSocials,
-        fetchClubMeetings: clubsApi.getClubMeetings,
         extractList,
-        filterByDate,
-        filterByStatus,
-        getDateRange,
-        manageableClubIds,
         socialPage,
         socialSearchQuery,
         socialStartDate,
@@ -166,7 +136,6 @@ export default function MeetingsScreen() {
       socialStartDate,
       socialEndDate,
       socialStatusFilter,
-      manageableClubIds,
       setSocialMeetings,
       setSocialTotalPages,
     ]
@@ -177,9 +146,6 @@ export default function MeetingsScreen() {
       createFetchParticipatingMeetingsHandler({
         fetchMyParticipatingMeetings: meetingsApi.fetchMyParticipatingMeetings,
         extractList,
-        filterByDate,
-        filterByStatus,
-        getDateRange,
         participatingPage,
         participatingSearchQuery,
         participatingStartDate,
@@ -210,7 +176,6 @@ export default function MeetingsScreen() {
       setError(null);
 
       try {
-        await fetchClubs();
         if (activeTab === 'rounding') {
           await fetchRoundingMeetings(roundingPage, roundingSearchQuery);
         } else if (activeTab === 'social') {
@@ -226,7 +191,6 @@ export default function MeetingsScreen() {
     loadData();
   }, [
     activeTab,
-    fetchClubs,
     fetchParticipatingMeetings,
     fetchRoundingMeetings,
     fetchSocialMeetings,
@@ -297,7 +261,6 @@ export default function MeetingsScreen() {
     () => createCreateMeetingHandler({ router }),
     [router]
   );
-  const handleOpenClubs = useMemo(() => () => router.push('/clubs'), [router]);
 
   const handleMeetingClick = useMemo(
     () => createMeetingPressHandler({ router }),
@@ -525,10 +488,7 @@ export default function MeetingsScreen() {
       ? '소셜'
       : '내가 참가한';
   const showCreateFromEmpty = activeTab === 'rounding' || activeTab === 'social';
-  const canCreateMeeting = useMemo(
-    () => manageableClubIds.length > 0,
-    [manageableClubIds.length]
-  );
+  const canCreateMeeting = true;
 
   if (authLoading) {
     return (
@@ -559,57 +519,43 @@ export default function MeetingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.safeArea}>
+      <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
         <AppHeader />
-
+      </SafeAreaView>
+      <ScrollView contentContainerStyle={styles.container}>
         {loading ? (
           <View style={styles.loadingBlock}>
             <ActivityIndicator size="large" color={colors.primary[600]} />
-          </View>
-        ) : !hasClubs ? (
-          <View style={styles.noClubState}>
-            <FontAwesome5 name="users" size={52} color={colors.neutral[300]} />
-            <Text style={styles.noClubTitle}>소속된 클럽이 없습니다.</Text>
-            <Text style={styles.noClubSubtitle}>
-              모임을 개설하거나 참여하려면,{'\n'}먼저 클럽을 개설하거나, 클럽에 가입해 주세요.
-            </Text>
-            <Button variant="primary" size="lg" onPress={handleOpenClubs}>
-              클럽 가입하기
-            </Button>
           </View>
         ) : (
           <>
             <View style={styles.headerRow}>
               <Text style={styles.title}>모임 목록</Text>
-              {canCreateMeeting ? (
-                <View style={styles.createRow}>
-                  <Pressable
-                    onPress={handleCreateMeeting('rounding')}
-                    style={({ pressed }) => [
-                      styles.createButton,
-                      styles.createButtonRounding,
-                      pressed && styles.createButtonPressed,
-                    ]}
-                  >
-                    <FontAwesome5 name="plus" size={12} color={colors.white} />
-                    <Text style={styles.createButtonText}>라운딩 생성</Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={handleCreateMeeting('social')}
-                    style={({ pressed }) => [
-                      styles.createButton,
-                      styles.createButtonSocial,
-                      pressed && styles.createButtonPressed,
-                    ]}
-                  >
-                    <FontAwesome5 name="plus" size={12} color={colors.white} />
-                    <Text style={styles.createButtonText}>소셜 생성</Text>
-                  </Pressable>
-                </View>
-              ) : (
-                <Text style={styles.createHint}>모임 생성은 클럽 리더/매니저만 가능합니다.</Text>
-              )}
+              <View style={styles.createRow}>
+                <Pressable
+                  onPress={handleCreateMeeting('rounding')}
+                  style={({ pressed }) => [
+                    styles.createButton,
+                    styles.createButtonRounding,
+                    pressed && styles.createButtonPressed,
+                  ]}
+                >
+                  <FontAwesome5 name="plus" size={12} color={colors.white} />
+                  <Text style={styles.createButtonText}>라운딩 생성</Text>
+                </Pressable>
+                <Pressable
+                  onPress={handleCreateMeeting('social')}
+                  style={({ pressed }) => [
+                    styles.createButton,
+                    styles.createButtonSocial,
+                    pressed && styles.createButtonPressed,
+                  ]}
+                >
+                  <FontAwesome5 name="plus" size={12} color={colors.white} />
+                  <Text style={styles.createButtonText}>소셜 생성</Text>
+                </Pressable>
+              </View>
             </View>
 
             <View style={styles.tabBar}>
@@ -817,12 +763,15 @@ export default function MeetingsScreen() {
 
         <AppFooter />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: base.safeAreaWhite,
+  headerSafeArea: {
+    backgroundColor: colors.white,
+  },
   container: base.container,
   stateContainer: {
     flex: 1,

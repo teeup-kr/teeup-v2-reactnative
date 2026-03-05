@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
 import { router } from "expo-router";
-import { URLSearchParams } from 'react-native-url-polyfill';
 import { Alert } from 'react-native';
+import { URLSearchParams } from 'react-native-url-polyfill';
 
 import { tokenStorage } from '../tokenStorage';
 
