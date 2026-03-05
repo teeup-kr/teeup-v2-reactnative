@@ -1,11 +1,15 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
+
 export default function AppFooter() {
+  if (Platform.OS !== 'web') {
+    return null;
+  }
   return (
     <View style={styles.container}>
-      <Text style={styles.meta}>© 2025 티업링크. All rights reserved.</Text>
+      <Text style={styles.meta}>© {new Date().getFullYear()} 티업링크. All rights reserved.</Text>
     </View>
   );
 }
