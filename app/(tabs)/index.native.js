@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,8 +12,13 @@ const SPLASH_REDIRECT_DELAY_MS = 180;
 
 export default function NativeEntryScreen() {
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
+    if (pathname !== '/') {
+      return undefined;
+    }
+
     const timeoutId = setTimeout(() => {
       router.replace('/app');
     }, SPLASH_REDIRECT_DELAY_MS);
@@ -21,7 +26,7 @@ export default function NativeEntryScreen() {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [router]);
+  }, [router, pathname]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

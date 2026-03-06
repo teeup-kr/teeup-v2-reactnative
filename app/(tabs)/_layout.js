@@ -1,5 +1,13 @@
-import { Slot } from 'expo-router';
+import { Tabs } from 'expo-router';
 
 export default function TabsLayout() {
-  return <Slot />;
+  return (
+    <Tabs
+      detachInactiveScreens={false}
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: { display: 'none' },
+      }}
+    />
+  );
 }

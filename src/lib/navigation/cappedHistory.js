@@ -1,9 +1,19 @@
 const MAX_STACK = 5;
 const history = [];
+const TAB_ROOT_ROUTES = ['/app', '/clubs', '/meetings', '/mypage'];
 
 function normalizeRoute(route) {
   if (Array.isArray(route)) return String(route[0] || '');
   return String(route || '');
+}
+
+function stripQueryAndHash(route) {
+  return String(route || '').split('?')[0].split('#')[0];
+}
+
+function isTabRootRoute(route) {
+  const path = stripQueryAndHash(route);
+  return TAB_ROOT_ROUTES.includes(path);
 }
 
 export function recordRoute(route) {
@@ -24,6 +34,10 @@ export function navigateWithCap(router, href) {
   if (!next) return;
 
   recordRoute(next);
+  if (isTabRootRoute(next)) {
+    router.navigate(next);
+    return;
+  }
   router.replace(next);
 }
 

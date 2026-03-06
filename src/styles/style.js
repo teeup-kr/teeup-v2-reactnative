@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 import { colors } from '@/styles/colors';
 /* ===========================
    DESIGN TOKENS
@@ -76,6 +78,18 @@ export const tokens = {
     },
 };
 
+const cardShadow = Platform.OS === 'web'
+    ? {
+        boxShadow: '0 8px 12px rgba(0, 0, 0, 0.08)',
+    }
+    : {
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 6,
+    };
+
 export const base = {
     /* Layout */
     safeArea: {
@@ -122,6 +136,7 @@ export const base = {
         borderColor: colors.border,
         padding: tokens.padding.md,
         marginBottom: tokens.spacing.md,
+        ...cardShadow,
     },
     tabCard: {
         backgroundColor: colors.white,
@@ -130,6 +145,7 @@ export const base = {
         borderColor: colors.neutral[200],
         padding: tokens.padding.md,
         minHeight: 220,
+        ...cardShadow,
     },
     tabCardFooterLine: {
         marginTop: 'auto',
