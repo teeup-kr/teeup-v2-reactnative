@@ -707,6 +707,7 @@ export const base = {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: tokens.padding.sm,
+        paddingVertical: tokens.padding.base,
         borderRadius: tokens.radius.base,
         borderWidth: 1,
         borderColor: colors.neutral[300],
@@ -715,7 +716,8 @@ export const base = {
     searchInput: {
         flex: 1,
         marginLeft: tokens.padding.xs,
-        fontSize: tokens.font.sm,
+        paddingVertical: 0,
+        fontSize: tokens.font.base,
         color: colors.neutral[900],
     },
     searchButton: {
