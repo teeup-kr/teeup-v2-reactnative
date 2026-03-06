@@ -355,10 +355,11 @@ export function createConditionalFieldChangeHandler({
         handleInputChange(field, value);
     };
 }
-export function createTabPressHandler({ setActiveTab }) {
+export function createTabPressHandler({ setActiveTab, router }) {
     return (tabId) =>
         () => {
             setActiveTab(tabId);
+            router.setParams({ tab: tabId });
         };
 }
 

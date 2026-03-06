@@ -12,9 +12,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import FilterChip from '@/components/mypage/FilterChip';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import PaginationNav from '@/components/ui/PaginationNav';
+import SelectableChip from '@/components/ui/SelectableChip';
 import {
     myMeetingsStatusConfig,
     myMeetingsTypeConfig,
@@ -181,11 +182,12 @@ export default function MyMeetingsScreen() {
           {/* 타입 */}
           <View style={styles.chipRow}>
             {myMeetingsTypeTabs.map(tab => (
-              <FilterChip
+              <SelectableChip
                 key={tab.id}
                 label={tab.label}
                 selected={typeFilter === tab.id}
                 onPress={handleTypeTabPress(tab.id)}
+                styles={styles}
               />
             ))}
           </View>
@@ -273,7 +275,7 @@ export default function MyMeetingsScreen() {
           const slug = meetingType === 'ROUND' ? 'rounding' : 'social';
 
           return (
-            <Card key={meetingId || index} style={styles.meetingCard}>
+            <View key={meetingId || index} style={styles.meetingCard}>
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle} numberOfLines={1}>
                   {meeting?.name || meeting?.meeting_name || meeting?.title || '모임명 없음'}
@@ -320,13 +322,15 @@ export default function MyMeetingsScreen() {
                 </View>
               </View>
 
-              <Button
-                style={styles.detailButton}
-                onPress={handleMeetingDetail(meetingId, slug)}
-              >
-                <Text style={styles.detailButtonText}>상세 보기</Text>
-              </Button>
-            </Card>
+              <View style={styles.detailButtonRow}>
+                <Button
+                  style={styles.detailButton}
+                  onPress={handleMeetingDetail(meetingId, slug)}
+                >
+                  <Text style={styles.detailButtonText}>상세 보기</Text>
+                </Button>
+              </View>
+            </View>
           );
         })}
 
@@ -334,27 +338,21 @@ export default function MyMeetingsScreen() {
             Pagination
         ========================= */}
         {totalPages > 1 && (
-          <View style={styles.paginationRow}>
-            <Pressable
-              onPress={handlePrevPage}
-              disabled={page === 1}
-              style={[styles.pageButton, page === 1 && styles.pageButtonDisabled]}
-            >
-              <Text style={styles.pageButtonText}>이전</Text>
-            </Pressable>
-
-            <Text style={styles.paginationText}>
-              {page} / {totalPages}
-            </Text>
-
-            <Pressable
-              onPress={handleNextPage}
-              disabled={page === totalPages}
-              style={[styles.pageButton, page === totalPages && styles.pageButtonDisabled]}
-            >
-              <Text style={styles.pageButtonText}>다음</Text>
-            </Pressable>
-          </View>
+          <PaginationNav
+            mode="simple"
+            currentPage={page}
+            totalPages={totalPages}
+            onPrev={handlePrevPage}
+            onNext={handleNextPage}
+            styles={styles}
+            styleKeys={{
+              container: 'paginationRow',
+              navButton: 'pageButton',
+              navButtonDisabled: 'pageButtonDisabled',
+              navText: 'pageButtonText',
+              summaryText: 'paginationText',
+            }}
+          />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -362,31 +360,23 @@ export default function MyMeetingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: base.safeAreaNeutral,
-  container: base.containerLg,
+  safeArea: base.tabScreenSafeArea,
+  container: base.container,
   filterCard: {
     marginBottom: tokens.spacing.md,
   },
-  sectionTitle: { ...base.sectionTitleSm, marginBottom: tokens.spacing.sm },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: tokens.spacing.sm2,
+  chipRow: { ...base.chipRow, marginBottom: tokens.spacing.sm2 },
+  chip: {
+    ...base.chipBase,
+    backgroundColor: colors.neutral[100],
+    paddingVertical: tokens.padding.xs,
   },
-
-  dateRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: tokens.spacing.sm2,
-  },
+  chipActive: base.chipBaseActive,
+  chipText: base.chipBaseText,
+  chipTextActive: base.chipBaseTextActive,
   dateInput: {
+    ...base.formInput,
     flex: 1,
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    paddingVertical: tokens.padding.base,
-    paddingHorizontal: tokens.padding.sm,
-    backgroundColor: colors.white,
     justifyContent: 'center',
   },
   dateText: {
@@ -410,17 +400,8 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.semibold,
   },
 
-  stateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: tokens.padding.md,
-  },
-  stateText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-  },
+  stateRow: base.stateInlineRow,
+  stateText: base.textSmMuted,
   errorText: base.textSmError,
 
   emptyCard: {
@@ -440,7 +421,8 @@ const styles = StyleSheet.create({
   },
 
   meetingCard: {
-    marginBottom: tokens.spacing.md,
+    ...base.tabCard,
+    marginBottom: tokens.spacing.sm2,
   },
   cardHeader: base.rowBetween,
   cardTitle: {
@@ -452,15 +434,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6,
   },
-  badge: {
-    paddingHorizontal: tokens.padding.xs,
-    paddingVertical: tokens.padding.xxs,
-    borderRadius: tokens.radius.md,
-  },
-  badgeText: {
-    fontSize: tokens.font.xxs,
-    fontWeight: tokens.fontWeight.semibold,
-  },
+  badge: { ...base.badgeBase, borderRadius: tokens.radius.md },
+  badgeText: base.badgeBaseText,
 
   cardSubtitle: {
     fontSize: tokens.font.sm,
@@ -473,22 +448,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: tokens.spacing.xs2,
   },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
+  metaItem: base.tabCardMetaItem,
   metaText: {
     fontSize: tokens.font.xs,
     color: colors.neutral[600],
   },
 
+  detailButtonRow: {
+    ...base.tabCardFooterLine,
+  },
   detailButton: {
-    marginTop: tokens.spacing.sm2,
+    ...base.tabCardActionButton,
     backgroundColor: colors.primary[600],
-    paddingVertical: tokens.padding.base,
-    borderRadius: tokens.radius.base,
-    alignItems: 'center',
   },
   detailButtonText: {
     fontSize: tokens.font.sm,
@@ -496,30 +467,9 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 
-  paginationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    marginTop: tokens.spacing.xs2,
-  },
-  pageButton: {
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs2,
-    borderRadius: tokens.radius.sm,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
-  },
-  pageButtonDisabled: {
-    opacity: 0.5,
-  },
-  pageButtonText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[700],
-  },
-  paginationText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-  },
+  paginationRow: { ...base.paginationRow, gap: 12 },
+  pageButton: base.paginationNavButtonBordered,
+  pageButtonDisabled: base.paginationNavButtonDisabled,
+  pageButtonText: base.paginationNavText,
+  paginationText: base.paginationSummaryText,
 });

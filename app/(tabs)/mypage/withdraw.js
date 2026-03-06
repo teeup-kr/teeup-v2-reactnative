@@ -155,8 +155,8 @@ export default function WithdrawScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: base.safeAreaNeutral,
-  container: base.containerLg,
+  safeArea: base.tabScreenSafeArea,
+  container: base.container,
   warningCard: {
     borderRadius: tokens.radius.lg,
     padding: tokens.padding.md,
@@ -212,19 +212,8 @@ const styles = StyleSheet.create({
     color: colors.neutral[700],
     marginBottom: tokens.spacing.xs2,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.base,
-    fontSize: tokens.font.base,
-    color: colors.neutral[900],
-    backgroundColor: colors.white,
-  },
-  inputError: {
-    borderColor: colors.error[500],
-  },
+  input: base.formInput,
+  inputError: base.formInputError,
   errorText: { ...base.textSmError, marginTop: tokens.spacing.xs },
   successText: { ...base.textSmSuccess, marginTop: tokens.spacing.xs2, textAlign: 'center' },
   withdrawButton: {
@@ -245,5 +234,5 @@ const styles = StyleSheet.create({
     color: colors.neutral[700],
     marginBottom: tokens.spacing.xs2,
   },
-  required: { color: colors.red[500] },
+  required: base.formRequired,
 });

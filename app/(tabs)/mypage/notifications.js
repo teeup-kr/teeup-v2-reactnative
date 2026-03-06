@@ -1,6 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -10,6 +10,7 @@ import {
   ScrollView, StyleSheet, Text,
   View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppToast from '@/components/ui/AppToast';
 import Button from '@/components/ui/Button';
@@ -46,6 +47,8 @@ import { base, tokens } from '@/styles/style';
 
 export default function NotificationsTab() {
   const router = useRouter();
+  const pathname = usePathname();
+  const safeAreaEdges = pathname === '/mypage/notifications' ? ['top'] : [];
 
   const [filter, setFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -171,25 +174,30 @@ export default function NotificationsTab() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primary[600]} />
-        <Text style={styles.centerText}>알림을 불러오는 중...</Text>
-      </View>
+      <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={colors.primary[600]} />
+          <Text style={styles.centerText}>알림을 불러오는 중...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <Card style={styles.errorCard}>
-        <FontAwesome5 name="times" size={36} color={colors.error[600]} />
-        <Text style={styles.errorTitle}>알림을 불러올 수 없습니다</Text>
-      </Card>
+      <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
+        <Card style={styles.errorCard}>
+          <FontAwesome5 name="times" size={36} color={colors.error[600]} />
+          <Text style={styles.errorTitle}>알림을 불러올 수 없습니다</Text>
+        </Card>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ padding: tokens.padding.md }}>
+    <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
+      <View style={styles.root}>
+        <ScrollView contentContainerStyle={styles.container}>
         <Card style={styles.filterCard}>
           <ScrollView
             horizontal
@@ -326,38 +334,42 @@ export default function NotificationsTab() {
             );
           })
         )}
-      </ScrollView>
+        </ScrollView>
 
-      <Modal visible={!!deleteTarget} transparent>
-        <View style={styles.modalBg}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>알림 삭제</Text>
-            <Text style={{ marginBottom: tokens.spacing.md }}>이 알림을 삭제하시겠습니까?</Text>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <Button style={styles.modalBtn} variant="outline" onPress={clearDeleteTarget}>
-                <Text>취소</Text>
-              </Button>
-              <Button
-                style={[styles.modalBtn, { backgroundColor: colors.error[600] }]}
-                onPress={confirmDelete}
-              >
-                <Text style={{ color: 'white' }}>삭제</Text>
-              </Button>
+        <Modal visible={!!deleteTarget} transparent>
+          <View style={styles.modalBg}>
+            <View style={styles.modalBox}>
+              <Text style={styles.modalTitle}>알림 삭제</Text>
+              <Text style={{ marginBottom: tokens.spacing.md }}>이 알림을 삭제하시겠습니까?</Text>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <Button style={styles.modalBtn} variant="outline" onPress={clearDeleteTarget}>
+                  <Text>취소</Text>
+                </Button>
+                <Button
+                  style={[styles.modalBtn, { backgroundColor: colors.error[600] }]}
+                  onPress={confirmDelete}
+                >
+                  <Text style={{ color: 'white' }}>삭제</Text>
+                </Button>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      <AppToast
-        toast={toast ? { tone: toast.tone, message: toast.message } : null}
-        onClose={() => setToast(null)}
-      />
-    </View>
+        <AppToast
+          toast={toast ? { tone: toast.tone, message: toast.message } : null}
+          onClose={() => setToast(null)}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  safeArea: base.tabScreenSafeArea,
+  root: { flex: 1 },
+  container: base.container,
+  center: base.stateCenter,
   centerText: { marginTop: tokens.spacing.xs2, color: colors.neutral[600] },
 
   filterBtnActive: {
@@ -438,21 +450,6 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing.sm2,
   },
 
-  select: {
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.base,
-    borderRadius: tokens.radius.base,
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    backgroundColor: colors.white,
-    marginRight: tokens.spacing.xs2,
-  },
-  selectText: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[700],
-  },
-
   actionRow: { ...base.rowBetween, marginTop: tokens.spacing.sm },
 
   bulkRead: {
@@ -509,27 +506,6 @@ const styles = StyleSheet.create({
     color: colors.neutral[600],
     fontWeight: tokens.fontWeight.semibold,
   },
-  pickerWrapper: {
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    backgroundColor: colors.white,
-    marginRight: tokens.spacing.xs2,
-    overflow: 'hidden',
-    minWidth: 160,
-    height: 42,
-    justifyContent: 'center',
-  },
-  selectBox: {
-    borderWidth: 1,
-    borderColor: colors.zinc[300],
-    borderRadius: tokens.radius.md,
-    backgroundColor: colors.white,
-    paddingHorizontal: tokens.padding.baseLg,
-    paddingVertical: tokens.padding.hairline,
-    minWidth: 160,
-    justifyContent: 'center',
-  },
   filterBtn: {
     paddingHorizontal: tokens.padding.baseLg,
     marginRight: tokens.spacing.xs2,
@@ -542,14 +518,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
   },
-  hiddenPicker: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0,
-  },
+  hiddenPicker: base.hiddenPicker,
   arrow: {
     marginLeft: tokens.spacing.xs,
     fontSize: tokens.font.sm,

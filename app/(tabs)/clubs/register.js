@@ -11,10 +11,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import ChipOption from '@/components/clubs/ChipOption';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
+import SelectableChip from '@/components/ui/SelectableChip';
 import { clubFeeCycles, clubRegisterTypes } from '@/constants/clubConstants';
 import { clubsApi, regionApi } from '@/lib/api/api';
 import {
@@ -243,15 +243,15 @@ export default function ClubRegisterScreen() {
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>클럽 타입</Text>
-            <View style={styles.chipRow}>
-              {clubRegisterTypes.map((type) => (
-                <ChipOption
-                  key={type.id}
-                  label={type.label}
-                  selected={formData.type === type.id}
-                  onPress={() => handleChange('type')(type.id)}
-                  styles={styles}
+              <Text style={styles.label}>클럽 타입</Text>
+              <View style={styles.chipRow}>
+                {clubRegisterTypes.map((type) => (
+                  <SelectableChip
+                    key={type.id}
+                    label={type.label}
+                    selected={formData.type === type.id}
+                    onPress={() => handleChange('type')(type.id)}
+                    styles={styles}
                 />
               ))}
             </View>
@@ -311,7 +311,7 @@ export default function ClubRegisterScreen() {
               gunguOptions.length > 0 ? (
                 <View style={styles.chipRow}>
                   {gunguOptions.map((option) => (
-                    <ChipOption
+                    <SelectableChip
                       key={option.code}
                       label={option.name}
                       selected={selectedGunguCodes.includes(String(option.code))}
@@ -415,7 +415,7 @@ export default function ClubRegisterScreen() {
                 <Text style={styles.label}>회비 주기</Text>
                 <View style={styles.chipRow}>
                   {clubFeeCycles.map((cycle) => (
-                    <ChipOption
+                    <SelectableChip
                       key={cycle.id}
                       label={cycle.label}
                       selected={formData.regularFeeCycle === cycle.id}
@@ -457,75 +457,27 @@ export default function ClubRegisterScreen() {
 const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
-  card: {
-    marginBottom: tokens.spacing.md,
-  },
+  card: base.formScreenCard,
   sectionTitle: base.sectionTitle,
-  sectionSubtitle: { ...base.sectionSubtitle, marginTop: tokens.spacing.xxs, marginBottom: tokens.spacing.sm2 },
+  sectionSubtitle: base.formScreenSectionSubtitle,
   sectionRow: base.rowBetween,
-  fieldGroup: {
-    marginBottom: tokens.spacing.sm2,
-  },
+  fieldGroup: base.formFieldGroup,
   fieldGroupRow: {
     flexDirection: 'row',
     marginBottom: tokens.spacing.sm2,
   },
-  halfField: {
-    flex: 1,
-    marginRight: tokens.spacing.sm2,
-  },
-  halfFieldLast: {
-    marginRight: 0,
-  },
+  halfField: base.formScreenHalfField,
+  halfFieldLast: base.formScreenHalfFieldLast,
   label: base.labelSm,
-  input: {
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.base,
-    fontSize: tokens.font.base,
-    color: colors.neutral[900],
-    backgroundColor: colors.white,
-  },
-  inputError: {
-    borderColor: colors.error[500],
-  },
-  errorText: {
-    marginTop: tokens.spacing.xxs,
-    fontSize: tokens.font.sm,
-    color: colors.error[600],
-  },
-  textArea: {
-    minHeight: 88,
-    textAlignVertical: 'top',
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: tokens.spacing.xxs,
-  },
-  chip: {
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs2,
-    borderRadius: tokens.radius.lg,
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
-    marginRight: tokens.spacing.xs2,
-    marginBottom: tokens.spacing.xs2,
-  },
-  chipActive: {
-    backgroundColor: colors.primary[600],
-    borderColor: colors.primary[600],
-  },
-  chipText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-    fontWeight: tokens.fontWeight.semibold,
-  },
-  chipTextActive: {
-    color: colors.white,
-  },
+  input: base.formInput,
+  inputError: base.formInputError,
+  errorText: base.formErrorText,
+  textArea: base.formTextArea,
+  chipRow: { ...base.chipRow, marginTop: tokens.spacing.xxs },
+  chip: base.chipBase,
+  chipActive: base.chipBaseActive,
+  chipText: base.chipBaseText,
+  chipTextActive: base.chipBaseTextActive,
   toggle: {
     paddingHorizontal: tokens.padding.baseLg,
     paddingVertical: tokens.padding.xs2,
@@ -540,47 +492,12 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.bold,
     fontSize: tokens.font.sm,
   },
-  selectBox: {
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    backgroundColor: colors.white,
-    paddingHorizontal: tokens.padding.base,
-    paddingVertical: tokens.padding.xs2,
-    minHeight: 44,
-    justifyContent: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  selectText: {
-    flex: 1,
-    fontSize: tokens.font.base,
-    color: colors.neutral[800],
-  },
-  selectArrow: {
-    marginLeft: tokens.spacing.xs,
-    fontSize: tokens.font.sm,
-    color: colors.neutral[500],
-  },
-  hiddenPicker: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0,
-  },
-  helperText: {
-    margin: tokens.spacing.xs,
-    fontSize: tokens.font.sm,
-    color: colors.neutral[500],
-  },
-  loadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tokens.spacing.xs,
-    marginTop: tokens.spacing.xs,
-  },
+  selectBox: base.selectBox,
+  selectText: base.selectBoxText,
+  selectArrow: base.selectBoxArrow,
+  hiddenPicker: base.hiddenPicker,
+  helperText: base.formHelperText,
+  loadingRow: base.loadingRow,
   uploadBox: {
     flexDirection: 'row',
     alignItems: 'center',

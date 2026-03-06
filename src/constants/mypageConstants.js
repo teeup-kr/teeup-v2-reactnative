@@ -8,6 +8,16 @@ export const mypageTabRoutes = {
   withdraw: '/mypage/withdraw',
 };
 
+export const mypageTabs = [
+  { id: 'overview', label: '개요' },
+  { id: 'meetings', label: '내 참여내역' },
+  { id: 'records', label: '기록' },
+  { id: 'notifications', label: '알림' },
+  { id: 'edit', label: '회원정보 수정' },
+];
+
+export const mypageValidTabs = ['overview', 'meetings', 'records', 'notifications', 'edit', 'withdraw'];
+
 export const recordStatusTabs = [
   { id: 'all', label: '전체' },
   { id: 'missing', label: '미입력' },

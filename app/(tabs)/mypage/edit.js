@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppToast from '@/components/ui/AppToast';
+import Card from '@/components/ui/Card';
 import { mypageApi } from '@/lib/api/api';
 import {
   createBirthPickerChangeHandler,
@@ -346,7 +347,7 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
           keyboardShouldPersistTaps="handled"
         >
           {/* 카드 */}
-          <View style={styles.card}>
+          <Card>
             <Text style={styles.cardTitle}>회원정보 수정</Text>
 
           <View style={styles.stackLg}>
@@ -697,7 +698,7 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
               </Text>
             </Pressable>
           </View>
-          </View>
+          </Card>
 
         </ScrollView>
 
@@ -714,22 +715,9 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
 const PRIMARY_600 = colors.green[600];
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.bg },
-  root: { flex: 1, backgroundColor: colors.bg },
+  safeArea: base.tabScreenSafeArea,
+  root: base.tabScreenSafeArea,
   container: base.container,
-
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: tokens.radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: tokens.padding.md,
-    shadowColor: colors.black,
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
   cardTitle: { ...base.cardTitle, color: colors.text, marginBottom: tokens.spacing.md },
 
   stackLg: { gap: 18 },
@@ -746,15 +734,8 @@ const styles = StyleSheet.create({
   required: { color: colors.red[500] },
 
   input: {
+    ...base.formInput,
     flex: 1,
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.base,
-    fontSize: tokens.font.base,
-    borderWidth: 1,
-    borderRadius: tokens.radius.base,
-    borderColor: colors.neutral[300],
-    backgroundColor: colors.white,
-    color: colors.neutral[900],
   },
   inputLike: {
     paddingHorizontal: tokens.padding.sm,

@@ -123,6 +123,32 @@ export const base = {
         padding: tokens.padding.md,
         marginBottom: tokens.spacing.md,
     },
+    tabCard: {
+        backgroundColor: colors.white,
+        borderRadius: tokens.radius.md,
+        borderWidth: 1,
+        borderColor: colors.neutral[200],
+        padding: tokens.padding.md,
+        minHeight: 220,
+    },
+    tabCardFooterLine: {
+        marginTop: 'auto',
+        paddingTop: tokens.spacing.sm2,
+        borderTopWidth: 1,
+        borderTopColor: colors.neutral[200],
+    },
+    tabCardActionRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    tabCardActionButton: {
+        flex: 1,
+        minHeight: 40,
+        borderRadius: tokens.radius.base,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
 
     /* Rows */
     row: {
@@ -138,6 +164,7 @@ export const base = {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+        minHeight: 32,
         marginBottom: tokens.padding.sm,
     },
     tabScreenTabBar: {
@@ -353,5 +380,401 @@ export const base = {
     stateBox: {
         alignItems: 'center',
         padding: tokens.padding.xl,
+    },
+
+    /* ===== Form ===== */
+    formInput: {
+        borderWidth: 1,
+        borderColor: colors.neutral[300],
+        borderRadius: tokens.radius.base,
+        paddingHorizontal: tokens.padding.sm,
+        paddingVertical: tokens.padding.base,
+        fontSize: tokens.font.base,
+        color: colors.neutral[900],
+        backgroundColor: colors.white,
+    },
+    formInputError: {
+        borderColor: colors.error[500],
+    },
+    formTextArea: {
+        minHeight: 88,
+        textAlignVertical: 'top',
+    },
+    formFieldGroup: {
+        marginBottom: tokens.spacing.sm2,
+    },
+    formErrorText: {
+        marginTop: tokens.spacing.xxs,
+        fontSize: tokens.font.sm,
+        color: colors.error[600],
+    },
+    formHelperText: {
+        margin: tokens.spacing.xs,
+        fontSize: tokens.font.sm,
+        color: colors.neutral[500],
+    },
+    formRequired: {
+        color: colors.red[500],
+    },
+
+    /* ===== Chip (for SelectableChip) ===== */
+    chipRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    chipBase: {
+        paddingHorizontal: tokens.padding.sm,
+        paddingVertical: tokens.padding.xs2,
+        borderRadius: tokens.radius.lg,
+        borderWidth: 1,
+        borderColor: colors.neutral[200],
+        marginRight: tokens.spacing.xs2,
+        marginBottom: tokens.spacing.xs2,
+    },
+    chipBaseActive: {
+        backgroundColor: colors.primary[600],
+        borderColor: colors.primary[600],
+    },
+    chipBaseText: {
+        fontSize: tokens.font.sm,
+        color: colors.neutral[600],
+        fontWeight: tokens.fontWeight.semibold,
+    },
+    chipBaseTextActive: {
+        color: colors.white,
+    },
+    /* Chip variant: soft (form screens) */
+    chipSoft: {
+        paddingHorizontal: tokens.padding.sm,
+        paddingVertical: tokens.padding.xs2,
+        borderRadius: tokens.radius.lg,
+        borderWidth: 1,
+        borderColor: colors.neutral[300],
+        backgroundColor: colors.white,
+        marginRight: tokens.spacing.xs2,
+        marginBottom: tokens.spacing.xs2,
+    },
+    chipSoftActive: {
+        backgroundColor: colors.primary[50],
+        borderColor: colors.primary[500],
+    },
+    chipSoftPressed: {
+        opacity: 0.85,
+    },
+    chipSoftText: {
+        fontSize: tokens.font.sm,
+        color: colors.neutral[600],
+    },
+    chipSoftTextActive: {
+        color: colors.primary[700],
+        fontWeight: tokens.fontWeight.semibold,
+    },
+
+    /* ===== Select Box (Picker wrapper) ===== */
+    selectBox: {
+        borderWidth: 1,
+        borderColor: colors.neutral[300],
+        borderRadius: tokens.radius.base,
+        backgroundColor: colors.white,
+        paddingHorizontal: tokens.padding.base,
+        paddingVertical: tokens.padding.xs2,
+        minHeight: 44,
+        justifyContent: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    selectBoxText: {
+        flex: 1,
+        fontSize: tokens.font.base,
+        color: colors.neutral[800],
+    },
+    selectBoxArrow: {
+        marginLeft: tokens.spacing.xs,
+        fontSize: tokens.font.sm,
+        color: colors.neutral[500],
+    },
+    hiddenPicker: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        opacity: 0,
+    },
+
+    /* ===== Filter Button ===== */
+    filterButton: {
+        paddingHorizontal: tokens.padding.sm,
+        paddingVertical: tokens.padding.xs,
+        borderRadius: tokens.radius.base,
+        backgroundColor: colors.neutral[100],
+    },
+    filterButtonActive: {
+        backgroundColor: colors.primary[600],
+    },
+    filterButtonText: {
+        fontSize: tokens.font.sm,
+        fontWeight: tokens.fontWeight.semibold,
+        color: colors.neutral[700],
+    },
+    filterButtonTextActive: {
+        color: colors.white,
+    },
+
+    /* ===== Tab Card List ===== */
+    tabCardPressable: {
+        marginBottom: tokens.spacing.sm2,
+    },
+    tabCardPressed: {
+        opacity: 0.95,
+    },
+    tabCardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: tokens.spacing.sm,
+    },
+    tabCardDescription: {
+        fontSize: tokens.font.sm,
+        color: colors.neutral[600],
+        lineHeight: 18,
+        marginBottom: tokens.spacing.sm2,
+    },
+    tabCardMetaList: {
+        gap: 6,
+        marginBottom: tokens.spacing.sm2,
+    },
+    tabCardMetaItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    tabCardMetaText: {
+        fontSize: tokens.font.sm,
+        color: colors.neutral[600],
+        flex: 1,
+    },
+    tabCardFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: 'auto',
+        paddingTop: tokens.spacing.sm2,
+        borderTopWidth: 1,
+        borderTopColor: colors.neutral[200],
+    },
+    tabCardDate: {
+        fontSize: tokens.font.xs,
+        color: colors.neutral[400],
+    },
+    tabCardLink: {
+        fontSize: tokens.font.sm,
+        fontWeight: tokens.fontWeight.semibold,
+        color: colors.primary[600],
+    },
+
+    /* ===== Badge ===== */
+    badgeBase: {
+        paddingHorizontal: tokens.padding.xs,
+        paddingVertical: tokens.padding.xxs,
+        borderRadius: tokens.radius.pill,
+    },
+    badgeBaseText: {
+        fontSize: tokens.font.xs,
+        fontWeight: tokens.fontWeight.semibold,
+    },
+    badgeRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 6,
+    },
+
+    /* ===== Empty State ===== */
+    emptyState: {
+        paddingVertical: tokens.spacing.xxl,
+        alignItems: 'center',
+    },
+    emptyStateTitle: {
+        marginTop: tokens.padding.md,
+        fontSize: tokens.font.title,
+        fontWeight: tokens.fontWeight.bold,
+        color: colors.neutral[900],
+        textAlign: 'center',
+    },
+    emptyStateSubtitle: {
+        marginTop: tokens.padding.xs,
+        marginBottom: tokens.padding.md,
+        fontSize: tokens.font.sm,
+        color: colors.neutral[600],
+        textAlign: 'center',
+        paddingHorizontal: tokens.padding.xl,
+    },
+
+    /* ===== Loading / Center State ===== */
+    stateCenter: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    stateLoading: {
+        paddingVertical: tokens.spacing.xl,
+        alignItems: 'center',
+    },
+    stateInlineRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        paddingVertical: tokens.padding.md,
+    },
+
+    /* ===== Pagination (common) ===== */
+    paginationRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginTop: tokens.spacing.sm2,
+    },
+    paginationNavButton: {
+        paddingHorizontal: tokens.padding.sm,
+        paddingVertical: tokens.padding.xs,
+        borderRadius: tokens.radius.base,
+    },
+    paginationNavButtonDisabled: {
+        opacity: 0.5,
+    },
+    paginationNavText: {
+        fontSize: tokens.font.sm,
+        fontWeight: tokens.fontWeight.bold,
+        color: colors.neutral[700],
+    },
+    paginationNumbersRow: {
+        flexDirection: 'row',
+        gap: 6,
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+    },
+    paginationNumber: {
+        paddingHorizontal: tokens.padding.sm,
+        paddingVertical: tokens.padding.xs,
+        borderRadius: tokens.radius.base,
+    },
+    paginationNumberActive: {
+        backgroundColor: colors.primary[600],
+    },
+    paginationNumberText: {
+        fontSize: tokens.font.sm,
+        fontWeight: tokens.fontWeight.bold,
+        color: colors.neutral[500],
+    },
+    paginationNumberTextActive: {
+        color: colors.white,
+    },
+    paginationSummaryText: {
+        fontSize: tokens.font.sm,
+        color: colors.neutral[600],
+    },
+    /* Pagination variant: bordered (simple nav buttons with border) */
+    paginationNavButtonBordered: {
+        paddingHorizontal: tokens.padding.sm,
+        paddingVertical: tokens.padding.xs2,
+        borderRadius: tokens.radius.sm,
+        backgroundColor: colors.white,
+        borderWidth: 1,
+        borderColor: colors.neutral[200],
+    },
+
+    /* ===== Search Box ===== */
+    searchBox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: tokens.padding.sm,
+        borderRadius: tokens.radius.base,
+        borderWidth: 1,
+        borderColor: colors.neutral[300],
+        backgroundColor: colors.white,
+    },
+    searchInput: {
+        flex: 1,
+        marginLeft: tokens.padding.xs,
+        fontSize: tokens.font.sm,
+        color: colors.neutral[900],
+    },
+    searchButton: {
+        paddingHorizontal: tokens.padding.baseLg,
+        paddingVertical: tokens.padding.base,
+        borderRadius: tokens.radius.base,
+        backgroundColor: colors.primary[600],
+    },
+    searchButtonText: {
+        fontSize: tokens.font.sm,
+        fontWeight: tokens.fontWeight.bold,
+        color: colors.white,
+    },
+
+    /* ===== Form Screen (create/register) ===== */
+    formScreenCard: {
+        marginBottom: tokens.spacing.md,
+    },
+    formScreenSectionSubtitle: {
+        fontSize: tokens.font.sm,
+        color: colors.neutral[500],
+        marginTop: tokens.spacing.xxs,
+        marginBottom: tokens.spacing.sm2,
+    },
+    formScreenSubmitRow: {
+        flexDirection: 'row',
+        gap: 10,
+        marginBottom: tokens.spacing.lg,
+    },
+    formScreenSubmitButton: {
+        flex: 1,
+    },
+    formScreenLoadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: tokens.padding.mega,
+    },
+    formScreenLoadingText: {
+        fontSize: tokens.font.base,
+        color: colors.neutral[600],
+        marginTop: tokens.spacing.sm2,
+    },
+    formScreenRow: {
+        flexDirection: 'row',
+    },
+    formScreenHalfField: {
+        flex: 1,
+        marginRight: tokens.spacing.sm2,
+    },
+    formScreenHalfFieldLast: {
+        marginRight: 0,
+    },
+
+    /* ===== Loading Row ===== */
+    loadingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: tokens.spacing.xs,
+        marginTop: tokens.spacing.xs,
+    },
+
+    /* ===== Create Button (header) ===== */
+    headerCreateButton: {
+        paddingHorizontal: tokens.padding.sm,
+        paddingVertical: tokens.padding.xs,
+        borderRadius: tokens.radius.base,
+    },
+    headerCreateButtonText: {
+        fontSize: tokens.font.sm,
+        fontWeight: tokens.fontWeight.bold,
+        color: colors.white,
+    },
+
+    /* ===== Card List ===== */
+    cardList: {
+        marginTop: tokens.padding.md,
     },
 };

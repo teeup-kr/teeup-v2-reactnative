@@ -1,6 +1,6 @@
 
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import {
   useCallback,
   useEffect,
@@ -39,6 +39,8 @@ import { base, tokens } from '@/styles/style';
 
 export default function OverviewScreen() {
   const router = useRouter();
+  const pathname = usePathname();
+  const safeAreaEdges = pathname === '/mypage/overview' ? ['top'] : [];
   const { logout } = useAuth();
   const [profile, setProfile] = useState(null);
   const [, setHandicapInfo] = useState(null);
@@ -105,7 +107,7 @@ export default function OverviewScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.stateContainer}>
             <ActivityIndicator size="large" color={colors.primary[600]} />
@@ -119,7 +121,7 @@ export default function OverviewScreen() {
 
   if (error) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.stateContainer}>
             <FontAwesome5 name="info-circle" size={32} color={colors.error[500]} />
@@ -132,10 +134,11 @@ export default function OverviewScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* 기본 정보 */}
-      <Card style={styles.card}>
-        <Text style={styles.cardTitle}>기본 정보</Text>
+    <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* 기본 정보 */}
+        <Card style={styles.card}>
+          <Text style={styles.cardTitle}>기본 정보</Text>
 
         {infoItems.map(item => (
           <View key={item.label} style={[styles.row]}>
@@ -241,21 +244,22 @@ export default function OverviewScreen() {
         ))}
       </Card>
 
-      <Pressable
-        style={({ pressed }) => [styles.logoutBtn, pressed && styles.logoutBtnPressed]}
-        onPress={handleLogout}
-      >
-        <Text style={styles.logoutBtnText}>로그아웃</Text>
-      </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.logoutBtn, pressed && styles.logoutBtnPressed]}
+          onPress={handleLogout}
+        >
+          <Text style={styles.logoutBtnText}>로그아웃</Text>
+        </Pressable>
 
-      <AppFooter />
-    </ScrollView >
+        <AppFooter />
+      </ScrollView >
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: base.safeAreaNeutral,
-  container: base.containerLg,
+  safeArea: base.tabScreenSafeArea,
+  container: base.container,
   card: {
     marginBottom: tokens.spacing.md,
   },
@@ -278,27 +282,6 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
     color: colors.neutral[900],
-  },
-  infoSubtext: {
-    marginTop: tokens.spacing.xxs,
-    fontSize: tokens.font.xs,
-    color: colors.neutral[500],
-  },
-  handicapRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  badge: {
-    backgroundColor: colors.primary[50],
-    paddingHorizontal: tokens.padding.xs,
-    paddingVertical: tokens.padding.micro,
-    borderRadius: tokens.radius.md,
-  },
-  badgeText: {
-    fontSize: tokens.font.xxs,
-    color: colors.primary[700],
-    fontWeight: tokens.fontWeight.semibold,
   },
   cardHeader: { ...base.rowBetween, marginBottom: tokens.spacing.xs2 },
   linkText: {

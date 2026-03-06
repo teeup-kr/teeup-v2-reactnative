@@ -1,6 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Image, Pressable, Text, View } from 'react-native';
 
+import StatusBadge from '@/components/ui/StatusBadge';
 import {
   formatClubDate,
   getClubMembershipStatusBadgeConfig,
@@ -9,10 +10,6 @@ import {
   getClubTypeBadgeConfig,
 } from '@/lib/util/clubUtils';
 import { colors } from '@/styles/colors';
-
-import ClubBadge from './ClubBadge';
-
-
 
 export default function ClubCard({ club, variant, onPress, styles, logoImage, locationLabel }) {
   const showStatus = variant === 'all' || variant === 'my';
@@ -47,7 +44,7 @@ export default function ClubCard({ club, variant, onPress, styles, logoImage, lo
           </View>
           <View style={styles.badgeStack}>
             {statusConfig ? (
-              <ClubBadge
+              <StatusBadge
                 text={statusConfig.text}
                 backgroundColor={statusConfig.bg}
                 textColor={statusConfig.fg}
@@ -56,7 +53,7 @@ export default function ClubCard({ club, variant, onPress, styles, logoImage, lo
               />
             ) : null}
             {membershipConfig ? (
-              <ClubBadge
+              <StatusBadge
                 text={membershipConfig.text}
                 backgroundColor={membershipConfig.bg}
                 textColor={membershipConfig.fg}
@@ -69,7 +66,7 @@ export default function ClubCard({ club, variant, onPress, styles, logoImage, lo
 
         <View style={styles.badgeRow}>
           {typeConfig ? (
-            <ClubBadge
+            <StatusBadge
               text={typeConfig.text}
               backgroundColor={typeConfig.bg}
               textColor={typeConfig.fg}
@@ -78,7 +75,7 @@ export default function ClubCard({ club, variant, onPress, styles, logoImage, lo
             />
           ) : null}
           {roleConfig ? (
-            <ClubBadge
+            <StatusBadge
               text={roleConfig.text}
               backgroundColor={roleConfig.bg}
               textColor={roleConfig.fg}
@@ -109,7 +106,7 @@ export default function ClubCard({ club, variant, onPress, styles, logoImage, lo
           <Text style={styles.cardDate}>
             {formatClubDate(club?.created_at || club?.joined_at)}
           </Text>
-          <Text style={styles.cardLink}>자세히 보기 →</Text>
+          <Text style={styles.cardLink}>상세 보기</Text>
         </View>
       </View>
     </Pressable>

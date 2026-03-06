@@ -13,12 +13,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import LoginRequired from '@/components/auth/LoginRequired';
-import ChipOption from '@/components/clubs/ChipOption';
 import ClubCard from '@/components/clubs/ClubCard';
 import AppFooter from '@/components/layout/AppFooter';
 import AppHeader from '@/components/layout/AppHeader';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import PaginationNav from '@/components/ui/PaginationNav';
+import SelectableChip from '@/components/ui/SelectableChip';
 import {
   clubMyStatusOptions,
   clubStatusFilterOptions,
@@ -445,7 +446,7 @@ export default function ClubsScreen() {
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
         <AppHeader />
       </SafeAreaView>
-      <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.headerContainer}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>클럽 목록</Text>
           <Button
@@ -476,48 +477,51 @@ export default function ClubsScreen() {
             })}
           </View>
         </View>
+      </View>
+      <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.container}>
 
-        <View style={styles.searchFilterRow}>
-          <View style={styles.searchBox}>
-            <FontAwesome5 name="search" size={14} color={colors.neutral[400]} />
-            <TextInput
-              value={searchTerm}
-              onChangeText={handleSearchTermChange}
-              placeholder="클럽명, 설명, 위치로 검색..."
-              style={styles.searchInput}
-              placeholderTextColor={colors.neutral[400]}
-            />
-          </View>
-
-          {activeTab === 'all' && (
-            <View style={styles.statusFilterWrap}>
-              <Pressable onPress={toggleStatusFilter} style={styles.statusFilterButton}>
-                <Text style={styles.statusFilterText}>
-                  {clubStatusFilterOptions.find((option) => option.value === statusFilter)?.label ||
-                    '전체 상태'}
-                </Text>
-                <FontAwesome5
-                  name={isStatusFilterOpen ? 'chevron-up' : 'chevron-down'}
-                  size={12}
-                  color={colors.neutral[400]}
-                />
-              </Pressable>
-              {isStatusFilterOpen && (
-                <View style={styles.statusFilterMenu}>
-                  {clubStatusFilterOptions.map((option) => (
-                    <Pressable
-                      key={option.value}
-                      onPress={handleStatusFilterSelect(option.value)}
-                      style={styles.statusFilterMenuItem}
-                    >
-                      <Text style={styles.statusFilterMenuText}>{option.label}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
+          <View style={styles.searchFilterRow}>
+            <View style={styles.searchBox}>
+              <FontAwesome5 name="search" size={14} color={colors.neutral[400]} />
+              <TextInput
+                value={searchTerm}
+                onChangeText={handleSearchTermChange}
+                placeholder="클럽명, 설명, 위치로 검색..."
+                style={styles.searchInput}
+                placeholderTextColor={colors.neutral[400]}
+              />
             </View>
-          )}
-        </View>
+
+            {activeTab === 'all' && (
+              <View style={styles.statusFilterWrap}>
+                <Pressable onPress={toggleStatusFilter} style={styles.statusFilterButton}>
+                  <Text style={styles.statusFilterText}>
+                    {clubStatusFilterOptions.find((option) => option.value === statusFilter)?.label ||
+                      '전체 상태'}
+                  </Text>
+                  <FontAwesome5
+                    name={isStatusFilterOpen ? 'chevron-up' : 'chevron-down'}
+                    size={12}
+                    color={colors.neutral[400]}
+                  />
+                </Pressable>
+                {isStatusFilterOpen && (
+                  <View style={styles.statusFilterMenu}>
+                    {clubStatusFilterOptions.map((option) => (
+                      <Pressable
+                        key={option.value}
+                        onPress={handleStatusFilterSelect(option.value)}
+                        style={styles.statusFilterMenuItem}
+                      >
+                        <Text style={styles.statusFilterMenuText}>{option.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
 
         {activeTab === 'my' && (
           <View style={styles.myStatusRow}>
@@ -582,7 +586,7 @@ export default function ClubsScreen() {
                     keyboardShouldPersistTaps="handled"
                   >
                     {gunguOptions.map((option) => (
-                      <ChipOption
+                      <SelectableChip
                         key={option.code}
                         label={option.name}
                         selected={selectedGunguCodes.includes(String(option.code))}
@@ -678,46 +682,33 @@ export default function ClubsScreen() {
             </View>
 
             {totalPages > 1 && (
-              <View style={styles.paginationRow}>
-                <Pressable
-                  onPress={handlePrevPage}
-                  disabled={currentPage === 1}
-                  style={[styles.pageNavButton, currentPage === 1 && styles.pageNavButtonDisabled]}
-                >
-                  <Text style={styles.pageNavText}>이전</Text>
-                </Pressable>
-
-                {pageNumbers.map((pageNum) => {
-                  const selected = pageNum === currentPage;
-                  return (
-                    <Pressable
-                      key={`page-${pageNum}`}
-                      onPress={handlePageChange(pageNum)}
-                      style={[styles.pageNumber, selected && styles.pageNumberActive]}
-                    >
-                      <Text
-                        style={[styles.pageNumberText, selected && styles.pageNumberTextActive]}
-                      >
-                        {pageNum}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-
-                <Pressable
-                  onPress={handleNextPage}
-                  disabled={currentPage === totalPages}
-                  style={[styles.pageNavButton, currentPage === totalPages && styles.pageNavButtonDisabled]}
-                >
-                  <Text style={styles.pageNavText}>다음</Text>
-                </Pressable>
-              </View>
+              <PaginationNav
+                mode="numbered"
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageNumbers={pageNumbers}
+                onPrev={handlePrevPage}
+                onNext={handleNextPage}
+                onPage={handlePageChange}
+                styles={styles}
+                styleKeys={{
+                  container: 'paginationRow',
+                  navButton: 'pageNavButton',
+                  navButtonDisabled: 'pageNavButtonDisabled',
+                  navText: 'pageNavText',
+                  numberButton: 'pageNumber',
+                  numberButtonActive: 'pageNumberActive',
+                  numberText: 'pageNumberText',
+                  numberTextActive: 'pageNumberTextActive',
+                }}
+              />
             )}
           </>
         )}
 
-        <AppFooter />
-      </ScrollView>
+          <AppFooter />
+        </ScrollView>
+      </View>
     </View>
   );
 }
@@ -725,24 +716,19 @@ export default function ClubsScreen() {
 const styles = StyleSheet.create({
   safeArea: base.tabScreenSafeArea,
   headerSafeArea: base.tabScreenHeaderSafeArea,
-  container: base.container,
-  stateContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  headerContainer: {
+    paddingHorizontal: tokens.spacing.md,
+    paddingTop: tokens.spacing.md,
   },
+  container: base.container,
+  content: {
+    flex: 1,
+  },
+  stateContainer: base.stateCenter,
   headerRow: base.tabScreenHeaderRow,
   title: base.tabScreenTitle,
-  createButton: {
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs,
-    borderRadius: tokens.radius.base,
-  },
-  createButtonText: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.white,
-  },
+  createButton: base.headerCreateButton,
+  createButtonText: base.headerCreateButtonText,
   tabBar: base.tabScreenTabBar,
   tabBarRow: base.tabScreenTabBarRow,
   tabButton: base.tabScreenTabButton,
@@ -757,31 +743,15 @@ const styles = StyleSheet.create({
     gap: tokens.spacing.xs,
   },
   label: base.labelSm,
-  input: {
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.base,
-    fontSize: tokens.font.base,
-    color: colors.neutral[900],
-    backgroundColor: colors.white,
-  },
-  textArea: {
-    minHeight: 88,
-    textAlignVertical: 'top',
-  },
+  input: base.formInput,
+  textArea: base.formTextArea,
   gunguBox: {
     height: 140,
     paddingVertical: 0,
     paddingHorizontal: 0,
     overflow: 'hidden',
   },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: tokens.spacing.xxs,
-  },
+  chipRow: { ...base.chipRow, marginTop: tokens.spacing.xxs },
   gunguScroll: {
     flex: 1,
   },
@@ -790,82 +760,18 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     padding: tokens.spacing.xs,
   },
-  chip: {
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs2,
-    borderRadius: tokens.radius.lg,
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
-    marginRight: tokens.spacing.xs2,
-    marginBottom: tokens.spacing.xs2,
-  },
-  chipActive: {
-    backgroundColor: colors.primary[600],
-    borderColor: colors.primary[600],
-  },
-  chipText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-    fontWeight: tokens.fontWeight.semibold,
-  },
-  chipTextActive: {
-    color: colors.white,
-  },
-  selectBox: {
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    backgroundColor: colors.white,
-    paddingHorizontal: tokens.padding.base,
-    paddingVertical: tokens.padding.xs2,
-    minHeight: 44,
-    justifyContent: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  selectText: {
-    flex: 1,
-    fontSize: tokens.font.base,
-    color: colors.neutral[800],
-  },
-  selectArrow: {
-    marginLeft: tokens.spacing.xs,
-    fontSize: tokens.font.sm,
-    color: colors.neutral[500],
-  },
-  hiddenPicker: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0,
-  },
-  helperText: {
-    margin: tokens.spacing.xs,
-    fontSize: tokens.font.sm,
-    color: colors.neutral[500],
-  },
-  regionLoadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tokens.spacing.xs,
-    marginTop: tokens.spacing.xs,
-  },
-  searchBox: {
-    ...base.row,
-    paddingHorizontal: tokens.padding.sm,
-    borderRadius: tokens.radius.base,
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    backgroundColor: colors.white,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: tokens.padding.xs,
-    fontSize: tokens.font.sm,
-    color: colors.neutral[900],
-  },
+  chip: base.chipBase,
+  chipActive: base.chipBaseActive,
+  chipText: base.chipBaseText,
+  chipTextActive: base.chipBaseTextActive,
+  selectBox: base.selectBox,
+  selectText: base.selectBoxText,
+  selectArrow: base.selectBoxArrow,
+  hiddenPicker: base.hiddenPicker,
+  helperText: base.formHelperText,
+  regionLoadingRow: base.loadingRow,
+  searchBox: base.searchBox,
+  searchInput: base.searchInput,
   statusFilterWrap: {
     position: 'relative',
     zIndex: 10,
@@ -913,69 +819,23 @@ const styles = StyleSheet.create({
     marginTop: tokens.padding.sm,
     marginBottom: tokens.padding.md,
   },
-  myStatusButton: {
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs,
-    borderRadius: tokens.radius.base,
-    backgroundColor: colors.neutral[100],
-  },
-  myStatusButtonActive: {
-    backgroundColor: colors.primary[600],
-  },
-  myStatusText: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.semibold,
-    color: colors.neutral[700],
-  },
-  myStatusTextActive: {
-    color: colors.white,
-  },
-  loadingRow: {
-    paddingVertical: tokens.spacing.xl,
-    alignItems: 'center',
-  },
+  myStatusButton: base.filterButton,
+  myStatusButtonActive: base.filterButtonActive,
+  myStatusText: base.filterButtonText,
+  myStatusTextActive: base.filterButtonTextActive,
+  loadingRow: base.stateLoading,
   errorCard: {
     marginTop: tokens.padding.md,
   },
   errorText: { ...base.textSmError, color: colors.error[700] },
-  emptyState: {
-    paddingVertical: tokens.spacing.xxl,
-    alignItems: 'center',
-  },
-  emptyTitle: {
-    marginTop: tokens.padding.md,
-    fontSize: tokens.font.title,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[900],
-  },
-  emptySubtitle: {
-    marginTop: tokens.padding.xs,
-    marginBottom: tokens.padding.md,
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-    textAlign: 'center',
-    paddingHorizontal: tokens.padding.xl,
-  },
-  cardList: {
-    marginTop: tokens.padding.md,
-  },
-  cardPressable: {
-    marginBottom: tokens.padding.sm,
-  },
-  cardPressed: {
-    opacity: 0.95,
-  },
-  card: {
-    ...base.card,
-    padding: tokens.padding.md,
-    borderRadius: tokens.radius.md,
-    marginBottom: 0,
-  },
-  cardHeader: {
-    ...base.rowBetween,
-    alignItems: 'flex-start',
-    marginBottom: tokens.spacing.sm,
-  },
+  emptyState: base.emptyState,
+  emptyTitle: base.emptyStateTitle,
+  emptySubtitle: base.emptyStateSubtitle,
+  cardList: base.cardList,
+  cardPressable: base.tabCardPressable,
+  cardPressed: base.tabCardPressed,
+  card: base.tabCard,
+  cardHeader: base.tabCardHeader,
   cardTitleRow: {
     ...base.row,
     flex: 1,
@@ -1006,87 +866,32 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   badgeRow: {
-    ...base.row,
-    flexWrap: 'wrap',
+    ...base.badgeRow,
     gap: 8,
     marginBottom: tokens.spacing.sm,
   },
-  badge: {
-    paddingHorizontal: tokens.spacing.sm,
-    paddingVertical: tokens.padding.xxs,
-    borderRadius: tokens.radius.pill,
-  },
-  badgeText: {
-    fontSize: tokens.font.xs,
-    fontWeight: tokens.fontWeight.semibold,
-  },
+  badge: base.badgeBase,
+  badgeText: base.badgeBaseText,
   roleBadge: {
     paddingHorizontal: tokens.padding.xs,
   },
-  cardDescription: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-    lineHeight: 18,
-    marginBottom: tokens.padding.sm,
-  },
-  metaList: {
-    gap: 6,
-    marginBottom: tokens.padding.sm,
-  },
-  metaItem: {
-    ...base.row,
-    gap: 6,
-  },
-  metaText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-    flex: 1,
-  },
-  cardFooter: {
-    ...base.rowBetween,
-  },
-  cardDate: {
-    fontSize: tokens.font.xs,
-    color: colors.neutral[400],
-  },
-  cardLink: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.semibold,
-    color: colors.primary[600],
-  },
-  paginationRow: {
-    ...base.row,
-    justifyContent: 'center',
-    marginTop: tokens.padding.lg,
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  pageNavButton: {
-    paddingHorizontal: tokens.spacing.sm,
-    paddingVertical: tokens.padding.xs,
-  },
-  pageNavButtonDisabled: {
-    opacity: 0.4,
-  },
+  cardDescription: base.tabCardDescription,
+  metaList: base.tabCardMetaList,
+  metaItem: base.tabCardMetaItem,
+  metaText: base.tabCardMetaText,
+  cardFooter: base.tabCardFooter,
+  cardDate: base.tabCardDate,
+  cardLink: base.tabCardLink,
+  paginationRow: { ...base.paginationRow, marginTop: tokens.padding.lg },
+  pageNavButton: base.paginationNavButton,
+  pageNavButtonDisabled: { opacity: 0.4 },
   pageNavText: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.semibold,
     color: colors.neutral[500],
   },
-  pageNumber: {
-    paddingHorizontal: tokens.spacing.sm,
-    paddingVertical: tokens.padding.xs,
-    borderRadius: tokens.radius.base,
-  },
-  pageNumberActive: {
-    backgroundColor: colors.primary[600],
-  },
-  pageNumberText: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[500],
-  },
-  pageNumberTextActive: {
-    color: colors.white,
-  },
+  pageNumber: base.paginationNumber,
+  pageNumberActive: base.paginationNumberActive,
+  pageNumberText: base.paginationNumberText,
+  pageNumberTextActive: base.paginationNumberTextActive,
 });

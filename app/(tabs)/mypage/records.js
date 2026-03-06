@@ -15,6 +15,7 @@ import RecordMeetingCard from '@/components/mypage/RecordMeetingCard';
 import RoundingStatsCard from '@/components/mypage/RoundingStatsCard';
 import SimpleScoreInputModal from '@/components/mypage/SimpleScoreInputModal';
 import Card from '@/components/ui/Card';
+import PaginationNav from '@/components/ui/PaginationNav';
 import { mypageApi } from '@/lib/api/api';
 import {
     createCloseScoreModalHandler,
@@ -408,35 +409,21 @@ export default function RecordsTab() {
         )}
 
         {totalPages > 1 && (
-          <View style={styles.paginationRow}>
-            <Pressable
-              onPress={handlePrevPage}
-              disabled={page === 1}
-              style={({ pressed }) => [
-                styles.pageBtn,
-                page === 1 && styles.pageBtnDisabled,
-                pressed && { opacity: 0.9 },
-              ]}
-            >
-              <Text style={styles.pageBtnText}>이전</Text>
-            </Pressable>
-
-            <Text style={styles.paginationText}>
-              {page} / {totalPages}
-            </Text>
-
-            <Pressable
-              onPress={handleNextPage}
-              disabled={page === totalPages}
-              style={({ pressed }) => [
-                styles.pageBtn,
-                page === totalPages && styles.pageBtnDisabled,
-                pressed && { opacity: 0.9 },
-              ]}
-            >
-              <Text style={styles.pageBtnText}>다음</Text>
-            </Pressable>
-          </View>
+          <PaginationNav
+            mode="simple"
+            currentPage={page}
+            totalPages={totalPages}
+            onPrev={handlePrevPage}
+            onNext={handleNextPage}
+            styles={styles}
+            styleKeys={{
+              container: 'paginationRow',
+              navButton: 'pageBtn',
+              navButtonDisabled: 'pageBtnDisabled',
+              navText: 'pageBtnText',
+              summaryText: 'paginationText',
+            }}
+          />
         )}
 
         {loading && meetings.length > 0 && (
@@ -470,16 +457,11 @@ export default function RecordsTab() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: base.safeAreaNeutral,
-  container: {
-    padding: tokens.padding.md,
-    paddingBottom: tokens.padding.xl2,
-  },
+  safeArea: base.tabScreenSafeArea,
+  container: base.container,
 
   centerBox: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...base.stateCenter,
     gap: 10,
     padding: tokens.padding.md,
   },
@@ -551,10 +533,8 @@ const styles = StyleSheet.create({
   },
 
   meetingBox: {
-    borderWidth: 1,
-    borderRadius: tokens.radius.lg,
+    ...base.tabCard,
     padding: tokens.padding.baseLg,
-    backgroundColor: colors.white,
   },
   meetingMissing: {
     borderColor: colors.error[200],
@@ -613,17 +593,12 @@ const styles = StyleSheet.create({
   },
 
   cardBtnRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: tokens.spacing.sm2,
+    ...base.tabCardFooterLine,
+    ...base.tabCardActionRow,
   },
   primaryBtn: {
-    flex: 1,
-    borderRadius: tokens.radius.md,
+    ...base.tabCardActionButton,
     backgroundColor: colors.primary[600],
-    paddingVertical: tokens.padding.base,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   primaryBtnText: {
     color: colors.white,
@@ -632,21 +607,16 @@ const styles = StyleSheet.create({
   },
   outlineBtn: {
     ...base.btnOutline,
-    flex: 1,
+    ...base.tabCardActionButton,
     borderWidth: 2,
     borderColor: colors.neutral[300],
-    paddingVertical: tokens.padding.base,
   },
   outlineBtnText: { ...base.btnOutlineText, fontWeight: tokens.fontWeight.extrabold },
   softPrimaryBtn: {
-    flex: 1,
-    borderRadius: tokens.radius.md,
+    ...base.tabCardActionButton,
     borderWidth: 2,
     borderColor: colors.primary[200],
     backgroundColor: colors.primary[50],
-    paddingVertical: tokens.padding.base,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   softPrimaryBtnText: {
     color: colors.primary[700],
@@ -667,46 +637,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  paginationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    marginTop: tokens.spacing.md2,
-  },
+  paginationRow: { ...base.paginationRow, gap: 10, marginTop: tokens.spacing.md2 },
   pageBtn: {
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs,
-    borderRadius: tokens.radius.base,
-    borderWidth: 1,
+    ...base.paginationNavButtonBordered,
     borderColor: colors.neutral[300],
-    backgroundColor: colors.white,
   },
-  pageBtnDisabled: {
-    opacity: 0.5,
-  },
-  pageBtnText: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[700],
-  },
+  pageBtnDisabled: base.paginationNavButtonDisabled,
+  pageBtnText: base.paginationNavText,
   paginationText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
+    ...base.paginationSummaryText,
     fontWeight: tokens.fontWeight.bold,
   },
 
-  stateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: tokens.padding.baseLg,
-  },
-  stateText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-  },
+  stateRow: { ...base.stateInlineRow, paddingVertical: tokens.padding.baseLg },
+  stateText: base.textSmMuted,
 
   errorCard: {
     margin: tokens.spacing.md,

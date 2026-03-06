@@ -16,6 +16,7 @@ import AppHeader from '@/components/layout/AppHeader';
 import MeetingCard from '@/components/meetings/MeetingCard';
 import MeetingDateField from '@/components/meetings/MeetingDateField';
 import Button from '@/components/ui/Button';
+import PaginationNav from '@/components/ui/PaginationNav';
 import { meetingTabs, meetingValidTabs } from '@/constants/meetingConstants';
 import { useAuth } from '@/context/AuthContext';
 import { meetingsApi } from '@/lib/api/api';
@@ -524,244 +525,218 @@ export default function MeetingsScreen() {
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
         <AppHeader />
       </SafeAreaView>
-      <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.headerContainer}>
+        <View style={styles.headerRow}>
+          <Text style={styles.title}>모임 목록</Text>
+          <View style={styles.createRow}>
+            <Button
+              onPress={handleCreateMeeting('rounding')}
+              style={[
+                styles.createButton,
+                styles.createButtonRounding,
+              ]}
+            >
+              <FontAwesome5 name="plus" size={12} color={colors.white} />
+              <Text style={styles.createButtonText}>라운딩 생성</Text>
+            </Button>
+            <Button
+              onPress={handleCreateMeeting('social')}
+              style={[
+                styles.createButton,
+                styles.createButtonSocial,
+              ]}
+            >
+              <FontAwesome5 name="plus" size={12} color={colors.white} />
+              <Text style={styles.createButtonText}>소셜 생성</Text>
+            </Button>
+          </View>
+        </View>
+
+        <View style={styles.tabBar}>
+          <View style={styles.tabBarRow}>
+            {meetingTabs.map((tab) => {
+              const selected = activeTab === tab.id;
+              return (
+                <Pressable
+                  key={tab.id}
+                  onPress={handleTabPress(tab.id)}
+                  style={[styles.tabButton, selected && styles.tabButtonActive]}
+                >
+                  <Text style={[styles.tabText, selected && styles.tabTextActive]}>
+                    {tab.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      </View>
+      <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.container}>
+
+          <View style={styles.filtersBlock}>
+            <View style={styles.dateRow}>
+              <MeetingDateField value={startDate} onChange={handleStartDateChange} styles={styles} />
+              <Text style={styles.dateDivider}>~</Text>
+              <MeetingDateField value={endDate} onChange={handleEndDateChange} styles={styles} />
+              {showResetDates ? (
+                <Pressable onPress={handleResetDates} style={styles.resetButton}>
+                  <Text style={styles.resetButtonText}>초기화</Text>
+                </Pressable>
+              ) : null}
+            </View>
+
+            <View style={styles.searchRow}>
+              <View style={styles.searchInputWrap}>
+                <FontAwesome5 name="search" size={14} color={colors.neutral[400]} />
+                <TextInput
+                  value={searchInput}
+                  onChangeText={handleSearchInputChange}
+                  placeholder="모임명으로 검색..."
+                  placeholderTextColor={colors.neutral[400]}
+                  style={styles.searchInput}
+                  returnKeyType="search"
+                  onSubmitEditing={handleSearch}
+                />
+              </View>
+              <Pressable onPress={handleSearch} style={styles.searchButton}>
+                <Text style={styles.searchButtonText}>검색</Text>
+              </Pressable>
+            </View>
+          </View>
+
+        <View style={styles.statusRow}>
+          <Pressable
+            onPress={handleStatusFilterChange('active')}
+            style={[
+              styles.statusButton,
+              statusFilter === 'active'
+                ? styles.statusButtonActive
+                : styles.statusButtonInactive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.statusButtonText,
+                statusFilter === 'active' && styles.statusButtonTextActive,
+              ]}
+            >
+              진행
+            </Text>
+          </Pressable>
+          <Text style={styles.statusDivider}>|</Text>
+          <Pressable
+            onPress={handleStatusFilterChange('completed')}
+            style={[
+              styles.statusButton,
+              statusFilter === 'completed'
+                ? styles.statusButtonActive
+                : styles.statusButtonInactive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.statusButtonText,
+                statusFilter === 'completed' && styles.statusButtonTextActive,
+              ]}
+            >
+              완료/취소
+            </Text>
+          </Pressable>
+        </View>
+
         {loading ? (
           <View style={styles.loadingBlock}>
             <ActivityIndicator size="large" color={colors.primary[600]} />
           </View>
-        ) : (
-          <>
-            <View style={styles.headerRow}>
-              <Text style={styles.title}>모임 목록</Text>
-              <View style={styles.createRow}>
-                <Button
-                  onPress={handleCreateMeeting('rounding')}
-                  style={[
-                    styles.createButton,
-                    styles.createButtonRounding,
-                  ]}
-                >
-                  <FontAwesome5 name="plus" size={12} color={colors.white} />
-                  <Text style={styles.createButtonText}>라운딩 생성</Text>
-                </Button>
-                <Button
-                  onPress={handleCreateMeeting('social')}
-                  style={[
-                    styles.createButton,
-                    styles.createButtonSocial,
-                  ]}
-                >
-                  <FontAwesome5 name="plus" size={12} color={colors.white} />
-                  <Text style={styles.createButtonText}>소셜 생성</Text>
-                </Button>
-              </View>
-            </View>
-
-            <View style={styles.tabBar}>
-              <View style={styles.tabBarRow}>
-                {meetingTabs.map((tab) => {
-                  const selected = activeTab === tab.id;
-                  return (
-                    <Pressable
-                      key={tab.id}
-                      onPress={handleTabPress(tab.id)}
-                      style={[styles.tabButton, selected && styles.tabButtonActive]}
-                    >
-                      <Text style={[styles.tabText, selected && styles.tabTextActive]}>
-                        {tab.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-
-            <View style={styles.filtersBlock}>
-              <View style={styles.dateRow}>
-                <MeetingDateField value={startDate} onChange={handleStartDateChange} styles={styles} />
-                <Text style={styles.dateDivider}>~</Text>
-                <MeetingDateField value={endDate} onChange={handleEndDateChange} styles={styles} />
-                {showResetDates ? (
-                  <Pressable onPress={handleResetDates} style={styles.resetButton}>
-                    <Text style={styles.resetButtonText}>초기화</Text>
-                  </Pressable>
-                ) : null}
-              </View>
-
-              <View style={styles.searchRow}>
-                <View style={styles.searchInputWrap}>
-                  <FontAwesome5 name="search" size={14} color={colors.neutral[400]} />
-                  <TextInput
-                    value={searchInput}
-                    onChangeText={handleSearchInputChange}
-                    placeholder="모임명으로 검색..."
-                    placeholderTextColor={colors.neutral[400]}
-                    style={styles.searchInput}
-                    returnKeyType="search"
-                    onSubmitEditing={handleSearch}
-                  />
-                </View>
-                <Pressable onPress={handleSearch} style={styles.searchButton}>
-                  <Text style={styles.searchButtonText}>검색</Text>
-                </Pressable>
-              </View>
-            </View>
-
-            <View style={styles.statusRow}>
-              <Pressable
-                onPress={handleStatusFilterChange('active')}
-                style={[
-                  styles.statusButton,
-                  statusFilter === 'active'
-                    ? styles.statusButtonActive
-                    : styles.statusButtonInactive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.statusButtonText,
-                    statusFilter === 'active' && styles.statusButtonTextActive,
-                  ]}
-                >
-                  진행
+        ) : currentMeetings.length === 0 ? (
+          <View style={styles.emptyState}>
+            <FontAwesome5 name="calendar-alt" size={44} color={colors.neutral[300]} />
+            {hasActiveFilters ? (
+              <>
+                <Text style={styles.emptyTitle}>
+                  조건에 해당하는 {activeTabLabel} 모임이 없습니다
                 </Text>
-              </Pressable>
-              <Text style={styles.statusDivider}>|</Text>
-              <Pressable
-                onPress={handleStatusFilterChange('completed')}
-                style={[
-                  styles.statusButton,
-                  statusFilter === 'completed'
-                    ? styles.statusButtonActive
-                    : styles.statusButtonInactive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.statusButtonText,
-                    statusFilter === 'completed' && styles.statusButtonTextActive,
-                  ]}
-                >
-                  완료/취소
-                </Text>
-              </Pressable>
-            </View>
-
-            {currentMeetings.length === 0 ? (
-              <View style={styles.emptyState}>
-                <FontAwesome5 name="calendar-alt" size={44} color={colors.neutral[300]} />
-                {hasActiveFilters ? (
-                  <>
-                    <Text style={styles.emptyTitle}>
-                      조건에 해당하는 {activeTabLabel} 모임이 없습니다
-                    </Text>
-                    <Text style={styles.emptySubtitle}>검색 조건을 변경해보세요.</Text>
-                  </>
-                ) : (
-                  <>
-                    <Text style={styles.emptyTitle}>
-                      {statusFilter === 'completed'
-                        ? `완료/취소된 ${activeTabLabel} 모임이 없습니다`
-                        : `진행 중인 ${activeTabLabel} 모임이 없습니다`}
-                    </Text>
-                    <Text style={styles.emptySubtitle}>
-                      {statusFilter === 'completed'
-                        ? '완료되거나 취소된 모임이 없습니다.'
-                        : '현재 진행 중이거나 진행 예정인 모임이 없습니다.'}
-                    </Text>
-                    {statusFilter !== 'completed' && showCreateFromEmpty && canCreateMeeting ? (
-                      <Button
-                        onPress={handleCreateMeeting(activeTab)}
-                        style={[
-                          styles.emptyCreateButton,
-                          activeTab === 'rounding'
-                            ? styles.createButtonRounding
-                            : styles.createButtonSocial,
-                        ]}
-                      >
-                        <Text style={styles.emptyCreateButtonText}>
-                          {activeTab === 'rounding' ? '라운딩' : '소셜'} 모임 생성하기
-                        </Text>
-                      </Button>
-                    ) : null}
-                  </>
-                )}
-              </View>
+                <Text style={styles.emptySubtitle}>검색 조건을 변경해보세요.</Text>
+              </>
             ) : (
               <>
-                <View style={styles.cardList}>
-                  {currentMeetings.map((meeting) => {
-                    const meetingId = meeting?.id || meeting?.meeting_id;
-                    if (!meetingId) return null;
-                    return (
-                      <MeetingCard
-                        key={meetingId}
-                        meeting={{ ...meeting, id: meetingId }}
-                        onPress={handleMeetingClick(meeting)}
-                        styles={styles}
-                        currentUserId={user?.id ?? null}
-                      />
-                    );
-                  })}
-                </View>
-
-                {totalPages > 0 && (
-                  <View style={styles.paginationRow}>
-                    <Pressable
-                      onPress={handlePrevPage}
-                      disabled={currentPage === 1}
-                      style={[
-                        styles.pageNavButton,
-                        currentPage === 1 && styles.pageNavButtonDisabled,
-                      ]}
-                    >
-                      <Text style={styles.pageNavText}>이전</Text>
-                    </Pressable>
-
-                    <View style={styles.pageNumbersRow}>
-                      {pageNumbers.map((pageNum) => {
-                        const selected = pageNum === currentPage;
-                        return (
-                          <Pressable
-                            key={`page-${pageNum}`}
-                            onPress={handlePageNumberChange(pageNum)}
-                            style={[
-                              styles.pageNumber,
-                              selected ? styles.pageNumberActive : styles.pageNumberInactive,
-                            ]}
-                          >
-                            <Text
-                              style={[
-                                styles.pageNumberText,
-                                selected && styles.pageNumberTextActive,
-                              ]}
-                            >
-                              {pageNum}
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
-
-                    <Pressable
-                      onPress={handleNextPage}
-                      disabled={currentPage === totalPages}
-                      style={[
-                        styles.pageNavButton,
-                        currentPage === totalPages && styles.pageNavButtonDisabled,
-                      ]}
-                    >
-                      <Text style={styles.pageNavText}>다음</Text>
-                    </Pressable>
-                  </View>
-                )}
+                <Text style={styles.emptyTitle}>
+                  {statusFilter === 'completed'
+                    ? `완료/취소된 ${activeTabLabel} 모임이 없습니다`
+                    : `진행 중인 ${activeTabLabel} 모임이 없습니다`}
+                </Text>
+                <Text style={styles.emptySubtitle}>
+                  {statusFilter === 'completed'
+                    ? '완료되거나 취소된 모임이 없습니다.'
+                    : '현재 진행 중이거나 진행 예정인 모임이 없습니다.'}
+                </Text>
+                {statusFilter !== 'completed' && showCreateFromEmpty && canCreateMeeting ? (
+                  <Button
+                    onPress={handleCreateMeeting(activeTab)}
+                    style={[
+                      styles.emptyCreateButton,
+                      activeTab === 'rounding'
+                        ? styles.createButtonRounding
+                        : styles.createButtonSocial,
+                    ]}
+                  >
+                    <Text style={styles.emptyCreateButtonText}>
+                      {activeTab === 'rounding' ? '라운딩' : '소셜'} 모임 생성하기
+                    </Text>
+                  </Button>
+                ) : null}
               </>
+            )}
+          </View>
+        ) : (
+          <>
+            <View style={styles.cardList}>
+              {currentMeetings.map((meeting) => {
+                const meetingId = meeting?.id || meeting?.meeting_id;
+                if (!meetingId) return null;
+                return (
+                  <MeetingCard
+                    key={meetingId}
+                    meeting={{ ...meeting, id: meetingId }}
+                    onPress={handleMeetingClick(meeting)}
+                    styles={styles}
+                    currentUserId={user?.id ?? null}
+                  />
+                );
+              })}
+            </View>
+
+            {totalPages > 0 && (
+              <PaginationNav
+                mode="numbered"
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageNumbers={pageNumbers}
+                onPrev={handlePrevPage}
+                onNext={handleNextPage}
+                onPage={handlePageNumberChange}
+                styles={styles}
+                styleKeys={{
+                  container: 'paginationRow',
+                  navButton: 'pageNavButton',
+                  navButtonDisabled: 'pageNavButtonDisabled',
+                  navText: 'pageNavText',
+                  numbersRow: 'pageNumbersRow',
+                  numberButton: 'pageNumber',
+                  numberButtonActive: 'pageNumberActive',
+                  numberButtonInactive: 'pageNumberInactive',
+                  numberText: 'pageNumberText',
+                  numberTextActive: 'pageNumberTextActive',
+                }}
+              />
             )}
           </>
         )}
 
-        <AppFooter />
-      </ScrollView>
+          <AppFooter />
+        </ScrollView>
+      </View>
     </View>
   );
 }
@@ -769,12 +744,15 @@ export default function MeetingsScreen() {
 const styles = StyleSheet.create({
   safeArea: base.tabScreenSafeArea,
   headerSafeArea: base.tabScreenHeaderSafeArea,
-  container: base.container,
-  stateContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  headerContainer: {
+    paddingHorizontal: tokens.spacing.md,
+    paddingTop: tokens.spacing.md,
   },
+  container: base.container,
+  content: {
+    flex: 1,
+  },
+  stateContainer: base.stateCenter,
   loadingBlock: {
     paddingVertical: tokens.padding.xxxl,
     alignItems: 'center',
@@ -808,12 +786,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   createButton: {
+    ...base.headerCreateButton,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs,
-    borderRadius: tokens.radius.base,
   },
   createButtonPressed: {
     opacity: 0.9,
@@ -824,11 +800,7 @@ const styles = StyleSheet.create({
   createButtonSocial: {
     backgroundColor: colors.accent[600],
   },
-  createButtonText: {
-    color: colors.white,
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.bold,
-  },
+  createButtonText: base.headerCreateButtonText,
   createHint: {
     marginTop: tokens.spacing.xs2,
     fontSize: tokens.font.xs,
@@ -853,12 +825,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dateInput: {
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
+    ...base.formInput,
     paddingHorizontal: tokens.padding.base,
-    paddingVertical: tokens.padding.base,
-    backgroundColor: colors.white,
   },
   dateInputText: {
     fontSize: tokens.font.sm,
@@ -888,31 +856,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   searchInputWrap: {
+    ...base.searchBox,
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    paddingHorizontal: tokens.padding.sm,
     gap: 8,
   },
-  searchInput: {
-    flex: 1,
-    fontSize: tokens.font.sm,
-    color: colors.neutral[900],
-  },
-  searchButton: {
-    paddingHorizontal: tokens.padding.baseLg,
-    paddingVertical: tokens.padding.base,
-    borderRadius: tokens.radius.base,
-    backgroundColor: colors.primary[600],
-  },
-  searchButtonText: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.white,
-  },
+  searchInput: base.searchInput,
+  searchButton: base.searchButton,
+  searchButtonText: base.searchButtonText,
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -921,24 +871,19 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing.md,
   },
   statusButton: {
+    ...base.filterButton,
     paddingHorizontal: tokens.padding.baseLg,
     paddingVertical: tokens.padding.base,
-    borderRadius: tokens.radius.base,
   },
-  statusButtonActive: {
-    backgroundColor: colors.primary[600],
-  },
+  statusButtonActive: base.filterButtonActive,
   statusButtonInactive: {
     backgroundColor: colors.neutral[100],
   },
   statusButtonText: {
-    fontSize: tokens.font.sm,
+    ...base.filterButtonText,
     fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[700],
   },
-  statusButtonTextActive: {
-    color: colors.white,
-  },
+  statusButtonTextActive: base.filterButtonTextActive,
   statusDivider: {
     fontSize: tokens.font.sm,
     color: colors.neutral[400],
@@ -948,19 +893,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyTitle: {
-    marginTop: tokens.spacing.md,
+    ...base.emptyStateTitle,
     fontSize: tokens.font.lg,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[900],
-    textAlign: 'center',
+    marginTop: tokens.spacing.md,
     paddingHorizontal: tokens.padding.lg,
   },
   emptySubtitle: {
+    ...base.emptyStateSubtitle,
     marginTop: tokens.spacing.xs2,
-    marginBottom: tokens.spacing.md,
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-    textAlign: 'center',
     paddingHorizontal: tokens.padding.lg,
     lineHeight: 18,
   },
@@ -969,25 +909,14 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.padding.base,
     borderRadius: tokens.radius.base,
   },
-  emptyCreateButtonText: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.white,
-  },
+  emptyCreateButtonText: base.headerCreateButtonText,
   cardList: {
     marginTop: tokens.spacing.xxs,
   },
-  cardPressable: {
-    marginBottom: tokens.spacing.sm2,
-  },
-  cardPressed: {
-    opacity: 0.96,
-  },
-  card: {
-    padding: tokens.padding.md,
-    borderRadius: tokens.radius.md,
-  },
-  cardHeader: { ...base.rowBetween, gap: 10, marginBottom: tokens.spacing.sm },
+  cardPressable: base.tabCardPressable,
+  cardPressed: { opacity: 0.96 },
+  card: base.tabCard,
+  cardHeader: { ...base.tabCardHeader, gap: 10 },
   cardTitleArea: {
     flex: 1,
     minWidth: 0,
@@ -999,106 +928,39 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   statusBadgeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    ...base.badgeRow,
     justifyContent: 'flex-end',
-    gap: 6,
   },
-  badge: {
-    paddingHorizontal: tokens.padding.base,
-    paddingVertical: tokens.padding.xxs,
-    borderRadius: tokens.radius.pill,
-  },
-  badgeText: {
-    fontSize: tokens.font.xs,
-    fontWeight: tokens.fontWeight.bold,
-  },
-  cardDescription: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-    lineHeight: 18,
-    marginBottom: tokens.spacing.sm2,
-  },
-  metaList: {
-    gap: 6,
-    marginBottom: tokens.spacing.sm2,
-  },
-  extraList: {
-    gap: 6,
-    marginBottom: tokens.spacing.sm2,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
+  badge: { ...base.badgeBase, paddingHorizontal: tokens.padding.base },
+  badgeText: { ...base.badgeBaseText, fontWeight: tokens.fontWeight.bold },
+  cardDescription: base.tabCardDescription,
+  metaList: base.tabCardMetaList,
+  extraList: base.tabCardMetaList,
+  metaItem: base.tabCardMetaItem,
   golfEmoji: {
     fontSize: tokens.font.sm,
   },
-  metaText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-    flex: 1,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cardDate: {
-    fontSize: tokens.font.xs,
-    color: colors.neutral[400],
-  },
-  cardLink: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.primary[600],
-  },
-  paginationRow: {
-    marginTop: tokens.spacing.sm2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
+  metaText: base.tabCardMetaText,
+  cardFooter: base.tabCardFooter,
+  cardDate: base.tabCardDate,
+  cardLink: { ...base.tabCardLink, fontWeight: tokens.fontWeight.bold },
+  paginationRow: base.paginationRow,
   pageNavButton: {
-    paddingHorizontal: tokens.padding.sm,
+    ...base.paginationNavButton,
     paddingVertical: tokens.padding.base,
-    borderRadius: tokens.radius.base,
     backgroundColor: colors.neutral[100],
   },
-  pageNavButtonDisabled: {
-    opacity: 0.5,
-  },
-  pageNavText: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[700],
-  },
-  pageNumbersRow: {
-    flexDirection: 'row',
-    gap: 6,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
+  pageNavButtonDisabled: base.paginationNavButtonDisabled,
+  pageNavText: base.paginationNavText,
+  pageNumbersRow: base.paginationNumbersRow,
   pageNumber: {
-    paddingHorizontal: tokens.padding.sm,
+    ...base.paginationNumber,
     paddingVertical: tokens.padding.base,
-    borderRadius: tokens.radius.base,
   },
-  pageNumberActive: {
-    backgroundColor: colors.primary[600],
-  },
+  pageNumberActive: base.paginationNumberActive,
   pageNumberInactive: {
     backgroundColor: colors.neutral[100],
   },
-  pageNumberText: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[700],
-  },
-  pageNumberTextActive: {
-    color: colors.white,
-  },
+  pageNumberText: { ...base.paginationNumberText, color: colors.neutral[700] },
+  pageNumberTextActive: base.paginationNumberTextActive,
 });

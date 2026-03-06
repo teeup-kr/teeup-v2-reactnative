@@ -9,11 +9,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import ChipOption from '@/components/meetings/ChipOption';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import DateTimeField from '@/components/ui/DateTimeField';
 import ScreenHeader from '@/components/ui/ScreenHeader';
+import SelectableChip from '@/components/ui/SelectableChip';
 import { socialSettlementMethods, socialTypeOptions } from '@/constants/meetingConstants';
 import { meetingsApi } from '@/lib/api/api';
 import {
@@ -243,14 +243,14 @@ export function SocialForm({ mode = 'create' }) {
 
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>모임 유형</Text>
-                <View style={styles.chipRow}>
-                  {socialTypeOptions.map((typeOption) => (
-                    <ChipOption
-                      key={typeOption.id}
-                      label={typeOption.label}
-                      selected={form.type === typeOption.id}
-                      onPress={handleTypeSelect(typeOption.id)}
-                      styles={styles}
+                  <View style={styles.chipRow}>
+                    {socialTypeOptions.map((typeOption) => (
+                      <SelectableChip
+                        key={typeOption.id}
+                        label={typeOption.label}
+                        selected={form.type === typeOption.id}
+                        onPress={handleTypeSelect(typeOption.id)}
+                        styles={styles}
                     />
                   ))}
                 </View>
@@ -292,7 +292,7 @@ export function SocialForm({ mode = 'create' }) {
                 ) : (
                   <View style={styles.chipRow}>
                     {clubs.map((club) => (
-                      <ChipOption
+                      <SelectableChip
                         key={club.id}
                         label={club.name}
                         selected={form.club_id === club.id}
@@ -345,7 +345,7 @@ export function SocialForm({ mode = 'create' }) {
                 <Text style={styles.label}>정산 방식</Text>
                 <View style={styles.chipRow}>
                   {socialSettlementMethods.map((method) => (
-                    <ChipOption
+                    <SelectableChip
                       key={method.id}
                       label={method.label}
                       selected={form.settlement_method === method.id}
@@ -363,13 +363,13 @@ export function SocialForm({ mode = 'create' }) {
 
               <View style={styles.fieldGroup}>
                 <View style={styles.chipRow}>
-                  <ChipOption
+                  <SelectableChip
                     label="모든 클럽 멤버"
                     selected={participantType === 'ALL'}
                     onPress={handleParticipantTypeSelect('ALL')}
                     styles={styles}
                   />
-                  <ChipOption
+                  <SelectableChip
                     label="참가자 수 설정"
                     selected={participantType === 'LIMITED'}
                     onPress={handleParticipantTypeSelect('LIMITED')}
@@ -431,76 +431,24 @@ export default function SocialCreateScreen() {
 const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
-  card: {
-    marginBottom: tokens.spacing.md,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: tokens.padding.mega,
-  },
-  loadingText: { ...base.textSmMuted, marginTop: tokens.spacing.sm2, fontSize: tokens.font.base },
+  card: base.formScreenCard,
+  loadingContainer: base.formScreenLoadingContainer,
+  loadingText: base.formScreenLoadingText,
   sectionTitle: base.sectionTitle,
-  sectionSubtitle: { ...base.sectionSubtitle, marginTop: tokens.spacing.xxs, marginBottom: tokens.spacing.sm2 },
+  sectionSubtitle: base.formScreenSectionSubtitle,
   label: base.labelSm,
   helperText: base.textSmSubtle,
-  input: {
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.base,
-    fontSize: tokens.font.base,
-    color: colors.neutral[900],
-    backgroundColor: colors.white,
-    marginBottom: tokens.spacing.sm2,
-  },
-  inputError: {
-    borderColor: colors.error[500],
-  },
-  textArea: {
-    minHeight: 96,
-    textAlignVertical: 'top',
-  },
-  fieldGroup: {
-    marginBottom: tokens.spacing.sm2,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  chip: {
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs2,
-    borderRadius: tokens.radius.lg,
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    backgroundColor: colors.white,
-    marginRight: tokens.spacing.xs2,
-    marginBottom: tokens.spacing.xs2,
-  },
-  chipActive: {
-    backgroundColor: colors.primary[50],
-    borderColor: colors.primary[500],
-  },
-  chipPressed: {
-    opacity: 0.85,
-  },
-  chipText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-  },
-  chipTextActive: {
-    color: colors.primary[700],
-    fontWeight: tokens.fontWeight.semibold,
-  },
-  errorText: { ...base.textSmError, marginTop: tokens.spacing.xxs },
-  submitRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: tokens.spacing.lg,
-  },
-  submitButton: {
-    flex: 1,
-  },
+  input: { ...base.formInput, marginBottom: tokens.spacing.sm2 },
+  inputError: base.formInputError,
+  textArea: { minHeight: 96, textAlignVertical: 'top' },
+  fieldGroup: base.formFieldGroup,
+  chipRow: base.chipRow,
+  chip: base.chipSoft,
+  chipActive: base.chipSoftActive,
+  chipPressed: base.chipSoftPressed,
+  chipText: base.chipSoftText,
+  chipTextActive: base.chipSoftTextActive,
+  errorText: { ...base.formErrorText, marginTop: tokens.spacing.xxs },
+  submitRow: base.formScreenSubmitRow,
+  submitButton: base.formScreenSubmitButton,
 });

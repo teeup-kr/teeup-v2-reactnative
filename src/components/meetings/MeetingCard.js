@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
-import Card from '@/components/ui/Card';
+import StatusBadge from '@/components/ui/StatusBadge';
 import {
   formatCost,
   formatMeetingTime,
@@ -9,9 +9,6 @@ import {
   getMeetingTypeBadgeConfig,
 } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
-
-import MeetingBadge from './MeetingBadge';
-
 
 export default function MeetingCard({ meeting, onPress, styles, currentUserId }) {
   const meetingType = meeting?.meeting_type || meeting?.type || 'ROUND';
@@ -30,7 +27,7 @@ export default function MeetingCard({ meeting, onPress, styles, currentUserId })
       onPress={onPress}
       style={({ pressed }) => [styles.cardPressable, pressed && styles.cardPressed]}
     >
-      <Card style={styles.card}>
+      <View style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.cardTitleArea}>
             <Text style={styles.cardTitle} numberOfLines={1}>
@@ -42,7 +39,7 @@ export default function MeetingCard({ meeting, onPress, styles, currentUserId })
           </View>
           <View style={styles.cardBadgeRow}>
             {typeConfig ? (
-              <MeetingBadge
+              <StatusBadge
                 text={typeConfig.text}
                 backgroundColor={typeConfig.backgroundColor}
                 textColor={typeConfig.textColor}
@@ -51,7 +48,7 @@ export default function MeetingCard({ meeting, onPress, styles, currentUserId })
               />
             ) : null}
             {isOrganizer ? (
-              <MeetingBadge
+              <StatusBadge
                 text="개설자"
                 backgroundColor={colors.error[50]}
                 textColor={colors.error[700]}
@@ -60,7 +57,7 @@ export default function MeetingCard({ meeting, onPress, styles, currentUserId })
               />
             ) : null}
             {isPrivate ? (
-              <MeetingBadge
+              <StatusBadge
                 text="프라이빗"
                 backgroundColor={colors.neutral[200]}
                 textColor={colors.neutral[700]}
@@ -70,7 +67,7 @@ export default function MeetingCard({ meeting, onPress, styles, currentUserId })
             ) : null}
             <View style={styles.statusBadgeRow}>
               {statusBadges.map((badge) => (
-                <MeetingBadge
+                <StatusBadge
                   key={badge.key}
                   text={badge.text}
                   backgroundColor={badge.backgroundColor}
@@ -159,9 +156,9 @@ export default function MeetingCard({ meeting, onPress, styles, currentUserId })
               ? new Date(meeting.created_at).toLocaleDateString('ko-KR')
               : '-'}
           </Text>
-          <Text style={styles.cardLink}>자세히 보기 →</Text>
+          <Text style={styles.cardLink}>상세 보기</Text>
         </View>
-      </Card>
+      </View>
     </Pressable>
   );
 }

@@ -16,11 +16,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import ChipOption from '@/components/meetings/ChipOption';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import DateTimeField from '@/components/ui/DateTimeField';
 import ScreenHeader from '@/components/ui/ScreenHeader';
+import SelectableChip from '@/components/ui/SelectableChip';
 import {
     roundingMeetingSubtypes,
     roundingSettlementMethods,
@@ -760,13 +760,13 @@ export function RoundingForm({ mode = 'create' }) {
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>라운딩 유형</Text>
                 <View style={styles.chipRow}>
-                  <ChipOption
+                  <SelectableChip
                     label="일반 라운딩"
                     selected={!form.is_private}
                     onPress={() => handleTogglePrivate(false)}
                     styles={styles}
                   />
-                  <ChipOption
+                  <SelectableChip
                     label="프라이빗 라운딩"
                     selected={form.is_private}
                     onPress={() => handleTogglePrivate(true)}
@@ -854,7 +854,7 @@ export function RoundingForm({ mode = 'create' }) {
                 ) : (
                   <View style={styles.chipRow}>
                     {clubs.map((club) => (
-                      <ChipOption
+                      <SelectableChip
                         key={club.id}
                         label={club.name}
                         selected={form.club_id === club.id}
@@ -1129,13 +1129,13 @@ export function RoundingForm({ mode = 'create' }) {
                           <View style={[styles.halfField, styles.halfFieldLast]}>
                             <Text style={styles.label}>성별</Text>
                             <View style={styles.chipRow}>
-                              <ChipOption
+                              <SelectableChip
                                 label="남성"
                                 selected={guest.gender === 'MALE'}
                                 onPress={() => handleGuestChange(index, 'gender', 'MALE')}
                                 styles={styles}
                               />
-                              <ChipOption
+                              <SelectableChip
                                 label="여성"
                                 selected={guest.gender === 'FEMALE'}
                                 onPress={() => handleGuestChange(index, 'gender', 'FEMALE')}
@@ -1215,7 +1215,7 @@ export function RoundingForm({ mode = 'create' }) {
                 <Text style={styles.label}>팀 구성 방식</Text>
                 <View style={styles.chipRow}>
                   {roundingTeamModes.map((modeOption) => (
-                    <ChipOption
+                    <SelectableChip
                       key={modeOption.id}
                       label={modeOption.label}
                       selected={form.team_formation_mode === modeOption.id}
@@ -1230,7 +1230,7 @@ export function RoundingForm({ mode = 'create' }) {
                 <Text style={styles.label}>모임 유형</Text>
                 <View style={styles.chipRow}>
                   {roundingMeetingSubtypes.map((subtype) => (
-                    <ChipOption
+                    <SelectableChip
                       key={subtype.id}
                       label={subtype.label}
                       selected={form.meeting_subtype === subtype.id}
@@ -1299,7 +1299,7 @@ export function RoundingForm({ mode = 'create' }) {
                 <Text style={styles.label}>정산 방식</Text>
                 <View style={styles.chipRow}>
                   {roundingSettlementMethods.map((method) => (
-                    <ChipOption
+                    <SelectableChip
                       key={method.id}
                       label={method.label}
                       selected={form.settlement_method === method.id}
@@ -1564,17 +1564,11 @@ export default function RoundingCreateScreen() {
 const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
-  card: {
-    marginBottom: tokens.spacing.md,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: tokens.padding.mega,
-  },
-  loadingText: { ...base.textSmMuted, marginTop: tokens.spacing.sm2, fontSize: tokens.font.base },
+  card: base.formScreenCard,
+  loadingContainer: base.formScreenLoadingContainer,
+  loadingText: base.formScreenLoadingText,
   sectionTitle: base.sectionTitle,
-  sectionSubtitle: { ...base.sectionSubtitle, marginTop: tokens.spacing.xxs, marginBottom: tokens.spacing.sm2 },
+  sectionSubtitle: base.formScreenSectionSubtitle,
   settlementNotice: {
     fontSize: tokens.font.xs,
     color: colors.error[600],
@@ -1582,37 +1576,13 @@ const styles = StyleSheet.create({
   },
   label: base.labelSm,
   helperText: base.textSmSubtle,
-  input: {
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.base,
-    fontSize: tokens.font.base,
-    color: colors.neutral[900],
-    backgroundColor: colors.white,
-    marginBottom: tokens.spacing.sm2,
-  },
-  inputError: {
-    borderColor: colors.error[500],
-  },
-  textArea: {
-    minHeight: 96,
-    textAlignVertical: 'top',
-  },
-  row: {
-    flexDirection: 'row',
-  },
-  fieldGroup: {
-    marginBottom: tokens.spacing.sm2,
-  },
-  halfField: {
-    flex: 1,
-    marginRight: tokens.spacing.sm2,
-  },
-  halfFieldLast: {
-    marginRight: 0,
-  },
+  input: { ...base.formInput, marginBottom: tokens.spacing.sm2 },
+  inputError: base.formInputError,
+  textArea: { minHeight: 96, textAlignVertical: 'top' },
+  row: base.formScreenRow,
+  fieldGroup: base.formFieldGroup,
+  halfField: base.formScreenHalfField,
+  halfFieldLast: base.formScreenHalfFieldLast,
   teeTimeRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1661,36 +1631,13 @@ const styles = StyleSheet.create({
     color: colors.primary[600],
     paddingLeft: 2,
   },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  chip: {
-    paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.xs2,
-    borderRadius: tokens.radius.lg,
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    backgroundColor: colors.white,
-    marginRight: tokens.spacing.xs2,
-    marginBottom: tokens.spacing.xs2,
-  },
-  chipActive: {
-    backgroundColor: colors.primary[50],
-    borderColor: colors.primary[500],
-  },
-  chipPressed: {
-    opacity: 0.85,
-  },
-  chipText: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-  },
-  chipTextActive: {
-    color: colors.primary[700],
-    fontWeight: tokens.fontWeight.semibold,
-  },
-  errorText: { ...base.textSmError, marginTop: tokens.spacing.xxs },
+  chipRow: base.chipRow,
+  chip: base.chipSoft,
+  chipActive: base.chipSoftActive,
+  chipPressed: base.chipSoftPressed,
+  chipText: base.chipSoftText,
+  chipTextActive: base.chipSoftTextActive,
+  errorText: { ...base.formErrorText, marginTop: tokens.spacing.xxs },
   sectionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1993,12 +1940,6 @@ const styles = StyleSheet.create({
     color: colors.neutral[900],
     fontWeight: tokens.fontWeight.bold,
   },
-  submitRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: tokens.spacing.lg,
-  },
-  submitButton: {
-    flex: 1,
-  },
+  submitRow: base.formScreenSubmitRow,
+  submitButton: base.formScreenSubmitButton,
 });
