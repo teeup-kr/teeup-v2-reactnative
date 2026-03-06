@@ -448,7 +448,12 @@ export default function ClubsScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>클럽 목록</Text>
-          <Button variant="primary" size="sm" onPress={handleCreateClub}>
+          <Button
+            variant="primary"
+            onPress={handleCreateClub}
+            style={styles.createButton}
+            textStyle={styles.createButtonText}
+          >
             클럽 등록
           </Button>
         </View>
@@ -718,52 +723,32 @@ export default function ClubsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: base.safeAreaWhite,
-  headerSafeArea: {
-    backgroundColor: colors.white,
-  },
+  safeArea: base.tabScreenSafeArea,
+  headerSafeArea: base.tabScreenHeaderSafeArea,
   container: base.container,
   stateContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerRow: {
-    ...base.rowBetween,
-    marginBottom: tokens.padding.sm,
+  headerRow: base.tabScreenHeaderRow,
+  title: base.tabScreenTitle,
+  createButton: {
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: tokens.padding.xs,
+    borderRadius: tokens.radius.base,
   },
-  title: {
-    fontSize: tokens.font.xxl,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[900],
-  },
-  tabBar: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral[200],
-    marginBottom: tokens.padding.md,
-  },
-  tabBarRow: {
-    ...base.row,
-    flexWrap: 'wrap',
-  },
-  tabButton: {
-    paddingVertical: tokens.spacing.sm,
-    paddingHorizontal: tokens.spacing.xs,
-    marginRight: tokens.padding.sm,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabButtonActive: {
-    borderBottomColor: colors.primary[500],
-  },
-  tabText: {
+  createButtonText: {
     fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.semibold,
-    color: colors.neutral[500],
+    fontWeight: tokens.fontWeight.bold,
+    color: colors.white,
   },
-  tabTextActive: {
-    color: colors.primary[600],
-  },
+  tabBar: base.tabScreenTabBar,
+  tabBarRow: base.tabScreenTabBarRow,
+  tabButton: base.tabScreenTabButton,
+  tabButtonActive: base.tabScreenTabButtonActive,
+  tabText: base.tabScreenTabText,
+  tabTextActive: base.tabScreenTabTextActive,
   searchFilterRow: {
     gap: 12,
   },

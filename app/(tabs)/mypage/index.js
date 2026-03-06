@@ -1,14 +1,13 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import LoginRequired from '@/components/auth/LoginRequired';
 import AppHeader from '@/components/layout/AppHeader';
 import { useAuth } from '@/context/AuthContext';
 import { createTabPressHandler, getMyPageTabContent } from '@/lib/handler/mypage';
-import { colors } from '@/styles/colors';
-import { tokens } from '@/styles/style';
+import { base, tokens } from '@/styles/style';
 
 import UserProfileEditTab from './edit';
 import MyMeetingsScreen from './meetings';
@@ -73,44 +72,19 @@ export default function MyPageScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.neutral[50] }}>
-      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.neutral[50] }}>
+    <View style={styles.safeArea}>
+      <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
         <AppHeader />
 
-        <View
-          style={{
-            paddingHorizontal: tokens.padding.md,
-            paddingTop: tokens.padding.sm,
-            paddingBottom: tokens.padding.xs,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: tokens.font.xxl,
-              fontWeight: tokens.fontWeight.bold,
-              color: colors.neutral[900],
-            }}
-          >
-            마이페이지
-          </Text>
+        <View style={styles.titleWrap}>
+          <Text style={styles.title}>마이페이지</Text>
         </View>
 
-        <View
-          style={{
-            height: 56,
-            justifyContent: 'center',
-            backgroundColor: colors.neutral[50],
-            borderBottomWidth: 1,
-            borderBottomColor: colors.neutral[200],
-          }}
-        >
+        <View style={styles.tabBar}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingHorizontal: tokens.padding.xs,
-              alignItems: 'center',
-            }}
+            contentContainerStyle={styles.tabBarScrollContent}
           >
             {TABS.map((tab) => {
               const active = activeTab === tab.id || (activeTab === 'withdraw' && tab.id === 'edit');
@@ -119,23 +93,9 @@ export default function MyPageScreen() {
                 <Pressable
                   key={tab.id}
                   onPress={handleTabPress(tab.id)}
-                  style={{
-                    paddingVertical: tokens.spacing.sm,
-                    paddingHorizontal: tokens.spacing.xs,
-                    marginRight: tokens.padding.sm,
-                    borderBottomWidth: 2,
-                    borderBottomColor: active ? colors.primary[500] : 'transparent',
-                  }}
+                  style={[styles.tabButton, active && styles.tabButtonActive]}
                 >
-                  <Text
-                    style={{
-                      fontSize: tokens.font.sm,
-                      fontWeight: tokens.fontWeight.semibold,
-                      color: active ? colors.primary[600] : colors.neutral[500],
-                    }}
-                  >
-                    {tab.label}
-                  </Text>
+                  <Text style={[styles.tabText, active && styles.tabTextActive]}>{tab.label}</Text>
                 </Pressable>
               );
             })}
@@ -143,7 +103,35 @@ export default function MyPageScreen() {
         </View>
       </SafeAreaView>
 
-      <View style={{ flex: 1 }}>{tabContent}</View>
+      <View style={styles.content}>{tabContent}</View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: base.tabScreenSafeArea,
+  headerSafeArea: base.tabScreenHeaderSafeArea,
+  titleWrap: {
+    paddingHorizontal: tokens.padding.md,
+    paddingTop: tokens.padding.sm,
+    paddingBottom: tokens.padding.xs,
+  },
+  title: base.tabScreenTitle,
+  tabBar: {
+    ...base.tabScreenTabBar,
+    justifyContent: 'center',
+    minHeight: 56,
+  },
+  tabBarScrollContent: {
+    ...base.tabScreenTabBarRow,
+    alignItems: 'center',
+    paddingHorizontal: tokens.padding.xs,
+  },
+  tabButton: base.tabScreenTabButton,
+  tabButtonActive: base.tabScreenTabButtonActive,
+  tabText: base.tabScreenTabText,
+  tabTextActive: base.tabScreenTabTextActive,
+  content: {
+    flex: 1,
+  },
+});

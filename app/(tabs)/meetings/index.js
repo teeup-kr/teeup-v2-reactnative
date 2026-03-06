@@ -767,10 +767,8 @@ export default function MeetingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: base.safeAreaWhite,
-  headerSafeArea: {
-    backgroundColor: colors.white,
-  },
+  safeArea: base.tabScreenSafeArea,
+  headerSafeArea: base.tabScreenHeaderSafeArea,
   container: base.container,
   stateContainer: {
     flex: 1,
@@ -800,18 +798,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: tokens.spacing.sm2,
-  },
-  title: {
-    fontSize: tokens.font.xxl,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[900],
-  },
+  headerRow: base.tabScreenHeaderRow,
+  title: base.tabScreenTitle,
   createRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -846,33 +834,12 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.xs,
     color: colors.neutral[500],
   },
-  tabBar: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral[200],
-    marginBottom: tokens.spacing.md,
-  },
-  tabBarRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  tabButton: {
-    paddingVertical: tokens.padding.base,
-    paddingHorizontal: tokens.padding.xs2,
-    marginRight: tokens.spacing.sm2,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabButtonActive: {
-    borderBottomColor: colors.primary[500],
-  },
-  tabText: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.semibold,
-    color: colors.neutral[500],
-  },
-  tabTextActive: {
-    color: colors.primary[600],
-  },
+  tabBar: base.tabScreenTabBar,
+  tabBarRow: base.tabScreenTabBarRow,
+  tabButton: base.tabScreenTabButton,
+  tabButtonActive: base.tabScreenTabButtonActive,
+  tabText: base.tabScreenTabText,
+  tabTextActive: base.tabScreenTabTextActive,
   filtersBlock: {
     gap: 12,
     marginBottom: tokens.spacing.md,

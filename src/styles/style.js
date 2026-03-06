@@ -94,6 +94,13 @@ export const base = {
         flex: 1,
         backgroundColor: colors.white,
     },
+    tabScreenSafeArea: {
+        flex: 1,
+        backgroundColor: colors.white,
+    },
+    tabScreenHeaderSafeArea: {
+        backgroundColor: colors.white,
+    },
     container: {
         padding: tokens.spacing.md,
         paddingBottom: tokens.spacing.lg,
@@ -126,6 +133,31 @@ export const base = {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+    },
+    tabScreenHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: tokens.padding.sm,
+    },
+    tabScreenTabBar: {
+        borderBottomWidth: 1,
+        borderBottomColor: colors.neutral[200],
+        marginBottom: tokens.padding.md,
+    },
+    tabScreenTabBarRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    tabScreenTabButton: {
+        paddingVertical: tokens.spacing.sm,
+        paddingHorizontal: tokens.spacing.xs,
+        marginRight: tokens.padding.sm,
+        borderBottomWidth: 2,
+        borderBottomColor: 'transparent',
+    },
+    tabScreenTabButtonActive: {
+        borderBottomColor: colors.primary[500],
     },
 
     /* Text */
@@ -203,6 +235,19 @@ export const base = {
         fontSize: tokens.font.title,
         fontWeight: tokens.fontWeight.bold,
         color: colors.neutral[900],
+    },
+    tabScreenTitle: {
+        fontSize: tokens.font.xxl,
+        fontWeight: tokens.fontWeight.bold,
+        color: colors.neutral[900],
+    },
+    tabScreenTabText: {
+        fontSize: tokens.font.sm,
+        fontWeight: tokens.fontWeight.semibold,
+        color: colors.neutral[500],
+    },
+    tabScreenTabTextActive: {
+        color: colors.primary[600],
     },
 
     /* Inputs */
