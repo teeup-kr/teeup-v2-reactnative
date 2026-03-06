@@ -870,7 +870,6 @@ const styles = StyleSheet.create({
   searchBox: {
     ...base.row,
     paddingHorizontal: tokens.padding.sm,
-    paddingVertical: tokens.padding.base,
     borderRadius: tokens.radius.base,
     borderWidth: 1,
     borderColor: colors.neutral[300],
@@ -879,7 +878,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     marginLeft: tokens.padding.xs,
-    fontSize: tokens.font.base,
+    fontSize: tokens.font.sm,
     color: colors.neutral[900],
   },
   statusFilterWrap: {
