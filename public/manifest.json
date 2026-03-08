@@ -1,59 +1,63 @@
 {
-    "id": "/",
-    "name": "티업링크",
-    "short_name": "티업링크",
-    "description": "티업링크 클럽 & 미팅 플랫폼",
-
-    "start_url": "/app",
-    "scope": "/",
-
-    "display": "standalone",
-    "orientation": "portrait",
-
-    "background_color": "#ffffff",
-    "theme_color": "#ffffff",
-
-    "icons": [
-        {
-            "src": "/icons/icon-192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "/icons/icon-256.png",
-            "sizes": "256x256",
-            "type": "image/png"
-        },
-        {
-            "src": "/icons/icon-512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        },
-        {
-            "src": "/icons/icon-800-maskable.png",
-            "sizes": "800x800",
-            "type": "image/png",
-            "purpose": "any maskable"
-        }
-    ],
-    "screenshots": [
-        {
-            "src": "/screenshots/Screenshot1.jpg",
-            "sizes": "1080x2048",
-            "type": "image/jpeg",
-            "form_factor": "narrow"
-        },
-        {
-            "src": "/screenshots/Screenshot2.jpg",
-            "sizes": "1080x2048",
-            "type": "image/jpeg",
-            "form_factor": "narrow"
-        },
-        {
-            "src": "/screenshots/Screenshot3.jpg",
-            "sizes": "1080x2048",
-            "type": "image/jpeg",
-            "form_factor": "narrow"
-        }
-    ]
+  "id": "teeup",
+  "name": "티업링크",
+  "short_name": "티업링크",
+  "description": "티업링크 클럽 &amp; 미팅 플랫폼",
+  "start_url": "https://www.teeup.kr/app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-800-maskable.png",
+      "sizes": "800x800",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/Screenshot1.jpg",
+      "sizes": "1080x2048",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshots/Screenshot2.jpg",
+      "sizes": "1080x2048",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshots/Screenshot3.jpg",
+      "sizes": "1080x2048",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": [
+    "sports"
+  ]
 }
