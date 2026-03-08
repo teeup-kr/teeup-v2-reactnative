@@ -1,8 +1,8 @@
 {
     "id": "/",
-    "name": "TeeUp",
-    "short_name": "TeeUp",
-    "description": "TeeUp club & meeting platform",
+    "name": "티업링크",
+    "short_name": "티업링크",
+    "description": "티업링크 클럽 & 미팅 플랫폼",
 
     "start_url": "/",
     "scope": "/",
@@ -30,8 +30,8 @@
             "type": "image/png"
         },
         {
-            "src": "/icons/icon-512-maskable.png",
-            "sizes": "512x512",
+            "src": "/icons/icon-800-maskable.png",
+            "sizes": "800x800",
             "type": "image/png",
             "purpose": "any maskable"
         }

@@ -21,6 +21,9 @@ import { authApi } from '@/lib/api/api';
 import { navigateWithCap, recordRoute } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 
+/** Google Tag Manager 컨테이너 ID (웹 전용) */
+const GTM_CONTAINER_ID = 'GTM-NG89M36G';
+
 if (Platform.OS !== 'web') {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -165,6 +168,29 @@ export default function RootLayout() {
     }
   }, []);
 
+  // 웹 전용: Google Tag Manager
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+
+    const script = document.createElement('script');
+    script.innerHTML = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${GTM_CONTAINER_ID}');`;
+    document.head.appendChild(script);
+
+    const noscript = document.createElement('noscript');
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.googletagmanager.com/ns.html?id=${GTM_CONTAINER_ID}`;
+    iframe.height = '0';
+    iframe.width = '0';
+    iframe.style.display = 'none';
+    iframe.style.visibility = 'hidden';
+    noscript.appendChild(iframe);
+    document.body.insertBefore(noscript, document.body.firstChild);
+  }, []);
+
   return (
     <SafeAreaProvider>
       {/* 2. 웹 PWA를 위한 Head 설정 추가 */}
@@ -176,7 +202,7 @@ export default function RootLayout() {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="TeeUp" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="apple-touch-icon" href="/icons/icon-600-full.png" />
       </Head>
 
       <StatusBar style="dark" backgroundColor={colors.white} />
