@@ -106,6 +106,18 @@ module.exports = [
     },
   },
 
+  // Service Worker 전역
+  {
+    files: ["public/service-worker.js"],
+    languageOptions: {
+      globals: {
+        self: "readonly",
+        caches: "readonly",
+        URL: "readonly",
+      },
+    },
+  },
+
   // ESLint 설정 파일 전용
   {
     files: ["eslint.config.cjs"],

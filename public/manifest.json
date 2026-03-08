@@ -35,5 +35,25 @@
             "type": "image/png",
             "purpose": "any maskable"
         }
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshots/Screenshot1.jpg",
+            "sizes": "1080x2048",
+            "type": "image/jpeg",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "/screenshots/Screenshot2.jpg",
+            "sizes": "1080x2048",
+            "type": "image/jpeg",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "/screenshots/Screenshot3.jpg",
+            "sizes": "1080x2048",
+            "type": "image/jpeg",
+            "form_factor": "narrow"
+        }
     ]
 }
