@@ -268,6 +268,9 @@ export default function HomeScreen() {
             pagingEnabled
             maxScrollDistancePerSwipe={carouselWidth}
             scrollAnimationDuration={CAROUSEL_SCROLL_ANIMATION_DURATION}
+            onConfigurePanGesture={(pan) => {
+              pan.activeOffsetX([-12, 12]).failOffsetY([-8, 8]);
+            }}
             onSnapToItem={handleSnapToItem}
             renderItem={({ item: imageUrl, index }) => (
               <View style={styles.heroSlide}>
