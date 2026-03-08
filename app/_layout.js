@@ -144,7 +144,7 @@ function AppShell() {
   }, [isAuthenticated, isLoading, router]);
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, Platform.OS === 'web' && styles.rootWeb]}>
       <View style={[styles.shell, { paddingBottom: isRootEntry ? 0 : bottomNavHeight(insets) }]}>
         <View style={styles.main}>
           <Slot />
@@ -218,7 +218,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    width: '100%',
     backgroundColor: colors.neutral[50],
+  },
+  rootWeb: {
+    maxWidth: 430,
+    alignSelf: 'center',
   },
   shell: {
     flex: 1,

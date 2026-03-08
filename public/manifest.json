@@ -4,7 +4,7 @@
     "short_name": "티업링크",
     "description": "티업링크 클럽 & 미팅 플랫폼",
 
-    "start_url": "/",
+    "start_url": "/app",
     "scope": "/",
 
     "display": "standalone",
