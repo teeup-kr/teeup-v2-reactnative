@@ -5,7 +5,7 @@
     "description": "티업링크 클럽 & 미팅 플랫폼",
     "lang": "ko-KR",
     "dir": "auto",
-    "start_url": "https://www.teeup.kr/app",
+    "start_url": "/app",
     "scope": "/",
     "display": "standalone",
     "prefer_related_applications": false,
