@@ -2,8 +2,9 @@
     "id": "teeup",
     "name": "티업링크",
     "short_name": "티업링크",
-    "description": "티업링크 클럽 &amp; 미팅 플랫폼",
+    "description": "티업링크 클럽 & 미팅 플랫폼",
     "lang": "ko-KR",
+    "dir": "auto",
     "start_url": "https://www.teeup.kr/app",
     "scope": "/",
     "display": "standalone",
@@ -62,5 +63,10 @@
     ],
     "categories": [
         "sports"
+    ],
+    "scope_extensions": [
+        {
+            "origin": "*.teeup.kr"
+        }
     ]
 }
