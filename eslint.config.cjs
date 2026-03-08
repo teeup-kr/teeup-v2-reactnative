@@ -108,7 +108,7 @@ module.exports = [
 
   // Service Worker 전역
   {
-    files: ["public/service-worker.js"],
+    files: ["public/sw.js"],
     languageOptions: {
       globals: {
         self: "readonly",
