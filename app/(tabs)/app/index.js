@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   ImageBackground,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -269,7 +268,6 @@ export default function HomeScreen() {
             pagingEnabled
             maxScrollDistancePerSwipe={carouselWidth}
             scrollAnimationDuration={CAROUSEL_SCROLL_ANIMATION_DURATION}
-            style={Platform.OS === 'web' ? { touchAction: 'pan-y' } : undefined}
             onConfigurePanGesture={(pan) => {
               pan.activeOffsetX([-12, 12]).failOffsetY([-8, 8]);
             }}
