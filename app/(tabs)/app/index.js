@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   ImageBackground,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -138,6 +139,7 @@ export default function HomeScreen() {
   const baseUrl = Constants.expoConfig.extra.webOrigin;
   const carouselRef = useRef(null);
   const [toastKey, setToastKey] = useState(null);
+  const [carouselWidth, setCarouselWidth] = useState(Math.max(width, 1));
   const [activeSlide, setActiveSlide] = useState(0);
   const [failedSlideMap, setFailedSlideMap] = useState({});
   const [upcomingMeetings, setUpcomingMeetings] = useState([]);
@@ -207,13 +209,25 @@ export default function HomeScreen() {
     loadHomeMeetings();
   }, [loadHomeMeetings]);
 
-  const carouselWidth = Math.max(width, 1);
+  const handleCarouselLayout = useCallback((event) => {
+    const nextWidth = Math.max(event.nativeEvent.layout.width, 1);
+    setCarouselWidth((prevWidth) => (prevWidth === nextWidth ? prevWidth : nextWidth));
+  }, []);
 
   const handleCarouselEnd = useCallback(
     (event) => {
       const offsetX = event.nativeEvent.contentOffset.x;
       const index = Math.round(offsetX / carouselWidth);
       setActiveSlide(index);
+    },
+    [carouselWidth]
+  );
+
+  const handleCarouselScroll = useCallback(
+    (event) => {
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const index = Math.round(offsetX / carouselWidth);
+      setActiveSlide((prevIndex) => (prevIndex === index ? prevIndex : index));
     },
     [carouselWidth]
   );
@@ -256,13 +270,18 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.carouselSection}>
+        <View style={styles.carouselSection} onLayout={handleCarouselLayout}>
           <ScrollView
             ref={carouselRef}
             horizontal
             pagingEnabled
+            snapToInterval={carouselWidth}
+            disableIntervalMomentum
+            decelerationRate="normal"
             showsHorizontalScrollIndicator={false}
             onMomentumScrollEnd={handleCarouselEnd}
+            onScroll={Platform.OS === 'web' ? handleCarouselScroll : undefined}
+            scrollEventThrottle={16}
           >
             {bannerImageUrls.map((imageUrl, index) => (
               <View key={imageUrl} style={[styles.heroSlide, { width: carouselWidth }]}> 
