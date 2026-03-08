@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   ImageBackground,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,6 +12,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import Carousel from 'react-native-reanimated-carousel';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppToast, { toastMap } from '@/components/ui/AppToast';
@@ -63,6 +63,8 @@ const QUICK_ACTIONS = [
 ];
 
 const CAROUSEL_IMAGE_NAMES = ['main1.png', 'main2.png', 'main3.png', 'main4.png'];
+const CAROUSEL_HEIGHT = 420;
+const CAROUSEL_SCROLL_ANIMATION_DURATION = 420;
 
 function getMeetingId(meeting) {
   return meeting?.id || meeting?.meeting_id;
@@ -214,30 +216,16 @@ export default function HomeScreen() {
     setCarouselWidth((prevWidth) => (prevWidth === nextWidth ? prevWidth : nextWidth));
   }, []);
 
-  const handleCarouselEnd = useCallback(
-    (event) => {
-      const offsetX = event.nativeEvent.contentOffset.x;
-      const index = Math.round(offsetX / carouselWidth);
-      setActiveSlide(index);
-    },
-    [carouselWidth]
-  );
-
-  const handleCarouselScroll = useCallback(
-    (event) => {
-      const offsetX = event.nativeEvent.contentOffset.x;
-      const index = Math.round(offsetX / carouselWidth);
-      setActiveSlide((prevIndex) => (prevIndex === index ? prevIndex : index));
-    },
-    [carouselWidth]
-  );
+  const handleSnapToItem = useCallback((index) => {
+    setActiveSlide(index);
+  }, []);
 
   const handleDotPress = useCallback(
     (index) => {
-      carouselRef.current?.scrollTo({ x: index * carouselWidth, animated: true });
+      carouselRef.current?.scrollTo({ index, animated: true });
       setActiveSlide(index);
     },
-    [carouselWidth]
+    []
   );
 
   const handleImageError = useCallback(
@@ -271,20 +259,18 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.carouselSection} onLayout={handleCarouselLayout}>
-          <ScrollView
+          <Carousel
             ref={carouselRef}
-            horizontal
+            loop
+            width={carouselWidth}
+            height={CAROUSEL_HEIGHT}
+            data={bannerImageUrls}
             pagingEnabled
-            snapToInterval={carouselWidth}
-            disableIntervalMomentum
-            decelerationRate="normal"
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={handleCarouselEnd}
-            onScroll={Platform.OS === 'web' ? handleCarouselScroll : undefined}
-            scrollEventThrottle={16}
-          >
-            {bannerImageUrls.map((imageUrl, index) => (
-              <View key={imageUrl} style={[styles.heroSlide, { width: carouselWidth }]}> 
+            maxScrollDistancePerSwipe={carouselWidth}
+            scrollAnimationDuration={CAROUSEL_SCROLL_ANIMATION_DURATION}
+            onSnapToItem={handleSnapToItem}
+            renderItem={({ item: imageUrl, index }) => (
+              <View style={styles.heroSlide}>
                 <ImageBackground
                   source={{ uri: imageUrl }}
                   resizeMode="cover"
@@ -301,8 +287,8 @@ export default function HomeScreen() {
                   </View>
                 </ImageBackground>
               </View>
-            ))}
-          </ScrollView>
+            )}
+          />
 
           <View pointerEvents="none" style={styles.heroTextWrap}>
             <Text style={styles.heroCaption}>편리한 골프 동호회 운영 관리 플랫폼</Text>
@@ -441,7 +427,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral[800],
   },
   heroSlide: {
-    height: 420,
+    height: CAROUSEL_HEIGHT,
   },
   heroImage: {
     flex: 1,
