@@ -1,5 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { Redirect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -173,7 +173,7 @@ export default function MyMeetingsScreen() {
   }
 
   if (!isAuthenticated) {
-    return <Redirect href="/login" />;
+    return <LoginScreen />;
   }
 
   return (

@@ -1,5 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -15,7 +15,6 @@ import Carousel from 'react-native-reanimated-carousel';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppToast, { toastMap } from '@/components/ui/AppToast';
-import StatusBadge from '@/components/ui/StatusBadge';
 import { HOME_BANNER_SLIDES } from '@/constants/homeBannerSlides';
 import { useAuth } from '@/context/AuthContext';
 import { mypageApi } from '@/lib/api/api';
@@ -121,6 +120,8 @@ export default function HomeScreen() {
 
   const bannerSlides = HOME_BANNER_SLIDES;
   const carouselHeight = carouselWidth;
+  const bannerSlides = HOME_BANNER_SLIDES;
+  const carouselHeight = carouselWidth;
   const visibleUpcomingMeetings = useMemo(
     () => upcomingMeetings.filter((meeting) => getMeetingId(meeting)).slice(0, 2),
     [upcomingMeetings]
@@ -196,6 +197,9 @@ export default function HomeScreen() {
     const measuredWidth = event.nativeEvent.layout.width;
     if (!Number.isFinite(measuredWidth) || measuredWidth <= 1) return;
     const nextWidth = Math.round(measuredWidth);
+    const measuredWidth = event.nativeEvent.layout.width;
+    if (!Number.isFinite(measuredWidth) || measuredWidth <= 1) return;
+    const nextWidth = Math.round(measuredWidth);
     setCarouselWidth((prevWidth) => (prevWidth === nextWidth ? prevWidth : nextWidth));
   }, []);
 
@@ -223,6 +227,7 @@ export default function HomeScreen() {
       navigateWithCap(router, route);
     },
     [router]
+    [router]
   );
 
   const handleOpenMeeting = useCallback(
@@ -239,71 +244,41 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.carouselSection} onLayout={handleCarouselLayout}>
           <View style={[styles.carouselViewport, { height: carouselHeight }]}>
-            {isHydrated ? (
-              <Carousel
-                ref={carouselRef}
-                loop
-                width={carouselWidth}
-                height={carouselHeight}
-                data={bannerSlides}
-                windowSize={Math.max(1, bannerSlides.length)}
-                pagingEnabled
-                maxScrollDistancePerSwipe={carouselWidth}
-                scrollAnimationDuration={CAROUSEL_SCROLL_ANIMATION_DURATION}
-                onConfigurePanGesture={(pan) => {
-                  pan.activeOffsetX([-12, 12]).failOffsetY([-8, 8]);
-                }}
-                onSnapToItem={handleSnapToItem}
-                renderItem={({ item, index }) => (
-                  <View style={[styles.heroSlide, { height: carouselHeight }]}>
-                    <ImageBackground
-                      source={item.source}
-                      resizeMode="cover"
-                      fadeDuration={0}
-                      onError={handleImageError(index)}
-                      style={styles.heroImage}
-                    >
-                      <View style={styles.heroOverlay}>
-                        {failedSlideMap[index] ? (
-                          <View style={styles.placeholderWrap}>
-                            {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
-                            <Text style={styles.placeholderText}>Placeholder</Text>
-                          </View>
-                        ) : null}
-                      </View>
-                    </ImageBackground>
-                  </View>
-                )}
-              />
-            ) : (
-              <View style={[styles.heroSlide, { height: carouselHeight }]}>
-                {bannerSlides[0] ? (
+            <Carousel
+              ref={carouselRef}
+              loop
+              width={carouselWidth}
+              height={carouselHeight}
+              data={bannerSlides}
+              windowSize={Math.max(1, bannerSlides.length)}
+              pagingEnabled
+              maxScrollDistancePerSwipe={carouselWidth}
+              scrollAnimationDuration={CAROUSEL_SCROLL_ANIMATION_DURATION}
+              onConfigurePanGesture={(pan) => {
+                pan.activeOffsetX([-12, 12]).failOffsetY([-8, 8]);
+              }}
+              onSnapToItem={handleSnapToItem}
+              renderItem={({ item, index }) => (
+                <View style={[styles.heroSlide, { height: carouselHeight }]}>
                   <ImageBackground
-                    source={bannerSlides[0].source}
+                    source={item.source}
                     resizeMode="cover"
                     fadeDuration={0}
-                    onError={handleImageError(0)}
+                    onError={handleImageError(index)}
                     style={styles.heroImage}
                   >
                     <View style={styles.heroOverlay}>
-                      {failedSlideMap[0] ? (
+                      {failedSlideMap[index] ? (
                         <View style={styles.placeholderWrap}>
-                          {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
+                          <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} />
                           <Text style={styles.placeholderText}>Placeholder</Text>
                         </View>
                       ) : null}
                     </View>
                   </ImageBackground>
-                ) : (
-                  <View style={[styles.heroImage, styles.heroOverlay]}>
-                    <View style={styles.placeholderWrap}>
-                      {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
-                      <Text style={styles.placeholderText}>Placeholder</Text>
-                    </View>
-                  </View>
-                )}
-              </View>
-            )}
+                </View>
+              )}
+            />
           </View>
 
           <View pointerEvents="none" style={styles.heroTextWrap}>
@@ -313,7 +288,9 @@ export default function HomeScreen() {
 
           <View style={styles.dotRow}>
             {bannerSlides.map((slide, index) => (
+            {bannerSlides.map((slide, index) => (
               <Pressable
+                key={slide.id}
                 key={slide.id}
                 onPress={() => handleDotPress(index)}
                 style={[styles.dot, activeSlide === index && styles.activeDot]}
@@ -349,6 +326,7 @@ export default function HomeScreen() {
           <Pressable
             style={styles.summaryCard}
             onPress={() => navigateWithCap(router, '/mypage?tab=meetings')}
+            onPress={() => navigateWithCap(router, '/mypage?tab=meetings')}
           >
             <Text style={styles.summaryTitle}>라운드 기록하기</Text>
             <Text style={styles.summarySubText}>스코어 등록</Text>
@@ -358,6 +336,7 @@ export default function HomeScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.summaryTitle}>다음 라운딩</Text>
+          <Pressable onPress={() => navigateWithCap(router, isAuthenticated ? '/meetings/my' : '/meetings')}>
           <Pressable onPress={() => navigateWithCap(router, isAuthenticated ? '/meetings/my' : '/meetings')}>
             <Text style={styles.sectionMore}>더보기</Text>
           </Pressable>
@@ -459,7 +438,11 @@ const styles = StyleSheet.create({
   carouselViewport: {
     width: '100%',
   },
+  carouselViewport: {
+    width: '100%',
+  },
   heroSlide: {
+    width: '100%',
     width: '100%',
   },
   heroImage: {

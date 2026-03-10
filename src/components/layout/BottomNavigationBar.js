@@ -21,11 +21,6 @@ export default function BottomNavigationBar() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { toggleMenu } = useAppLayout();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleNavigate = (path) => {
     navigateWithCap(router, path);
@@ -92,13 +87,11 @@ export default function BottomNavigationBar() {
           </Text>
         </Pressable>
         <Pressable onPress={() => handleNavigate('/mypage')} style={styles.item}>
-          {mounted ? (
-            <FontAwesome5
-              name="user"
-              size={18}
-              color={isMyActive ? colors.primary[600] : colors.neutral[500]}
-            />
-          ) : null}
+          <FontAwesome5
+            name="user"
+            size={18}
+            color={isMyActive ? colors.primary[600] : colors.neutral[500]}
+          />
           <Text
             style={[
               styles.label,
