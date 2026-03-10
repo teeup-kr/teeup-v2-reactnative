@@ -8,7 +8,6 @@ import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
 import { useAppLayout } from '../../context/AppLayoutContext';
-import { useAuth } from '../../context/AuthContext';
 const TAB_HEIGHT = 56;
 
 const isPathActive = (pathname, target) => {
@@ -21,7 +20,6 @@ export default function BottomNavigationBar() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { toggleMenu } = useAppLayout();
-  const { isAuthenticated } = useAuth();
 
   const handleNavigate = (path) => {
     navigateWithCap(router, path);
@@ -81,7 +79,7 @@ export default function BottomNavigationBar() {
             모임
           </Text>
         </Pressable>
-        <Pressable onPress={() => handleNavigate(isAuthenticated ? '/mypage' : '/login')} style={styles.item}>
+        <Pressable onPress={() => handleNavigate('/mypage')} style={styles.item}>
           <FontAwesome5
             name="user"
             size={18}

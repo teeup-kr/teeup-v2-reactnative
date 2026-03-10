@@ -1,5 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { Redirect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -20,6 +20,8 @@ import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+import LoginScreen from '../../login';
 
 const TABS = [
   { id: 'all', label: '전체' },
@@ -171,7 +173,7 @@ export default function MyMeetingsScreen() {
   }
 
   if (!isAuthenticated) {
-    return <Redirect href="/login" />;
+    return <LoginScreen />;
   }
 
   return (

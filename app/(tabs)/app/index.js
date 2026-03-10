@@ -1,5 +1,4 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import Constants from 'expo-constants';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -16,6 +15,7 @@ import Carousel from 'react-native-reanimated-carousel';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppToast, { toastMap } from '@/components/ui/AppToast';
+import { HOME_BANNER_SLIDES } from '@/constants/homeBannerSlides';
 import { useAuth } from '@/context/AuthContext';
 import { mypageApi } from '@/lib/api/api';
 import { navigateWithCap } from '@/lib/navigation/cappedHistory';
@@ -62,8 +62,6 @@ const QUICK_ACTIONS = [
   },
 ];
 
-const CAROUSEL_IMAGE_NAMES = ['main1.png', 'main2.png', 'main3.png', 'main4.png'];
-const CAROUSEL_HEIGHT = 420;
 const CAROUSEL_SCROLL_ANIMATION_DURATION = 420;
 
 function getMeetingId(meeting) {
@@ -138,7 +136,6 @@ export default function HomeScreen() {
   const { toast: toastParam } = useLocalSearchParams();
   const { isAuthenticated } = useAuth();
 
-  const baseUrl = Constants.expoConfig.extra.webOrigin;
   const carouselRef = useRef(null);
   const [toastKey, setToastKey] = useState(null);
   const [carouselWidth, setCarouselWidth] = useState(Math.max(width, 1));
@@ -149,10 +146,8 @@ export default function HomeScreen() {
   const [isMeetingLoading, setIsMeetingLoading] = useState(false);
   const [meetingError, setMeetingError] = useState('');
 
-  const bannerImageUrls = useMemo(
-    () => CAROUSEL_IMAGE_NAMES.map((name) => `${baseUrl}/image/${name}`),
-    [baseUrl]
-  );
+  const bannerSlides = HOME_BANNER_SLIDES;
+  const carouselHeight = carouselWidth;
   const visibleUpcomingMeetings = useMemo(
     () => upcomingMeetings.filter((meeting) => getMeetingId(meeting)).slice(0, 2),
     [upcomingMeetings]
@@ -212,7 +207,9 @@ export default function HomeScreen() {
   }, [loadHomeMeetings]);
 
   const handleCarouselLayout = useCallback((event) => {
-    const nextWidth = Math.max(event.nativeEvent.layout.width, 1);
+    const measuredWidth = event.nativeEvent.layout.width;
+    if (!Number.isFinite(measuredWidth) || measuredWidth <= 1) return;
+    const nextWidth = Math.round(measuredWidth);
     setCarouselWidth((prevWidth) => (prevWidth === nextWidth ? prevWidth : nextWidth));
   }, []);
 
@@ -237,13 +234,9 @@ export default function HomeScreen() {
 
   const handleQuickActionPress = useCallback(
     (route) => () => {
-      if (!isAuthenticated) {
-        navigateWithCap(router, '/login');
-        return;
-      }
       navigateWithCap(router, route);
     },
-    [isAuthenticated, router]
+    [router]
   );
 
   const handleOpenMeeting = useCallback(
@@ -259,39 +252,43 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.carouselSection} onLayout={handleCarouselLayout}>
-          <Carousel
-            ref={carouselRef}
-            loop
-            width={carouselWidth}
-            height={CAROUSEL_HEIGHT}
-            data={bannerImageUrls}
-            pagingEnabled
-            maxScrollDistancePerSwipe={carouselWidth}
-            scrollAnimationDuration={CAROUSEL_SCROLL_ANIMATION_DURATION}
-            onConfigurePanGesture={(pan) => {
-              pan.activeOffsetX([-12, 12]).failOffsetY([-8, 8]);
-            }}
-            onSnapToItem={handleSnapToItem}
-            renderItem={({ item: imageUrl, index }) => (
-              <View style={styles.heroSlide}>
-                <ImageBackground
-                  source={{ uri: imageUrl }}
-                  resizeMode="cover"
-                  onError={handleImageError(index)}
-                  style={styles.heroImage}
-                >
-                  <View style={styles.heroOverlay}>
-                    {failedSlideMap[index] ? (
-                      <View style={styles.placeholderWrap}>
-                        <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} />
-                        <Text style={styles.placeholderText}>Placeholder</Text>
-                      </View>
-                    ) : null}
-                  </View>
-                </ImageBackground>
-              </View>
-            )}
-          />
+          <View style={[styles.carouselViewport, { height: carouselHeight }]}>
+            <Carousel
+              ref={carouselRef}
+              loop
+              width={carouselWidth}
+              height={carouselHeight}
+              data={bannerSlides}
+              windowSize={Math.max(1, bannerSlides.length)}
+              pagingEnabled
+              maxScrollDistancePerSwipe={carouselWidth}
+              scrollAnimationDuration={CAROUSEL_SCROLL_ANIMATION_DURATION}
+              onConfigurePanGesture={(pan) => {
+                pan.activeOffsetX([-12, 12]).failOffsetY([-8, 8]);
+              }}
+              onSnapToItem={handleSnapToItem}
+              renderItem={({ item, index }) => (
+                <View style={[styles.heroSlide, { height: carouselHeight }]}>
+                  <ImageBackground
+                    source={item.source}
+                    resizeMode="cover"
+                    fadeDuration={0}
+                    onError={handleImageError(index)}
+                    style={styles.heroImage}
+                  >
+                    <View style={styles.heroOverlay}>
+                      {failedSlideMap[index] ? (
+                        <View style={styles.placeholderWrap}>
+                          <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} />
+                          <Text style={styles.placeholderText}>Placeholder</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  </ImageBackground>
+                </View>
+              )}
+            />
+          </View>
 
           <View pointerEvents="none" style={styles.heroTextWrap}>
             <Text style={styles.heroCaption}>편리한 골프 동호회 운영 관리 플랫폼</Text>
@@ -299,9 +296,9 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.dotRow}>
-            {bannerImageUrls.map((imageUrl, index) => (
+            {bannerSlides.map((slide, index) => (
               <Pressable
-                key={imageUrl}
+                key={slide.id}
                 onPress={() => handleDotPress(index)}
                 style={[styles.dot, activeSlide === index && styles.activeDot]}
               />
@@ -335,7 +332,7 @@ export default function HomeScreen() {
 
           <Pressable
             style={styles.summaryCard}
-            onPress={() => navigateWithCap(router, isAuthenticated ? '/mypage?tab=meetings' : '/login')}
+            onPress={() => navigateWithCap(router, '/mypage?tab=meetings')}
           >
             <Text style={styles.summaryTitle}>라운드 기록하기</Text>
             <Text style={styles.summarySubText}>스코어 등록</Text>
@@ -345,7 +342,7 @@ export default function HomeScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.summaryTitle}>다음 라운딩</Text>
-          <Pressable onPress={() => navigateWithCap(router, isAuthenticated ? '/meetings/my' : '/login')}>
+          <Pressable onPress={() => navigateWithCap(router, isAuthenticated ? '/meetings/my' : '/meetings')}>
             <Text style={styles.sectionMore}>더보기</Text>
           </Pressable>
         </View>
@@ -429,8 +426,11 @@ const styles = StyleSheet.create({
   carouselSection: {
     backgroundColor: colors.neutral[800],
   },
+  carouselViewport: {
+    width: '100%',
+  },
   heroSlide: {
-    height: CAROUSEL_HEIGHT,
+    width: '100%',
   },
   heroImage: {
     flex: 1,

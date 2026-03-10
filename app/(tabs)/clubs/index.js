@@ -1,6 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -52,6 +52,8 @@ import {
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+import LoginScreen from '../../login';
 
 
 const logoImage = require('../../../public/icons/icon-512-transparent.png');
@@ -431,7 +433,7 @@ export default function ClubsScreen() {
   }
 
   if (!isAuthenticated) {
-    return <Redirect href="/login" />;
+    return <LoginScreen />;
   }
 
   return (

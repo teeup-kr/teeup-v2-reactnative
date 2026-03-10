@@ -1,5 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -43,6 +43,8 @@ import {
 } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+import LoginScreen from '../../login';
 
 
 export default function MeetingsScreen() {
@@ -502,11 +504,11 @@ export default function MeetingsScreen() {
   }
 
   if (!isAuthenticated) {
-    return <Redirect href="/login" />;
+    return <LoginScreen />;
   }
 
   if (error === 'AUTH_REQUIRED') {
-    return <Redirect href="/login" />;
+    return <LoginScreen />;
   }
 
   return (
