@@ -1,5 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import LoginRequired from '@/components/auth/LoginRequired';
+import AppFooter from '@/components/layout/AppFooter';
 import AppHeader from '@/components/layout/AppHeader';
 import MeetingCard from '@/components/meetings/MeetingCard';
 import MeetingDateField from '@/components/meetings/MeetingDateField';
@@ -502,21 +502,11 @@ export default function MeetingsScreen() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <LoginRequired
-        message="로그인 후 이용가능합니다"
-        description="모임 목록을 보려면 로그인이 필요합니다."
-      />
-    );
+    return <Redirect href="/login" />;
   }
 
   if (error === 'AUTH_REQUIRED') {
-    return (
-      <LoginRequired
-        message="로그인 후 이용가능합니다"
-        description="모임 목록을 보려면 로그인이 필요합니다."
-      />
-    );
+    return <Redirect href="/login" />;
   }
 
   return (

@@ -1,6 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import LoginRequired from '@/components/auth/LoginRequired';
 import ClubCard from '@/components/clubs/ClubCard';
 import AppHeader from '@/components/layout/AppHeader';
 import Button from '@/components/ui/Button';
@@ -432,12 +431,7 @@ export default function ClubsScreen() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <LoginRequired
-        message="로그인 후 이용가능합니다"
-        description="클럽 목록을 보려면 로그인이 필요합니다."
-      />
-    );
+    return <Redirect href="/login" />;
   }
 
   return (

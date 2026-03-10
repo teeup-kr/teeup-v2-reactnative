@@ -1,9 +1,8 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import LoginRequired from '@/components/auth/LoginRequired';
 import AppHeader from '@/components/layout/AppHeader';
 import { mypageTabs, mypageValidTabs } from '@/constants/mypageConstants';
 import { useAuth } from '@/context/AuthContext';
@@ -60,12 +59,7 @@ export default function MyPageScreen() {
   );
 
   if (!isLoading && !isAuthenticated) {
-    return (
-      <LoginRequired
-        message="로그인 후 이용 가능합니다"
-        description="마이페이지를 사용하려면 로그인이 필요합니다."
-      />
-    );
+    return <Redirect href="/login" />;
   }
 
   return (
