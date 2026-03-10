@@ -134,54 +134,8 @@ async function checkNickname(nickname) {
 }
 
 async function googleLogin(oauthData) {
-  try {
-    const response = await apiClient.post(`${AUTH_PREFIX}/oauth/google/callback`, oauthData, { auth: false });
-    await saveAuthData(response);
-    return response;
-  } catch (error) {
-    // 403 응답이고 약관 동의 전용 토큰이 있는 경우
-    if (error.status === 403 && error.requiresTermsAgreement && error.termsAgreementToken) {
-      // 약관 동의 전용 토큰 저장
-      await tokenStorage.setTermsAgreementToken(error.termsAgreementToken);
-    }
-    throw error;
-  }
-}
-
-async function agreeToTerms(termsIds) {
-  // 약관 동의 전용 토큰 사용
-  const termsToken = await tokenStorage.getTermsAgreementToken();
-  if (!termsToken) {
-    throw new Error('약관 동의 토큰이 없습니다.');
-  }
-
-  // 백엔드는 약관 ID 배열을 받음
-  // termsIds는 [1, 2, 3] 형식의 약관 ID 배열
-  if (!Array.isArray(termsIds) || termsIds.length === 0) {
-    throw new Error('약관 ID가 필요합니다.');
-  }
-
-  // 약관 동의 전용 토큰을 사용하여 API 호출
-  // apiClient의 auth 옵션 대신 직접 헤더에 토큰 추가
-  const response = await apiClient.post(
-    '/terms/agreements/bulk',
-    {
-      terms_ids: termsIds,
-      agreed_at: new Date().toISOString(),
-    },
-    {
-      auth: false,
-      headers: {
-        'Authorization': `Bearer ${termsToken}`,
-      },
-    }
-  );
-
-  // 약관 동의 완료 후 정상 토큰 저장
-  // 백엔드 응답에 토큰이 포함되어 있지 않을 수 있으므로
-  // 약관 동의 완료 후 다시 로그인 시도해야 할 수도 있음
-  // 일단 응답을 반환하고 상위에서 처리하도록 함
-  await tokenStorage.clearTermsAgreementToken();
+  const response = await apiClient.post(`${AUTH_PREFIX}/oauth/google/callback`, oauthData, { auth: false });
+  await saveAuthData(response);
   return response;
 }
 
@@ -221,7 +175,6 @@ export const authApi = {
   checkEmail,
   checkNickname,
   googleLogin,
-  agreeToTerms,
   syncPushToken,
   logout,
   deleteAccount,

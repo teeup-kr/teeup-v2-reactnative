@@ -303,7 +303,7 @@ async function apiRequest(path, options = {}) {
       response.status === 403 &&
       payload?.detail?.code === "TERMS_NOT_AGREED"
     ) {
-      const redirect = payload.detail.redirect ?? "/terms-agree";
+      const redirect = "/terms-agree";
 
       console.info("[Auth] Terms not agreed → redirect", redirect);
 
@@ -357,20 +357,6 @@ async function apiRequest(path, options = {}) {
       Alert.alert("안내", message, alertButtons);
       return; // throw 하지 않음
     }
-
-    // // 403 응답이고 약관 동의 토큰이 헤더에 있는 경우
-    // if (response.status === 403) {
-    //   const termsAgreementToken = response.headers.get('X-Terms-Agreement-Token') ||
-    //     response.headers.get('terms-agreement-token');
-    //   if (termsAgreementToken) {
-    //     error.termsAgreementToken = termsAgreementToken;
-    //     error.requiresTermsAgreement = true;
-    //     // payload에도 토큰이 있을 수 있으므로 확인
-    //     if (payload?.terms_agreement_token) {
-    //       error.termsAgreementToken = payload.terms_agreement_token;
-    //     }
-    //   }
-    // }
 
     console.warn('[API Error]', {
       method,

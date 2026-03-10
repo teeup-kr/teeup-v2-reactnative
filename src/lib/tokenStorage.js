@@ -15,7 +15,6 @@ const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'auth_user';
 const OAUTH_STATE_KEY = 'oauth_state';
 const OAUTH_CODE_VERIFIER_KEY = 'oauth_code_verifier';
-const TERMS_AGREEMENT_TOKEN_KEY = 'terms_agreement_token';
 
 const memoryStore = new Map();
 
@@ -149,21 +148,5 @@ export const tokenStorage = {
       OAUTH_STATE_KEY,
       OAUTH_CODE_VERIFIER_KEY,
     ]);
-  },
-
-  /* =========================
-   * 약관 동의 토큰
-   ========================= */
-  async setTermsAgreementToken(token) {
-    if (!token) return;
-    await storage.setItem(TERMS_AGREEMENT_TOKEN_KEY, token);
-  },
-
-  async getTermsAgreementToken() {
-    return storage.getItem(TERMS_AGREEMENT_TOKEN_KEY);
-  },
-
-  async clearTermsAgreementToken() {
-    await storage.removeItem(TERMS_AGREEMENT_TOKEN_KEY);
   },
 };

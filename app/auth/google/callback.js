@@ -56,41 +56,42 @@ export default function GoogleOAuthCallback() {
           throw new Error('OAuth state 값이 일치하지 않습니다.');
         }
 
-        await authApi.googleLogin({
+        const response = await authApi.googleLogin({
           authorizationCode,
           codeVerifier,
           redirectUri: googleAuthConfig.redirectUrl,
         });
 
         await refreshAuth();
+        const needsTermsAgreement = response?.user?.needs_terms_agreement === true;
+        if (needsTermsAgreement) {
+          router.replace('/terms-agree');
+          resetUrl();
+          return;
+        }
+
         router.replace('/app');
       } catch (err) {
         console.error('Google OAuth callback error:', err);
         setIsLoading(false);
-        
-        // 약관 동의가 필요한 경우 (403 에러 + 약관 동의 토큰 또는 에러 메시지 확인)
-        const isTermsAgreementRequired = 
-          err?.requiresTermsAgreement || 
-          err?.status === 403 && (
-            err?.termsAgreementToken || 
-            err?.message?.includes('약관') || 
-            err?.payload?.requires_terms_agreement
+
+        const isTermsAgreementRequired =
+          err?.status === 403 &&
+          (
+            err?.payload?.detail?.code === 'TERMS_NOT_AGREED' ||
+            err?.message?.includes('약관')
           );
-        
+
         if (isTermsAgreementRequired) {
-          // 약관 동의 토큰이 있으면 저장
-          if (err?.termsAgreementToken) {
-            await tokenStorage.setTermsAgreementToken(err.termsAgreementToken);
-          }
           // 약관 동의 페이지로 리다이렉트
           setError('필수 약관에 동의하지 않아 로그인할 수 없습니다. 약관 동의 페이지로 이동합니다...');
           setTimeout(() => {
-            router.replace('/terms-agreement');
+            router.replace('/terms-agree');
             resetUrl();
           }, 1500); // 1.5초 후 리다이렉트
           return;
         }
-        
+
         // 일반 에러 처리
         setError(err?.message || 'Google 로그인에 실패했습니다.');
         setAuthError(err?.message || 'Google 로그인에 실패했습니다.');
@@ -101,7 +102,7 @@ export default function GoogleOAuthCallback() {
         // 약관 동의 페이지로 가는 경우에는 OAuth 정보를 유지할 필요 없음
         if (Platform.OS === 'web') {
           const currentPath = window.location.pathname;
-          if (!currentPath.includes('/terms-agreement')) {
+          if (!currentPath.includes('/terms-agree')) {
             await tokenStorage.clearOauth();
           }
         }
