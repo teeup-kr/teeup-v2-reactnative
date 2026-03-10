@@ -144,7 +144,7 @@ function AppShell() {
   }, [isAuthenticated, isLoading, router]);
 
   return (
-    <View style={[styles.root, Platform.OS === 'web' && styles.rootWeb]}>
+    <View style={[styles.root, Platform.OS === 'web' && !isRootEntry && styles.rootWeb]}>
       <View style={[styles.shell, { paddingBottom: isRootEntry ? 0 : bottomNavHeight(insets) }]}>
         <View style={styles.main}>
           <Slot />
