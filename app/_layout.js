@@ -215,7 +215,23 @@ function AppShell() {
     };
   }, [isAuthenticated, isLoading, router]);
 
-  // 웹 전용: Google Tag Manager (/에서는 로드하지 않음)
+  return (
+    <View style={[styles.root, Platform.OS === 'web' && !isRootEntry && styles.rootWeb]}>
+      <View style={[styles.shell, { paddingBottom: isRootEntry ? 0 : bottomNavHeight(insets) }]}>
+        <View style={styles.main}>
+          <Slot />
+        </View>
+      </View>
+      {!isRootEntry ? <BottomNavigationBar /> : null}
+      {!isRootEntry ? <FullMenu /> : null}
+      {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 TODO 출시시 삭제 !!!!!!!!!!!!!!!!!!!!!! */}
+      {/* <DebugConsoleOverlay /> */}
+      {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 !!!!!!!!!!!!!!!!!!!!!! */}
+    </View>
+  );
+}
+
+export default function RootLayout() {
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof document === 'undefined' || isRootEntry || isGoogleCallbackRoute) return;
 
