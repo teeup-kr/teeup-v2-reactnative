@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -434,7 +434,11 @@ export default function ClubsScreen() {
   }
 
   if (!isAuthenticated) {
+<<<<<<< HEAD
     return <LoginScreen />;
+=======
+    return <Redirect href="/login" />;
+>>>>>>> d9c7195 (RUN-74 <fix>: 미로그인 접근을 /login으로 통일하고 LoginRequired 제거)
   }
 
   return (

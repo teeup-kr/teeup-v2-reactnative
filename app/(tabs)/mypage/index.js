@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -61,7 +61,7 @@ export default function MyPageScreen() {
   );
 
   if (!isLoading && !isAuthenticated) {
-    return <LoginScreen />;
+    return <Redirect href="/login" />;
   }
 
   return (

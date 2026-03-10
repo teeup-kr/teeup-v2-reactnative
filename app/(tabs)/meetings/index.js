@@ -1,6 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import AppFooter from '@/components/layout/AppFooter';
 import AppHeader from '@/components/layout/AppHeader';
 import MeetingCard from '@/components/meetings/MeetingCard';
 import MeetingDateField from '@/components/meetings/MeetingDateField';
@@ -500,11 +501,11 @@ export default function MeetingsScreen() {
   }
 
   if (!isAuthenticated) {
-    return <LoginScreen />;
+    return <Redirect href="/login" />;
   }
 
   if (error === 'AUTH_REQUIRED') {
-    return <LoginScreen />;
+    return <Redirect href="/login" />;
   }
 
   return (
