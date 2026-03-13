@@ -1,6 +1,5 @@
 
 import * as NavigationBar from 'expo-navigation-bar';
-import * as Notifications from 'expo-notifications';
 import {
   Slot,
   usePathname,
@@ -23,16 +22,6 @@ import { colors } from '@/styles/colors';
 
 /** Google Tag Manager 컨테이너 ID (웹 전용) */
 const GTM_CONTAINER_ID = 'GTM-NG89M36G';
-
-if (Platform.OS !== 'web') {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-    }),
-  });
-}
 
 function getNotificationRoute(data = {}) {
   const category = data?.category || data?.type || data?.notification_type;
@@ -63,7 +52,7 @@ function routeByNotification(router, notification) {
   navigateWithCap(router, route);
 }
 
-async function setupNotificationChannel() {
+async function setupNotificationChannel(Notifications) {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync('default', {
     name: '기본',
@@ -71,7 +60,7 @@ async function setupNotificationChannel() {
   });
 }
 
-async function ensureNotificationPermission() {
+async function ensureNotificationPermission(Notifications) {
   const permission = await Notifications.getPermissionsAsync();
   if (permission.granted) return true;
   const requested = await Notifications.requestPermissionsAsync();
@@ -143,6 +132,8 @@ function AppShell() {
     if (isLoading || !isAuthenticated) return undefined;
 
     let isUnmounted = false;
+    let receivedSubscription = null;
+    let responseSubscription = null;
 
     const handleRouteOnce = (notification) => {
       const identifier = notification?.request?.identifier;
@@ -158,8 +149,20 @@ function AppShell() {
 
     const setup = async () => {
       try {
-        await setupNotificationChannel();
-        const granted = await ensureNotificationPermission();
+        const Notifications = await import('expo-notifications');
+        if (isUnmounted) return;
+
+        receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
+          const data = notification?.request?.content?.data;
+          console.log('[Push Received]', data);
+        });
+
+        responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
+          handleRouteOnce(response?.notification);
+        });
+
+        await setupNotificationChannel(Notifications);
+        const granted = await ensureNotificationPermission(Notifications);
         await authApi.syncPushToken({ enabled: true });
         if (!granted || isUnmounted) return;
 
@@ -172,21 +175,12 @@ function AppShell() {
       }
     };
 
-    const receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
-      const data = notification?.request?.content?.data;
-      console.log('[Push Received]', data);
-    });
-
-    const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
-      handleRouteOnce(response?.notification);
-    });
-
     setup();
 
     return () => {
       isUnmounted = true;
-      receivedSubscription.remove();
-      responseSubscription.remove();
+      receivedSubscription?.remove();
+      responseSubscription?.remove();
     };
   }, [isAuthenticated, isLoading, router]);
 
@@ -207,6 +201,21 @@ function AppShell() {
 }
 
 export default function RootLayout() {
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+
+    (async () => {
+      const Notifications = await import('expo-notifications');
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        }),
+      });
+    })();
+  }, []);
+
   useEffect(() => {
     if (Platform.OS === 'android') {
       NavigationBar.setPositionAsync('relative');
@@ -246,7 +255,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <link rel="manifest" href="/manifest.json" />
 
         {/* iOS PWA */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="TeeUp" />
         <link rel="apple-touch-icon" href="/icons/icon-600-full.png" />
