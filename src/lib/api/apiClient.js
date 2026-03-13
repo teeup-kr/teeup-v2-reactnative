@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { Alert, Platform } from 'react-native';
 import { URLSearchParams } from 'react-native-url-polyfill';
 
+import { replaceWithPolicy } from '../navigation/cappedHistory';
 import { tokenStorage } from '../tokenStorage';
 
 let extra =
@@ -185,7 +186,7 @@ async function handleAuthExpired() {
   console.info('[Auth] Session expired → logout');
   await tokenStorage.clearTokens();
   await tokenStorage.clearUser();
-  router.replace('/login');
+  replaceWithPolicy(router, '/login');
 }
 
 async function apiRequest(path, options = {}) {

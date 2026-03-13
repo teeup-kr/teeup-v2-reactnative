@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { googleAuthConfig } from '@/constants/authConstants';
 import { useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
+import { replaceWithPolicy } from '@/lib/navigation/cappedHistory';
 import { tokenStorage } from '@/lib/tokenStorage';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -65,12 +66,11 @@ export default function GoogleOAuthCallback() {
         await refreshAuth();
         const needsTermsAgreement = response?.user?.needs_terms_agreement === true;
         if (needsTermsAgreement) {
-          router.replace('/terms-agree');
-          resetUrl();
+          replaceWithPolicy(router, '/terms-agree', { webHardReplace: true });
           return;
         }
 
-        router.replace('/app');
+        replaceWithPolicy(router, '/app', { webHardReplace: true });
       } catch (err) {
         console.error('Google OAuth callback error:', err);
         setIsLoading(false);
@@ -86,8 +86,7 @@ export default function GoogleOAuthCallback() {
           // 약관 동의 페이지로 리다이렉트
           setError('필수 약관에 동의하지 않아 로그인할 수 없습니다. 약관 동의 페이지로 이동합니다...');
           setTimeout(() => {
-            router.replace('/terms-agree');
-            resetUrl();
+            replaceWithPolicy(router, '/terms-agree', { webHardReplace: true });
           }, 1500); // 1.5초 후 리다이렉트
           return;
         }

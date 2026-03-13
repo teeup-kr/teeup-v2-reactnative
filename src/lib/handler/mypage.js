@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 
+import { replaceWithPolicy } from '../navigation/cappedHistory';
 import { formatDateYYYYMMDD, getChangePasswordScreenError, validateChangePasswordForm, validateProfileForm } from '../util/mypageUtils';
 
 export function createPasswordFieldChangeHandler({
@@ -1306,7 +1307,7 @@ export function createConfirmWithdrawHandler({
             await deleteAccount();
             setResultMessage('회원 탈퇴가 완료되었습니다.');
             setModalOpen(false);
-            router.replace('/login');
+            replaceWithPolicy(router, '/login');
         } catch (error) {
             setError(error?.message || '회원 탈퇴에 실패했습니다.');
         } finally {
