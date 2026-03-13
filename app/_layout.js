@@ -8,7 +8,7 @@ import {
 } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { BackHandler, Platform, StyleSheet, ToastAndroid, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,7 +18,7 @@ import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
-import { backOrHome, getHistorySnapshot, handleWebPopstateBack, navigateWithCap, syncRouteHistory } from '@/lib/navigation/cappedHistory';
+import { backOrHome, getHistorySnapshot, navigateWithCap, recordRoute } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
@@ -100,7 +100,6 @@ function AppShell() {
   const { isAuthenticated, isLoading } = useAuth();
   const handledNotificationIdsRef = useRef(new Set());
   const lastBackPressedAtRef = useRef(0);
-  const [isClientReady, setIsClientReady] = useState(false);
   const isRootEntry = pathname === '/';
   const isGoogleCallbackRoute = pathname === GOOGLE_CALLBACK_PATH;
   const showAppChrome = !isRootEntry && !isGoogleCallbackRoute;
@@ -117,7 +116,12 @@ function AppShell() {
   }, [currentRoute, isGoogleCallbackRoute, isRootEntry]);
 
   useEffect(() => {
-    if (isRootEntry || isGoogleCallbackRoute) return undefined;
+    if (isRootEntry) return;
+    recordRoute(pathname);
+  }, [pathname, isRootEntry]);
+
+  useEffect(() => {
+    if (isRootEntry) return undefined;
 
     if (Platform.OS === 'android') {
       const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -141,11 +145,15 @@ function AppShell() {
     }
 
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      let isHandlingPopstate = false;
+
       const handlePopstate = () => {
-        const handled = handleWebPopstateBack(router);
-        if (handled) {
-          return;
-        }
+        if (isHandlingPopstate) return;
+        isHandlingPopstate = true;
+        backOrHome(router);
+        setTimeout(() => {
+          isHandlingPopstate = false;
+        }, 0);
       };
 
       window.addEventListener('popstate', handlePopstate);
@@ -156,7 +164,7 @@ function AppShell() {
     }
 
     return undefined;
-  }, [isGoogleCallbackRoute, isRootEntry, pathname, router]);
+  }, [isRootEntry, pathname, router]);
 
   useEffect(() => {
     if (Platform.OS === 'web') return undefined;

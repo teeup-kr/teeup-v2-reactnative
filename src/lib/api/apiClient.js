@@ -4,6 +4,7 @@ import { Alert, Platform } from 'react-native';
 import { URLSearchParams } from 'react-native-url-polyfill';
 
 import { replaceWithPolicy } from '../navigation/cappedHistory';
+import { replaceWithPolicy } from '../navigation/cappedHistory';
 import { tokenStorage } from '../tokenStorage';
 
 const extra =
@@ -199,13 +200,7 @@ async function handleAuthExpired({ payload, status = 401, redirectOnAuthExpired 
   console.info('[Auth] Session expired → logout');
   await tokenStorage.clearTokens();
   await tokenStorage.clearUser();
-
-  if (redirectOnAuthExpired) {
-    replaceWithPolicy(router, '/login');
-    return;
-  }
-
-  throw createAuthExpiredError(payload, status);
+  replaceWithPolicy(router, '/login');
 }
 
 async function apiRequest(path, options = {}) {
