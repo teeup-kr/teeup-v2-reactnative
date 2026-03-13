@@ -138,6 +138,7 @@ export default function HomeScreen() {
 
   const carouselRef = useRef(null);
   const [toastKey, setToastKey] = useState(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [carouselWidth, setCarouselWidth] = useState(320);
   const [activeSlide, setActiveSlide] = useState(0);
   const [failedSlideMap, setFailedSlideMap] = useState({});
@@ -207,6 +208,10 @@ export default function HomeScreen() {
   }, [loadHomeMeetings]);
 
   useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
     if (!Number.isFinite(width) || width <= 1) return;
     const nextWidth = Math.round(width);
     setCarouselWidth((prevWidth) => (prevWidth === nextWidth ? prevWidth : nextWidth));
@@ -259,31 +264,54 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.carouselSection} onLayout={handleCarouselLayout}>
           <View style={[styles.carouselViewport, { height: carouselHeight }]}>
-            <Carousel
-              ref={carouselRef}
-              loop
-              width={carouselWidth}
-              height={carouselHeight}
-              data={bannerSlides}
-              windowSize={Math.max(1, bannerSlides.length)}
-              pagingEnabled
-              maxScrollDistancePerSwipe={carouselWidth}
-              scrollAnimationDuration={CAROUSEL_SCROLL_ANIMATION_DURATION}
-              onConfigurePanGesture={(pan) => {
-                pan.activeOffsetX([-12, 12]).failOffsetY([-8, 8]);
-              }}
-              onSnapToItem={handleSnapToItem}
-              renderItem={({ item, index }) => (
-                <View style={[styles.heroSlide, { height: carouselHeight }]}>
+            {isHydrated ? (
+              <Carousel
+                ref={carouselRef}
+                loop
+                width={carouselWidth}
+                height={carouselHeight}
+                data={bannerSlides}
+                windowSize={Math.max(1, bannerSlides.length)}
+                pagingEnabled
+                maxScrollDistancePerSwipe={carouselWidth}
+                scrollAnimationDuration={CAROUSEL_SCROLL_ANIMATION_DURATION}
+                onConfigurePanGesture={(pan) => {
+                  pan.activeOffsetX([-12, 12]).failOffsetY([-8, 8]);
+                }}
+                onSnapToItem={handleSnapToItem}
+                renderItem={({ item, index }) => (
+                  <View style={[styles.heroSlide, { height: carouselHeight }]}>
+                    <ImageBackground
+                      source={item.source}
+                      resizeMode="cover"
+                      fadeDuration={0}
+                      onError={handleImageError(index)}
+                      style={styles.heroImage}
+                    >
+                      <View style={styles.heroOverlay}>
+                        {failedSlideMap[index] ? (
+                          <View style={styles.placeholderWrap}>
+                            <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} />
+                            <Text style={styles.placeholderText}>Placeholder</Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    </ImageBackground>
+                  </View>
+                )}
+              />
+            ) : (
+              <View style={[styles.heroSlide, { height: carouselHeight }]}>
+                {bannerSlides[0] ? (
                   <ImageBackground
-                    source={item.source}
+                    source={bannerSlides[0].source}
                     resizeMode="cover"
                     fadeDuration={0}
-                    onError={handleImageError(index)}
+                    onError={handleImageError(0)}
                     style={styles.heroImage}
                   >
                     <View style={styles.heroOverlay}>
-                      {failedSlideMap[index] ? (
+                      {failedSlideMap[0] ? (
                         <View style={styles.placeholderWrap}>
                           <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} />
                           <Text style={styles.placeholderText}>Placeholder</Text>
@@ -291,9 +319,16 @@ export default function HomeScreen() {
                       ) : null}
                     </View>
                   </ImageBackground>
-                </View>
-              )}
-            />
+                ) : (
+                  <View style={[styles.heroImage, styles.heroOverlay]}>
+                    <View style={styles.placeholderWrap}>
+                      <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} />
+                      <Text style={styles.placeholderText}>Placeholder</Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            )}
           </View>
 
           <View pointerEvents="none" style={styles.heroTextWrap}>

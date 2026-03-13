@@ -81,7 +81,6 @@ async function syncPushToken({ enabled = true } = {}) {
     return null;
   }
 
-  console.log('푸시 토큰 동기화 요청');
   return apiClient.post(`${AUTH_PREFIX}/push-token`, {
     push_token: pushToken,
     token_type: 'FCM',
@@ -198,7 +197,7 @@ export const authApi = {
 };
 
 async function getRounds(params) {
-  return apiClient.get('/rounds', { params });
+  return apiClient.get('/rounds/', { params: buildMeetingListParams(params) });
 }
 
 async function getRound(id) {
@@ -500,7 +499,7 @@ async function createSocial(data, config = {}) {
 }
 
 async function getSocials(params) {
-  return apiClient.get('/socials', { params });
+  return apiClient.get('/socials/', { params: buildMeetingListParams(params) });
 }
 
 async function getSocial(id) {
@@ -525,6 +524,10 @@ async function leaveSocial(id) {
 
 async function cancelSocial(id, reason) {
   return apiClient.post(`/socials/${id}/cancel`, { reason });
+}
+
+async function fetchSocialParticipants(meetingId) {
+  return apiClient.get(`/socials/${meetingId}/participants`);
 }
 
 export const socialsApi = {
@@ -1113,120 +1116,36 @@ export const termsApi = {
   postAgreementsBulk
 };
 
-async function fetchMyClubs(params) {
-  return apiClient.get('/clubs/my', { params: buildClubStatusParams(params || {}) });
-}
-
-async function fetchRounds(params) {
-  return apiClient.get('/rounds/', { params: buildMeetingListParams(params) });
-}
-
-async function fetchSocials(params) {
-  return apiClient.get('/socials/', { params: buildMeetingListParams(params) });
-}
-
-async function fetchRound(meetingId) {
-  return apiClient.get(`/rounds/${meetingId}`);
-}
-
-async function updateRoundById(meetingId, payload) {
-  return apiClient.put(`/rounds/${meetingId}`, payload);
-}
-
-async function fetchSocial(meetingId) {
-  return apiClient.get(`/socials/${meetingId}`);
-}
-
-async function updateSocialById(meetingId, payload) {
-  return apiClient.put(`/socials/${meetingId}`, payload);
-}
-
-async function fetchRoundExpenses(meetingId) {
-  return apiClient.get(`/rounds/${meetingId}/expenses`);
-}
-
-async function fetchRoundParticipants(meetingId) {
-  return apiClient.get(`/rounds/${meetingId}/participants`);
-}
-
-async function fetchSocialParticipants(meetingId) {
-  return apiClient.get(`/socials/${meetingId}/participants`);
-}
-
-async function fetchRoundTeams(meetingId) {
-  return apiClient.get(`/rounds/${meetingId}/teams`);
-}
-
-async function fetchApplicationStatus(meetingId) {
-  return apiClient.get(`/meetings/${meetingId}/application-status`);
-}
-
-async function closeApplicationEarlyByMeeting(meetingId) {
-  return apiClient.post(`/meetings/${meetingId}/close-application`);
-}
-
-async function autoFormTeamsByMeeting(meetingId, payload) {
-  return apiClient.post(`/meetings/${meetingId}/teams/auto-formation`, payload);
-}
-
-async function confirmTeamFormationByMeeting(meetingId) {
-  return apiClient.post(`/meetings/${meetingId}/teams/confirm`);
-}
-
-async function startRoundingByMeeting(meetingId) {
-  return apiClient.post(`/meetings/${meetingId}/start-rounding`);
-}
-
-async function completeRoundingByMeeting(meetingId) {
-  return apiClient.post(`/meetings/${meetingId}/complete-rounding`);
-}
-
-async function confirmSettlementByMeeting(meetingId) {
-  return apiClient.post(`/meetings/${meetingId}/settlement/confirm`);
-}
-
-async function joinRoundByMeeting(meetingId) {
-  return apiClient.post(`/rounds/${meetingId}/join`);
-}
-
-async function leaveRoundByMeeting(meetingId) {
-  return apiClient.delete(`/rounds/${meetingId}/leave`);
-}
-
-async function joinSocialByMeeting(meetingId) {
-  return apiClient.post(`/socials/${meetingId}/join`, {});
-}
-
-async function leaveSocialByMeeting(meetingId) {
-  return apiClient.delete(`/socials/${meetingId}/leave`);
-}
-
-async function fetchMyProfile() {
-  return apiClient.get('/users/profile');
-}
-
-async function fetchUserHandicap(userId) {
-  return apiClient.get(`/users/${userId}/handicap`);
-}
-
-async function fetchMyMeetings(params) {
-  return apiClient.get('/users/my-meetings', { params });
-}
+const fetchMyClubs = getMyClubs;
+const fetchRounds = getRounds;
+const fetchSocials = getSocials;
+const fetchRound = getRound;
+const updateRoundById = updateRound;
+const fetchSocial = getSocial;
+const updateSocialById = updateSocial;
+const fetchRoundExpenses = getRoundExpenses;
+const fetchRoundParticipants = getRoundParticipants;
+const fetchRoundTeams = getRoundTeams;
+const fetchApplicationStatus = getApplicationStatus;
+const closeApplicationEarlyByMeeting = closeApplicationEarly;
+const autoFormTeamsByMeeting = autoFormTeams;
+const confirmTeamFormationByMeeting = confirmTeamFormation;
+const startRoundingByMeeting = startRounding;
+const completeRoundingByMeeting = completeRounding;
+const confirmSettlementByMeeting = confirmSettlement;
+const joinRoundByMeeting = joinRound;
+const leaveRoundByMeeting = leaveRound;
+const joinSocialByMeeting = joinSocial;
+const leaveSocialByMeeting = leaveSocial;
+const fetchMyProfile = getMyProfile;
+const fetchUserHandicap = getUserHandicap;
+const fetchMyMeetings = getMyMeetings;
+const fetchMyRoundingMeetings = getMyRoundingMeetings;
+const fetchRoundingStats = getRoundingStats;
+const checkNicknameAvailability = checkNickname;
 
 async function fetchMyParticipatingMeetings(params) {
   return apiClient.get('/meetings/my/participating', { params: buildMeetingListParams(params) });
-}
-
-async function fetchMyRoundingMeetings(params) {
-  return apiClient.get('/users/me/rounding-meetings', { params });
-}
-
-async function fetchRoundingStats() {
-  return apiClient.get('/users/me/rounding-stats');
-}
-
-async function checkNicknameAvailability(nickname) {
-  return apiClient.get('/auth/check-nickname', { params: { nickname }, auth: false });
 }
 
 export const meetingsApi = {

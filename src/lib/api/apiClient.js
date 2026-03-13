@@ -6,37 +6,12 @@ import { URLSearchParams } from 'react-native-url-polyfill';
 import { replaceWithPolicy } from '../navigation/cappedHistory';
 import { tokenStorage } from '../tokenStorage';
 
-let extra =
+const extra =
   Constants.expoConfig?.extra ??
   Constants.manifest?.extra;
 
-// 런타임에 3000을 8200으로 강제 변경
-if (extra?.apiBaseUrl && extra.apiBaseUrl.includes('3000')) {
-  console.warn('⚠️ apiClient.js - Force replacing 3000 with 8200 in apiBaseUrl');
-  extra = {
-    ...extra,
-    apiBaseUrl: extra.apiBaseUrl.replace(/3000/g, '8200'),
-  };
-}
-
-// redirectUri에 /callback이 없으면 추가
-if (extra?.googleAuth?.redirectUri && !extra.googleAuth.redirectUri.includes('/callback')) {
-  console.warn('⚠️ apiClient.js - Adding /callback to redirectUri');
-  extra = {
-    ...extra,
-    googleAuth: {
-      ...extra.googleAuth,
-      redirectUri: extra.googleAuth.redirectUri + '/callback',
-    },
-  };
-}
-
 const API_BASE_URL = extra?.apiBaseUrl;
-
-console.log('!!! apiClient.js - Constants.expoConfig:', Constants.expoConfig);
-console.log('!!! apiClient.js - Constants.manifest:', Constants.manifest);
-console.log('!!! apiClient.js - extra (after fix):', JSON.stringify(extra, null, 2));
-console.log('!!! apiClient.js - API_BASE_URL:', API_BASE_URL);
+const IS_DEV = extra?.debugApiLogs === true;
 
 const sensitiveKeys = ['password', 'token', 'authorization', 'refresh', 'access'];
 const REFRESH_PATH = '/auth/refresh';
@@ -49,6 +24,11 @@ function getClientType() {
   if (os === 'android') return 'android';
   if (os === 'ios') return 'ios';
   return 'web';
+}
+
+function debugLog(...args) {
+  if (!IS_DEV) return;
+  console.log(...args);
 }
 
 function maskValue(value) {
@@ -96,10 +76,11 @@ function buildUrl(path) {
   if (!path) {
     throw new Error('요청 경로를 지정해주세요.');
   }
+  if (!API_BASE_URL) {
+    throw new Error('API_BASE_URL이 설정되지 않았습니다.');
+  }
   const urlPath = path.startsWith('/') ? path : `/${path}`;
-  const fullUrl = `${API_BASE_URL}${urlPath}`;
-  console.log('!!! buildUrl - path:', path, '-> fullUrl:', fullUrl);
-  return fullUrl;
+  return `${API_BASE_URL}${urlPath}`;
 };
 
 function buildRequestConfig(config = {}) {
@@ -161,7 +142,7 @@ async function requestTokenRefresh() {
     }
 
     const refreshPayload = await parseJsonPayload(refreshResponse);
-    console.log('[Auth Refresh Response]', {
+    debugLog('[Auth Refresh Response]', {
       url: refreshUrl,
       status: refreshResponse.status,
       payload: sanitizePayload(refreshPayload),
@@ -220,7 +201,7 @@ async function apiRequest(path, options = {}) {
     logHeaders.Authorization = `Bearer ${maskValue(logHeaders.Authorization.replace('Bearer ', ''))}`;
   }
 
-  console.log('[API Request]', {
+  debugLog('[API Request]', {
     method,
     url,
     params,
@@ -251,7 +232,7 @@ async function apiRequest(path, options = {}) {
 
   let { response, payload } = await requestOnce(requestHeaders);
 
-  console.log(
+  debugLog(
     '[API Response]\n' +
     JSON.stringify({
       method,
@@ -289,7 +270,7 @@ async function apiRequest(path, options = {}) {
         response = retryResult.response;
         payload = retryResult.payload;
 
-        console.log(
+        debugLog(
           '[API Retry Response]\n' +
           JSON.stringify({
             method,
@@ -489,7 +470,7 @@ export const oauthRequest = async (path, authData) => {
   const isJson = response.headers.get('content-type')?.includes('application/json');
   const payload = isJson ? await response.json() : null;
 
-  console.log('[OAuth Response]', {
+  debugLog('[OAuth Response]', {
     method: 'POST',
     url,
     status: response.status,

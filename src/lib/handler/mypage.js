@@ -281,8 +281,6 @@ export function createSaveProfileHandler({
             );
         }
 
-        console.log('[UPDATE PROFILE PAYLOAD]', payload);
-
         try {
             setUpdateProfilePending(true);
             await updateMyProfile(payload);

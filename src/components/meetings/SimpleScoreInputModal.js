@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import {
+  createCloseScoreEntryHandler,
+  createGrossScoreChangeHandler,
+  createResetScoreEntryHandler,
+  createScoreSubmitHandler,
+  createScoreValidationHandler,
+} from '@/lib/handler/mypage';
+import { getGrossScoreHandicap } from '@/lib/util/mypageUtils';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
@@ -20,82 +28,81 @@ export default function SimpleScoreInputModal({
 }) {
   const [grossScore, setGrossScore] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    if (visible) {
-      setGrossScore('');
-      setError('');
-      setIsSubmitting(false);
-    }
-  }, [visible]);
-
-  const newHandicap = useMemo(() => {
-    if (!grossScore) return null;
-    const score = parseInt(grossScore, 10);
-    if (Number.isNaN(score)) return null;
-    const handicap = Math.max(0, Math.min(72, score - 72));
-    return handicap.toFixed(1);
-  }, [grossScore]);
-
-  const handleSubmit = async () => {
-    if (!grossScore) {
-      setError('라운딩 스코어를 입력해주세요.');
-      return;
-    }
-
-    const score = parseInt(grossScore, 10);
-    if (Number.isNaN(score)) {
-      setError('숫자만 입력 가능합니다.');
-      return;
-    }
-
-    if (score < 55 || score > 144) {
-      setError('스코어는 55~144 사이의 값이어야 합니다.');
-      return;
-    }
-
-    if (!meetingId || !participantId) {
-      setError('참가자 정보를 찾을 수 없습니다.');
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      setError('');
-
-      if (shouldCompleteRounding) {
-        await roundsApi.completeRounding(meetingId);
-      }
-
-      await roundsApi.submitSimpleScore(meetingId, participantId, {
-        gross_score: score,
+  const newHandicap = useMemo(() => getGrossScoreHandicap(grossScore), [grossScore]);
+  const resetLocal = useMemo(
+    () => createResetScoreEntryHandler({ setGrossScore, setIsSubmitting, setErrors }),
+    [setGrossScore, setIsSubmitting, setErrors]
+  );
+  const validate = useMemo(
+    () => createScoreValidationHandler({ grossScore, setErrors }),
+    [grossScore, setErrors]
+  );
+  const handleSubmit = useMemo(
+    () => {
+      const submit = createScoreSubmitHandler({
+        validate,
+        shouldCompleteRounding,
+        meetingId,
+        participantId,
+        grossScore,
+        submitSimpleScore: roundsApi.submitSimpleScore,
+        completeRounding: roundsApi.completeRounding,
+        onSuccess,
+        onClose,
+        resetLocal,
+        setIsSubmitting,
+        setErrors,
       });
 
-      if (onSuccess) {
-        onSuccess();
-      }
-      onClose();
-    } catch (submitError) {
-      console.error('점수 입력 실패:', submitError);
-      setError(submitError?.message || '점수 입력에 실패했습니다.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+      return () => {
+        if (!meetingId || !participantId) {
+          setErrors({ submit: '참가자 정보를 찾을 수 없습니다.' });
+          return;
+        }
+        submit();
+      };
+    },
+    [
+      validate,
+      shouldCompleteRounding,
+      meetingId,
+      participantId,
+      grossScore,
+      onSuccess,
+      onClose,
+      resetLocal,
+      setIsSubmitting,
+      setErrors,
+    ]
+  );
+  const closeAndReset = useMemo(
+    () => createCloseScoreEntryHandler({ isSubmitting, onClose, resetLocal }),
+    [isSubmitting, onClose, resetLocal]
+  );
+  const handleGrossScoreChange = useMemo(
+    () => createGrossScoreChangeHandler({ setGrossScore }),
+    [setGrossScore]
+  );
+
+  useEffect(() => {
+    if (!visible) return;
+    resetLocal();
+  }, [visible, resetLocal]);
 
   return (
     <Modal
       visible={visible}
       title="점수 입력"
-      onClose={onClose}
+      onClose={closeAndReset}
       footer={(
         <View style={styles.footerRow}>
           <Button
             variant="outline"
             size="sm"
             style={styles.footerButton}
-            onPress={onClose}
+            onPress={closeAndReset}
             disabled={isSubmitting}
           >
             취소
@@ -124,20 +131,13 @@ export default function SimpleScoreInputModal({
       <Input
         label="라운딩 스코어"
         value={grossScore}
-        onChangeText={(value) => {
-          if (value === '') {
-            setGrossScore('');
-            return;
-          }
-          if (!/^[0-9]+$/.test(value)) {
-            return;
-          }
-          setGrossScore(value.replace(/^0+(?=\d)/, ''));
-        }}
+        onChangeText={handleGrossScoreChange}
         placeholder="55~144 사이의 숫자 입력"
         keyboardType="number-pad"
         required
       />
+
+      {!!errors.grossScore && <Text style={styles.errorText}>{errors.grossScore}</Text>}
 
       {newHandicap !== null && (
         <View style={styles.previewCard}>
@@ -147,7 +147,7 @@ export default function SimpleScoreInputModal({
         </View>
       )}
 
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {!!errors.submit && <Text style={styles.errorText}>{errors.submit}</Text>}
     </Modal>
   );
 }
