@@ -14,7 +14,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import LoginRequired from '@/components/auth/LoginRequired';
 import ClubCard from '@/components/clubs/ClubCard';
-import AppFooter from '@/components/layout/AppFooter';
 import AppHeader from '@/components/layout/AppHeader';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -706,7 +705,6 @@ export default function ClubsScreen() {
           </>
         )}
 
-          <AppFooter />
         </ScrollView>
       </View>
     </View>

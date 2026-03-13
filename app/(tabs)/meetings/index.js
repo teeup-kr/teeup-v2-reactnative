@@ -11,7 +11,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import LoginRequired from '@/components/auth/LoginRequired';
-import AppFooter from '@/components/layout/AppFooter';
 import AppHeader from '@/components/layout/AppHeader';
 import MeetingCard from '@/components/meetings/MeetingCard';
 import MeetingDateField from '@/components/meetings/MeetingDateField';
@@ -734,7 +733,6 @@ export default function MeetingsScreen() {
           </>
         )}
 
-          <AppFooter />
         </ScrollView>
       </View>
     </View>
