@@ -37,6 +37,15 @@ function isWebRuntime() {
   return typeof window !== 'undefined' && typeof window.location !== 'undefined';
 }
 
+function blurActiveElementOnWeb() {
+  if (!isWebRuntime() || typeof document === 'undefined') return;
+
+  const activeElement = document.activeElement;
+  if (activeElement && typeof activeElement.blur === 'function') {
+    activeElement.blur();
+  }
+}
+
 export function shouldUseWebHardReplace(route) {
   const path = stripQueryAndHash(route);
   return WEB_HARD_REPLACE_TARGETS.includes(path);
@@ -60,6 +69,7 @@ export function replaceWithPolicy(router, href, options = {}) {
   if (!next) return;
 
   recordRoute(next);
+  blurActiveElementOnWeb();
 
   const useWebHardReplace =
     options.webHardReplace === true &&
@@ -126,15 +136,7 @@ export function navigateWithCap(router, href) {
   }
 
   if (isTabRootRoute(next)) {
-    logNavigationTransition(
-      {
-        type: 'navigateWithCap',
-        route: next,
-        method: 'router.navigate',
-      },
-      currentState,
-      getNavigationStateSnapshot(next)
-    );
+    blurActiveElementOnWeb();
     router.navigate(next);
     return;
   }
