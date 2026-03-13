@@ -279,7 +279,7 @@ export default function HomeScreen() {
                       <View style={styles.heroOverlay}>
                         {failedSlideMap[index] ? (
                           <View style={styles.placeholderWrap}>
-                            <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} />
+                            {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
                             <Text style={styles.placeholderText}>Placeholder</Text>
                           </View>
                         ) : null}
@@ -301,7 +301,7 @@ export default function HomeScreen() {
                     <View style={styles.heroOverlay}>
                       {failedSlideMap[0] ? (
                         <View style={styles.placeholderWrap}>
-                          <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} />
+                          {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
                           <Text style={styles.placeholderText}>Placeholder</Text>
                         </View>
                       ) : null}
@@ -310,7 +310,7 @@ export default function HomeScreen() {
                 ) : (
                   <View style={[styles.heroImage, styles.heroOverlay]}>
                     <View style={styles.placeholderWrap}>
-                      <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} />
+                      {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
                       <Text style={styles.placeholderText}>Placeholder</Text>
                     </View>
                   </View>

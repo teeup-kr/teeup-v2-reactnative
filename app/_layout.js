@@ -233,7 +233,7 @@ function AppShell() {
       {!isRootEntry ? <BottomNavigationBar /> : null}
       {!isRootEntry ? <FullMenu /> : null}
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 TODO 출시시 삭제 !!!!!!!!!!!!!!!!!!!!!! */}
-      {/* <DebugConsoleOverlay /> */}
+      {<DebugConsoleOverlay /> }
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 !!!!!!!!!!!!!!!!!!!!!! */}
     </View>
   );
