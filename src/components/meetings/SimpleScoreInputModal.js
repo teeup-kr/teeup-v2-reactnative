@@ -58,9 +58,8 @@ export function BaseSimpleScoreInputModal({
         meetingId,
         participantId,
         grossScore,
-        submitSimpleScore,
-        updateSimpleScore,
-        completeRounding,
+        submitSimpleScore: roundsApi.submitSimpleScore,
+        completeRounding: roundsApi.completeRounding,
         onSuccess,
         onClose,
         resetLocal,
@@ -69,7 +68,7 @@ export function BaseSimpleScoreInputModal({
       });
 
       return () => {
-        if (validateParticipantOnSubmit && (!meetingId || !participantId)) {
+        if (!meetingId || !participantId) {
           setErrors({ submit: '참가자 정보를 찾을 수 없습니다.' });
           return;
         }
@@ -82,13 +81,9 @@ export function BaseSimpleScoreInputModal({
       meetingId,
       participantId,
       grossScore,
-      submitSimpleScore,
-      updateSimpleScore,
-      completeRounding,
       onSuccess,
       onClose,
       resetLocal,
-      validateParticipantOnSubmit,
       setIsSubmitting,
       setErrors,
     ]
@@ -103,9 +98,9 @@ export function BaseSimpleScoreInputModal({
   );
 
   useEffect(() => {
-    if (!resetOnVisible || !visible) return;
+    if (!visible) return;
     resetLocal();
-  }, [visible, resetLocal, resetOnVisible]);
+  }, [visible, resetLocal]);
 
   useEffect(() => {
     if (!visible) return;
@@ -123,12 +118,14 @@ export function BaseSimpleScoreInputModal({
       visible={visible}
       title="점수 입력"
       onClose={closeAndReset}
+      onClose={closeAndReset}
       footer={(
         <View style={styles.footerRow}>
           <Button
             variant="outline"
             size="sm"
             style={styles.footerButton}
+            onPress={closeAndReset}
             onPress={closeAndReset}
             disabled={isSubmitting}
           >
@@ -159,10 +156,13 @@ export function BaseSimpleScoreInputModal({
         label="라운딩 스코어"
         value={grossScore}
         onChangeText={handleGrossScoreChange}
+        onChangeText={handleGrossScoreChange}
         placeholder="55~144 사이의 숫자 입력"
         keyboardType="number-pad"
         required
       />
+
+      {!!errors.grossScore && <Text style={styles.errorText}>{errors.grossScore}</Text>}
 
       {!!errors.grossScore && <Text style={styles.errorText}>{errors.grossScore}</Text>}
 
@@ -174,6 +174,7 @@ export function BaseSimpleScoreInputModal({
         </View>
       )}
 
+      {!!errors.submit && <Text style={styles.errorText}>{errors.submit}</Text>}
       {!!errors.submit && <Text style={styles.errorText}>{errors.submit}</Text>}
     </Modal>
   );

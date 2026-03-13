@@ -167,7 +167,7 @@ async function fetchMeetings(params) {
 }
 
 async function getRounds(params) {
-  return fetchMeetings({ ...(params || {}), list_type: 'rounding' });
+  return apiClient.get('/rounds/', { params: buildMeetingListParams(params) });
 }
 
 async function getRound(id) {
@@ -469,7 +469,7 @@ async function createSocial(data, config = {}) {
 }
 
 async function getSocials(params) {
-  return fetchMeetings({ ...(params || {}), list_type: 'social' });
+  return apiClient.get('/socials/', { params: buildMeetingListParams(params) });
 }
 
 async function getSocial(id) {
@@ -494,6 +494,10 @@ async function leaveSocial(id) {
 
 async function cancelSocial(id, reason) {
   return apiClient.post(`/socials/${id}/cancel`, { reason });
+}
+
+async function fetchSocialParticipants(meetingId) {
+  return apiClient.get(`/socials/${meetingId}/participants`);
 }
 
 async function fetchSocialParticipants(meetingId) {
@@ -1118,9 +1122,36 @@ const fetchMyMeetings = getMyMeetings;
 const fetchMyRoundingMeetings = getMyRoundingMeetings;
 const fetchRoundingStats = getRoundingStats;
 const checkNicknameAvailability = checkNickname;
+const fetchMyClubs = getMyClubs;
+const fetchRounds = getRounds;
+const fetchSocials = getSocials;
+const fetchRound = getRound;
+const updateRoundById = updateRound;
+const fetchSocial = getSocial;
+const updateSocialById = updateSocial;
+const fetchRoundExpenses = getRoundExpenses;
+const fetchRoundParticipants = getRoundParticipants;
+const fetchRoundTeams = getRoundTeams;
+const fetchApplicationStatus = getApplicationStatus;
+const closeApplicationEarlyByMeeting = closeApplicationEarly;
+const autoFormTeamsByMeeting = autoFormTeams;
+const confirmTeamFormationByMeeting = confirmTeamFormation;
+const startRoundingByMeeting = startRounding;
+const completeRoundingByMeeting = completeRounding;
+const confirmSettlementByMeeting = confirmSettlement;
+const joinRoundByMeeting = joinRound;
+const leaveRoundByMeeting = leaveRound;
+const joinSocialByMeeting = joinSocial;
+const leaveSocialByMeeting = leaveSocial;
+const fetchMyProfile = getMyProfile;
+const fetchUserHandicap = getUserHandicap;
+const fetchMyMeetings = getMyMeetings;
+const fetchMyRoundingMeetings = getMyRoundingMeetings;
+const fetchRoundingStats = getRoundingStats;
+const checkNicknameAvailability = checkNickname;
 
 async function fetchMyParticipatingMeetings(params) {
-  return fetchMeetings({ ...(params || {}), list_type: 'participating' });
+  return apiClient.get('/meetings/my/participating', { params: buildMeetingListParams(params) });
 }
 
 export const meetingsApi = {

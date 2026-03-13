@@ -8,27 +8,19 @@ import { replaceWithPolicy } from '../navigation/cappedHistory';
 import { tokenStorage } from '../tokenStorage';
 
 const extra =
+const extra =
   Constants.expoConfig?.extra ??
   Constants.manifest?.extra;
 
 const API_BASE_URL = extra?.apiBaseUrl;
-const isWeb = Platform.OS === 'web';
-const CLIENT_TYPE = isWeb ? 'web' : Platform.OS;
+const IS_DEV = extra?.debugApiLogs === true;
 
 const sensitiveKeys = ['password', 'token', 'authorization', 'refresh', 'access'];
 const REFRESH_PATH = '/auth/refresh';
 let refreshPromise = null;
 
-/** 백엔드 인증/oauth에서 요구하는 클라이언트 타입 (web | android | ios) */
-function getClientType() {
-  const os = Platform.OS;
-  if (os === 'web') return 'web';
-  if (os === 'android') return 'android';
-  if (os === 'ios') return 'ios';
-  return 'web';
-}
-
 function debugLog(...args) {
+  if (!IS_DEV) return;
   console.log(...args);
 }
 
@@ -80,7 +72,11 @@ function buildUrl(path) {
   if (!API_BASE_URL) {
     throw new Error('API_BASE_URL이 설정되지 않았습니다.');
   }
+  if (!API_BASE_URL) {
+    throw new Error('API_BASE_URL이 설정되지 않았습니다.');
+  }
   const urlPath = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE_URL}${urlPath}`;
   return `${API_BASE_URL}${urlPath}`;
 };
 
@@ -157,6 +153,7 @@ async function requestTokenRefresh() {
     }
 
     const refreshPayload = await parseJsonPayload(refreshResponse);
+    debugLog('[Auth Refresh Response]', {
     debugLog('[Auth Refresh Response]', {
       url: refreshUrl,
       status: refreshResponse.status,
@@ -242,6 +239,7 @@ async function apiRequest(path, options = {}) {
   }
 
   debugLog('[API Request]', {
+  debugLog('[API Request]', {
     method,
     url,
     params,
@@ -272,6 +270,7 @@ async function apiRequest(path, options = {}) {
 
   let { response, payload } = await requestOnce(requestHeaders);
 
+  debugLog(
   debugLog(
     '[API Response]\n' +
     JSON.stringify({
@@ -313,6 +312,7 @@ async function apiRequest(path, options = {}) {
         response = retryResult.response;
         payload = retryResult.payload;
 
+        debugLog(
         debugLog(
           '[API Retry Response]\n' +
           JSON.stringify({
@@ -527,6 +527,7 @@ export const oauthRequest = async (path, authData) => {
   const isJson = response.headers.get('content-type')?.includes('application/json');
   const payload = isJson ? await response.json() : null;
 
+  debugLog('[OAuth Response]', {
   debugLog('[OAuth Response]', {
     method: 'POST',
     url,
