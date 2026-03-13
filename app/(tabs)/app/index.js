@@ -138,7 +138,7 @@ export default function HomeScreen() {
 
   const carouselRef = useRef(null);
   const [toastKey, setToastKey] = useState(null);
-  const [carouselWidth, setCarouselWidth] = useState(Math.max(width, 1));
+  const [carouselWidth, setCarouselWidth] = useState(320);
   const [activeSlide, setActiveSlide] = useState(0);
   const [failedSlideMap, setFailedSlideMap] = useState({});
   const [upcomingMeetings, setUpcomingMeetings] = useState([]);
@@ -205,6 +205,12 @@ export default function HomeScreen() {
   useEffect(() => {
     loadHomeMeetings();
   }, [loadHomeMeetings]);
+
+  useEffect(() => {
+    if (!Number.isFinite(width) || width <= 1) return;
+    const nextWidth = Math.round(width);
+    setCarouselWidth((prevWidth) => (prevWidth === nextWidth ? prevWidth : nextWidth));
+  }, [width]);
 
   const handleCarouselLayout = useCallback((event) => {
     const measuredWidth = event.nativeEvent.layout.width;
