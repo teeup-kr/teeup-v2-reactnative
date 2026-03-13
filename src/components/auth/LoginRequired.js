@@ -7,7 +7,6 @@ import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
-import AppFooter from '../layout/AppFooter';
 import AppHeader from '../layout/AppHeader';
 
 export default function LoginRequired({
@@ -35,7 +34,6 @@ export default function LoginRequired({
             </View>
           </View>
         </View>
-        <AppFooter />
       </ScrollView>
     </SafeAreaView>
   );

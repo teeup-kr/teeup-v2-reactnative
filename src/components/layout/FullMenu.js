@@ -1,6 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { navigateWithCap } from '@/lib/navigation/cappedHistory';
@@ -127,11 +127,6 @@ export default function FullMenu() {
             </View>
           ))}
         </ScrollView>
-        {Platform.OS === 'web' && (
-          <View style={[styles.menuFooter, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-            <Text style={styles.menuFooterText}>© {new Date().getFullYear()} 티업링크. All rights reserved.</Text>
-          </View>
-        )}
       </View>
     </View>
   );
@@ -205,17 +200,5 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
     color: colors.neutral[900],
-  },
-  menuFooter: {
-    borderTopWidth: 1,
-    borderTopColor: colors.neutral[200],
-    paddingVertical: tokens.padding.base,
-    paddingHorizontal: tokens.padding.lg,
-    backgroundColor: colors.neutral[50],
-  },
-  menuFooterText: {
-    fontSize: tokens.font.xs,
-    color: colors.neutral[500],
-    textAlign: 'center',
   },
 });
