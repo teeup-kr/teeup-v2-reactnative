@@ -63,11 +63,5 @@
     ],
     "categories": [
         "sports"
-    ],
-    "scope_extensions": [
-        {
-            "type": "origin",
-            "origin": "https://www.teeup.kr"
-        }
     ]
 }
