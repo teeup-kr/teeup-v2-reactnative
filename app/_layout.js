@@ -242,49 +242,9 @@ function AppShell() {
     };
   }, [isAuthenticated, isLoading, router]);
 
-  return (
-    <View style={[styles.root, Platform.OS === 'web' && !isRootEntry && styles.rootWeb]}>
-      <View style={[styles.shell, { paddingBottom: isRootEntry ? 0 : bottomNavHeight(insets) }]}>
-        <View style={styles.main}>
-          <Slot />
-        </View>
-      </View>
-      {!isRootEntry ? <BottomNavigationBar /> : null}
-      {!isRootEntry ? <FullMenu /> : null}
-      {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 TODO 출시시 삭제 !!!!!!!!!!!!!!!!!!!!!! */}
-      {<DebugConsoleOverlay /> }
-      {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 !!!!!!!!!!!!!!!!!!!!!! */}
-    </View>
-  );
-}
-
-export default function RootLayout() {
+  // 웹 전용: Google Tag Manager (/에서는 로드하지 않음)
   useEffect(() => {
-    if (Platform.OS === 'web') return;
-
-    (async () => {
-      const Notifications = await import('expo-notifications');
-      Notifications.setNotificationHandler({
-        handleNotification: async () => ({
-          shouldShowAlert: true,
-          shouldPlaySound: true,
-          shouldSetBadge: false,
-        }),
-      });
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (Platform.OS === 'android') {
-      NavigationBar.setPositionAsync('relative');
-      NavigationBar.setBackgroundColorAsync(colors.white);
-      NavigationBar.setButtonStyleAsync('dark');
-    }
-  }, []);
-
-  // 웹 전용: Google Tag Manager
-  useEffect(() => {
-    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    if (Platform.OS !== 'web' || typeof document === 'undefined' || isRootEntry) return;
 
     const script = document.createElement('script');
     script.innerHTML = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -303,24 +263,19 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     iframe.style.visibility = 'hidden';
     noscript.appendChild(iframe);
     document.body.insertBefore(noscript, document.body.firstChild);
-
-    return () => {
-      script.remove();
-      noscript.remove();
-    };
-  }, [isGoogleCallbackRoute, isRootEntry]);
+  }, [isRootEntry]);
 
   return (
     <View style={[styles.root, Platform.OS === 'web' && !isRootEntry && styles.rootWeb]}>
-      <View style={[styles.shell, { paddingBottom: showAppChrome ? bottomNavHeight(insets) : 0 }]}>
+      <View style={[styles.shell, { paddingBottom: isRootEntry ? 0 : bottomNavHeight(insets) }]}>
         <View style={styles.main}>
           <Slot />
         </View>
       </View>
-      {showAppChrome ? <BottomNavigationBar /> : null}
-      {showAppChrome ? <FullMenu /> : null}
+      {!isRootEntry ? <BottomNavigationBar /> : null}
+      {!isRootEntry ? <FullMenu /> : null}
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 TODO 출시시 삭제 !!!!!!!!!!!!!!!!!!!!!! */}
-      {isClientReady && !isGoogleCallbackRoute ? <DebugConsoleOverlay /> : null}
+      {<DebugConsoleOverlay /> }
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 !!!!!!!!!!!!!!!!!!!!!! */}
     </View>
   );
