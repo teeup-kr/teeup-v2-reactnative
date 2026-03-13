@@ -291,7 +291,7 @@ export default function HomeScreen() {
                       <View style={styles.heroOverlay}>
                         {failedSlideMap[index] ? (
                           <View style={styles.placeholderWrap}>
-                            <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} />
+                            {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
                             <Text style={styles.placeholderText}>Placeholder</Text>
                           </View>
                         ) : null}
@@ -313,7 +313,7 @@ export default function HomeScreen() {
                     <View style={styles.heroOverlay}>
                       {failedSlideMap[0] ? (
                         <View style={styles.placeholderWrap}>
-                          <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} />
+                          {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
                           <Text style={styles.placeholderText}>Placeholder</Text>
                         </View>
                       ) : null}
@@ -322,7 +322,7 @@ export default function HomeScreen() {
                 ) : (
                   <View style={[styles.heroImage, styles.heroOverlay]}>
                     <View style={styles.placeholderWrap}>
-                      <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} />
+                      {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
                       <Text style={styles.placeholderText}>Placeholder</Text>
                     </View>
                   </View>
@@ -355,7 +355,7 @@ export default function HomeScreen() {
               onPress={handleQuickActionPress(action.route)}
             >
               <View style={[styles.quickIconWrap, { backgroundColor: action.bg }]}>
-                <FontAwesome5 name={action.icon} size={18} color={action.fg} />
+                {isHydrated ? <FontAwesome5 name={action.icon} size={18} color={action.fg} /> : null}
               </View>
               <Text style={[styles.quickLabel, { color: action.fontColor }]}>{action.label}</Text>
             </Pressable>
@@ -377,7 +377,7 @@ export default function HomeScreen() {
           >
             <Text style={styles.summaryTitle}>라운드 기록하기</Text>
             <Text style={styles.summarySubText}>스코어 등록</Text>
-            <FontAwesome5 name="edit" size={20} color={colors.neutral[600]} />
+            {isHydrated ? <FontAwesome5 name="edit" size={20} color={colors.neutral[600]} /> : null}
           </Pressable>
         </View>
 
@@ -418,7 +418,7 @@ export default function HomeScreen() {
               return (
                 <Pressable key={String(meetingId)} style={styles.meetingCard} onPress={handleOpenMeeting(meeting)}>
                   <View style={styles.meetingIconWrap}>
-                    <FontAwesome5 name="golf-ball" size={13} color={colors.primary[600]} />
+                    {isHydrated ? <FontAwesome5 name="golf-ball" size={13} color={colors.primary[600]} /> : null}
                   </View>
 
                   <View style={styles.meetingInfo}>
@@ -426,14 +426,14 @@ export default function HomeScreen() {
                     <Text style={styles.meetingDate}>{formatMeetingDate(meeting?.meeting_time)}</Text>
                     {(meeting?.location || meeting?.venue_name) ? (
                       <View style={styles.meetingMetaRow}>
-                        <FontAwesome5 name="map-marker-alt" size={11} color={colors.neutral[500]} />
+                        {isHydrated ? <FontAwesome5 name="map-marker-alt" size={11} color={colors.neutral[500]} /> : null}
                         <Text style={styles.meetingMetaText} numberOfLines={1}>
                           {meeting?.location || meeting?.venue_name}
                         </Text>
                       </View>
                     ) : null}
                     <View style={styles.meetingMetaRow}>
-                      <FontAwesome5 name="users" size={11} color={colors.neutral[500]} />
+                      {isHydrated ? <FontAwesome5 name="users" size={11} color={colors.neutral[500]} /> : null}
                       <Text style={styles.meetingMetaText}>총원 {participantCount}{maxParticipants}명</Text>
                     </View>
                     <View style={styles.meetingBadgeRow}>
