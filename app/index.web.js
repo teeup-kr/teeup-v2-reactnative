@@ -1,7 +1,9 @@
 import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, useRouter } from 'expo-router';
 import { useState } from 'react';
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -12,7 +14,7 @@ import { signInWithGoogle } from '@/lib/util/authUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
-const logoImage = require('../public/icons/icon-512-transparent.png');
+const logoImage = require('../../public/icons/icon-512-transparent.png');
 
 export default function LandingScreen() {
   const router = useRouter();
@@ -57,6 +59,9 @@ export default function LandingScreen() {
         <View style={styles.logoWrap}>
           <Image source={logoImage} style={styles.logo} resizeMode="cover" />
         </View>
+        <View style={styles.logoWrap}>
+          <Image source={logoImage} style={styles.logo} resizeMode="cover" />
+        </View>
         <Text style={styles.brand}>티업링크</Text>
         <Text style={styles.headline}>골프 모임 관리의{'\n'}새로운 경험</Text>
         <Text style={styles.subcopy}>
@@ -64,6 +69,12 @@ export default function LandingScreen() {
         </Text>
         <View style={styles.ctaRow}>
           <Pressable
+            style={({ pressed, hovered }) => [
+              styles.primaryButton,
+              styles.buttonInteractive,
+              hovered && styles.buttonHovered,
+              pressed && styles.primaryButtonPressed,
+            ]}
             style={({ pressed, hovered }) => [
               styles.primaryButton,
               styles.buttonInteractive,
@@ -79,8 +90,20 @@ export default function LandingScreen() {
                 {isGoogleRedirecting ? 'Google 로그인으로 이동 중...' : 'Google로 로그인'}
               </Text>
             </View>
+            <View style={styles.primaryButtonContent}>
+              <FontAwesome name="google" size={16} color={colors.emerald[700]} style={styles.primaryButtonIcon} />
+              <Text style={styles.primaryButtonText}>
+                {isGoogleRedirecting ? 'Google 로그인으로 이동 중...' : 'Google로 로그인'}
+              </Text>
+            </View>
           </Pressable>
           <Pressable
+            style={({ pressed, hovered }) => [
+              styles.secondaryButton,
+              styles.buttonInteractive,
+              hovered && styles.buttonHovered,
+              pressed && styles.secondaryButtonPressed,
+            ]}
             style={({ pressed, hovered }) => [
               styles.secondaryButton,
               styles.buttonInteractive,
@@ -119,6 +142,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.xl,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  logoWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: tokens.radius.xxl,
+    backgroundColor: 'rgb(255, 255, 255)',
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: tokens.spacing.sm2,
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
   },
   logoWrap: {
     width: 72,
@@ -174,6 +211,20 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
+  buttonInteractive: {
+    transitionProperty: 'transform, box-shadow, opacity',
+    transitionDuration: '100ms',
+    transitionTimingFunction: 'ease',
+  },
+  buttonHovered: {
+    transform: [{ translateY: -1 }],
+    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.18)',
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 2,
+    elevation: 2,
+  },
   primaryButton: {
     backgroundColor: colors.white,
     borderRadius: tokens.radius.md,
@@ -182,6 +233,13 @@ const styles = StyleSheet.create({
   },
   primaryButtonPressed: {
     opacity: 0.9,
+  },
+  primaryButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  primaryButtonIcon: {
+    marginRight: tokens.spacing.xs2,
   },
   primaryButtonContent: {
     flexDirection: 'row',
