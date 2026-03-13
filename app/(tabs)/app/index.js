@@ -109,7 +109,6 @@ export default function HomeScreen() {
 
   const carouselRef = useRef(null);
   const [toastKey, setToastKey] = useState(null);
-  const [isHydrated, setIsHydrated] = useState(false);
   const [carouselWidth, setCarouselWidth] = useState(320);
   const [activeSlide, setActiveSlide] = useState(0);
   const [failedSlideMap, setFailedSlideMap] = useState({});
@@ -186,6 +185,10 @@ export default function HomeScreen() {
   useEffect(() => {
     setIsHydrated(true);
   }, []);
+
+  useEffect(() => {
+    loadHomeMeetings();
+  }, [loadHomeMeetings]);
 
   useEffect(() => {
     if (!Number.isFinite(width) || width <= 1) return;
