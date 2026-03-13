@@ -24,7 +24,6 @@ import { tokens } from '@/styles/style';
 
 /** Google Tag Manager 컨테이너 ID (웹 전용) */
 const GTM_CONTAINER_ID = 'GTM-NG89M36G';
-const GOOGLE_CALLBACK_PATH = '/auth/google/callback';
 
 function getNotificationRoute(data = {}) {
   const category = data?.category || data?.type || data?.notification_type;
@@ -56,6 +55,7 @@ function routeByNotification(router, notification) {
 }
 
 async function setupNotificationChannel(Notifications) {
+async function setupNotificationChannel(Notifications) {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync('default', {
     name: '기본',
@@ -63,6 +63,7 @@ async function setupNotificationChannel(Notifications) {
   });
 }
 
+async function ensureNotificationPermission(Notifications) {
 async function ensureNotificationPermission(Notifications) {
   const permission = await Notifications.getPermissionsAsync();
   if (permission.granted) return true;
@@ -173,6 +174,8 @@ function AppShell() {
     let isUnmounted = false;
     let receivedSubscription = null;
     let responseSubscription = null;
+    let receivedSubscription = null;
+    let responseSubscription = null;
 
     const handleRouteOnce = (notification) => {
       const identifier = notification?.request?.identifier;
@@ -188,6 +191,20 @@ function AppShell() {
 
     const setup = async () => {
       try {
+        const Notifications = await import('expo-notifications');
+        if (isUnmounted) return;
+
+        receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
+          const data = notification?.request?.content?.data;
+          console.log('[Push Received]', data);
+        });
+
+        responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
+          handleRouteOnce(response?.notification);
+        });
+
+        await setupNotificationChannel(Notifications);
+        const granted = await ensureNotificationPermission(Notifications);
         const Notifications = await import('expo-notifications');
         if (isUnmounted) return;
 
@@ -220,6 +237,8 @@ function AppShell() {
       isUnmounted = true;
       receivedSubscription?.remove();
       responseSubscription?.remove();
+      receivedSubscription?.remove();
+      responseSubscription?.remove();
     };
   }, [isAuthenticated, isLoading, router]);
 
@@ -241,7 +260,31 @@ function AppShell() {
 
 export default function RootLayout() {
   useEffect(() => {
-    if (Platform.OS !== 'web' || typeof document === 'undefined' || isRootEntry || isGoogleCallbackRoute) return;
+    if (Platform.OS === 'web') return;
+
+    (async () => {
+      const Notifications = await import('expo-notifications');
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        }),
+      });
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      NavigationBar.setPositionAsync('relative');
+      NavigationBar.setBackgroundColorAsync(colors.white);
+      NavigationBar.setButtonStyleAsync('dark');
+    }
+  }, []);
+
+  // 웹 전용: Google Tag Manager
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
 
     const script = document.createElement('script');
     script.innerHTML = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -315,6 +358,7 @@ export default function RootLayout() {
         <link rel="manifest" href="/manifest.json" />
 
         {/* iOS PWA */}
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="TeeUp" />
