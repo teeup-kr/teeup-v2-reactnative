@@ -19,19 +19,14 @@ import { notificationsApi } from '@/lib/api/api';
 import {
   createBulkDeleteHandler,
   createBulkReadHandler,
-  createClearDeleteTargetHandler,
   createConfirmDeleteHandler,
   createDeleteNotificationHandler,
-  createDeleteTargetHandler,
-  createFilterPressHandler,
   createLoadNotificationsHandler,
   createMarkAllAsReadHandler,
   createMarkAsReadHandler,
   createOpenNotificationHandler,
-  createOpenNotificationPressHandler,
   createSelectAllHandler,
   createToggleSelectHandler,
-  createToggleSelectPressHandler,
 } from '@/lib/handler/mypage';
 import {
   formatNotificationDate,
@@ -118,7 +113,9 @@ export default function NotificationsTab() {
   );
 
   const handleToggleSelect = useMemo(
-    () => createToggleSelectPressHandler({ onToggle: toggleSelect }),
+    () => (id) => () => {
+      toggleSelect(id);
+    },
     [toggleSelect]
   );
 
@@ -148,22 +145,30 @@ export default function NotificationsTab() {
   );
 
   const handleOpenNotification = useMemo(
-    () => createOpenNotificationPressHandler({ onOpen: openNotification }),
+    () => (notification) => () => {
+      openNotification(notification);
+    },
     [openNotification]
   );
 
   const handleFilterPress = useMemo(
-    () => createFilterPressHandler({ setFilter }),
+    () => (nextFilter) => () => {
+      setFilter(nextFilter);
+    },
     [setFilter]
   );
 
   const handleDeleteTarget = useMemo(
-    () => createDeleteTargetHandler({ setDeleteTarget }),
+    () => (id) => () => {
+      setDeleteTarget(id);
+    },
     [setDeleteTarget]
   );
 
   const clearDeleteTarget = useMemo(
-    () => createClearDeleteTargetHandler({ setDeleteTarget }),
+    () => () => {
+      setDeleteTarget(null);
+    },
     [setDeleteTarget]
   );
 

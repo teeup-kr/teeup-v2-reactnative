@@ -27,22 +27,14 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { clubsApi, regionApi } from '@/lib/api/api';
 import {
-  createBrowseClubsHandler,
-  createCardPressHandler,
   createClubPressHandler,
   createCreateClubHandler,
-  createDebouncedSearchHandler,
   createFetchClubsHandler,
-  createMyStatusFilterHandler,
   createNextPageHandler,
-  createPageChangeHandler,
   createPrevPageHandler,
-  createSearchTermChangeHandler,
   createSidoSelectHandler,
-  createStatusFilterSelectHandler,
   createTabChangeHandler,
   createToggleGunguHandler,
-  createToggleStatusFilterHandler,
 } from '@/lib/handler/clubs';
 import {
   getClubCardVariant,
@@ -97,12 +89,10 @@ export default function ClubsScreen() {
   }, [tabParam]);
 
   const handleDebouncedSearch = useMemo(
-    () =>
-      createDebouncedSearchHandler({
-        searchTerm,
-        setDebouncedSearchTerm,
-        setCurrentPage,
-      }),
+    () => () => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1);
+    },
     [searchTerm, setDebouncedSearchTerm, setCurrentPage]
   );
 
@@ -359,36 +349,40 @@ export default function ClubsScreen() {
   );
 
   const handleCardPress = useMemo(
-    () =>
-      createCardPressHandler({
-        router,
-        onClubPress: handleClubPress,
-      }),
-    [router, handleClubPress]
+    () => (club) => () => {
+      handleClubPress(club);
+    },
+    [handleClubPress]
   );
 
   const handleSearchTermChange = useMemo(
-    () => createSearchTermChangeHandler({ setSearchTerm }),
+    () => (value) => {
+      setSearchTerm(value);
+    },
     [setSearchTerm]
   );
 
   const toggleStatusFilter = useMemo(
-    () => createToggleStatusFilterHandler({ setIsStatusFilterOpen }),
+    () => () => {
+      setIsStatusFilterOpen((prev) => !prev);
+    },
     [setIsStatusFilterOpen]
   );
 
   const handleStatusFilterSelect = useMemo(
-    () =>
-      createStatusFilterSelectHandler({
-        setStatusFilter,
-        setIsStatusFilterOpen,
-        setCurrentPage,
-      }),
+    () => (value) => () => {
+      setStatusFilter(value);
+      setIsStatusFilterOpen(false);
+      setCurrentPage(1);
+    },
     [setStatusFilter, setIsStatusFilterOpen, setCurrentPage]
   );
 
   const handleMyStatusFilter = useMemo(
-    () => createMyStatusFilterHandler({ setMyClubStatusFilter, setCurrentPage }),
+    () => (value) => () => {
+      setMyClubStatusFilter(value);
+      setCurrentPage(1);
+    },
     [setMyClubStatusFilter, setCurrentPage]
   );
 
@@ -398,12 +392,16 @@ export default function ClubsScreen() {
   );
 
   const handleBrowseClubs = useMemo(
-    () => createBrowseClubsHandler({ onTabChange: handleTabChange }),
+    () => () => {
+      handleTabChange('all')();
+    },
     [handleTabChange]
   );
 
   const handlePageChange = useMemo(
-    () => createPageChangeHandler({ setCurrentPage }),
+    () => (pageNum) => () => {
+      setCurrentPage(pageNum);
+    },
     [setCurrentPage]
   );
 

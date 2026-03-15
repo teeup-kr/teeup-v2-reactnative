@@ -5,7 +5,7 @@ import { extractData } from './responseUtils';
 /**
  * HTML 태그를 제거하고 순수 텍스트만 반환 (리스트 요약 등에 사용)
  */
-export function stripHtmlToText(html) {
+function stripHtmlToText(html) {
   if (html == null || typeof html !== 'string') return '';
   return sanitizeHtml(html, { allowedTags: [], allowedAttributes: {} }).trim();
 }

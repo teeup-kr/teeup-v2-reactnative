@@ -464,28 +464,6 @@ export function createScoreSuccessHandler({ setScoreModalOpen, fetchMeeting, fet
         fetchParticipants();
     };
 }
-
-export function createFetchExpensesHandler({ meetingId, fetchRoundExpenses, extractList, setExpenses, setIsLoading, setError }) {
-    return async function () {
-        if (!meetingId) {
-            setIsLoading(false);
-            return;
-        }
-        try {
-            setIsLoading(true);
-            setError('');
-            const response = await fetchRoundExpenses(meetingId);
-            const list = extractList(response);
-            setExpenses(list);
-        } catch (error) {
-            console.error('경비 조회 실패:', error);
-            setError(error?.message || '경비 정보를 불러오는데 실패했습니다.');
-            setExpenses([]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-}
 export function createFetchRoundingMeetingsHandler({
     fetchRounds,
     extractList,
@@ -805,50 +783,6 @@ export function createPageNumberHandler({
         };
 }
 
-export function createTabPressHandler({ onTabChange }) {
-    return (tabId) =>
-        () => {
-            onTabChange(tabId);
-        };
-}
-export function createFetchMyMeetingsHandler({ fetchMyMeetings, extractList, setMeetings, setIsLoading, setError }) {
-    return async function () {
-        try {
-            setIsLoading(true);
-            setError('');
-            const response = await fetchMyMeetings({ page: 1, limit: 20 });
-            const list = extractList(response);
-            setMeetings(list);
-        } catch (error) {
-            console.error('내 모임 조회 실패:', error);
-            setError(error?.message || '모임을 불러오는데 실패했습니다.');
-            setMeetings([]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-}
-
-export function createOpenMeetingHandler({ router }) {
-    return (meeting) =>
-        () => {
-            router.push(`/meetings/${meeting.type}/${meeting.id}`);
-        };
-}
-export function createFieldChangeHandler({ setForm }) {
-    return (field) =>
-        (value) => {
-            setForm((prev) => ({ ...prev, [field]: value }));
-        };
-}
-
-export function createOptionPressHandler({ onChange, field }) {
-    return (value) =>
-        () => {
-            onChange(field)(value);
-        };
-}
-
 export function createFetchClubsHandler({
     fetchMyClubs,
     extractList,
@@ -1125,40 +1059,6 @@ export function createSubmitHandler({
         }
     };
 }
-export function createFetchMeetingStatsHandler({
-    meetingId,
-    fetchRound,
-    fetchRoundParticipants,
-    getParticipantsFromResponse,
-    setMeeting,
-    setParticipants,
-    setIsLoading,
-    setError,
-}) {
-    return async function () {
-        if (!meetingId) {
-            setIsLoading(false);
-            return;
-        }
-        try {
-            setIsLoading(true);
-            setError('');
-            const [meetingResponse, participantsResponse] = await Promise.all([
-                fetchRound(meetingId),
-                fetchRoundParticipants(meetingId),
-            ]);
-            const meetingData = meetingResponse?.data || meetingResponse || null;
-            const participantList = getParticipantsFromResponse(participantsResponse);
-            setMeeting(meetingData);
-            setParticipants(Array.isArray(participantList) ? participantList : []);
-        } catch (error) {
-            console.error('모임 통계 조회 실패:', error);
-            setError(error?.message || '모임 통계를 불러오는데 실패했습니다.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-}
 
 // export const meetingRenderUtils = {
 //     createFetchUserInfoHandler,
@@ -1190,11 +1090,8 @@ export function createFetchMeetingStatsHandler({
 //     createPrevPageHandler,
 //     createNextPageHandler,
 //     createPageNumberHandler,
-//     createTabPressHandler,
 //     createFetchMyMeetingsHandler,
 //     createOpenMeetingHandler,
-//     createFieldChangeHandler,
-//     createOptionPressHandler,
 //     createFetchClubsHandler,
 //     createFetchMeetingHandler,
 //     createParticipantTypeHandler,

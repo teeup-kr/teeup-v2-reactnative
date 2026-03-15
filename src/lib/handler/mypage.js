@@ -301,24 +301,6 @@ export function createSaveProfileHandler({
 }
 
 
-export function createPasswordModalOpenHandler(setShowPasswordModal) {
-    return () => {
-        setShowPasswordModal(true);
-    };
-}
-
-export function createPasswordModalCloseHandler(setShowPasswordModal) {
-    return () => {
-        setShowPasswordModal(false);
-    };
-}
-
-export function createBirthPickerOpenHandler(setShowBirthPicker) {
-    return () => {
-        setShowBirthPicker(true);
-    };
-}
-
 export function createCompositionStartHandler(setIsNameComposing) {
     return () => {
         setIsNameComposing(true);
@@ -329,18 +311,6 @@ export function createCompositionEndHandler({ setIsNameComposing, handleInputCha
     return (event) => {
         setIsNameComposing(false);
         handleInputChange('realname', event?.nativeEvent?.text ?? fallbackValue);
-    };
-}
-
-export function createShowToastHandler(setToast) {
-    return (tone, message) => {
-        setToast({ open: true, tone, message });
-    };
-}
-
-export function createFieldChangeHandler(handleInputChange, field) {
-    return (value) => {
-        handleInputChange(field, value);
     };
 }
 
@@ -685,13 +655,6 @@ export function createTypeFilterHandler({ setTypeFilter, setPage }) {
     };
 }
 
-export function createTypeTabPressHandler({ onSelect }) {
-    return (tabId) =>
-        () => {
-            onSelect(tabId);
-        };
-}
-
 export function createResetFiltersHandler({ setTypeFilter, setStatusFilter, setStartDate, setEndDate, setPage }) {
     return () => {
         setTypeFilter('all');
@@ -795,13 +758,6 @@ export function createToggleSelectHandler({ setSelected }) {
     };
 }
 
-export function createToggleSelectPressHandler({ onToggle }) {
-    return (id) =>
-        () => {
-            onToggle(id);
-        };
-}
-
 export function createSelectAllHandler({ notifications, selected, setSelected }) {
     return () => {
         if (selected.length === notifications.length) setSelected([]);
@@ -838,33 +794,6 @@ export function createOpenNotificationHandler({ isUnreadNotification, markAsRead
         if (notification.related_entity_type === 'CLUB_NOTICE' && notification.extra_data?.club_id) {
             router.push(`/clubs/${notification.extra_data.club_id}/notices`);
         }
-    };
-}
-
-export function createOpenNotificationPressHandler({ onOpen }) {
-    return (notification) =>
-        () => {
-            onOpen(notification);
-        };
-}
-
-export function createFilterPressHandler({ setFilter }) {
-    return (nextFilter) =>
-        () => {
-            setFilter(nextFilter);
-        };
-}
-
-export function createDeleteTargetHandler({ setDeleteTarget }) {
-    return (id) =>
-        () => {
-            setDeleteTarget(id);
-        };
-}
-
-export function createClearDeleteTargetHandler({ setDeleteTarget }) {
-    return () => {
-        setDeleteTarget(null);
     };
 }
 
@@ -916,34 +845,15 @@ export function createFetchClubsHandler({
             setClubs(items);
         } catch (fetchError) {
             console.error('클럽 목록 조회 실패:', fetchError);
-            setClubs([]);
-        }
-    };
-}
-
-export function createOpenClubsHandler(router) {
-    return () => {
-        router.push('/clubs');
-    };
-}
-
-export function createOpenClubDetailHandler(router, clubId) {
-    return () => {
-        router.push(`/clubs/${clubId}`);
-    };
+        setClubs([]);
+    }
+};
 }
 export function createScoreStatusHandler({ setScoreStatus, setPage }) {
     return (nextStatus) => {
         setScoreStatus(nextStatus);
         setPage(1);
     };
-}
-
-export function createScoreStatusPressHandler({ onSelect }) {
-    return (status) =>
-        () => {
-            onSelect(status);
-        };
 }
 
 export function createPrevPageHandler({ setPage }) {
@@ -964,18 +874,6 @@ export function createCloseScoreModalHandler({ setShowScoreModal, setSelectedMee
         setShowScoreModal(false);
         setSelectedMeeting(null);
         setSelectedParticipantId(null);
-    };
-}
-
-export function createOpenComingSoonHandler({ setShowComingSoonModal }) {
-    return () => {
-        setShowComingSoonModal(true);
-    };
-}
-
-export function createCloseComingSoonHandler({ setShowComingSoonModal }) {
-    return () => {
-        setShowComingSoonModal(false);
     };
 }
 
@@ -1337,7 +1235,6 @@ export function createConfirmWithdrawHandler({
 //     getMyPageTabContent,
 //     createOpenDatePickerHandler,
 //     createTypeFilterHandler,
-//     createTypeTabPressHandler,
 //     createResetFiltersHandler,
 //     createMeetingDetailHandler,
 //     createNextPageHandler,
@@ -1346,27 +1243,19 @@ export function createConfirmWithdrawHandler({
 //     createMarkAllAsReadHandler,
 //     createDeleteNotificationHandler,
 //     createToggleSelectHandler,
-//     createToggleSelectPressHandler,
 //     createSelectAllHandler,
 //     createBulkReadHandler,
 //     createBulkDeleteHandler,
 //     createOpenNotificationHandler,
-//     createOpenNotificationPressHandler,
-//     createFilterPressHandler,
-//     createDeleteTargetHandler,
-//     createClearDeleteTargetHandler,
 //     createConfirmDeleteHandler,
 //     createFetchProfileHandler,
 //     createFetchClubsHandler,
 //     createOpenClubsHandler,
 //     createOpenClubDetailHandler,
 //     createScoreStatusHandler,
-//     createScoreStatusPressHandler,
 //     createPrevPageHandler,
 //     createGoToDetailHandler,
 //     createCloseScoreModalHandler,
-//     createOpenComingSoonHandler,
-//     createCloseComingSoonHandler,
 //     createFetchStatsHandler,
 //     createFetchMeetingsHandler,
 //     createFetchHandicapHandler,

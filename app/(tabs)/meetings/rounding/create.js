@@ -31,8 +31,6 @@ import { clubsApi, meetingsApi, mypageApi } from '@/lib/api/api';
 import {
     createFetchClubsHandler,
     createFetchMeetingHandler,
-    createFieldChangeHandler,
-    createOptionPressHandler,
     createSubmitHandler,
 } from '@/lib/handler/meetings';
 import { leaveMeetingFormScreen } from '@/lib/navigation/cappedHistory';
@@ -213,7 +211,11 @@ export function RoundingForm({ mode = 'create' }) {
   );
 
   const handleFieldChange = useMemo(
-    () => createFieldChangeHandler({ setForm }),
+    () =>
+      (field) =>
+        (value) => {
+          setForm((prev) => ({ ...prev, [field]: value }));
+        },
     [setForm]
   );
 
@@ -236,19 +238,35 @@ export function RoundingForm({ mode = 'create' }) {
   }, []);
 
   const handleClubSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'club_id' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('club_id')(value);
+        },
     [handleFieldChange]
   );
   const handleTeamModeSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'team_formation_mode' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('team_formation_mode')(value);
+        },
     [handleFieldChange]
   );
   const handleMeetingSubtypeSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'meeting_subtype' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('meeting_subtype')(value);
+        },
     [handleFieldChange]
   );
   const handleSettlementSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'settlement_method' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('settlement_method')(value);
+        },
     [handleFieldChange]
   );
 

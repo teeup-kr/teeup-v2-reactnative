@@ -79,8 +79,9 @@ export default function ClubRegulationDetailScreen() {
       createRegulationEditHandler({
         router,
         clubId: resolvedClubId || clubId,
+        regulationId: resolvedRegulationId,
       }),
-    [router, resolvedClubId, clubId]
+    [router, resolvedClubId, clubId, resolvedRegulationId]
   );
 
   const handleDelete = useCallback(() => {

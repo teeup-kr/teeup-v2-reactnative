@@ -15,10 +15,12 @@ import Carousel from 'react-native-reanimated-carousel';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppToast, { toastMap } from '@/components/ui/AppToast';
+import StatusBadge from '@/components/ui/StatusBadge';
 import { HOME_BANNER_SLIDES } from '@/constants/homeBannerSlides';
 import { useAuth } from '@/context/AuthContext';
 import { mypageApi } from '@/lib/api/api';
 import { navigateWithCap } from '@/lib/navigation/cappedHistory';
+import { getMeetingStatusBadgeConfigs, getMeetingTypeBadgeConfig } from '@/lib/util/meetingUtils';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -98,36 +100,6 @@ function formatMeetingDate(value) {
     hour: '2-digit',
     minute: '2-digit',
   });
-}
-
-function getMeetingStatusBadgeConfig(status) {
-  const key = String(status || '').toUpperCase();
-  if (key === 'IN_PROGRESS') {
-    return {
-      label: '진행중',
-      backgroundColor: colors.success[50],
-      textColor: colors.success[700],
-    };
-  }
-  if (key === 'COMPLETED') {
-    return {
-      label: '완료',
-      backgroundColor: colors.neutral[100],
-      textColor: colors.neutral[700],
-    };
-  }
-  if (key === 'CANCELED') {
-    return {
-      label: '취소',
-      backgroundColor: colors.error[50],
-      textColor: colors.error[700],
-    };
-  }
-  return {
-    label: '예정',
-    backgroundColor: colors.info[50],
-    textColor: colors.info[700],
-  };
 }
 
 export default function HomeScreen() {
@@ -413,7 +385,8 @@ export default function HomeScreen() {
               const maxParticipants = meeting?.max_participants
                 ? `/${meeting.max_participants}`
                 : '';
-              const statusBadge = getMeetingStatusBadgeConfig(meeting?.status);
+              const typeBadge = getMeetingTypeBadgeConfig(meeting?.meeting_type || meeting?.type || 'ROUND');
+              const statusBadges = getMeetingStatusBadgeConfigs(meeting);
 
               return (
                 <Pressable key={String(meetingId)} style={styles.meetingCard} onPress={handleOpenMeeting(meeting)}>
@@ -437,14 +410,27 @@ export default function HomeScreen() {
                       <Text style={styles.meetingMetaText}>총원 {participantCount}{maxParticipants}명</Text>
                     </View>
                     <View style={styles.meetingBadgeRow}>
-                      <Text style={styles.meetingTypeBadge}>라운딩</Text>
+                      <StatusBadge
+                        text={typeBadge.text}
+                        backgroundColor={typeBadge.backgroundColor}
+                        textColor={typeBadge.textColor}
+                        style={styles.meetingTypeBadge}
+                        textStyle={styles.meetingTypeBadgeText}
+                      />
                     </View>
                   </View>
 
-                  <View style={[styles.meetingStatusBadge, { backgroundColor: statusBadge.backgroundColor }]}>
-                    <Text style={[styles.meetingStatusBadgeText, { color: statusBadge.textColor }]}>
-                      {statusBadge.label}
-                    </Text>
+                  <View style={styles.meetingStatusBadgeWrap}>
+                    {statusBadges.map((badge) => (
+                      <StatusBadge
+                        key={`${meetingId}-${badge.key}`}
+                        text={badge.text}
+                        backgroundColor={badge.backgroundColor}
+                        textColor={badge.textColor}
+                        style={styles.meetingStatusBadge}
+                        textStyle={styles.meetingStatusBadgeText}
+                      />
+                    ))}
                   </View>
                 </Pressable>
               );
@@ -691,18 +677,18 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   meetingTypeBadge: {
+    alignSelf: 'flex-start',
+  },
+  meetingTypeBadgeText: {
     fontSize: tokens.font.xs,
-    color: colors.info[700],
-    backgroundColor: colors.info[50],
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: tokens.radius.pill,
+  },
+  meetingStatusBadgeWrap: {
+    marginLeft: tokens.spacing.xs,
+    alignItems: 'flex-end',
+    gap: 4,
   },
   meetingStatusBadge: {
-    marginLeft: tokens.spacing.xs,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: tokens.radius.pill,
+    alignSelf: 'flex-end',
   },
   meetingStatusBadgeText: {
     fontSize: tokens.font.xs,

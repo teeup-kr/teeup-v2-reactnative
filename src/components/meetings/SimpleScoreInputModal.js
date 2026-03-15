@@ -17,7 +17,7 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Modal from '../ui/Modal';
 
-export default function SimpleScoreInputModal({
+export function BaseSimpleScoreInputModal({
   visible,
   onClose,
   meetingId,
@@ -25,6 +25,14 @@ export default function SimpleScoreInputModal({
   currentHandicap,
   onSuccess,
   shouldCompleteRounding = false,
+  submitSimpleScore,
+  completeRounding,
+  validateParticipantOnSubmit = true,
+  resetOnVisible = true,
+  disableSubmitWhenEmpty = false,
+  submitButtonText = '저장하기',
+  previewHint = '라운딩 스코어 - 72로 계산됩니다.',
+  formatCurrentHandicap = (value) => Number(value).toFixed(1),
 }) {
   const [grossScore, setGrossScore] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,8 +55,8 @@ export default function SimpleScoreInputModal({
         meetingId,
         participantId,
         grossScore,
-        submitSimpleScore: roundsApi.submitSimpleScore,
-        completeRounding: roundsApi.completeRounding,
+        submitSimpleScore,
+        completeRounding,
         onSuccess,
         onClose,
         resetLocal,
@@ -57,7 +65,7 @@ export default function SimpleScoreInputModal({
       });
 
       return () => {
-        if (!meetingId || !participantId) {
+        if (validateParticipantOnSubmit && (!meetingId || !participantId)) {
           setErrors({ submit: '참가자 정보를 찾을 수 없습니다.' });
           return;
         }
@@ -70,9 +78,12 @@ export default function SimpleScoreInputModal({
       meetingId,
       participantId,
       grossScore,
+      submitSimpleScore,
+      completeRounding,
       onSuccess,
       onClose,
       resetLocal,
+      validateParticipantOnSubmit,
       setIsSubmitting,
       setErrors,
     ]
@@ -87,9 +98,9 @@ export default function SimpleScoreInputModal({
   );
 
   useEffect(() => {
-    if (!visible) return;
+    if (!resetOnVisible || !visible) return;
     resetLocal();
-  }, [visible, resetLocal]);
+  }, [visible, resetLocal, resetOnVisible]);
 
   return (
     <Modal
@@ -111,10 +122,10 @@ export default function SimpleScoreInputModal({
             size="sm"
             style={styles.footerButton}
             onPress={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || (disableSubmitWhenEmpty && !grossScore)}
             loading={isSubmitting}
           >
-            저장하기
+            {submitButtonText}
           </Button>
         </View>
       )}
@@ -123,7 +134,7 @@ export default function SimpleScoreInputModal({
         <Text style={styles.sectionLabel}>현재 핸디캡</Text>
         <Text style={styles.sectionValue}>
           {currentHandicap !== null && currentHandicap !== undefined && currentHandicap !== ''
-            ? Number(currentHandicap).toFixed(1)
+            ? formatCurrentHandicap(currentHandicap)
             : '-'}
         </Text>
       </View>
@@ -143,12 +154,22 @@ export default function SimpleScoreInputModal({
         <View style={styles.previewCard}>
           <Text style={styles.previewLabel}>이번 라운딩 핸디캡 (예상)</Text>
           <Text style={styles.previewValue}>{newHandicap}</Text>
-          <Text style={styles.previewHint}>라운딩 스코어 - 72로 계산됩니다.</Text>
+          <Text style={styles.previewHint}>{previewHint}</Text>
         </View>
       )}
 
       {!!errors.submit && <Text style={styles.errorText}>{errors.submit}</Text>}
     </Modal>
+  );
+}
+
+export default function SimpleScoreInputModal(props) {
+  return (
+    <BaseSimpleScoreInputModal
+      {...props}
+      submitSimpleScore={roundsApi.submitSimpleScore}
+      completeRounding={roundsApi.completeRounding}
+    />
   );
 }
 

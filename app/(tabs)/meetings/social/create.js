@@ -19,8 +19,6 @@ import { meetingsApi } from '@/lib/api/api';
 import {
     createFetchClubsHandler,
     createFetchMeetingHandler,
-    createFieldChangeHandler,
-    createOptionPressHandler,
     createParticipantTypeHandler,
     createSubmitHandler,
 } from '@/lib/handler/meetings';
@@ -84,19 +82,35 @@ export function SocialForm({ mode = 'create' }) {
   );
 
   const handleFieldChange = useMemo(
-    () => createFieldChangeHandler({ setForm }),
+    () =>
+      (field) =>
+        (value) => {
+          setForm((prev) => ({ ...prev, [field]: value }));
+        },
     [setForm]
   );
   const handleTypeSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'type' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('type')(value);
+        },
     [handleFieldChange]
   );
   const handleClubSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'club_id' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('club_id')(value);
+        },
     [handleFieldChange]
   );
   const handleSettlementSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'settlement_method' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('settlement_method')(value);
+        },
     [handleFieldChange]
   );
   const handleParticipantTypeSelect = useMemo(

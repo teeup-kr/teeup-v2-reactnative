@@ -22,7 +22,6 @@ import { clubsApi } from '@/lib/api/api';
 import {
   createFetchRegulationsHandler,
   createRegulationEditHandler,
-  createRegulationPressHandler,
 } from '@/lib/handler/clubs';
 import { normalizeClubRegulations } from '@/lib/util/clubUtils';
 import { extractData, extractList } from '@/lib/util/responseUtils';
@@ -107,11 +106,9 @@ export default function ClubRegulationsScreen() {
   );
 
   const handleRegulationPress = useMemo(
-    () =>
-      createRegulationPressHandler({
-        router,
-        clubId: resolvedId || clubId,
-      }),
+    () => (regulationId) => {
+      router.push(`/clubs/${resolvedId || clubId}/regulations/${regulationId}`);
+    },
     [router, resolvedId, clubId]
   );
 

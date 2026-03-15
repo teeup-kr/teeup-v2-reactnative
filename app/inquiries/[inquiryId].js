@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { inquiriesApi } from '@/lib/api/api';
+import { formatDateTimeWithMinute } from '@/lib/util/meetingUtils';
 import { extractData } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -35,19 +36,6 @@ const STATUS_LABEL = {
   COMPLETED: '완료',
   CLOSED: '종료',
 };
-
-function formatDate(value) {
-  if (!value) return '-';
-  const d = typeof value === 'string' ? new Date(value) : value;
-  if (Number.isNaN(d.getTime())) return '-';
-  return d.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 
 export default function InquiryDetailScreen() {
   const { inquiryId } = useLocalSearchParams();
@@ -106,7 +94,7 @@ export default function InquiryDetailScreen() {
                 <Text style={styles.statusText}>{STATUS_LABEL[inquiry.status] || inquiry.status}</Text>
               </View>
               <Text style={styles.title}>{inquiry.title}</Text>
-              <Text style={styles.date}>{formatDate(inquiry.created_at)}</Text>
+              <Text style={styles.date}>{formatDateTimeWithMinute(inquiry.created_at)}</Text>
               <Text style={styles.content}>{inquiry.content}</Text>
             </Card>
 
@@ -117,7 +105,7 @@ export default function InquiryDetailScreen() {
                   <Card key={r.id} style={styles.responseCard}>
                     <View style={styles.responseHeader}>
                       <Text style={styles.responseAuthor}>{r.admin_name || '관리자'}</Text>
-                      <Text style={styles.responseDate}>{formatDate(r.created_at)}</Text>
+                      <Text style={styles.responseDate}>{formatDateTimeWithMinute(r.created_at)}</Text>
                     </View>
                     <Text style={styles.responseContent}>{r.content}</Text>
                   </Card>

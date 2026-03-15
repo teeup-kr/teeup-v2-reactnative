@@ -16,15 +16,12 @@ import Card from '@/components/ui/Card';
 import { mypageApi } from '@/lib/api/api';
 import {
   createBirthPickerChangeHandler,
-  createBirthPickerOpenHandler,
   createCheckNicknameDuplicateHandler,
   createCompositionEndHandler,
   createCompositionStartHandler,
   createConditionalFieldChangeHandler,
-  createFieldChangeHandler,
   createInputChangeHandler,
   createSaveProfileHandler,
-  createShowToastHandler,
   createValidateProfileFormHandler,
   openWebDateInput,
 } from '@/lib/handler/mypage';
@@ -148,7 +145,9 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
     }
   }, [isNicknameSame]);
 
-  const showToast = useMemo(() => createShowToastHandler(setToast), []);
+  const showToast = useCallback((tone, message) => {
+    setToast({ open: true, tone, message });
+  }, []);
 
   const handleCompositionStart = useMemo(
     () => createCompositionStartHandler(setIsNameComposing),
@@ -192,7 +191,9 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
         }
       };
     }
-    return createBirthPickerOpenHandler(setShowBirthPicker);
+    return () => {
+      setShowBirthPicker(true);
+    };
   }, [setShowBirthPicker, formData.birthdate, handleInputChange]);
 
   const handleBirthPickerChange = useMemo(
@@ -209,10 +210,9 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
     [formData.realname, handleInputChange, setIsNameComposing],
   );
 
-  const handleNicknameChange = useMemo(
-    () => createFieldChangeHandler(handleInputChange, 'nickname'),
-    [handleInputChange],
-  );
+  const handleNicknameChange = useCallback((value) => {
+    handleInputChange('nickname', value);
+  }, [handleInputChange]);
 
   const handleRealnameChange = useMemo(
     () => createConditionalFieldChangeHandler({
@@ -223,10 +223,9 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
     [handleInputChange, isNameComposing],
   );
 
-  const handlePhoneChange = useMemo(
-    () => createFieldChangeHandler(handleInputChange, 'phone_number'),
-    [handleInputChange],
-  );
+  const handlePhoneChange = useCallback((value) => {
+    handleInputChange('phone_number', value);
+  }, [handleInputChange]);
 
   const handleAverageScoreInitChange = useCallback((value) => {
     if (!/^\d*$/.test(value)) {

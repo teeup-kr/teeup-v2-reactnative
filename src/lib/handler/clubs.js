@@ -74,16 +74,10 @@ export function createOpenMembersHandler({ clubId, router, manage = false }) {
     return () => {
         if (!clubId) return;
         if (manage) {
-            router.push({ pathname: `/clubs/${clubId}/members`, params: { manage: '1' } });
+            router.push(`/clubs/${clubId}/members?manage=1`);
             return;
         }
         router.push(`/clubs/${clubId}/members`);
-    };
-}
-
-export function createOpenJoinApplicationsHandler({ router }) {
-    return () => {
-        router.replace({ pathname: '/clubs', params: { tab: 'join-applications' } });
     };
 }
 
@@ -160,43 +154,6 @@ export function createFeePressHandler({ router, clubId }) {
             router.push(`/clubs/${clubId}/fees/${feeId}/edit`);
         };
 }
-
-export function createFetchFeeDetailHandler({
-    clubId,
-    feeId,
-    fetchClubFee,
-    extractData,
-    setFee,
-    setIsLoading,
-    setError,
-}) {
-    return async function () {
-        setError('');
-        if (!clubId || !feeId) {
-            setFee(null);
-            setIsLoading(false);
-            return;
-        }
-        try {
-            setIsLoading(true);
-            const response = await fetchClubFee(clubId, feeId);
-            const data = extractData(response);
-            setFee(data);
-        } catch (error) {
-            console.error('회비 상세 조회 실패:', error);
-            setError(error?.message || '회비 정보를 불러오는데 실패했습니다.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-}
-export function createDebouncedSearchHandler({ searchTerm, setDebouncedSearchTerm, setCurrentPage }) {
-    return () => {
-        setDebouncedSearchTerm(searchTerm);
-        setCurrentPage(1);
-    };
-}
-
 export function createFetchClubsHandler({
     activeTab,
     currentPage,
@@ -315,41 +272,6 @@ export function createClubPressHandler({ router, alert }) {
     };
 }
 
-export function createCardPressHandler({ onClubPress }) {
-    return (club) => () => {
-        onClubPress(club);
-    };
-}
-
-export function createSearchTermChangeHandler({ setSearchTerm }) {
-    return (value) => {
-        setSearchTerm(value);
-    };
-}
-
-export function createToggleStatusFilterHandler({ setIsStatusFilterOpen }) {
-    return () => {
-        setIsStatusFilterOpen((prev) => !prev);
-    };
-}
-
-export function createStatusFilterSelectHandler({ setStatusFilter, setIsStatusFilterOpen, setCurrentPage }) {
-    return (value) =>
-        () => {
-            setStatusFilter(value);
-            setIsStatusFilterOpen(false);
-            setCurrentPage(1);
-        };
-}
-
-export function createMyStatusFilterHandler({ setMyClubStatusFilter, setCurrentPage }) {
-    return (value) =>
-        () => {
-            setMyClubStatusFilter(value);
-            setCurrentPage(1);
-        };
-}
-
 export function createCreateClubHandler({ router }) {
     return async () => {
         const isCompleted = await ensureProfileCompleted({ router });
@@ -358,19 +280,6 @@ export function createCreateClubHandler({ router }) {
     };
 }
 
-
-export function createBrowseClubsHandler({ onTabChange }) {
-    return () => {
-        onTabChange('all')();
-    };
-}
-
-export function createPageChangeHandler({ setCurrentPage }) {
-    return (pageNum) =>
-        () => {
-            setCurrentPage(pageNum);
-        };
-}
 
 export function createPrevPageHandler({ setCurrentPage }) {
     return () => {
@@ -388,11 +297,11 @@ export function createManageSectionHandler({ clubId, router }) {
         () => {
             if (!clubId) return;
             if (route === 'members') {
-                router.push({ pathname: `/clubs/${clubId}/members`, params: { manage: '1' } });
+                router.push(`/clubs/${clubId}/members?manage=1`);
                 return;
             }
             if (route === 'member-roles') {
-                router.push({ pathname: `/clubs/${clubId}/members`, params: { manage: '1', role_manage: '1' } });
+                router.push(`/clubs/${clubId}/members?manage=1&role_manage=1`);
                 return;
             }
             router.push(`/clubs/${clubId}/${route}`);
@@ -470,16 +379,6 @@ export function createToggleRegularFeeHandler({ setFormData, defaultCycleId = ''
             regularFeeDescription: !prev.hasRegularFee ? prev.regularFeeDescription : '',
         }));
     };
-}
-
-export function createSelectRegularFeeCycleHandler({ setFormData }) {
-    return (cycleId) =>
-        () => {
-            setFormData((prev) => ({
-                ...prev,
-                regularFeeCycle: cycleId,
-            }));
-        };
 }
 
 export function createSidoSelectHandler({ setSelectedSidoCode, setSelectedGunguCodes, setErrors }) {
@@ -660,21 +559,13 @@ export function createFetchRegulationDetailHandler({
     };
 }
 
-export function createRegulationPressHandler({ router, clubId }) {
-    return (regulationId) => {
-        router.push(`/clubs/${clubId}/regulations/${regulationId}`);
-    };
-}
-
-export function createRegulationEditHandler({ router, clubId }) {
+export function createRegulationEditHandler({ router, clubId, regulationId }) {
     return () => {
-        router.push(`/clubs/${clubId}/regulations/create`);
-    };
-}
-
-export function createNoticeCreateHandler({ router, clubId }) {
-    return () => {
-        router.push(`/clubs/${clubId}/notices/create`);
+        router.push(
+            regulationId
+                ? `/clubs/${clubId}/regulations/${regulationId}/edit`
+                : `/clubs/${clubId}/regulations/create`
+        );
     };
 }
 
@@ -754,9 +645,9 @@ export function createFetchStatsHandler({
 }
 
 // export const clubRenderUtils = {
-//     createBrowseClubsHandler, createCardPressHandler, createClubPressHandler, createCreateClubHandler, createDebouncedSearchHandler, createFetchActivitiesHandler,
+//     createClubPressHandler, createCreateClubHandler, createFetchActivitiesHandler,
 //     createFetchClubApplicationHandler,
 //     createFetchClubDetailHandler, createFetchClubsHandler, createFetchFeesHandler, createFetchMembersHandler,
-//     createFetchNoticesHandler, createFetchRegulationDetailHandler, createFetchRegulationsHandler, createFetchStatsHandler, createFieldChangeHandler, createJoinRequestHandler, createManageSectionHandler, createMyStatusFilterHandler, createNextPageHandler, createOpenManageHandler, createPageChangeHandler,
-//     createPrevPageHandler, createRegulationEditHandler, createRegulationPressHandler, createSearchTermChangeHandler, createSelectRegularFeeCycleHandler, createStatusFilterSelectHandler, createSubmitClubRegisterHandler, createTabChangeHandler, createToggleRegularFeeHandler, createToggleStatusFilterHandler
+//     createFetchNoticesHandler, createFetchRegulationDetailHandler, createFetchRegulationsHandler, createFetchStatsHandler, createFieldChangeHandler, createJoinRequestHandler, createManageSectionHandler, createNextPageHandler, createOpenManageHandler,
+//     createPrevPageHandler, createRegulationEditHandler, createSubmitClubRegisterHandler, createTabChangeHandler, createToggleRegularFeeHandler
 // };

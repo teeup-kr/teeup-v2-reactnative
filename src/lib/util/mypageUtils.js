@@ -3,13 +3,6 @@ import { mypageApi } from '@/lib/api/api';
 import { extractData } from '@/lib/util/responseUtils';
 
 import { colors } from '../../styles/colors';
-import {
-  convertToKST,
-  normalizeNumber,
-  parseTeeTimes,
-  toDateTimeLocalValue,
-  validateMeetingTimeWithTeeTimes,
-} from '../util/meetingUtils';
 
 export function formatProfileDate(value) {
   if (!value) return '-';
@@ -24,22 +17,6 @@ export function getGenderLabel(gender) {
   if (['M', 'MALE', '남성'].includes(normalized)) return '남성';
   if (['F', 'FEMALE', '여성'].includes(normalized)) return '여성';
   return gender;
-};
-
-export function normalizeGender(gender) {
-  if (!gender) return 'none';
-  const normalized = String(gender).toUpperCase();
-  if (normalized === 'M' || normalized === 'MALE' || normalized === '남성') return 'male';
-  if (normalized === 'F' || normalized === 'FEMALE' || normalized === '여성') return 'female';
-  return 'none';
-};
-
-export function formatBirthdate(value) {
-  if (!value) return '';
-  if (typeof value === 'string' && value.includes('T')) {
-    return value.split('T')[0];
-  }
-  return value;
 };
 
 export function calcHandicapFromAvg(avgStr) {
@@ -103,7 +80,7 @@ export function formatDateYYYYMMDD(value) {
   return `${year}-${month}-${day}`;
 }
 
-export function parseBirthdate(value) {
+function parseBirthdate(value) {
   if (!value) return null;
   if (value instanceof Date) return value;
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -114,15 +91,6 @@ export function parseBirthdate(value) {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
-export function normalizeBirthdate(value) {
-  if (!value) return '';
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
-    return value.slice(0, 10);
-  }
-  const parsed = parseBirthdate(value);
-  return parsed ? formatDateYYYYMMDD(parsed) : '';
-};
-
 export function getBirthDateValue(birthdate, fallback) {
   const parsed = parseBirthdate(birthdate);
   return parsed || fallback;
@@ -131,32 +99,6 @@ export function getBirthDateValue(birthdate, fallback) {
 export function isNicknameSame(profileNickname, formNickname) {
   if (!profileNickname) return false;
   return profileNickname === (formNickname || '').trim();
-};
-
-export function buildProfileFormData(user, prevFormData) {
-  const averageScore = user?.average_score != null ? String(user.average_score) : '';
-  return {
-    ...prevFormData,
-    nickname: user?.nickname || '',
-    realname: user?.realname || '',
-    phone_number: user?.phone_number || '',
-    birthdate: normalizeBirthdate(user?.birthdate),
-    gender: user?.gender || '',
-    average_score: averageScore,
-    calculatedHandicap: calcHandicapFromAvg(averageScore),
-  };
-};
-
-export function buildProfilePayload(formData, profile) {
-  const payload = {
-    nickname: formData.nickname.trim(),
-    realname: formData.realname.trim(),
-    phone_number: formData.phone_number.trim(),
-    birthdate: formData.birthdate || null,
-    gender: formData.gender || profile?.gender || null,
-  };
-
-  return payload;
 };
 
 export function validateProfileForm({
@@ -244,45 +186,6 @@ export function getChangePasswordScreenError(formData) {
     return '새 비밀번호가 일치하지 않습니다.';
   }
   return '';
-};
-
-export function getHandicapDisplay(profile, handicapInfo) {
-  if (!profile) {
-    return { value: '-', badge: null, description: null, type: 'none' };
-  }
-
-  const hasCalculated =
-    handicapInfo?.calculated_handicap != null &&
-    handicapInfo?.handicap_calculation_count >= 1;
-
-  if (hasCalculated) {
-    return {
-      value: handicapInfo.calculated_handicap.toFixed(1),
-      badge: '자동 계산됨',
-      description: `누적 평균으로 자동 계산됨 (${handicapInfo.handicap_calculation_count}회 기록)`,
-      type: 'calculated',
-    };
-  }
-
-  if (handicapInfo?.initial_handicap != null) {
-    return {
-      value: handicapInfo.initial_handicap.toFixed(1),
-      badge: null,
-      description: '초기 핸디캡',
-      type: 'initial',
-    };
-  }
-
-  if (profile?.handicap != null) {
-    return {
-      value: Number(profile.handicap).toFixed(1),
-      badge: null,
-      description: '기본 핸디캡',
-      type: 'base',
-    };
-  }
-
-  return { value: '-', badge: null, description: null, type: 'none' };
 };
 
 export function buildProfileInfoItems(profile, { formatProfileDate, getGenderLabel }) {
@@ -416,120 +319,6 @@ export function getWithdrawValidationError({ agreed, confirmText }) {
   return '';
 };
 
-export function getRoundingMeetingTitle(isEditMode) { return isEditMode ? '라운딩 모임 수정' : '라운딩 모임 만들기'; }
-
-export function buildRoundingFormFromData({ data, fallback }) {
-  return ({
-    ...fallback,
-    name: data.name ?? '',
-    description: data.description ?? '',
-    location: data.location ?? '',
-    meeting_time: toDateTimeLocalValue(data.meeting_time),
-    application_deadline: toDateTimeLocalValue(data.application_deadline),
-    club_id: data.club_id ?? data.club?.id ?? '',
-    course_name: data.course_name ?? '',
-    reservation_name: data.reservation_name ?? '',
-    hole_count: data.hole_count ? String(data.hole_count) : '18',
-    tee_times: Array.isArray(data.tee_times) ? data.tee_times.join(', ') : data.tee_times ?? '',
-    max_participants: data.max_participants !== undefined ? String(data.max_participants) : '',
-    team_size: data.team_size !== undefined ? String(data.team_size) : '',
-    team_formation_mode: data.team_formation_mode || fallback.team_formation_mode,
-    meeting_subtype: data.meeting_subtype || fallback.meeting_subtype,
-    green_fee: data.green_fee !== undefined ? String(data.green_fee) : '',
-    caddy_fee: data.caddy_fee !== undefined ? String(data.caddy_fee) : '',
-    cart_fee: data.cart_fee !== undefined ? String(data.cart_fee) : '',
-    settlement_method: data.settlement_method || fallback.settlement_method,
-  });
-}
-
-export function validateRoundingForm(form) {
-  const errors = {};
-  const teeTimes = parseTeeTimes(form.tee_times);
-
-  if (!form.name.trim()) errors.name = '모임명을 입력해주세요.';
-  if (!form.location.trim()) errors.location = '장소를 입력해주세요.';
-  if (!form.meeting_time) errors.meeting_time = '모임 시간을 입력해주세요.';
-  if (!form.application_deadline) errors.application_deadline = '신청 마감일을 입력해주세요.';
-  if (form.meeting_time && form.application_deadline) {
-    const meetingDate = new Date(form.meeting_time);
-    const deadlineDate = new Date(form.application_deadline);
-    if (!Number.isNaN(meetingDate.getTime()) && !Number.isNaN(deadlineDate.getTime())) {
-      if (meetingDate < deadlineDate) {
-        errors.application_deadline = '신청 마감일은 모임 시간 이전이어야 합니다.';
-      }
-    }
-  }
-  if (!form.club_id) errors.club_id = '클럽을 선택해주세요.';
-  if (!form.course_name.trim()) errors.course_name = '골프장명을 입력해주세요.';
-  if (!form.reservation_name.trim()) errors.reservation_name = '예약자명을 입력해주세요.';
-  if (teeTimes.length === 0) errors.tee_times = '티타임을 입력해주세요.';
-  if (form.meeting_time && teeTimes.length > 0) {
-    if (!validateMeetingTimeWithTeeTimes(form.meeting_time, teeTimes)) {
-      errors.meeting_time = '모임 시간은 티업 시간보다 이전이어야 합니다.';
-    }
-  }
-
-  const maxParticipants = normalizeNumber(form.max_participants, 0);
-  const teamSize = normalizeNumber(form.team_size, 0);
-  if (!maxParticipants || maxParticipants <= 0) {
-    errors.max_participants = '최대 참가자 수는 1명 이상이어야 합니다.';
-  }
-  if (!teamSize || teamSize <= 0) {
-    errors.team_size = '한 조당 인원 수는 1명 이상이어야 합니다.';
-  }
-  if (maxParticipants && teamSize && teamSize > maxParticipants) {
-    errors.team_size = '한 조당 인원 수는 최대 참가자 수보다 클 수 없습니다.';
-  }
-
-  const greenFee = normalizeNumber(form.green_fee, -1);
-  const caddyFee = normalizeNumber(form.caddy_fee, -1);
-  const cartFee = normalizeNumber(form.cart_fee, -1);
-  if (greenFee <= 0) errors.green_fee = '그린피를 입력해주세요.';
-  if (caddyFee <= 0) errors.caddy_fee = '캐디피를 입력해주세요.';
-  if (cartFee <= 0) errors.cart_fee = '카트비를 입력해주세요.';
-
-  const holeCount = normalizeNumber(form.hole_count, 18);
-  if (holeCount < 1) {
-    errors.hole_count = '홀 수는 1 이상이어야 합니다.';
-  }
-
-  return errors;
-};
-
-export function resolveSettlementMethod(method, settlementMethods) { return settlementMethods.some((item) => item.id === method) ? method : 'EQUAL_SPLIT'; }
-
-export function buildRoundingPayload({ form, settlementMethods }) {
-  const teeTimes = parseTeeTimes(form.tee_times);
-  const greenFee = normalizeNumber(form.green_fee, 0);
-  const caddyFee = normalizeNumber(form.caddy_fee, 0);
-  const cartFee = normalizeNumber(form.cart_fee, 0);
-
-  return {
-    name: form.name.trim(),
-    description: form.description.trim() || undefined,
-    location: form.location.trim() || undefined,
-    meeting_time: convertToKST(form.meeting_time),
-    application_deadline: convertToKST(form.application_deadline),
-    club_id: form.club_id || undefined,
-    course_name: form.course_name.trim() || undefined,
-    reservation_name: form.reservation_name.trim() || undefined,
-    hole_count: normalizeNumber(form.hole_count, 18),
-    tee_times: teeTimes,
-    max_participants: normalizeNumber(form.max_participants, 0),
-    team_size: normalizeNumber(form.team_size, 0),
-    team_formation_mode: form.team_formation_mode,
-    meeting_subtype: form.meeting_subtype,
-    green_fee: greenFee,
-    caddy_fee: caddyFee,
-    cart_fee: cartFee,
-    total_cost: greenFee + caddyFee + cartFee,
-    settlement_method: resolveSettlementMethod(
-      form.settlement_method,
-      settlementMethods
-    ),
-  };
-};
-
 export async function ensureProfileCompleted({
   router,
   alertMessage = '클럽 이용 전 프로필을 완성해 주세요!',
@@ -581,21 +370,15 @@ export async function ensureProfileCompleted({
 // export const mypageUtils = {
 //   formatProfileDate,
 //   getGenderLabel,
-//   normalizeGender,
-//   formatBirthdate,
 //   isSocialLoginUser,
 //   calcHandicapFromAvg,
 //   formatDateYYYYMMDD,
 //   parseBirthdate,
-//   normalizeBirthdate,
 //   getBirthDateValue,
 //   isNicknameSame,
-//   buildProfileFormData,
-//   buildProfilePayload,
 //   validateProfileForm,
 //   validateChangePasswordForm,
 //   getChangePasswordScreenError,
-//   getHandicapDisplay,
 //   buildProfileInfoItems,
 //   getProfileInfoIconName,
 //   toYmd,

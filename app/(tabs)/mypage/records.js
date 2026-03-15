@@ -27,7 +27,6 @@ import {
     createOpenScoreModalHandler,
     createPrevPageHandler,
     createScoreStatusHandler,
-    createScoreStatusPressHandler,
     createScoreSuccessHandler,
 } from '@/lib/handler/mypage';
 import { getRecordErrorMessage, pickData } from '@/lib/util/mypageUtils';
@@ -128,7 +127,9 @@ export default function RecordsTab() {
     [setScoreStatus, setPage]
   );
   const handleScoreStatusPress = useMemo(
-    () => createScoreStatusPressHandler({ onSelect: handleScoreStatusSelect }),
+    () => (status) => () => {
+      handleScoreStatusSelect(status);
+    },
     [handleScoreStatusSelect]
   );
   const handlePrevPage = useMemo(

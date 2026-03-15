@@ -9,16 +9,10 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api/api';
 import { backOrHome, navigateWithCap } from '@/lib/navigation/cappedHistory';
+import { formatDateTime } from '@/lib/util/meetingUtils';
 import { extractData, extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-
-function formatDateTime(value) {
-  if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleString('ko-KR');
-}
 
 function formatMoney(value) {
   if (value === null || value === undefined || value === '') return '미정';

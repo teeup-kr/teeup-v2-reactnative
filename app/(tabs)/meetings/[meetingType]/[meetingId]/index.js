@@ -44,7 +44,6 @@ import {
   createSaveHistoryHandler,
   createScoreSuccessHandler,
   createStartRoundingHandler,
-  createTabPressHandler,
   createUpdateUserInfoHandler,
 } from '@/lib/handler/meetings';
 import { navigateWithCap } from '@/lib/navigation/cappedHistory';
@@ -600,7 +599,11 @@ export default function MeetingDetailScreen() {
   );
 
   const handleTabPress = useMemo(
-    () => createTabPressHandler({ onTabChange: setActiveTab }),
+    () =>
+      (tabId) =>
+        () => {
+          setActiveTab(tabId);
+        },
     [setActiveTab]
   );
 

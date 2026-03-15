@@ -19,6 +19,7 @@ import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api/api';
 import { backOrHome } from '@/lib/navigation/cappedHistory';
+import { formatDateTime } from '@/lib/util/meetingUtils';
 import { ensureProfileCompleted } from '@/lib/util/mypageUtils';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
@@ -37,13 +38,6 @@ function getParticipantName(participant) {
     participant?.user?.nickname ||
     `참가자 ${participant?.user_id || participant?.id || ''}`
   );
-}
-
-function formatDateTime(value) {
-  if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleString('ko-KR');
 }
 
 function getStatusConfig(status) {

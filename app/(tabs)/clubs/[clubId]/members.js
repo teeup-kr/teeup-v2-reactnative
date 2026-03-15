@@ -1,6 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -71,13 +71,12 @@ export default function ClubMemberManageScreen() {
     [resolvedId, isManageMode, isRoleManageMode, setMembers, setIsLoading, setError]
   );
 
-  useEffect(() => {
-    loadRole();
-  }, [loadRole]);
-
-  useEffect(() => {
-    loadMembers();
-  }, [loadMembers]);
+  useFocusEffect(
+    useCallback(() => {
+      loadRole();
+      loadMembers();
+    }, [loadRole, loadMembers])
+  );
 
   const { normalizedMembers, pendingCount } = useMemo(
     () => normalizeClubMembers(members),

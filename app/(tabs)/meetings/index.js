@@ -34,7 +34,6 @@ import {
   createSearchInputChangeHandler,
   createStatusFilterHandler,
   createTabChangeHandler,
-  createTabPressHandler,
 } from '@/lib/handler/meetings';
 import {
   extractList,
@@ -228,7 +227,11 @@ export default function MeetingsScreen() {
   );
 
   const handleTabPress = useMemo(
-    () => createTabPressHandler({ onTabChange: handleTabChange }),
+    () =>
+      (tabId) =>
+        () => {
+          handleTabChange(tabId);
+        },
     [handleTabChange]
   );
 

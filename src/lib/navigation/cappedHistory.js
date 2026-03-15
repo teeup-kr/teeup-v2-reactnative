@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 const MAX_STACK = 5;
 const history = [];
 const TAB_ROOT_ROUTES = ['/app', '/clubs', '/meetings', '/mypage'];
@@ -20,7 +22,7 @@ function isTabRootRoute(route) {
 }
 
 function isWebRuntime() {
-  return typeof window !== 'undefined' && typeof window.location !== 'undefined';
+  return Platform.OS === 'web';
 }
 
 function blurActiveElementOnWeb() {

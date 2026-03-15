@@ -20,7 +20,6 @@ import { clubsApi, regionApi } from '@/lib/api/api';
 import {
   createFieldChangeHandler,
   createRegisterPressHandler,
-  createSelectRegularFeeCycleHandler,
   createSidoSelectHandler,
   createSubmitClubRegisterHandler,
   createToggleGunguHandler,
@@ -83,7 +82,12 @@ export default function ClubRegisterScreen() {
     [setFormData]
   );
   const handleSelectFeeCycle = useMemo(
-    () => createSelectRegularFeeCycleHandler({ setFormData }),
+    () => (cycleId) => () => {
+      setFormData((prev) => ({
+        ...prev,
+        regularFeeCycle: cycleId,
+      }));
+    },
     [setFormData]
   );
 

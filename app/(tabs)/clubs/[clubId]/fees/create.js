@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -19,17 +19,30 @@ import { clubsApi } from '@/lib/api/api';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
-export default function ClubFeeCreateScreen() {
-  const router = useRouter();
-  const { clubId } = useLocalSearchParams();
-  const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
-
+export function ClubFeeForm({
+  screenTitle,
+  initialName = '',
+  initialAmount = '',
+  initialCycle = 'MONTHLY',
+  initialDescription = '',
+  submitButtonText,
+  submittingButtonText,
+  onSubmit,
+  isSubmitting = false,
+  extraActions = null,
+}) {
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [cycle, setCycle] = useState('MONTHLY');
   const [description, setDescription] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    setName(initialName);
+    setAmount(initialAmount);
+    setCycle(initialCycle);
+    setDescription(initialDescription);
+  }, [initialName, initialAmount, initialCycle, initialDescription]);
 
   const handleSubmit = async () => {
     const newErrors = {};
@@ -43,37 +56,17 @@ export default function ClubFeeCreateScreen() {
       return;
     }
     setErrors({});
-    setIsSubmitting(true);
-    try {
-      await clubsApi.createClubFee(resolvedId, {
-        name: name.trim(),
-        amount: amountNum,
-        cycle: cycle || null,
-        description: description?.trim() || null,
-        is_active: true,
-      });
-      if (Platform.OS === 'web') {
-        window.alert('회비가 등록되었습니다.');
-        router.replace(`/clubs/${resolvedId}/fees`);
-      } else {
-        Alert.alert('등록 완료', '회비가 등록되었습니다.', [
-          { text: '확인', onPress: () => router.replace(`/clubs/${resolvedId}/fees`) },
-        ]);
-      }
-    } catch (err) {
-      const message =
-        err?.response?.data?.detail ||
-        err?.message ||
-        '회비 등록에 실패했습니다.';
-      Alert.alert('등록 실패', message);
-    } finally {
-      setIsSubmitting(false);
-    }
+    await onSubmit({
+      name: name.trim(),
+      amount: amountNum,
+      cycle: cycle || null,
+      description: description?.trim() || null,
+    });
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScreenHeader title="회비 등록" />
+      <ScreenHeader title={screenTitle} />
       <ScrollView contentContainerStyle={styles.container}>
         <Card style={styles.card}>
           <Text style={styles.label}>회비 항목명 *</Text>
@@ -129,10 +122,57 @@ export default function ClubFeeCreateScreen() {
           onPress={handleSubmit}
           disabled={isSubmitting}
         >
-          {isSubmitting ? '등록 중...' : '등록하기'}
+          {isSubmitting ? submittingButtonText : submitButtonText}
         </Button>
+        {extraActions}
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+export default function ClubFeeCreateScreen() {
+  const router = useRouter();
+  const { clubId } = useLocalSearchParams();
+  const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async ({ name, amount, cycle, description }) => {
+    setIsSubmitting(true);
+    try {
+      await clubsApi.createClubFee(resolvedId, {
+        name,
+        amount,
+        cycle,
+        description,
+        is_active: true,
+      });
+      if (Platform.OS === 'web') {
+        window.alert('회비가 등록되었습니다.');
+        router.replace(`/clubs/${resolvedId}/fees`);
+      } else {
+        Alert.alert('등록 완료', '회비가 등록되었습니다.', [
+          { text: '확인', onPress: () => router.replace(`/clubs/${resolvedId}/fees`) },
+        ]);
+      }
+    } catch (err) {
+      const message =
+        err?.response?.data?.detail ||
+        err?.message ||
+        '회비 등록에 실패했습니다.';
+      Alert.alert('등록 실패', message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <ClubFeeForm
+      screenTitle="회비 등록"
+      submitButtonText="등록하기"
+      submittingButtonText="등록 중..."
+      onSubmit={handleSubmit}
+      isSubmitting={isSubmitting}
+    />
   );
 }
 
