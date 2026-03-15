@@ -2,6 +2,7 @@
 import * as NavigationBar from 'expo-navigation-bar';
 import {
   Slot,
+  useGlobalSearchParams,
   usePathname,
   useRouter
 } from 'expo-router';
@@ -17,7 +18,7 @@ import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
-import { backOrHome, getHistorySnapshot, navigateWithCap, recordRoute } from '@/lib/navigation/cappedHistory';
+import { backOrHome, getHistorySnapshot, markHistoryTraversal, navigateWithCap, syncRouteHistory } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 
 /** Google Tag Manager 컨테이너 ID (웹 전용) */
@@ -67,19 +68,43 @@ async function ensureNotificationPermission(Notifications) {
   return Boolean(requested.granted);
 }
 
+function buildRouteWithSearch(pathname, params) {
+  const entries = Object.entries(params || {}).filter(([, value]) => value !== undefined);
+  if (!entries.length) return pathname;
+
+  const searchParams = new URLSearchParams();
+  entries
+    .sort(([left], [right]) => left.localeCompare(right))
+    .forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((item) => {
+          searchParams.append(key, String(item));
+        });
+        return;
+      }
+
+      searchParams.append(key, String(value));
+    });
+
+  const query = searchParams.toString();
+  return query ? `${pathname}?${query}` : pathname;
+}
+
 function AppShell() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
+  const globalSearchParams = useGlobalSearchParams();
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
   const handledNotificationIdsRef = useRef(new Set());
   const lastBackPressedAtRef = useRef(0);
   const isRootEntry = pathname === '/';
+  const currentRoute = buildRouteWithSearch(pathname, globalSearchParams);
 
   useEffect(() => {
     if (isRootEntry) return;
-    recordRoute(pathname);
-  }, [pathname, isRootEntry]);
+    syncRouteHistory(currentRoute);
+  }, [currentRoute, isRootEntry]);
 
   useEffect(() => {
     if (isRootEntry) return undefined;
@@ -106,15 +131,13 @@ function AppShell() {
     }
 
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      let isHandlingPopstate = false;
-
       const handlePopstate = () => {
-        if (isHandlingPopstate) return;
-        isHandlingPopstate = true;
-        backOrHome(router);
-        setTimeout(() => {
-          isHandlingPopstate = false;
-        }, 0);
+        if (getHistorySnapshot().length <= 1) {
+          backOrHome(router);
+          return;
+        }
+
+        markHistoryTraversal();
       };
 
       window.addEventListener('popstate', handlePopstate);
