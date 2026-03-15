@@ -167,7 +167,7 @@ async function fetchMeetings(params) {
 }
 
 async function getRounds(params) {
-  return apiClient.get('/rounds/', { params: buildMeetingListParams(params) });
+  return fetchMeetings({ ...(params || {}), list_type: 'rounding' });
 }
 
 async function getRound(id) {
@@ -469,7 +469,7 @@ async function createSocial(data, config = {}) {
 }
 
 async function getSocials(params) {
-  return apiClient.get('/socials/', { params: buildMeetingListParams(params) });
+  return fetchMeetings({ ...(params || {}), list_type: 'social' });
 }
 
 async function getSocial(id) {
@@ -1151,7 +1151,7 @@ const fetchRoundingStats = getRoundingStats;
 const checkNicknameAvailability = checkNickname;
 
 async function fetchMyParticipatingMeetings(params) {
-  return apiClient.get('/meetings/my/participating', { params: buildMeetingListParams(params) });
+  return fetchMeetings({ ...(params || {}), list_type: 'participating' });
 }
 
 export const meetingsApi = {
