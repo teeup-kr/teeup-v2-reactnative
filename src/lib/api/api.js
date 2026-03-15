@@ -58,6 +58,7 @@ function buildMeetingListParams(params = {}) {
     start_date: startDate,
     end_date: endDate,
     status_group: statusGroup,
+    list_type: listType,
   } = params;
 
   return {
@@ -67,6 +68,7 @@ function buildMeetingListParams(params = {}) {
     ...(startDate ? { start_date: startDate } : {}),
     ...(endDate ? { end_date: endDate } : {}),
     ...(statusGroup ? { status_group: statusGroup } : {}),
+    ...(listType ? { list_type: listType } : {}),
   };
 }
 
@@ -196,8 +198,12 @@ export const authApi = {
   deleteAccount,
 };
 
+async function fetchMeetings(params) {
+  return apiClient.get('/meetings/', { params: buildMeetingListParams(params) });
+}
+
 async function getRounds(params) {
-  return apiClient.get('/rounds/', { params: buildMeetingListParams(params) });
+  return fetchMeetings({ ...(params || {}), list_type: 'rounding' });
 }
 
 async function getRound(id) {
@@ -499,7 +505,7 @@ async function createSocial(data, config = {}) {
 }
 
 async function getSocials(params) {
-  return apiClient.get('/socials/', { params: buildMeetingListParams(params) });
+  return fetchMeetings({ ...(params || {}), list_type: 'social' });
 }
 
 async function getSocial(id) {
@@ -1145,7 +1151,7 @@ const fetchRoundingStats = getRoundingStats;
 const checkNicknameAvailability = checkNickname;
 
 async function fetchMyParticipatingMeetings(params) {
-  return apiClient.get('/meetings/my/participating', { params: buildMeetingListParams(params) });
+  return fetchMeetings({ ...(params || {}), list_type: 'participating' });
 }
 
 export const meetingsApi = {
