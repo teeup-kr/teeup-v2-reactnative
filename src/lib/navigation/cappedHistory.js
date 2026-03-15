@@ -36,7 +36,7 @@ function isTabRootRoute(route) {
 }
 
 function isWebRuntime() {
-  return typeof window !== 'undefined' && typeof window.location !== 'undefined';
+  return Platform.OS === 'web';
 }
 
 function blurActiveElementOnWeb() {

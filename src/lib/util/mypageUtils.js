@@ -81,6 +81,7 @@ export function formatDateYYYYMMDD(value) {
 }
 
 function parseBirthdate(value) {
+function parseBirthdate(value) {
   if (!value) return null;
   if (value instanceof Date) return value;
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -141,6 +142,51 @@ export function validateProfileForm({
   }
 
   return nextErrors;
+};
+
+export function validateChangePasswordForm(formData) {
+  const errors = {};
+
+  if (!formData.currentPassword) {
+    errors.currentPassword = '현재 비밀번호를 입력해주세요.';
+  }
+
+  if (!formData.newPassword) {
+    errors.newPassword = '새 비밀번호를 입력해주세요.';
+  } else if (formData.newPassword.length < 6 || formData.newPassword.length > 32) {
+    errors.newPassword = '비밀번호는 6~32자여야 합니다.';
+  } else {
+    const rules = [
+      /[A-Z]/.test(formData.newPassword),
+      /[a-z]/.test(formData.newPassword),
+      /[0-9]/.test(formData.newPassword),
+      /[!@#$%^&*(),.?":{}|<>]/.test(formData.newPassword),
+    ];
+    if (rules.filter(Boolean).length < 2) {
+      errors.newPassword = '영문 대/소문자, 숫자, 특수문자 중 2개 이상 포함해야 합니다.';
+    }
+    if (formData.newPassword === formData.currentPassword) {
+      errors.newPassword = '현재 비밀번호와 달라야 합니다.';
+    }
+  }
+
+  if (!formData.confirmPassword) {
+    errors.confirmPassword = '비밀번호 확인을 입력해주세요.';
+  } else if (formData.newPassword !== formData.confirmPassword) {
+    errors.confirmPassword = '비밀번호가 일치하지 않습니다.';
+  }
+
+  return errors;
+};
+
+export function getChangePasswordScreenError(formData) {
+  if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
+    return '모든 항목을 입력해주세요.';
+  }
+  if (formData.newPassword !== formData.confirmPassword) {
+    return '새 비밀번호가 일치하지 않습니다.';
+  }
+  return '';
 };
 
 export function buildProfileInfoItems(profile, { formatProfileDate, getGenderLabel }) {
@@ -332,6 +378,8 @@ export async function ensureProfileCompleted({
 //   getBirthDateValue,
 //   isNicknameSame,
 //   validateProfileForm,
+//   validateChangePasswordForm,
+//   getChangePasswordScreenError,
 //   buildProfileInfoItems,
 //   getProfileInfoIconName,
 //   toYmd,

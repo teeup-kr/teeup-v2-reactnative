@@ -58,8 +58,8 @@ export function BaseSimpleScoreInputModal({
         meetingId,
         participantId,
         grossScore,
-        submitSimpleScore: roundsApi.submitSimpleScore,
-        completeRounding: roundsApi.completeRounding,
+        submitSimpleScore,
+        completeRounding,
         onSuccess,
         onClose,
         resetLocal,
@@ -68,7 +68,7 @@ export function BaseSimpleScoreInputModal({
       });
 
       return () => {
-        if (!meetingId || !participantId) {
+        if (validateParticipantOnSubmit && (!meetingId || !participantId)) {
           setErrors({ submit: '참가자 정보를 찾을 수 없습니다.' });
           return;
         }
@@ -81,9 +81,12 @@ export function BaseSimpleScoreInputModal({
       meetingId,
       participantId,
       grossScore,
+      submitSimpleScore,
+      completeRounding,
       onSuccess,
       onClose,
       resetLocal,
+      validateParticipantOnSubmit,
       setIsSubmitting,
       setErrors,
     ]
@@ -98,9 +101,9 @@ export function BaseSimpleScoreInputModal({
   );
 
   useEffect(() => {
-    if (!visible) return;
+    if (!resetOnVisible || !visible) return;
     resetLocal();
-  }, [visible, resetLocal]);
+  }, [visible, resetLocal, resetOnVisible]);
 
   useEffect(() => {
     if (!visible) return;

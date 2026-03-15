@@ -15,6 +15,7 @@ import Carousel from 'react-native-reanimated-carousel';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppToast, { toastMap } from '@/components/ui/AppToast';
+import StatusBadge from '@/components/ui/StatusBadge';
 import { HOME_BANNER_SLIDES } from '@/constants/homeBannerSlides';
 import { useAuth } from '@/context/AuthContext';
 import { mypageApi } from '@/lib/api/api';

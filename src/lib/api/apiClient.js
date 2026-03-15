@@ -13,14 +13,12 @@ const extra =
   Constants.manifest?.extra;
 
 const API_BASE_URL = extra?.apiBaseUrl;
-const IS_DEV = extra?.debugApiLogs === true;
 
 const sensitiveKeys = ['password', 'token', 'authorization', 'refresh', 'access'];
 const REFRESH_PATH = '/auth/refresh';
 let refreshPromise = null;
 
 function debugLog(...args) {
-  if (!IS_DEV) return;
   console.log(...args);
 }
 
