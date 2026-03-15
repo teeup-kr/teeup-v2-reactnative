@@ -3,6 +3,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import {
   Slot,
   useGlobalSearchParams,
+  useGlobalSearchParams,
   usePathname,
   useRouter
 } from 'expo-router';
@@ -18,7 +19,7 @@ import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
-import { backOrHome, getHistorySnapshot, navigateWithCap, recordRoute } from '@/lib/navigation/cappedHistory';
+import { backOrHome, getHistorySnapshot, markHistoryTraversal, navigateWithCap, syncRouteHistory } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
@@ -93,33 +94,44 @@ function buildRouteWithSearch(pathname, params) {
   return query ? `${pathname}?${query}` : pathname;
 }
 
+function buildRouteWithSearch(pathname, params) {
+  const entries = Object.entries(params || {}).filter(([, value]) => value !== undefined);
+  if (!entries.length) return pathname;
+
+  const searchParams = new URLSearchParams();
+  entries
+    .sort(([left], [right]) => left.localeCompare(right))
+    .forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((item) => {
+          searchParams.append(key, String(item));
+        });
+        return;
+      }
+
+      searchParams.append(key, String(value));
+    });
+
+  const query = searchParams.toString();
+  return query ? `${pathname}?${query}` : pathname;
+}
+
 function AppShell() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
+  const globalSearchParams = useGlobalSearchParams();
   const globalSearchParams = useGlobalSearchParams();
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
   const handledNotificationIdsRef = useRef(new Set());
   const lastBackPressedAtRef = useRef(0);
   const isRootEntry = pathname === '/';
-  const isGoogleCallbackRoute = pathname === GOOGLE_CALLBACK_PATH;
-  const showAppChrome = !isRootEntry && !isGoogleCallbackRoute;
   const currentRoute = buildRouteWithSearch(pathname, globalSearchParams);
 
   useEffect(() => {
-    setIsClientReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (isGoogleCallbackRoute) return;
-    if (isRootEntry && Platform.OS !== 'web') return;
-    syncRouteHistory(currentRoute);
-  }, [currentRoute, isGoogleCallbackRoute, isRootEntry]);
-
-  useEffect(() => {
     if (isRootEntry) return;
-    recordRoute(pathname);
-  }, [pathname, isRootEntry]);
+    syncRouteHistory(currentRoute);
+  }, [currentRoute, isRootEntry]);
 
   useEffect(() => {
     if (isRootEntry) return undefined;
@@ -146,15 +158,13 @@ function AppShell() {
     }
 
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      let isHandlingPopstate = false;
-
       const handlePopstate = () => {
-        if (isHandlingPopstate) return;
-        isHandlingPopstate = true;
-        backOrHome(router);
-        setTimeout(() => {
-          isHandlingPopstate = false;
-        }, 0);
+        if (getHistorySnapshot().length <= 1) {
+          backOrHome(router);
+          return;
+        }
+
+        markHistoryTraversal();
       };
 
       window.addEventListener('popstate', handlePopstate);
