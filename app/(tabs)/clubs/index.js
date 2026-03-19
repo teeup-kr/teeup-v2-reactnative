@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -326,11 +326,14 @@ export default function ClubsScreen() {
     ]
   );
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadClubs();
-    }
-  }, [isAuthenticated, loadClubs]);
+  useFocusEffect(
+    useCallback(() => {
+      if (isAuthenticated) {
+        loadClubs();
+      }
+      return undefined;
+    }, [isAuthenticated, loadClubs])
+  );
 
   const handleTabChange = useMemo(
     () =>

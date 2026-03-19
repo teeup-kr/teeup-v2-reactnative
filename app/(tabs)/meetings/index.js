@@ -1,6 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -167,52 +167,46 @@ export default function MeetingsScreen() {
     ]
   );
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setLoading(false);
-      return;
-    }
-
-    const loadData = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        if (activeTab === 'rounding') {
-          await fetchRoundingMeetings(roundingPage, roundingSearchQuery);
-        } else if (activeTab === 'social') {
-          await fetchSocialMeetings(socialPage, socialSearchQuery);
-        } else {
-          await fetchParticipatingMeetings(participatingPage, participatingSearchQuery);
-        }
-      } finally {
+  useFocusEffect(
+    useCallback(() => {
+      if (!isAuthenticated) {
         setLoading(false);
+        return undefined;
       }
-    };
 
-    loadData();
-  }, [
-    activeTab,
-    fetchParticipatingMeetings,
-    fetchRoundingMeetings,
-    fetchSocialMeetings,
-    isAuthenticated,
-    participatingEndDate,
-    participatingPage,
-    participatingSearchQuery,
-    participatingStartDate,
-    participatingStatusFilter,
-    roundingEndDate,
-    roundingPage,
-    roundingSearchQuery,
-    roundingStartDate,
-    roundingStatusFilter,
-    socialEndDate,
-    socialPage,
-    socialSearchQuery,
-    socialStartDate,
-    socialStatusFilter,
-  ]);
+      const loadData = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+          if (activeTab === 'rounding') {
+            await fetchRoundingMeetings(roundingPage, roundingSearchQuery);
+          } else if (activeTab === 'social') {
+            await fetchSocialMeetings(socialPage, socialSearchQuery);
+          } else {
+            await fetchParticipatingMeetings(participatingPage, participatingSearchQuery);
+          }
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadData();
+      return undefined;
+    }, [
+      activeTab,
+      fetchParticipatingMeetings,
+      fetchRoundingMeetings,
+      fetchSocialMeetings,
+      isAuthenticated,
+      participatingPage,
+      participatingSearchQuery,
+      roundingPage,
+      roundingSearchQuery,
+      socialPage,
+      socialSearchQuery,
+    ])
+  );
 
   const handleTabChange = useMemo(
     () =>

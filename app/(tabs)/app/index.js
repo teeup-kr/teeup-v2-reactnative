@@ -1,5 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -175,9 +175,12 @@ export default function HomeScreen() {
     }
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    loadHomeMeetings();
-  }, [loadHomeMeetings]);
+  useFocusEffect(
+    useCallback(() => {
+      loadHomeMeetings();
+      return undefined;
+    }, [loadHomeMeetings])
+  );
 
   useEffect(() => {
     setIsHydrated(true);
@@ -596,7 +599,7 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.bold,
   },
   sectionMore: {
-    color: colors.neutral[700],
+    color: colors.primary[700],
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
   },
