@@ -173,6 +173,38 @@ export function SocialForm({ mode = 'create' }) {
     fetchMeeting();
   }, [fetchMeeting]);
 
+  useEffect(() => {
+    const relationError = '신청 마감일은 모임 시간 이전이어야 합니다.';
+
+    setFieldErrors((prev) => {
+      const hasRelationError = prev.application_deadline === relationError;
+
+      if (!form.meeting_time || !form.application_deadline) {
+        if (!hasRelationError) return prev;
+        const nextErrors = { ...prev };
+        delete nextErrors.application_deadline;
+        return nextErrors;
+      }
+
+      const meetingDate = new Date(form.meeting_time);
+      const deadlineDate = new Date(form.application_deadline);
+      const isInvalidOrder =
+        !Number.isNaN(meetingDate.getTime()) &&
+        !Number.isNaN(deadlineDate.getTime()) &&
+        meetingDate < deadlineDate;
+
+      if (!isInvalidOrder) {
+        if (!hasRelationError) return prev;
+        const nextErrors = { ...prev };
+        delete nextErrors.application_deadline;
+        return nextErrors;
+      }
+
+      if (hasRelationError) return prev;
+      return { ...prev, application_deadline: relationError };
+    });
+  }, [form.application_deadline, form.meeting_time]);
+
   const handleSubmit = useMemo(
     () =>
       createSubmitHandler({
