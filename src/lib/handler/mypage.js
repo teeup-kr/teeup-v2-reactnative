@@ -1,123 +1,7 @@
 import { Platform } from 'react-native';
 
 import { replaceWithPolicy } from '../navigation/cappedHistory';
-import { formatDateYYYYMMDD, getChangePasswordScreenError, validateChangePasswordForm, validateProfileForm } from '../util/mypageUtils';
-
-export function createPasswordFieldChangeHandler({
-    setForm,
-    setError,
-    setSuccess,
-    field,
-}) {
-    return (value) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
-        setError('');
-        setSuccess('');
-    };
-}
-
-export function createSubmitChangePasswordHandler({
-    form,
-    isSubmitting,
-    setError,
-    setSuccess,
-    setIsSubmitting,
-    changePassword,
-}) {
-    return async function () {
-        if (isSubmitting) return;
-
-        setError('');
-        setSuccess('');
-
-        const errorMessage = getChangePasswordScreenError(form);
-        if (errorMessage) {
-            setError(errorMessage);
-            return;
-        }
-
-        try {
-            setIsSubmitting(true);
-            const payload = {
-                current_password: form.currentPassword,
-                new_password: form.newPassword,
-                confirm_password: form.confirmPassword,
-            };
-            await changePassword(payload);
-            setSuccess('비밀번호가 변경되었습니다.');
-        } catch (error) {
-            setError(error?.message || '비밀번호 변경에 실패했습니다.');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-}
-
-export function createResetPasswordModalHandler({
-    setFormData,
-    setValidationErrors,
-    setError,
-    setSuccess,
-}) {
-    return () => {
-        setFormData({
-            currentPassword: '',
-            newPassword: '',
-            confirmPassword: '',
-        });
-        setValidationErrors({});
-        setError(null);
-        setSuccess(false);
-    };
-}
-
-export function createValidatePasswordModalHandler({
-    formData,
-    setValidationErrors,
-}) {
-    return () => {
-        const errors = validateChangePasswordForm(formData);
-        setValidationErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
-}
-
-export function createSubmitPasswordModalHandler({
-    formData,
-    validateForm,
-    changePassword,
-    setLoading,
-    setError,
-    setSuccess,
-    onClose,
-    onLogout,
-}) {
-    return async function () {
-        if (!validateForm()) return;
-
-        try {
-            setLoading(true);
-            setError(null);
-
-            await changePassword({
-                current_password: formData.currentPassword,
-                new_password: formData.newPassword,
-                confirm_password: formData.confirmPassword,
-            });
-
-            setSuccess(true);
-
-            setTimeout(() => {
-                onClose();
-                onLogout?.();
-            }, 3000);
-        } catch (error) {
-            setError(error?.response?.data?.message || '비밀번호 변경에 실패했습니다.');
-        } finally {
-            setLoading(false);
-        }
-    };
-}
+import { formatDateYYYYMMDD, validateProfileForm } from '../util/mypageUtils';
 
 export function createInputChangeHandler({
     setFormData,
@@ -1213,11 +1097,6 @@ export function createConfirmWithdrawHandler({
 }
 
 // export const mypageRenderUtils = {
-//     createPasswordFieldChangeHandler,
-//     createSubmitChangePasswordHandler,
-//     createResetPasswordModalHandler,
-//     createValidatePasswordModalHandler,
-//     createSubmitPasswordModalHandler,
 //     createInputChangeHandler,
 //     createCheckNicknameDuplicateHandler,
 //     createBirthPickerChangeHandler,

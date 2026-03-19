@@ -93,16 +93,6 @@ async function syncPushToken({ enabled = true } = {}) {
   });
 }
 
-async function login(credentials) {
-  const response = await apiClient.post(`${AUTH_PREFIX}/login`, credentials, { auth: false });
-  await saveAuthData(response);
-  return response;
-}
-
-async function register(userData) {
-  return apiClient.post('/auth/register', userData, { auth: false });
-}
-
 async function refreshToken(refreshToken) {
   const response = isWeb
     ? await apiClient.post(`${AUTH_PREFIX}/refresh`, undefined, { auth: false })
@@ -122,36 +112,6 @@ async function refreshToken(refreshToken) {
 
 async function getCurrentUser() {
   return apiClient.get(`${AUTH_PREFIX}/me`, { auth: !isWeb });
-}
-
-async function changePassword(passwordData) {
-  return apiClient.put(`${AUTH_PREFIX}/change-password`, null, {
-    params: {
-      current_password: passwordData.current_password,
-      new_password: passwordData.new_password,
-      confirm_password: passwordData.confirm_password,
-    },
-  });
-}
-
-async function requestPasswordReset(data) {
-  return apiClient.post(`${AUTH_PREFIX}/request-password-reset`, data, { auth: false });
-}
-
-async function resetPassword(token, newPassword) {
-  return apiClient.post(`${AUTH_PREFIX}/reset-password`, { token, new_password: newPassword }, { auth: false });
-}
-
-async function verifyEmail(token) {
-  return apiClient.post(`${AUTH_PREFIX}/verify-email`, { token }, { auth: false });
-}
-
-async function resendVerification() {
-  return apiClient.post(`${AUTH_PREFIX}/resend-verification`, null, { auth: false });
-}
-
-async function checkEmail(email) {
-  return apiClient.get(`${AUTH_PREFIX}/check-email`, { params: { email }, auth: false });
 }
 
 async function checkNickname(nickname) {
@@ -193,16 +153,8 @@ async function deleteAccount() {
 }
 
 export const authApi = {
-  login,
-  register,
   refreshToken,
   getCurrentUser,
-  changePassword,
-  requestPasswordReset,
-  resetPassword,
-  verifyEmail,
-  resendVerification,
-  checkEmail,
   checkNickname,
   googleLogin,
   syncPushToken,
@@ -1215,7 +1167,6 @@ export const mypageApi = {
   fetchMyRoundingMeetings,
   fetchRoundingStats,
   fetchRoundParticipants,
-  changePassword,
   checkNicknameAvailability,
   completeRounding,
   submitSimpleScore,
