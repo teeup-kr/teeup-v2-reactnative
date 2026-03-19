@@ -1,5 +1,9 @@
+import { Platform } from 'react-native';
+
 let AsyncStorageModule;
+let SecureStoreModule;
 let hasWarned = false;
+const isWeb = Platform.OS === 'web';
 
 try {
   const imported = require('@react-native-async-storage/async-storage');
@@ -8,6 +12,13 @@ try {
 } catch (error) {
   console.error(error);
   AsyncStorageModule = null;
+}
+
+try {
+  SecureStoreModule = require('expo-secure-store');
+} catch (error) {
+  console.error(error);
+  SecureStoreModule = null;
 }
 
 const ACCESS_TOKEN_KEY = 'access_token';
@@ -23,6 +34,13 @@ function warnOnce() {
   hasWarned = true;
   console.warn('AsyncStorage unavailable, using in-memory storage fallback.');
 };
+
+function getSecureStore() {
+  if (!SecureStoreModule?.setItemAsync || !SecureStoreModule?.getItemAsync || !SecureStoreModule?.deleteItemAsync) {
+    throw new Error('SecureStore unavailable.');
+  }
+  return SecureStoreModule;
+}
 
 const storage = {
   async setItem(key, value) {
@@ -86,21 +104,30 @@ const storage = {
 
 export const tokenStorage = {
   async setTokens(accessToken, refreshToken) {
+    if (isWeb) return;
+    const secureStore = getSecureStore();
     if (accessToken) {
-      await storage.setItem(ACCESS_TOKEN_KEY, accessToken);
+      await secureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
     }
     if (refreshToken) {
-      await storage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+      await secureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
     }
   },
   async getAccessToken() {
-    return storage.getItem(ACCESS_TOKEN_KEY);
+    if (isWeb) return null;
+    return getSecureStore().getItemAsync(ACCESS_TOKEN_KEY);
   },
   async getRefreshToken() {
-    return storage.getItem(REFRESH_TOKEN_KEY);
+    if (isWeb) return null;
+    return getSecureStore().getItemAsync(REFRESH_TOKEN_KEY);
   },
   async clearTokens() {
-    await storage.multiRemove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+    if (isWeb) return;
+    const secureStore = getSecureStore();
+    await Promise.all([
+      secureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
+      secureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
+    ]);
   },
   async setUser(user) {
     if (!user) return;

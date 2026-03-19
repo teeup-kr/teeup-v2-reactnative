@@ -6,6 +6,7 @@ import { getNativePushToken } from '../util/pushToken';
 import { apiClient } from './apiClient';
 
 const AUTH_PREFIX = '/auth';
+const isWeb = Platform.OS === 'web';
 
 /**
  * 서버는 API 요청 시 "access" 타입 토큰만 허용합니다.
@@ -17,12 +18,14 @@ async function saveAuthData(authResponse) {
   const refreshToken = data?.refresh_token ?? data?.refreshToken;
   const user = data?.user ?? authResponse?.user;
 
-  if (!accessToken || typeof accessToken !== 'string') {
+  if (!isWeb && (!accessToken || typeof accessToken !== 'string')) {
     throw new Error('액세스 토큰이 없습니다.');
   }
 
-  // id_token은 사용하지 않음(서버가 access 토큰만 허용)
-  await tokenStorage.setTokens(accessToken, refreshToken);
+  if (!isWeb) {
+    // id_token은 사용하지 않음(서버가 access 토큰만 허용)
+    await tokenStorage.setTokens(accessToken, refreshToken);
+  }
   if (user) {
     await tokenStorage.setUser(user);
   }
@@ -101,18 +104,24 @@ async function register(userData) {
 }
 
 async function refreshToken(refreshToken) {
-  const response = await apiClient.post(`${AUTH_PREFIX}/refresh`, { refresh_token: refreshToken }, { auth: false });
+  const response = isWeb
+    ? await apiClient.post(`${AUTH_PREFIX}/refresh`, undefined, { auth: false })
+    : await apiClient.post(`${AUTH_PREFIX}/refresh`, { refresh_token: refreshToken }, { auth: false });
   const data = response?.data ?? response;
   const accessToken = data?.access_token ?? data?.accessToken;
   const newRefreshToken = data?.refresh_token ?? data?.refreshToken;
-  if (accessToken) {
+  const user = data?.user ?? response?.user;
+  if (!isWeb && accessToken) {
     await tokenStorage.setTokens(accessToken, newRefreshToken);
+  }
+  if (user) {
+    await tokenStorage.setUser(user);
   }
   return response;
 }
 
 async function getCurrentUser() {
-  return apiClient.get(`${AUTH_PREFIX}/me`);
+  return apiClient.get(`${AUTH_PREFIX}/me`, { auth: !isWeb });
 }
 
 async function changePassword(passwordData) {
@@ -158,7 +167,7 @@ async function googleLogin(oauthData) {
 }
 
 async function logout() {
-  const refreshToken = await tokenStorage.getRefreshToken();
+  const refreshToken = isWeb ? null : await tokenStorage.getRefreshToken();
 
   try {
     await syncPushToken({ enabled: false });
@@ -167,7 +176,10 @@ async function logout() {
   }
 
   try {
-    await apiClient.post(`${AUTH_PREFIX}/logout`, { refresh_token: refreshToken });
+    await apiClient.post(
+      `${AUTH_PREFIX}/logout`,
+      isWeb ? undefined : { refresh_token: refreshToken }
+    );
   } catch (error) {
     console.warn('로그아웃 API 호출 실패:', error?.message || error);
   } finally {

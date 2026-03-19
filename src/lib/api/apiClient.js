@@ -11,6 +11,7 @@ const extra =
   Constants.manifest?.extra;
 
 const API_BASE_URL = extra?.apiBaseUrl;
+const isWeb = Platform.OS === 'web';
 
 const sensitiveKeys = ['password', 'token', 'authorization', 'refresh', 'access'];
 const REFRESH_PATH = '/auth/refresh';
@@ -109,28 +110,41 @@ function getErrorMessage(payload) {
 
 export { getErrorMessage };
 
+function buildFetchOptions(options = {}) {
+  if (!isWeb) return options;
+  return {
+    ...options,
+    credentials: 'include',
+  };
+}
+
 async function requestTokenRefresh() {
   if (refreshPromise) {
     return refreshPromise;
   }
 
   refreshPromise = (async () => {
-    const refreshToken = await tokenStorage.getRefreshToken();
-    if (!refreshToken) {
-      return null;
+    const refreshHeaders = {
+      'Content-Type': 'application/json',
+      'X-Client-Type': getClientType(),
+    };
+    const refreshRequest = {
+      method: 'POST',
+      headers: refreshHeaders,
+    };
+
+    if (!isWeb) {
+      const refreshToken = await tokenStorage.getRefreshToken();
+      if (!refreshToken) {
+        return null;
+      }
+      refreshRequest.body = JSON.stringify({ refresh_token: refreshToken });
     }
 
     const refreshUrl = buildUrl(REFRESH_PATH);
     let refreshResponse;
     try {
-      refreshResponse = await fetch(refreshUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Type': getClientType(),
-        },
-        body: JSON.stringify({ refresh_token: refreshToken }),
-      });
+      refreshResponse = await fetch(refreshUrl, buildFetchOptions(refreshRequest));
     } catch (error) {
       console.warn('[Auth Refresh Network Error]', {
         url: refreshUrl,
@@ -146,12 +160,23 @@ async function requestTokenRefresh() {
       payload: sanitizePayload(refreshPayload),
     });
 
-    if (!refreshResponse.ok || !refreshPayload?.access_token) {
+    if (!refreshResponse.ok) {
+      return null;
+    }
+
+    if (isWeb) {
+      return { refreshed: true };
+    }
+
+    if (!refreshPayload?.access_token) {
       return null;
     }
 
     await tokenStorage.setTokens(refreshPayload.access_token, refreshPayload.refresh_token);
-    return refreshPayload.access_token;
+    return {
+      refreshed: true,
+      accessToken: refreshPayload.access_token,
+    };
   })();
 
   try {
@@ -188,9 +213,11 @@ async function apiRequest(path, options = {}) {
   };
 
   if (auth) {
-    const token = await tokenStorage.getAccessToken();
-    if (token) {
-      requestHeaders.Authorization = `Bearer ${token}`;
+    if (!isWeb) {
+      const token = await tokenStorage.getAccessToken();
+      if (token) {
+        requestHeaders.Authorization = `Bearer ${token}`;
+      }
     }
   }
 
@@ -210,11 +237,11 @@ async function apiRequest(path, options = {}) {
   const requestOnce = async (headersToUse) => {
     const result = {};
     try {
-      result.response = await fetch(url, {
+      result.response = await fetch(url, buildFetchOptions({
         method,
         headers: headersToUse,
         body: isForm ? formData : (body ? JSON.stringify(body) : undefined),
-      });
+      }));
     } catch (networkError) {
       console.warn('[API Network Error]', {
         method,
@@ -242,6 +269,7 @@ async function apiRequest(path, options = {}) {
 
   if (!response.ok) {
     const hasAuthHeader = Boolean(requestHeaders.Authorization);
+    const hasAuthContext = hasAuthHeader || (isWeb && auth);
     const detailText =
       typeof payload?.detail === 'string'
         ? payload.detail
@@ -250,20 +278,22 @@ async function apiRequest(path, options = {}) {
           : '';
     const isAuthForbidden =
       response.status === 403 &&
-      hasAuthHeader &&
+      hasAuthContext &&
       (
         detailText.toLowerCase().includes('not authenticated') ||
         payload?.detail?.code === 'NOT_AUTHENTICATED'
       );
-    const isAuthFailure = auth && ((response.status === 401 && hasAuthHeader) || isAuthForbidden);
+    const isAuthFailure = auth && (response.status === 401 || isAuthForbidden);
 
     if (isAuthFailure) {
-      const refreshedAccessToken = await requestTokenRefresh();
-      if (refreshedAccessToken) {
-        const retryHeaders = {
-          ...requestHeaders,
-          Authorization: `Bearer ${refreshedAccessToken}`,
-        };
+      const refreshResult = await requestTokenRefresh();
+      if (refreshResult?.refreshed) {
+        const retryHeaders = refreshResult.accessToken
+          ? {
+            ...requestHeaders,
+            Authorization: `Bearer ${refreshResult.accessToken}`,
+          }
+          : requestHeaders;
         const retryResult = await requestOnce(retryHeaders);
         response = retryResult.response;
         payload = retryResult.payload;
@@ -283,6 +313,7 @@ async function apiRequest(path, options = {}) {
         }
 
         const retryHasAuthHeader = Boolean(retryHeaders.Authorization);
+        const retryHasAuthContext = retryHasAuthHeader || (isWeb && auth);
         const retryDetailText =
           typeof payload?.detail === 'string'
             ? payload.detail
@@ -291,13 +322,13 @@ async function apiRequest(path, options = {}) {
               : '';
         const retryIsAuthForbidden =
           response.status === 403 &&
-          retryHasAuthHeader &&
+          retryHasAuthContext &&
           (
             retryDetailText.toLowerCase().includes('not authenticated') ||
             payload?.detail?.code === 'NOT_AUTHENTICATED'
           );
 
-        if ((response.status === 401 && retryHasAuthHeader) || retryIsAuthForbidden) {
+        if ((response.status === 401 && retryHasAuthContext) || retryIsAuthForbidden) {
           await handleAuthExpired();
           return;
         }

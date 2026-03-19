@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { Platform } from 'react-native';
 
 import { authApi } from '@/lib/api/api';
 import { tokenStorage } from '@/lib/tokenStorage';
@@ -6,6 +7,7 @@ import { tokenStorage } from '@/lib/tokenStorage';
 
 
 const AuthContext = createContext(null);
+const isWeb = Platform.OS === 'web';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -20,23 +22,28 @@ export function AuthProvider({ children }) {
     setIsLoading(true);
     setAuthError(null);
     try {
-      const [storedUser, accessToken, refreshToken] = await Promise.all([
-        tokenStorage.getUser(),
-        tokenStorage.getAccessToken(),
-        tokenStorage.getRefreshToken(),
-      ]);
+      const storedUser = await tokenStorage.getUser();
 
       if (storedUser) {
         setUser(storedUser);
       }
 
-      if (!accessToken && !refreshToken) {
-        setUser(null);
-        return;
-      }
+      if (!isWeb) {
+        const [accessToken, refreshToken] = await Promise.all([
+          tokenStorage.getAccessToken(),
+          tokenStorage.getRefreshToken(),
+        ]);
 
-      if (!accessToken && refreshToken) {
-        await authApi.refreshToken(refreshToken);
+        if (!accessToken && !refreshToken) {
+          setUser(null);
+          return;
+        }
+
+        if (!accessToken && refreshToken) {
+          await authApi.refreshToken(refreshToken);
+        }
+      } else {
+        await authApi.refreshToken();
       }
 
       const currentUser = await authApi.getCurrentUser();

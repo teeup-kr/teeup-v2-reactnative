@@ -11,6 +11,8 @@ import { tokenStorage } from '@/lib/tokenStorage';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
+import LoginScreen from '../../login';
+
 export default function GoogleOAuthCallback() {
   const router = useRouter();
   const { refreshAuth, setAuthError } = useAuth();
@@ -113,6 +115,10 @@ export default function GoogleOAuthCallback() {
 
   // 로딩 또는 에러 화면 표시
   if (Platform.OS === 'web') {
+    if (!isLoading && error) {
+      return <LoginScreen />;
+    }
+
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
@@ -120,14 +126,6 @@ export default function GoogleOAuthCallback() {
             <>
               <ActivityIndicator size="large" color={colors.primary[600]} />
               <Text style={styles.loadingText}>로그인 처리 중...</Text>
-            </>
-          ) : error ? (
-            <>
-              <Text style={styles.errorTitle}>로그인 오류</Text>
-              <Text style={styles.errorText}>{error}</Text>
-              {error.includes('약관') && (
-                <Text style={styles.infoText}>약관 동의 페이지로 이동합니다...</Text>
-              )}
             </>
           ) : null}
         </View>
