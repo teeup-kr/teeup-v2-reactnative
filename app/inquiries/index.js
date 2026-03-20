@@ -1,5 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -11,13 +11,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import LoginRequired from '@/components/auth/LoginRequired';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { useAuth } from '@/context/AuthContext';
 import { inquiriesApi } from '@/lib/api/api';
 import { navigateWithCap } from '@/lib/navigation/cappedHistory';
+import { formatDateTimeWithMinute } from '@/lib/util/meetingUtils';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -40,19 +40,6 @@ const STATUS_LABEL = {
   COMPLETED: '완료',
   CLOSED: '종료',
 };
-
-function formatDate(value) {
-  if (!value) return '-';
-  const d = typeof value === 'string' ? new Date(value) : value;
-  if (Number.isNaN(d.getTime())) return '-';
-  return d.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 
 export default function InquiryListScreen() {
   const router = useRouter();
@@ -97,12 +84,7 @@ export default function InquiryListScreen() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <LoginRequired
-        message="로그인 후 이용 가능합니다"
-        description="1:1 문의를 보려면 로그인이 필요합니다."
-      />
-    );
+    return <Redirect href="/login" />;
   }
 
   return (
@@ -149,7 +131,7 @@ export default function InquiryListScreen() {
                 <Text style={styles.statusText}>{STATUS_LABEL[item.status] || item.status}</Text>
               </View>
               <Text style={styles.itemTitle}>{item.title}</Text>
-              <Text style={styles.itemDate}>{formatDate(item.created_at)}</Text>
+              <Text style={styles.itemDate}>{formatDateTimeWithMinute(item.created_at)}</Text>
             </Pressable>
           ))
         )}

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,9 +15,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api/api';
 import { backOrHome } from '@/lib/navigation/cappedHistory';
+import { formatDateTime } from '@/lib/util/meetingUtils';
 import { ensureProfileCompleted } from '@/lib/util/mypageUtils';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
@@ -37,13 +38,6 @@ function getParticipantName(participant) {
     participant?.user?.nickname ||
     `참가자 ${participant?.user_id || participant?.id || ''}`
   );
-}
-
-function formatDateTime(value) {
-  if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleString('ko-KR');
 }
 
 function getStatusConfig(status) {
@@ -367,109 +361,111 @@ export default function ExpenseScreen() {
         )}
       </ScrollView>
 
-      <Modal transparent visible={modalVisible} animationType="fade" onRequestClose={closeModal}>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>{editingExpense ? '지출 수정' : '지출 추가'}</Text>
+      <Modal
+        visible={modalVisible}
+        title={editingExpense ? '지출 수정' : '지출 추가'}
+        onClose={closeModal}
+        animationType="fade"
+        containerStyle={styles.modalCard}
+        backdropStyle={styles.modalBackdrop}
+        footer={(
+          <View style={styles.modalActions}>
+            <Button variant="outline" size="sm" onPress={closeModal}>
+              취소
+            </Button>
+            <Button variant="primary" size="sm" onPress={handleSubmit} disabled={!canSubmit}>
+              {isSaving ? '저장 중...' : editingExpense ? '수정' : '추가'}
+            </Button>
+          </View>
+        )}
+      >
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>제목</Text>
+          <TextInput
+            value={form.title}
+            onChangeText={(value) => setForm((prev) => ({ ...prev, title: value }))}
+            style={styles.input}
+            placeholder="예: 카트비"
+            placeholderTextColor={colors.neutral[400]}
+          />
+        </View>
 
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>제목</Text>
-              <TextInput
-                value={form.title}
-                onChangeText={(value) => setForm((prev) => ({ ...prev, title: value }))}
-                style={styles.input}
-                placeholder="예: 카트비"
-                placeholderTextColor={colors.neutral[400]}
-              />
-            </View>
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>설명</Text>
+          <TextInput
+            value={form.description}
+            onChangeText={(value) => setForm((prev) => ({ ...prev, description: value }))}
+            style={[styles.input, styles.textArea]}
+            multiline
+            placeholder="선택 입력"
+            placeholderTextColor={colors.neutral[400]}
+          />
+        </View>
 
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>설명</Text>
-              <TextInput
-                value={form.description}
-                onChangeText={(value) => setForm((prev) => ({ ...prev, description: value }))}
-                style={[styles.input, styles.textArea]}
-                multiline
-                placeholder="선택 입력"
-                placeholderTextColor={colors.neutral[400]}
-              />
-            </View>
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>금액</Text>
+          <TextInput
+            value={form.amount}
+            onChangeText={(value) => setForm((prev) => ({ ...prev, amount: value.replace(/[^0-9]/g, '') }))}
+            style={styles.input}
+            keyboardType="numeric"
+            placeholder="0"
+            placeholderTextColor={colors.neutral[400]}
+          />
+        </View>
 
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>금액</Text>
-              <TextInput
-                value={form.amount}
-                onChangeText={(value) => setForm((prev) => ({ ...prev, amount: value.replace(/[^0-9]/g, '') }))}
-                style={styles.input}
-                keyboardType="numeric"
-                placeholder="0"
-                placeholderTextColor={colors.neutral[400]}
-              />
-            </View>
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>카테고리</Text>
+          <TextInput
+            value={form.category}
+            onChangeText={(value) => setForm((prev) => ({ ...prev, category: value }))}
+            style={styles.input}
+            placeholder="예: 식비"
+            placeholderTextColor={colors.neutral[400]}
+          />
+        </View>
 
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>카테고리</Text>
-              <TextInput
-                value={form.category}
-                onChangeText={(value) => setForm((prev) => ({ ...prev, category: value }))}
-                style={styles.input}
-                placeholder="예: 식비"
-                placeholderTextColor={colors.neutral[400]}
-              />
-            </View>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>분할 대상</Text>
-              <View style={styles.participantSelectHeader}>
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>분할 대상</Text>
+          <View style={styles.participantSelectHeader}>
+            <Pressable
+              style={[styles.selectAllChip, allParticipantsSelected && styles.selectAllChipSelected]}
+              onPress={toggleAllParticipants}
+            >
+              <Text
+                style={[
+                  styles.selectAllText,
+                  allParticipantsSelected && styles.selectAllTextSelected,
+                ]}
+              >
+                전체 선택
+              </Text>
+            </Pressable>
+            <Text style={styles.participantSelectedCount}>
+              {form.participant_ids.length}명 선택
+            </Text>
+          </View>
+          <View style={styles.participantList}>
+            {participants.map((participant) => {
+              const userId = participant?.user_id || participant?.id;
+              const selected = form.participant_ids.includes(userId);
+              return (
                 <Pressable
-                  style={[styles.selectAllChip, allParticipantsSelected && styles.selectAllChipSelected]}
-                  onPress={toggleAllParticipants}
+                  key={userId}
+                  style={[styles.participantChip, selected && styles.participantChipSelected]}
+                  onPress={() => toggleParticipant(userId)}
                 >
                   <Text
                     style={[
-                      styles.selectAllText,
-                      allParticipantsSelected && styles.selectAllTextSelected,
+                      styles.participantChipText,
+                      selected && styles.participantChipTextSelected,
                     ]}
                   >
-                    전체 선택
+                    {getParticipantName(participant)}
                   </Text>
                 </Pressable>
-                <Text style={styles.participantSelectedCount}>
-                  {form.participant_ids.length}명 선택
-                </Text>
-              </View>
-              <View style={styles.participantList}>
-                {participants.map((participant) => {
-                  const userId = participant?.user_id || participant?.id;
-                  const selected = form.participant_ids.includes(userId);
-                  return (
-                    <Pressable
-                      key={userId}
-                      style={[styles.participantChip, selected && styles.participantChipSelected]}
-                      onPress={() => toggleParticipant(userId)}
-                    >
-                      <Text
-                        style={[
-                          styles.participantChipText,
-                          selected && styles.participantChipTextSelected,
-                        ]}
-                      >
-                        {getParticipantName(participant)}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-
-            <View style={styles.modalActions}>
-              <Button variant="outline" size="sm" onPress={closeModal}>
-                취소
-              </Button>
-              <Button variant="primary" size="sm" onPress={handleSubmit} disabled={!canSubmit}>
-                {isSaving ? '저장 중...' : editingExpense ? '수정' : '추가'}
-              </Button>
-            </View>
+              );
+            })}
           </View>
         </View>
       </Modal>
@@ -623,22 +619,13 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.semibold,
   },
   modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.5)',
     paddingHorizontal: 18,
-    justifyContent: 'center',
   },
   modalCard: {
-    backgroundColor: colors.white,
-    borderRadius: tokens.radius.lg,
-    padding: tokens.padding.md,
     maxHeight: '86%',
-  },
-  modalTitle: {
-    fontSize: tokens.font.lg,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[900],
-    marginBottom: tokens.spacing.sm2,
+    width: '100%',
+    maxWidth: 466,
+    alignSelf: 'center',
   },
   fieldGroup: {
     marginBottom: tokens.spacing.sm2,

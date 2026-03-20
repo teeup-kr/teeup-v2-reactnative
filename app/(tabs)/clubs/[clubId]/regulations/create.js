@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -16,6 +16,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/api/api';
+import { extractData } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
@@ -26,40 +27,73 @@ function ensureCategories(res) {
   return [];
 }
 
-export default function ClubRegulationCreateScreen() {
+export function ClubRegulationForm({ mode = 'create' }) {
   const router = useRouter();
-  const { clubId } = useLocalSearchParams();
-  const resolvedId = Array.isArray(clubId) ? clubId[0] : clubId;
+  const { clubId, regulationId } = useLocalSearchParams();
+  const resolvedClubId = Array.isArray(clubId) ? clubId[0] : clubId;
+  const resolvedRegulationId = Array.isArray(regulationId) ? regulationId[0] : regulationId;
+  const isEditMode = mode === 'edit';
+  const screenTitle = isEditMode ? '규정 수정' : '규정 작성';
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [categoryId, setCategoryId] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [isLoadingRegulation, setIsLoadingRegulation] = useState(isEditMode);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [fetchError, setFetchError] = useState('');
 
   const loadCategories = useCallback(async () => {
-    if (!resolvedId) return;
+    if (!resolvedClubId) return;
     try {
       setIsLoadingCategories(true);
-      const res = await clubsApi.getClubRegulationCategories(resolvedId);
+      const res = await clubsApi.getClubRegulationCategories(resolvedClubId);
       const list = ensureCategories(res);
       setCategories(list);
-      if (list.length > 0) {
+      if (!isEditMode && list.length > 0) {
         setCategoryId((prev) => prev ?? list[0].id);
       }
     } catch (err) {
       console.error('규정 카테고리 조회 실패:', err);
-      setErrors({ categories: err?.response?.data?.detail || '카테고리를 불러올 수 없습니다.' });
+      setErrors((prev) => ({
+        ...prev,
+        categories: err?.response?.data?.detail || '카테고리를 불러올 수 없습니다.',
+      }));
     } finally {
       setIsLoadingCategories(false);
     }
-  }, [resolvedId]);
+  }, [resolvedClubId, isEditMode]);
+
+  const loadRegulation = useCallback(async () => {
+    if (!isEditMode || !resolvedClubId || !resolvedRegulationId) return;
+    try {
+      setIsLoadingRegulation(true);
+      setFetchError('');
+      const regulation = extractData(
+        await clubsApi.getClubRegulation(resolvedClubId, resolvedRegulationId)
+      );
+      setTitle(regulation?.title || '');
+      setContent(regulation?.content || '');
+      setCategoryId(regulation?.category_id ?? null);
+    } catch (err) {
+      console.error('규정 상세 조회 실패:', err);
+      setFetchError(err?.response?.data?.detail || err?.message || '규정을 불러올 수 없습니다.');
+    } finally {
+      setIsLoadingRegulation(false);
+    }
+  }, [isEditMode, resolvedClubId, resolvedRegulationId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadCategories();
+    }, [loadCategories])
+  );
 
   useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
+    loadRegulation();
+  }, [loadRegulation]);
 
   const handleSubmit = async () => {
     const newErrors = {};
@@ -73,42 +107,75 @@ export default function ClubRegulationCreateScreen() {
     setErrors({});
     setIsSubmitting(true);
     try {
-      await clubsApi.createClubRegulation(resolvedId, {
+      const payload = {
         category_id: categoryId,
         title: title.trim(),
         content: content.trim(),
-        status: 'ACTIVE',
-      });
-      if (Platform.OS === 'web') {
-        window.alert('규정이 등록되었습니다.');
-        router.replace(`/clubs/${resolvedId}/regulations`);
+      };
+
+      if (isEditMode) {
+        await clubsApi.updateClubRegulation(resolvedClubId, resolvedRegulationId, payload);
       } else {
-        Alert.alert('등록 완료', '규정이 등록되었습니다.', [
-          { text: '확인', onPress: () => router.replace(`/clubs/${resolvedId}/regulations`) },
+        await clubsApi.createClubRegulation(resolvedClubId, {
+          ...payload,
+          status: 'ACTIVE',
+        });
+      }
+
+      if (Platform.OS === 'web') {
+        window.alert(isEditMode ? '규정이 수정되었습니다.' : '규정이 등록되었습니다.');
+        router.replace(
+          isEditMode
+            ? `/clubs/${resolvedClubId}/regulations/${resolvedRegulationId}`
+            : `/clubs/${resolvedClubId}/regulations`
+        );
+      } else {
+        Alert.alert(isEditMode ? '수정 완료' : '등록 완료', isEditMode ? '규정이 수정되었습니다.' : '규정이 등록되었습니다.', [
+          {
+            text: '확인',
+            onPress: () => router.replace(
+              isEditMode
+                ? `/clubs/${resolvedClubId}/regulations/${resolvedRegulationId}`
+                : `/clubs/${resolvedClubId}/regulations`
+            ),
+          },
         ]);
       }
     } catch (err) {
       const message =
         err?.response?.data?.detail ||
         err?.message ||
-        '규정 등록에 실패했습니다.';
+        (isEditMode ? '규정 수정에 실패했습니다.' : '규정 등록에 실패했습니다.');
       if (Platform.OS === 'web') {
         window.alert(message);
       } else {
-        Alert.alert('등록 실패', message);
+        Alert.alert(isEditMode ? '수정 실패' : '등록 실패', message);
       }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isLoadingCategories) {
+  if (isLoadingCategories || isLoadingRegulation) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <ScreenHeader title="규정 작성" />
+        <ScreenHeader title={screenTitle} />
         <View style={styles.loadingWrap}>
           <ActivityIndicator size="small" color={colors.primary[600]} />
-          <Text style={styles.loadingText}>카테고리를 불러오는 중...</Text>
+          <Text style={styles.loadingText}>
+            {isEditMode && isLoadingRegulation ? '규정을 불러오는 중...' : '카테고리를 불러오는 중...'}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isEditMode && fetchError) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ScreenHeader title={screenTitle} />
+        <View style={styles.loadingWrap}>
+          <Text style={styles.errorText}>{fetchError}</Text>
         </View>
       </SafeAreaView>
     );
@@ -116,20 +183,20 @@ export default function ClubRegulationCreateScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScreenHeader title="규정 작성" />
+      <ScreenHeader title={screenTitle} />
       <ScrollView contentContainerStyle={styles.container}>
         <Card style={styles.card}>
           <Text style={styles.label}>카테고리 *</Text>
           <View style={styles.categoryRow}>
-            {categories.map((c) => (
+            {categories.map((category) => (
               <Button
-                key={c.id}
-                variant={categoryId === c.id ? 'primary' : 'outline'}
+                key={category.id}
+                variant={categoryId === category.id ? 'primary' : 'outline'}
                 size="sm"
-                onPress={() => setCategoryId(c.id)}
+                onPress={() => setCategoryId(category.id)}
                 style={styles.categoryBtn}
               >
-                {c.name || `카테고리 ${c.id}`}
+                {category.name || `카테고리 ${category.id}`}
               </Button>
             ))}
           </View>
@@ -138,6 +205,9 @@ export default function ClubRegulationCreateScreen() {
           ) : null}
           {errors.category ? (
             <Text style={styles.errorText}>{errors.category}</Text>
+          ) : null}
+          {errors.categories ? (
+            <Text style={styles.errorText}>{errors.categories}</Text>
           ) : null}
 
           <Text style={styles.label}>제목 *</Text>
@@ -173,6 +243,10 @@ export default function ClubRegulationCreateScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+export default function ClubRegulationCreateScreen() {
+  return <ClubRegulationForm mode="create" />;
 }
 
 const styles = StyleSheet.create({

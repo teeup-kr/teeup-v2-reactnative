@@ -33,7 +33,6 @@ export default function MeetingWorkflowStatus({
   meeting,
   participants = [],
   teams = [],
-  isManager,
   applicationStatus,
   isApplicationDeadlinePassed,
   isApplicationClosedEarly,
@@ -44,9 +43,6 @@ export default function MeetingWorkflowStatus({
   onCompleteRounding,
   onCompleteMeeting,
 }) {
-  const canManage = Boolean(isManager);
-  const isRoundingMeeting = meeting?.meeting_type === 'ROUND' || meeting?.meeting_type === 'ROUNDING';
-
   const workflowState = useMemo(() => {
     if (!meeting) return 'CREATED';
     if (meeting.status === 'CANCELED') return 'CANCELED';
@@ -104,22 +100,6 @@ export default function MeetingWorkflowStatus({
     if (Number.isFinite(Number(count))) return Number(count);
     return participants.length;
   }, [applicationStatus?.participant_count, participants.length]);
-  const canAutoFormTeams =
-    isRoundingMeeting &&
-    isApplicationClosed &&
-    (workflowState === 'PARTICIPANTS_JOINED' || workflowState === 'TEAM_FORMATION_READY') &&
-    participantCount >= 4;
-
-  const canStartRounding =
-    isRoundingMeeting &&
-    meeting?.team_formation_confirmed_at &&
-    !meeting?.rounding_started_at;
-
-  const canCompleteRounding =
-    isRoundingMeeting && meeting?.rounding_started_at && !meeting?.rounding_completed_at;
-
-  const canConfirmSettlement =
-    isRoundingMeeting && meeting?.rounding_completed_at && !meeting?.settlement_confirmed;
 
   const meetingStatusLabel = useMemo(() => {
     const status = String(meeting?.status || '').toUpperCase();
@@ -198,7 +178,7 @@ export default function MeetingWorkflowStatus({
       </View>
 
       <View style={styles.actionRow}>
-        {canManage && onCloseApplicationEarly && !isApplicationClosed && (
+        {onCloseApplicationEarly ? (
           <Button
             style={[
               styles.actionButtonBase,
@@ -207,24 +187,22 @@ export default function MeetingWorkflowStatus({
             onPress={onCloseApplicationEarly}
             textStyle={[styles.actionButtonText, styles.actionButtonTextAmber]}
           >
-            모집 마감
+            신청 마감하기
           </Button>
-        )}
-        {canManage && onAutoFormTeams && (
+        ) : null}
+        {onAutoFormTeams ? (
           <Button
             style={[
               styles.actionButtonBase,
               styles.actionButtonBlue,
-              !canAutoFormTeams && styles.actionButtonDisabled,
             ]}
             onPress={onAutoFormTeams}
-            disabled={!canAutoFormTeams}
             textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
           >
             팀 편성 시작
           </Button>
-        )}
-        {canManage && onConfirmTeamFormation && workflowState === 'TEAM_FORMED' && (
+        ) : null}
+        {/* {onConfirmTeamFormation ? (
           <Button
             style={[
               styles.actionButtonBase,
@@ -235,8 +213,8 @@ export default function MeetingWorkflowStatus({
           >
             팀 편성 확정
           </Button>
-        )}
-        {canManage && onStartRounding && canStartRounding && (
+        ) : null} */}
+        {/* {onStartRounding ? (
           <Button
             style={[
               styles.actionButtonBase,
@@ -247,8 +225,8 @@ export default function MeetingWorkflowStatus({
           >
             모임 진행 시작
           </Button>
-        )}
-        {canManage && onCompleteRounding && canCompleteRounding && (
+        ) : null} */}
+        {onCompleteRounding ? (
           <Button
             style={[
               styles.actionButtonBase,
@@ -259,8 +237,8 @@ export default function MeetingWorkflowStatus({
           >
             라운딩 종료
           </Button>
-        )}
-        {canManage && onCompleteMeeting && canConfirmSettlement && (
+        ) : null}
+        {onCompleteMeeting ? (
           <Button
             style={[
               styles.actionButtonBase,
@@ -271,7 +249,7 @@ export default function MeetingWorkflowStatus({
           >
             정산 완료 처리
           </Button>
-        )}
+        ) : null}
       </View>
 
       <View style={styles.summaryCard}>

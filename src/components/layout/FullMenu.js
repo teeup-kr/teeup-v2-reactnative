@@ -1,6 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { navigateWithCap } from '@/lib/navigation/cappedHistory';
@@ -9,14 +10,14 @@ import { tokens } from '@/styles/style';
 
 import { useAppLayout } from '../../context/AppLayoutContext';
 import { useAuth } from '../../context/AuthContext';
-const MenuItem = ({ icon, label, onPress, isLast }) => (
+const MenuItem = ({ icon, label, onPress, isLast, mounted }) => (
   <View>
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
     >
       <View style={styles.menuIcon}>
-        <FontAwesome5 name={icon} size={16} color={colors.neutral[600]} />
+        {mounted ? <FontAwesome5 name={icon} size={16} color={colors.neutral[600]} /> : null}
       </View>
       <Text style={styles.menuLabel}>{label}</Text>
     </Pressable>
@@ -29,6 +30,11 @@ export default function FullMenu() {
   const insets = useSafeAreaInsets();
   const { isMenuOpen, closeMenu } = useAppLayout();
   const { isAuthenticated, logout } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!isMenuOpen) {
     return null;
@@ -106,7 +112,7 @@ export default function FullMenu() {
             accessibilityRole="button"
             accessibilityLabel="전체메뉴 닫기"
           >
-            <FontAwesome5 name="times" size={18} color={colors.neutral[700]} />
+            {mounted ? <FontAwesome5 name="times" size={18} color={colors.neutral[700]} /> : null}
           </Pressable>
         </View>
         <ScrollView contentContainerStyle={styles.sheetContent}>
@@ -122,11 +128,17 @@ export default function FullMenu() {
                   label={item.label}
                   onPress={item.onPress}
                   isLast={itemIndex === category.items.length - 1}
+                  mounted={mounted}
                 />
               ))}
             </View>
           ))}
         </ScrollView>
+        {Platform.OS === 'web' && (
+          <View style={[styles.menuFooter, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+            <Text style={styles.menuFooterText}>© 티업링크. All rights reserved.</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -200,5 +212,17 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
     color: colors.neutral[900],
+  },
+  menuFooter: {
+    borderTopWidth: 1,
+    borderTopColor: colors.neutral[200],
+    paddingVertical: tokens.padding.base,
+    paddingHorizontal: tokens.padding.lg,
+    backgroundColor: colors.neutral[50],
+  },
+  menuFooterText: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+    textAlign: 'center',
   },
 });

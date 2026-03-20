@@ -13,7 +13,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/api/api';
-import { createFetchNoticesHandler, createNoticeCreateHandler, createNoticePressHandler } from '@/lib/handler/clubs';
+import { createFetchNoticesHandler, createNoticePressHandler } from '@/lib/handler/clubs';
 import { normalizeClubNotices } from '@/lib/util/clubUtils';
 import { extractData, extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
@@ -64,7 +64,9 @@ export default function ClubNoticesScreen() {
 
   const normalizedNotices = useMemo(() => normalizeClubNotices(notices), [notices]);
   const handleCreatePress = useMemo(
-    () => createNoticeCreateHandler({ router, clubId: resolvedId }),
+    () => () => {
+      router.push(`/clubs/${resolvedId}/notices/create`);
+    },
     [router, resolvedId]
   );
   const handleNoticePress = useMemo(

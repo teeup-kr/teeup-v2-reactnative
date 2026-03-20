@@ -16,7 +16,6 @@ import { clubsApi, regionApi } from '@/lib/api/api';
 import {
   createFetchClubDetailHandler,
   createJoinRequestHandler,
-  createOpenJoinApplicationsHandler,
   createOpenManageHandler,
   createOpenMembersHandler,
 } from '@/lib/handler/clubs';
@@ -131,7 +130,9 @@ export default function ClubDetailScreen() {
     [resolvedId, router]
   );
   const handleOpenJoinApplications = useMemo(
-    () => createOpenJoinApplicationsHandler({ router }),
+    () => () => {
+      router.replace({ pathname: '/clubs', params: { tab: 'join-applications' } });
+    },
     [router]
   );
   const handleJoinPress = useMemo(

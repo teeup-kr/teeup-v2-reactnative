@@ -1,5 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -8,7 +9,6 @@ import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
 import { useAppLayout } from '../../context/AppLayoutContext';
-import { useAuth } from '../../context/AuthContext';
 const TAB_HEIGHT = 56;
 
 const isPathActive = (pathname, target) => {
@@ -21,7 +21,11 @@ export default function BottomNavigationBar() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { toggleMenu } = useAppLayout();
-  const { isAuthenticated } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleNavigate = (path) => {
     navigateWithCap(router, path);
@@ -33,15 +37,17 @@ export default function BottomNavigationBar() {
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <View style={styles.row}>
         <Pressable onPress={toggleMenu} style={styles.item}>
-          <FontAwesome5 name="th-large" size={18} color={colors.neutral[500]} />
+          {mounted ? <FontAwesome5 name="th-large" size={18} color={colors.neutral[500]} /> : null}
           <Text style={styles.label}>전체</Text>
         </Pressable>
         <Pressable onPress={() => handleNavigate('/app')} style={styles.item}>
-          <FontAwesome5
-            name="home"
-            size={18}
-            color={isPathActive(pathname, '/app') ? colors.primary[600] : colors.neutral[500]}
-          />
+          {mounted ? (
+            <FontAwesome5
+              name="home"
+              size={18}
+              color={isPathActive(pathname, '/app') ? colors.primary[600] : colors.neutral[500]}
+            />
+          ) : null}
           <Text
             style={[
               styles.label,
@@ -52,11 +58,13 @@ export default function BottomNavigationBar() {
           </Text>
         </Pressable>
         <Pressable onPress={() => handleNavigate('/clubs')} style={styles.item}>
-          <FontAwesome5
-            name="users"
-            size={18}
-            color={isPathActive(pathname, '/clubs') ? colors.primary[600] : colors.neutral[500]}
-          />
+          {mounted ? (
+            <FontAwesome5
+              name="users"
+              size={18}
+              color={isPathActive(pathname, '/clubs') ? colors.primary[600] : colors.neutral[500]}
+            />
+          ) : null}
           <Text
             style={[
               styles.label,
@@ -67,11 +75,13 @@ export default function BottomNavigationBar() {
           </Text>
         </Pressable>
         <Pressable onPress={() => handleNavigate('/meetings')} style={styles.item}>
-          <FontAwesome5
-            name="calendar-alt"
-            size={18}
-            color={isPathActive(pathname, '/meetings') ? colors.primary[600] : colors.neutral[500]}
-          />
+          {mounted ? (
+            <FontAwesome5
+              name="calendar-alt"
+              size={18}
+              color={isPathActive(pathname, '/meetings') ? colors.primary[600] : colors.neutral[500]}
+            />
+          ) : null}
           <Text
             style={[
               styles.label,
@@ -81,12 +91,14 @@ export default function BottomNavigationBar() {
             모임
           </Text>
         </Pressable>
-        <Pressable onPress={() => handleNavigate(isAuthenticated ? '/mypage' : '/login')} style={styles.item}>
-          <FontAwesome5
-            name="user"
-            size={18}
-            color={isMyActive ? colors.primary[600] : colors.neutral[500]}
-          />
+        <Pressable onPress={() => handleNavigate('/mypage')} style={styles.item}>
+          {mounted ? (
+            <FontAwesome5
+              name="user"
+              size={18}
+              color={isMyActive ? colors.primary[600] : colors.neutral[500]}
+            />
+          ) : null}
           <Text
             style={[
               styles.label,

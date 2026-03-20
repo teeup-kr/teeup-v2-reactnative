@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
+    "android": "npm run android:release:apk:split && adb install android/app/build/outputs/apk/release/app-arm64-v8a-release.apk",
     "android:dev": "EAS_BUILD_PLATFORM=android expo run:android",
     "android:release:apk": "EAS_BUILD_PLATFORM=android cd android && EAS_BUILD_PLATFORM=android ./gradlew :app:assembleRelease",
     "android:release:apk:split": "EAS_BUILD_PLATFORM=android cd android && EAS_BUILD_PLATFORM=android ./gradlew :app:assembleRelease -Pandroid.enableAbiSplits=true -Pandroid.enableUniversalApk=false",
@@ -14,7 +15,6 @@
     "test": "npm run lint && jest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "android": "expo run:android",
     "ios": "expo run:ios"
   },
   "dependencies": {
@@ -30,6 +30,7 @@
     "expo-navigation-bar": "^5.0.10",
     "expo-notifications": "~0.32.16",
     "expo-router": "~6.0.21",
+    "expo-secure-store": "~15.0.8",
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",

@@ -2,9 +2,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
-  Modal,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -13,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import HtmlContent from '@/components/ui/HtmlContent';
+import Modal from '@/components/ui/Modal';
 import { termsApi } from '@/lib/api/api';
 import { colors } from '@/styles/colors';
 
@@ -207,31 +206,28 @@ const TermsAgreeScreen = () => {
       </TouchableOpacity>
 
         {/* 중앙 모달 */}
-        <Modal visible={modalVisible} transparent animationType="fade">
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalBox}>
-              <Text style={styles.modalTitle}>
-                {terms[currentTermsKey]?.title ?? '약관'}
-              </Text>
-
-              <ScrollView style={styles.modalContent}>
-                {terms[currentTermsKey]?.content ? (
-                  <HtmlContent html={terms[currentTermsKey].content} />
-                ) : (
-                  <Text>약관 내용이 준비되지 않았습니다.</Text>
-                )}
-              </ScrollView>
-
-              <View style={styles.modalFooter}>
-                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <Text style={styles.cancel}>취소</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={acceptFromModal}>
-                  <Text style={styles.accept}>동의</Text>
-                </TouchableOpacity>
-              </View>
+        <Modal
+          visible={modalVisible}
+          title={terms[currentTermsKey]?.title ?? '약관'}
+          onClose={() => setModalVisible(false)}
+          containerStyle={styles.modalBox}
+          backdropStyle={styles.modalOverlay}
+          footer={(
+            <View style={styles.modalFooter}>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Text style={styles.cancel}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={acceptFromModal}>
+                <Text style={styles.accept}>동의</Text>
+              </TouchableOpacity>
             </View>
-          </View>
+          )}
+        >
+          {terms[currentTermsKey]?.content ? (
+            <HtmlContent html={terms[currentTermsKey].content} />
+          ) : (
+            <Text>약관 내용이 준비되지 않았습니다.</Text>
+          )}
         </Modal>
       </View>
     </SafeAreaView>
@@ -284,19 +280,14 @@ const styles = StyleSheet.create({
   submitText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 
   modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
     padding: 20,
   },
   modalBox: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
     maxHeight: '80%',
-    padding: 16,
+    width: '100%',
+    maxWidth: 470,
+    alignSelf: 'center',
   },
-  modalTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
-  modalContent: { marginBottom: 20 },
   modalFooter: {
     flexDirection: 'row',
     justifyContent: 'flex-end',

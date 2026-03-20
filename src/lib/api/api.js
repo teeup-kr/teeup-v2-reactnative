@@ -6,6 +6,7 @@ import { getNativePushToken } from '../util/pushToken';
 import { apiClient } from './apiClient';
 
 const AUTH_PREFIX = '/auth';
+const isWeb = Platform.OS === 'web';
 
 /**
  * 서버는 API 요청 시 "access" 타입 토큰만 허용합니다.
@@ -17,12 +18,14 @@ async function saveAuthData(authResponse) {
   const refreshToken = data?.refresh_token ?? data?.refreshToken;
   const user = data?.user ?? authResponse?.user;
 
-  if (!accessToken || typeof accessToken !== 'string') {
+  if (!isWeb && (!accessToken || typeof accessToken !== 'string')) {
     throw new Error('액세스 토큰이 없습니다.');
   }
 
-  // id_token은 사용하지 않음(서버가 access 토큰만 허용)
-  await tokenStorage.setTokens(accessToken, refreshToken);
+  if (!isWeb) {
+    // id_token은 사용하지 않음(서버가 access 토큰만 허용)
+    await tokenStorage.setTokens(accessToken, refreshToken);
+  }
   if (user) {
     await tokenStorage.setUser(user);
   }
@@ -58,6 +61,7 @@ function buildMeetingListParams(params = {}) {
     start_date: startDate,
     end_date: endDate,
     status_group: statusGroup,
+    list_type: listType,
   } = params;
 
   return {
@@ -67,6 +71,7 @@ function buildMeetingListParams(params = {}) {
     ...(startDate ? { start_date: startDate } : {}),
     ...(endDate ? { end_date: endDate } : {}),
     ...(statusGroup ? { status_group: statusGroup } : {}),
+    ...(listType ? { list_type: listType } : {}),
   };
 }
 
@@ -81,7 +86,6 @@ async function syncPushToken({ enabled = true } = {}) {
     return null;
   }
 
-  console.log('푸시 토큰 동기화 요청');
   return apiClient.post(`${AUTH_PREFIX}/push-token`, {
     push_token: pushToken,
     token_type: 'FCM',
@@ -89,59 +93,25 @@ async function syncPushToken({ enabled = true } = {}) {
   });
 }
 
-async function login(credentials) {
-  const response = await apiClient.post(`${AUTH_PREFIX}/login`, credentials, { auth: false });
-  await saveAuthData(response);
-  return response;
-}
-
-async function register(userData) {
-  return apiClient.post('/auth/register', userData, { auth: false });
-}
-
 async function refreshToken(refreshToken) {
-  const response = await apiClient.post(`${AUTH_PREFIX}/refresh`, { refresh_token: refreshToken }, { auth: false });
+  const response = isWeb
+    ? await apiClient.post(`${AUTH_PREFIX}/refresh`, undefined, { auth: false })
+    : await apiClient.post(`${AUTH_PREFIX}/refresh`, { refresh_token: refreshToken }, { auth: false });
   const data = response?.data ?? response;
   const accessToken = data?.access_token ?? data?.accessToken;
   const newRefreshToken = data?.refresh_token ?? data?.refreshToken;
-  if (accessToken) {
+  const user = data?.user ?? response?.user;
+  if (!isWeb && accessToken) {
     await tokenStorage.setTokens(accessToken, newRefreshToken);
+  }
+  if (user) {
+    await tokenStorage.setUser(user);
   }
   return response;
 }
 
 async function getCurrentUser() {
-  return apiClient.get(`${AUTH_PREFIX}/me`);
-}
-
-async function changePassword(passwordData) {
-  return apiClient.put(`${AUTH_PREFIX}/change-password`, null, {
-    params: {
-      current_password: passwordData.current_password,
-      new_password: passwordData.new_password,
-      confirm_password: passwordData.confirm_password,
-    },
-  });
-}
-
-async function requestPasswordReset(data) {
-  return apiClient.post(`${AUTH_PREFIX}/request-password-reset`, data, { auth: false });
-}
-
-async function resetPassword(token, newPassword) {
-  return apiClient.post(`${AUTH_PREFIX}/reset-password`, { token, new_password: newPassword }, { auth: false });
-}
-
-async function verifyEmail(token) {
-  return apiClient.post(`${AUTH_PREFIX}/verify-email`, { token }, { auth: false });
-}
-
-async function resendVerification() {
-  return apiClient.post(`${AUTH_PREFIX}/resend-verification`, null, { auth: false });
-}
-
-async function checkEmail(email) {
-  return apiClient.get(`${AUTH_PREFIX}/check-email`, { params: { email }, auth: false });
+  return apiClient.get(`${AUTH_PREFIX}/me`, { auth: true });
 }
 
 async function checkNickname(nickname) {
@@ -157,7 +127,7 @@ async function googleLogin(oauthData) {
 }
 
 async function logout() {
-  const refreshToken = await tokenStorage.getRefreshToken();
+  const refreshToken = isWeb ? null : await tokenStorage.getRefreshToken();
 
   try {
     await syncPushToken({ enabled: false });
@@ -166,7 +136,10 @@ async function logout() {
   }
 
   try {
-    await apiClient.post(`${AUTH_PREFIX}/logout`, { refresh_token: refreshToken });
+    await apiClient.post(
+      `${AUTH_PREFIX}/logout`,
+      isWeb ? undefined : { refresh_token: refreshToken }
+    );
   } catch (error) {
     console.warn('로그아웃 API 호출 실패:', error?.message || error);
   } finally {
@@ -180,16 +153,8 @@ async function deleteAccount() {
 }
 
 export const authApi = {
-  login,
-  register,
   refreshToken,
   getCurrentUser,
-  changePassword,
-  requestPasswordReset,
-  resetPassword,
-  verifyEmail,
-  resendVerification,
-  checkEmail,
   checkNickname,
   googleLogin,
   syncPushToken,
@@ -197,8 +162,12 @@ export const authApi = {
   deleteAccount,
 };
 
+async function fetchMeetings(params) {
+  return apiClient.get('/meetings/', { params: buildMeetingListParams(params) });
+}
+
 async function getRounds(params) {
-  return apiClient.get('/rounds', { params });
+  return fetchMeetings({ ...(params || {}), list_type: 'rounding' });
 }
 
 async function getRound(id) {
@@ -500,7 +469,7 @@ async function createSocial(data, config = {}) {
 }
 
 async function getSocials(params) {
-  return apiClient.get('/socials', { params });
+  return fetchMeetings({ ...(params || {}), list_type: 'social' });
 }
 
 async function getSocial(id) {
@@ -525,6 +494,10 @@ async function leaveSocial(id) {
 
 async function cancelSocial(id, reason) {
   return apiClient.post(`/socials/${id}/cancel`, { reason });
+}
+
+async function fetchSocialParticipants(meetingId) {
+  return apiClient.get(`/socials/${meetingId}/participants`);
 }
 
 export const socialsApi = {
@@ -1113,120 +1086,36 @@ export const termsApi = {
   postAgreementsBulk
 };
 
-async function fetchMyClubs(params) {
-  return apiClient.get('/clubs/my', { params: buildClubStatusParams(params || {}) });
-}
-
-async function fetchRounds(params) {
-  return apiClient.get('/rounds/', { params: buildMeetingListParams(params) });
-}
-
-async function fetchSocials(params) {
-  return apiClient.get('/socials/', { params: buildMeetingListParams(params) });
-}
-
-async function fetchRound(meetingId) {
-  return apiClient.get(`/rounds/${meetingId}`);
-}
-
-async function updateRoundById(meetingId, payload) {
-  return apiClient.put(`/rounds/${meetingId}`, payload);
-}
-
-async function fetchSocial(meetingId) {
-  return apiClient.get(`/socials/${meetingId}`);
-}
-
-async function updateSocialById(meetingId, payload) {
-  return apiClient.put(`/socials/${meetingId}`, payload);
-}
-
-async function fetchRoundExpenses(meetingId) {
-  return apiClient.get(`/rounds/${meetingId}/expenses`);
-}
-
-async function fetchRoundParticipants(meetingId) {
-  return apiClient.get(`/rounds/${meetingId}/participants`);
-}
-
-async function fetchSocialParticipants(meetingId) {
-  return apiClient.get(`/socials/${meetingId}/participants`);
-}
-
-async function fetchRoundTeams(meetingId) {
-  return apiClient.get(`/rounds/${meetingId}/teams`);
-}
-
-async function fetchApplicationStatus(meetingId) {
-  return apiClient.get(`/meetings/${meetingId}/application-status`);
-}
-
-async function closeApplicationEarlyByMeeting(meetingId) {
-  return apiClient.post(`/meetings/${meetingId}/close-application`);
-}
-
-async function autoFormTeamsByMeeting(meetingId, payload) {
-  return apiClient.post(`/meetings/${meetingId}/teams/auto-formation`, payload);
-}
-
-async function confirmTeamFormationByMeeting(meetingId) {
-  return apiClient.post(`/meetings/${meetingId}/teams/confirm`);
-}
-
-async function startRoundingByMeeting(meetingId) {
-  return apiClient.post(`/meetings/${meetingId}/start-rounding`);
-}
-
-async function completeRoundingByMeeting(meetingId) {
-  return apiClient.post(`/meetings/${meetingId}/complete-rounding`);
-}
-
-async function confirmSettlementByMeeting(meetingId) {
-  return apiClient.post(`/meetings/${meetingId}/settlement/confirm`);
-}
-
-async function joinRoundByMeeting(meetingId) {
-  return apiClient.post(`/rounds/${meetingId}/join`);
-}
-
-async function leaveRoundByMeeting(meetingId) {
-  return apiClient.delete(`/rounds/${meetingId}/leave`);
-}
-
-async function joinSocialByMeeting(meetingId) {
-  return apiClient.post(`/socials/${meetingId}/join`, {});
-}
-
-async function leaveSocialByMeeting(meetingId) {
-  return apiClient.delete(`/socials/${meetingId}/leave`);
-}
-
-async function fetchMyProfile() {
-  return apiClient.get('/users/profile');
-}
-
-async function fetchUserHandicap(userId) {
-  return apiClient.get(`/users/${userId}/handicap`);
-}
-
-async function fetchMyMeetings(params) {
-  return apiClient.get('/users/my-meetings', { params });
-}
+const fetchMyClubs = getMyClubs;
+const fetchRounds = getRounds;
+const fetchSocials = getSocials;
+const fetchRound = getRound;
+const updateRoundById = updateRound;
+const fetchSocial = getSocial;
+const updateSocialById = updateSocial;
+const fetchRoundExpenses = getRoundExpenses;
+const fetchRoundParticipants = getRoundParticipants;
+const fetchRoundTeams = getRoundTeams;
+const fetchApplicationStatus = getApplicationStatus;
+const closeApplicationEarlyByMeeting = closeApplicationEarly;
+const autoFormTeamsByMeeting = autoFormTeams;
+const confirmTeamFormationByMeeting = confirmTeamFormation;
+const startRoundingByMeeting = startRounding;
+const completeRoundingByMeeting = completeRounding;
+const confirmSettlementByMeeting = confirmSettlement;
+const joinRoundByMeeting = joinRound;
+const leaveRoundByMeeting = leaveRound;
+const joinSocialByMeeting = joinSocial;
+const leaveSocialByMeeting = leaveSocial;
+const fetchMyProfile = getMyProfile;
+const fetchUserHandicap = getUserHandicap;
+const fetchMyMeetings = getMyMeetings;
+const fetchMyRoundingMeetings = getMyRoundingMeetings;
+const fetchRoundingStats = getRoundingStats;
+const checkNicknameAvailability = checkNickname;
 
 async function fetchMyParticipatingMeetings(params) {
-  return apiClient.get('/meetings/my/participating', { params: buildMeetingListParams(params) });
-}
-
-async function fetchMyRoundingMeetings(params) {
-  return apiClient.get('/users/me/rounding-meetings', { params });
-}
-
-async function fetchRoundingStats() {
-  return apiClient.get('/users/me/rounding-stats');
-}
-
-async function checkNicknameAvailability(nickname) {
-  return apiClient.get('/auth/check-nickname', { params: { nickname }, auth: false });
+  return fetchMeetings({ ...(params || {}), list_type: 'participating' });
 }
 
 export const meetingsApi = {
@@ -1278,7 +1167,6 @@ export const mypageApi = {
   fetchMyRoundingMeetings,
   fetchRoundingStats,
   fetchRoundParticipants,
-  changePassword,
   checkNicknameAvailability,
   completeRounding,
   submitSimpleScore,

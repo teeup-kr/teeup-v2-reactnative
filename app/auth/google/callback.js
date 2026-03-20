@@ -1,23 +1,29 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { googleAuthConfig } from '@/constants/authConstants';
 import { useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
+import { replaceWithPolicy } from '@/lib/navigation/cappedHistory';
 import { tokenStorage } from '@/lib/tokenStorage';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
+import LoginScreen from '../../login';
+
 export default function GoogleOAuthCallback() {
   const router = useRouter();
-  const { refreshAuth, setAuthError } = useAuth();
+  const { setAuthError, setUser } = useAuth();
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const hasHandledRef = useRef(false);
 
   useEffect(() => {
     if (Platform.OS !== 'web') return;
+    if (hasHandledRef.current) return;
+    hasHandledRef.current = true;
 
     const params = new URLSearchParams(window.location.search);
 
@@ -36,11 +42,13 @@ export default function GoogleOAuthCallback() {
         setAuthError(`Google 로그인 실패: ${authError}`);
         await tokenStorage.clearOauth();
         resetUrl();
+        setIsLoading(false);
         return;
       }
 
       if (!authorizationCode) {
         resetUrl();
+        setIsLoading(false);
         return;
       }
 
@@ -62,15 +70,19 @@ export default function GoogleOAuthCallback() {
           redirectUri: googleAuthConfig.redirectUrl,
         });
 
-        await refreshAuth();
+        if (!response?.user) {
+          throw new Error('사용자 정보가 없습니다.');
+        }
+
+        setAuthError(null);
+        setUser(response.user);
         const needsTermsAgreement = response?.user?.needs_terms_agreement === true;
         if (needsTermsAgreement) {
-          router.replace('/terms-agree');
-          resetUrl();
+          replaceWithPolicy(router, '/terms-agree', { webHardReplace: true });
           return;
         }
 
-        router.replace('/app');
+        replaceWithPolicy(router, '/app', { webHardReplace: true });
       } catch (err) {
         console.error('Google OAuth callback error:', err);
         setIsLoading(false);
@@ -86,8 +98,7 @@ export default function GoogleOAuthCallback() {
           // 약관 동의 페이지로 리다이렉트
           setError('필수 약관에 동의하지 않아 로그인할 수 없습니다. 약관 동의 페이지로 이동합니다...');
           setTimeout(() => {
-            router.replace('/terms-agree');
-            resetUrl();
+            replaceWithPolicy(router, '/terms-agree', { webHardReplace: true });
           }, 1500); // 1.5초 후 리다이렉트
           return;
         }
@@ -110,10 +121,14 @@ export default function GoogleOAuthCallback() {
     };
 
     void handleCallback();
-  }, [router, refreshAuth, setAuthError]);
+  }, [router, setAuthError, setUser]);
 
   // 로딩 또는 에러 화면 표시
   if (Platform.OS === 'web') {
+    if (!isLoading && error) {
+      return <LoginScreen />;
+    }
+
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
@@ -121,14 +136,6 @@ export default function GoogleOAuthCallback() {
             <>
               <ActivityIndicator size="large" color={colors.primary[600]} />
               <Text style={styles.loadingText}>로그인 처리 중...</Text>
-            </>
-          ) : error ? (
-            <>
-              <Text style={styles.errorTitle}>로그인 오류</Text>
-              <Text style={styles.errorText}>{error}</Text>
-              {error.includes('약관') && (
-                <Text style={styles.infoText}>약관 동의 페이지로 이동합니다...</Text>
-              )}
             </>
           ) : null}
         </View>

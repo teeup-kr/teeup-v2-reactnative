@@ -148,24 +148,6 @@ export function buildClubDetailDisplay(club) {
     feeSummaryDisplay,
   };
 };
-export function buildFeeSummary(fees) {
-  if (fees.length === 0) {
-    return { amount: '-', nextDue: '-' };
-  }
-  const sortedByDue = fees
-    .filter((fee) => fee?.due_date)
-    .sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
-  const nextDue = sortedByDue[0]?.due_date
-    ? sortedByDue[0].due_date.slice(0, 10)
-    : '-';
-  const recurring = fees.find((fee) => fee?.amount !== undefined && fee?.amount !== null);
-  const amountValue = recurring?.amount;
-  const amount =
-    amountValue !== undefined && amountValue !== null
-      ? `${Number(amountValue).toLocaleString('ko-KR')}원`
-      : '-';
-  return { amount, nextDue };
-};
 
 export function normalizeFeeItem(fee) {
   const title = fee?.name || fee?.title || fee?.type || '회비';
@@ -290,18 +272,6 @@ export function getRegulationUpdatedDate(regulation) {
       ? regulation.created_at.slice(0, 10)
       : '-';
 }
-export function buildClubStats(statsData) {
-  const activeMembers = statsData?.active_members ?? statsData?.activeMembers ?? '-';
-  const totalMeetings = statsData?.total_meetings ?? statsData?.totalMeetings ?? '-';
-  const settlementCompleted =
-    statsData?.settlement_completed ?? statsData?.settlementCompleted ?? '-';
-
-  return [
-    { id: 'members', label: '활성 멤버', value: activeMembers },
-    { id: 'meetings', label: '총 모임', value: totalMeetings },
-    { id: 'settlement', label: '정산 완료', value: settlementCompleted },
-  ];
-};
 
 // export const clubUtils = {
 //   getClubStatusBadgeConfig,
@@ -314,7 +284,6 @@ export function buildClubStats(statsData) {
 //   getClubCardVariant,
 //   normalizeClubActivities,
 //   buildClubDetailDisplay,
-//   buildFeeSummary,
 //   normalizeFeeItem,
 //   normalizeClubMembers,
 //   buildMemberSummary,
@@ -323,5 +292,4 @@ export function buildClubStats(statsData) {
 //   buildClubRegisterPayload,
 //   normalizeClubRegulations,
 //   getRegulationUpdatedDate,
-//   buildClubStats,
 // };

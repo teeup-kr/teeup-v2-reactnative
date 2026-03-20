@@ -1,6 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import LoginRequired from '@/components/auth/LoginRequired';
+import AppFooter from '@/components/layout/AppFooter';
 import AppHeader from '@/components/layout/AppHeader';
 import MeetingCard from '@/components/meetings/MeetingCard';
 import MeetingDateField from '@/components/meetings/MeetingDateField';
@@ -34,7 +34,6 @@ import {
   createSearchInputChangeHandler,
   createStatusFilterHandler,
   createTabChangeHandler,
-  createTabPressHandler,
 } from '@/lib/handler/meetings';
 import {
   extractList,
@@ -43,6 +42,8 @@ import {
 } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+import LoginScreen from '../../login';
 
 
 export default function MeetingsScreen() {
@@ -166,52 +167,46 @@ export default function MeetingsScreen() {
     ]
   );
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setLoading(false);
-      return;
-    }
-
-    const loadData = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        if (activeTab === 'rounding') {
-          await fetchRoundingMeetings(roundingPage, roundingSearchQuery);
-        } else if (activeTab === 'social') {
-          await fetchSocialMeetings(socialPage, socialSearchQuery);
-        } else {
-          await fetchParticipatingMeetings(participatingPage, participatingSearchQuery);
-        }
-      } finally {
+  useFocusEffect(
+    useCallback(() => {
+      if (!isAuthenticated) {
         setLoading(false);
+        return undefined;
       }
-    };
 
-    loadData();
-  }, [
-    activeTab,
-    fetchParticipatingMeetings,
-    fetchRoundingMeetings,
-    fetchSocialMeetings,
-    isAuthenticated,
-    participatingEndDate,
-    participatingPage,
-    participatingSearchQuery,
-    participatingStartDate,
-    participatingStatusFilter,
-    roundingEndDate,
-    roundingPage,
-    roundingSearchQuery,
-    roundingStartDate,
-    roundingStatusFilter,
-    socialEndDate,
-    socialPage,
-    socialSearchQuery,
-    socialStartDate,
-    socialStatusFilter,
-  ]);
+      const loadData = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+          if (activeTab === 'rounding') {
+            await fetchRoundingMeetings(roundingPage, roundingSearchQuery);
+          } else if (activeTab === 'social') {
+            await fetchSocialMeetings(socialPage, socialSearchQuery);
+          } else {
+            await fetchParticipatingMeetings(participatingPage, participatingSearchQuery);
+          }
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadData();
+      return undefined;
+    }, [
+      activeTab,
+      fetchParticipatingMeetings,
+      fetchRoundingMeetings,
+      fetchSocialMeetings,
+      isAuthenticated,
+      participatingPage,
+      participatingSearchQuery,
+      roundingPage,
+      roundingSearchQuery,
+      socialPage,
+      socialSearchQuery,
+    ])
+  );
 
   const handleTabChange = useMemo(
     () =>
@@ -226,7 +221,11 @@ export default function MeetingsScreen() {
   );
 
   const handleTabPress = useMemo(
-    () => createTabPressHandler({ onTabChange: handleTabChange }),
+    () =>
+      (tabId) =>
+        () => {
+          handleTabChange(tabId);
+        },
     [handleTabChange]
   );
 
@@ -502,21 +501,11 @@ export default function MeetingsScreen() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <LoginRequired
-        message="로그인 후 이용가능합니다"
-        description="모임 목록을 보려면 로그인이 필요합니다."
-      />
-    );
+    return <LoginScreen />;
   }
 
   if (error === 'AUTH_REQUIRED') {
-    return (
-      <LoginRequired
-        message="로그인 후 이용가능합니다"
-        description="모임 목록을 보려면 로그인이 필요합니다."
-      />
-    );
+    return <LoginScreen />;
   }
 
   return (

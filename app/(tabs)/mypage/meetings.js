@@ -31,7 +31,6 @@ import {
     createPrevPageHandler,
     createResetFiltersHandler,
     createTypeFilterHandler,
-    createTypeTabPressHandler,
 } from '@/lib/handler/mypage';
 import {
     extractList,
@@ -72,7 +71,9 @@ export default function MyMeetingsScreen() {
     [setTypeFilter, setPage]
   );
   const handleTypeTabPress = useMemo(
-    () => createTypeTabPressHandler({ onSelect: handleTypeFilterSelect }),
+    () => (tabId) => () => {
+      handleTypeFilterSelect(tabId);
+    },
     [handleTypeFilterSelect]
   );
   const handleStartPickerChange = useMemo(

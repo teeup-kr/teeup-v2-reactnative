@@ -18,6 +18,12 @@ const formationModeOptions = [
   { value: 'GENDER_MIXED_RANDOM', label: '성별 혼합 + 랜덤' },
 ];
 
+function normalizeFormationMode(value) {
+  if (value === 'GENDER_SEPARATED') return 'GENDER_SEPARATED_HANDICAP';
+  if (value === 'MIXED') return 'GENDER_MIXED_HANDICAP';
+  return value || 'GENDER_MIXED_HANDICAP';
+}
+
 export default function TeamFormationModal({
   isOpen,
   visible,
@@ -29,22 +35,19 @@ export default function TeamFormationModal({
   onOpenBatch,
 }) {
   const isVisible = visible ?? isOpen;
-  const [formationMode, setFormationMode] = useState(meeting?.team_formation_mode || 'GENDER_MIXED_HANDICAP');
+  const [formationMode, setFormationMode] = useState(normalizeFormationMode(meeting?.team_formation_mode));
   const [teamSize, setTeamSize] = useState(String(meeting?.team_size || 4));
+  const [guideModalOpen, setGuideModalOpen] = useState(false);
 
   const guests = useMemo(
     () => (Array.isArray(participants) ? participants.filter((p) => p?.is_guest || p?.guest_id) : []),
     [participants]
   );
 
-  const canSubmit = useMemo(() => {
-    return !!formationMode && !!teamSize;
-  }, [formationMode, teamSize]);
-
   if (!isVisible) return null;
 
   const handleSubmit = () => {
-    if (!canSubmit) return;
+    if (processing) return;
     const invalidGuest = guests.find((g) => {
       const raw = String(g.birthdate || '').trim().replace(/\D/g, '');
       return raw.length === 8 && !formatBirthdateForApi(g.birthdate);
@@ -53,62 +56,93 @@ export default function TeamFormationModal({
       Alert.alert('확인', '게스트 생년월일을 확인해주세요. (1900년~올해, 올바른 월·일)');
       return;
     }
+    setGuideModalOpen(true);
+  };
+
+  const handleCloseGuideModal = () => {
+    setGuideModalOpen(false);
+  };
+
+  const handleConfirmGuideModal = () => {
+    setGuideModalOpen(false);
+    if (onClose) {
+      onClose();
+    }
     if (onFormTeams) {
       onFormTeams({
         formation_mode: formationMode,
         team_size: Number(teamSize),
+        preview: true,
       });
     }
   };
 
   return (
-    <Modal
-      visible={isVisible}
-      title="팀 편성"
-      onClose={onClose}
-      footer={(
-        <View style={styles.footerRow}>
-          <Button variant="outline" size="sm" style={styles.footerButton} onPress={onClose}>
-            닫기
-          </Button>
-          {onOpenBatch ? (
-            <Button size="sm" variant="outline" style={styles.footerButton} onPress={onOpenBatch}>
-              일괄 비교
+    <>
+      <Modal
+        visible={isVisible}
+        title="팀 편성"
+        onClose={onClose}
+        footer={(
+          <View style={styles.footerRow}>
+            <Button variant="outline" size="sm" style={styles.footerButton} onPress={onClose}>
+              닫기
             </Button>
-          ) : null}
-          <Button size="sm" style={styles.footerButton} onPress={handleSubmit} disabled={!canSubmit} loading={processing}>
-            팀 편성 시작
-          </Button>
+            {onOpenBatch ? (
+              <Button size="sm" variant="outline" style={styles.footerButton} onPress={onOpenBatch}>
+                일괄 비교
+              </Button>
+            ) : null}
+            <Button size="sm" style={styles.footerButton} onPress={handleSubmit}>
+              {processing ? '팀 편성 중...' : '팀 편성 시작'}
+            </Button>
+          </View>
+        )}
+      >
+        <Text style={styles.sectionTitle}>편성 조건</Text>
+        <View style={styles.modeGrid}>
+          {formationModeOptions.map((option) => (
+            <Pressable
+              key={option.value}
+              onPress={() => setFormationMode(option.value)}
+              style={({ pressed }) => [
+                styles.modeChip,
+                formationMode === option.value && styles.modeChipActive,
+                pressed && styles.modeChipPressed,
+              ]}
+            >
+              <Text style={[styles.modeChipText, formationMode === option.value && styles.modeChipTextActive]}>
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
         </View>
-      )}
-    >
-      <Text style={styles.sectionTitle}>편성 조건</Text>
-      <View style={styles.modeGrid}>
-        {formationModeOptions.map((option) => (
-          <Pressable
-            key={option.value}
-            onPress={() => setFormationMode(option.value)}
-            style={({ pressed }) => [
-              styles.modeChip,
-              formationMode === option.value && styles.modeChipActive,
-              pressed && styles.modeChipPressed,
-            ]}
-          >
-            <Text style={[styles.modeChipText, formationMode === option.value && styles.modeChipTextActive]}>
-              {option.label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
 
-      <Input
-        label="팀 인원"
-        value={teamSize}
-        onChangeText={setTeamSize}
-        keyboardType="number-pad"
-        placeholder="예: 4"
-      />
-    </Modal>
+        <Input
+          label="팀 인원"
+          value={teamSize}
+          onChangeText={setTeamSize}
+          keyboardType="number-pad"
+          placeholder="예: 4"
+        />
+      </Modal>
+
+      <Modal
+        visible={guideModalOpen}
+        title="편성이 완료되었습니다."
+        onClose={handleCloseGuideModal}
+        containerStyle={styles.guideModalCard}
+        footer={(
+          <View style={styles.footerRow}>
+            <Button size="sm" style={styles.footerButton} onPress={handleConfirmGuideModal}>
+              확인
+            </Button>
+          </View>
+        )}
+      >
+        <Text style={styles.guideText}>결과를 확인하시고 팀 편성 확정 버튼을 눌러주세요.</Text>
+      </Modal>
+    </>
   );
 }
 
@@ -155,5 +189,14 @@ const styles = StyleSheet.create({
   },
   footerButton: {
     flex: 1,
+  },
+  guideModalCard: {
+    maxWidth: 320,
+    alignSelf: 'center',
+  },
+  guideText: {
+    fontSize: tokens.font.sm,
+    color: colors.neutral[700],
+    lineHeight: 20,
   },
 });

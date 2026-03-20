@@ -1,9 +1,7 @@
-import { FontAwesome5 } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -14,6 +12,7 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
+import Modal from '@/components/ui/Modal';
 import { roundsApi } from '@/lib/api/api';
 import { extractData, extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
@@ -287,202 +286,169 @@ export default function HoleScoreTableModal({
   return (
     <Modal
       visible={visible}
-      transparent
+      title="홀별 점수 입력"
+      onClose={isSaving ? undefined : closeModal}
       animationType="fade"
-      onRequestClose={closeModal}
-    >
-      <View style={styles.modalBackdrop}>
-        <View style={styles.modalSheet}>
-          <View style={styles.headerRow}>
-            <View>
-              <Text style={styles.title}>홀별 점수 입력</Text>
-              <Text style={styles.subTitle}>입력값을 비우면 해당 홀 기록은 삭제됩니다.</Text>
-            </View>
+      scroll={false}
+      containerStyle={styles.modalSheet}
+      backdropStyle={styles.modalBackdrop}
+      bodyStyle={styles.modalBody}
+      footer={(
+        <View style={styles.footerRow}>
+          <Pressable
+            onPress={closeModal}
+            disabled={isSaving}
+            style={({ pressed }) => [
+              styles.footerBtn,
+              styles.footerBtnOutline,
+              pressed && { opacity: 0.9 },
+              isSaving && { opacity: 0.5 },
+            ]}
+          >
+            <Text style={styles.footerBtnOutlineText}>취소</Text>
+          </Pressable>
 
-            <Pressable
-              onPress={closeModal}
-              style={({ pressed }) => [
-                styles.iconBtn,
-                pressed && { opacity: 0.7 },
-              ]}
-              disabled={isSaving}
-            >
-              <FontAwesome5 name="times" size={16} color={colors.neutral[500]} />
-            </Pressable>
-          </View>
-
-          {isLoading ? (
-            <View style={styles.stateWrap}>
-              <ActivityIndicator size="small" color={colors.primary[600]} />
-              <Text style={styles.stateText}>홀별 점수를 불러오는 중...</Text>
-            </View>
-          ) : error ? (
-            <View style={styles.stateWrap}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : (
-            <>
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>입력 홀</Text>
-                  <Text style={styles.summaryValue}>{totalInputCount}</Text>
-                </View>
-                <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>총 타수</Text>
-                  <Text style={styles.summaryValue}>{totalValue}</Text>
-                </View>
-                <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>평균</Text>
-                  <Text style={styles.summaryValue}>{averageValue}</Text>
-                </View>
-                <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>최고/최악</Text>
-                  <Text style={styles.summaryValue}>{`${bestValue} / ${worstValue}`}</Text>
-                </View>
+          <Pressable
+            onPress={handleSave}
+            disabled={isSaving || isLoading}
+            style={({ pressed }) => [
+              styles.footerBtn,
+              styles.footerBtnPrimary,
+              pressed && { opacity: 0.9 },
+              (isSaving || isLoading) && { opacity: 0.5 },
+            ]}
+          >
+            {isSaving ? (
+              <View style={styles.inlineRow}>
+                <ActivityIndicator size="small" color={colors.white} />
+                <Text style={styles.footerBtnPrimaryText}>저장 중...</Text>
               </View>
-
-              <View style={styles.tableHeader}>
-                <Text style={[styles.headerCell, styles.holeCol]}>홀</Text>
-                <Text style={[styles.headerCell, styles.parCol]}>PAR</Text>
-                <Text style={[styles.headerCell, styles.strokeCol]}>타수</Text>
-                <Text style={[styles.headerCell, styles.diffCol]}>+/-</Text>
-              </View>
-
-              <ScrollView style={styles.tableBody} contentContainerStyle={styles.tableBodyContent}>
-                {rows.map((row, index) => (
-                  <View
-                    key={`hole-${row.hole_number}`}
-                    style={[
-                      styles.tableRow,
-                      index % 2 === 0 && styles.tableRowAlt,
-                    ]}
-                  >
-                    <View style={[styles.bodyCell, styles.holeCol]}>
-                      <Text style={styles.holeText}>{row.hole_number}</Text>
-                    </View>
-
-                    <View style={[styles.bodyCell, styles.parCol]}>
-                      <View style={styles.pickerWrap}>
-                        <Picker
-                          selectedValue={PAR_OPTIONS.map(String).includes(row.par) ? row.par : DEFAULT_PAR}
-                          onValueChange={(value) => handleParChange(row.hole_number, value)}
-                          enabled={!isSaving}
-                          style={styles.picker}
-                          mode={Platform.OS === 'android' ? 'dropdown' : undefined}
-                          dropdownIconColor={colors.neutral[600]}
-                          itemStyle={Platform.OS === 'ios' ? styles.pickerItem : undefined}
-                          prompt="PAR 선택"
-                        >
-                          {PAR_OPTIONS.map((p) => (
-                            <Picker.Item key={p} label={String(p)} value={String(p)} />
-                          ))}
-                        </Picker>
-                      </View>
-                    </View>
-
-                    <View style={[styles.bodyCell, styles.strokeCol]}>
-                      <TextInput
-                        value={row.strokes}
-                        onChangeText={(value) => handleStrokeChange(row.hole_number, value)}
-                        keyboardType="number-pad"
-                        editable={!isSaving}
-                        style={styles.input}
-                        placeholder="-"
-                        placeholderTextColor={colors.neutral[400]}
-                      />
-                    </View>
-
-                    <View style={[styles.bodyCell, styles.diffCol]}>
-                      <Text
-                        style={[styles.diffText, { color: getDiffColor(row.strokes, row.par) }]}
-                        numberOfLines={1}
-                      >
-                        {getDiffDisplayText(row.strokes, row.par)}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </ScrollView>
-            </>
-          )}
-
-          <View style={styles.footerRow}>
-            <Pressable
-              onPress={closeModal}
-              disabled={isSaving}
-              style={({ pressed }) => [
-                styles.footerBtn,
-                styles.footerBtnOutline,
-                pressed && { opacity: 0.9 },
-                isSaving && { opacity: 0.5 },
-              ]}
-            >
-              <Text style={styles.footerBtnOutlineText}>취소</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={handleSave}
-              disabled={isSaving || isLoading}
-              style={({ pressed }) => [
-                styles.footerBtn,
-                styles.footerBtnPrimary,
-                pressed && { opacity: 0.9 },
-                (isSaving || isLoading) && { opacity: 0.5 },
-              ]}
-            >
-              {isSaving ? (
-                <View style={styles.inlineRow}>
-                  <ActivityIndicator size="small" color={colors.white} />
-                  <Text style={styles.footerBtnPrimaryText}>저장 중...</Text>
-                </View>
-              ) : (
-                <Text style={styles.footerBtnPrimaryText}>저장</Text>
-              )}
-            </Pressable>
-          </View>
+            ) : (
+              <Text style={styles.footerBtnPrimaryText}>저장</Text>
+            )}
+          </Pressable>
         </View>
-      </View>
+      )}
+    >
+      <Text style={styles.subTitle}>입력값을 비우면 해당 홀 기록은 삭제됩니다.</Text>
+      {isLoading ? (
+        <View style={styles.stateWrap}>
+          <ActivityIndicator size="small" color={colors.primary[600]} />
+          <Text style={styles.stateText}>홀별 점수를 불러오는 중...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.stateWrap}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : (
+        <>
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>입력 홀</Text>
+              <Text style={styles.summaryValue}>{totalInputCount}</Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>총 타수</Text>
+              <Text style={styles.summaryValue}>{totalValue}</Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>평균</Text>
+              <Text style={styles.summaryValue}>{averageValue}</Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>최고/최악</Text>
+              <Text style={styles.summaryValue}>{`${bestValue} / ${worstValue}`}</Text>
+            </View>
+          </View>
+
+          <View style={styles.tableHeader}>
+            <Text style={[styles.headerCell, styles.holeCol]}>홀</Text>
+            <Text style={[styles.headerCell, styles.parCol]}>PAR</Text>
+            <Text style={[styles.headerCell, styles.strokeCol]}>타수</Text>
+            <Text style={[styles.headerCell, styles.diffCol]}>+/-</Text>
+          </View>
+
+          <ScrollView style={styles.tableBody} contentContainerStyle={styles.tableBodyContent}>
+            {rows.map((row, index) => (
+              <View
+                key={`hole-${row.hole_number}`}
+                style={[
+                  styles.tableRow,
+                  index % 2 === 0 && styles.tableRowAlt,
+                ]}
+              >
+                <View style={[styles.bodyCell, styles.holeCol]}>
+                  <Text style={styles.holeText}>{row.hole_number}</Text>
+                </View>
+
+                <View style={[styles.bodyCell, styles.parCol]}>
+                  <View style={styles.pickerWrap}>
+                    <Picker
+                      selectedValue={PAR_OPTIONS.map(String).includes(row.par) ? row.par : DEFAULT_PAR}
+                      onValueChange={(value) => handleParChange(row.hole_number, value)}
+                      enabled={!isSaving}
+                      style={styles.picker}
+                      mode={Platform.OS === 'android' ? 'dropdown' : undefined}
+                      dropdownIconColor={colors.neutral[600]}
+                      itemStyle={Platform.OS === 'ios' ? styles.pickerItem : undefined}
+                      prompt="PAR 선택"
+                    >
+                      {PAR_OPTIONS.map((p) => (
+                        <Picker.Item key={p} label={String(p)} value={String(p)} />
+                      ))}
+                    </Picker>
+                  </View>
+                </View>
+
+                <View style={[styles.bodyCell, styles.strokeCol]}>
+                  <TextInput
+                    value={row.strokes}
+                    onChangeText={(value) => handleStrokeChange(row.hole_number, value)}
+                    keyboardType="number-pad"
+                    editable={!isSaving}
+                    style={styles.input}
+                    placeholder="-"
+                    placeholderTextColor={colors.neutral[400]}
+                  />
+                </View>
+
+                <View style={[styles.bodyCell, styles.diffCol]}>
+                  <Text
+                    style={[styles.diffText, { color: getDiffColor(row.strokes, row.par) }]}
+                    numberOfLines={1}
+                  >
+                    {getDiffDisplayText(row.strokes, row.par)}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </>
+      )}
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'center',
     padding: tokens.padding.baseLg,
   },
   modalSheet: {
-    backgroundColor: colors.white,
-    borderRadius: tokens.radius.lg2,
     maxHeight: '92%',
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: colors.neutral[200],
+    width: '100%',
+    maxWidth: 458,
+    alignSelf: 'center',
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingHorizontal: tokens.padding.md,
-    paddingVertical: tokens.padding.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral[200],
-  },
-  title: {
-    fontSize: tokens.font.title,
-    fontWeight: tokens.fontWeight.black,
-    color: colors.neutral[900],
+  modalBody: {
+    flex: 1,
   },
   subTitle: {
-    marginTop: 4,
+    marginBottom: tokens.spacing.sm2,
     fontSize: tokens.font.xs,
     color: colors.neutral[500],
-  },
-  iconBtn: {
-    padding: tokens.padding.xs,
-    borderRadius: tokens.radius.base,
   },
   stateWrap: {
     paddingVertical: tokens.padding.lg2,

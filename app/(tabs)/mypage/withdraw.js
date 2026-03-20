@@ -114,7 +114,7 @@ export default function WithdrawScreen() {
           style={styles.withdrawButton}
           onPress={handleSubmit}
           color={colors.red[600]}
-          disabled={!agreed}
+          disabled={!agreed || confirmText !== '회원탈퇴'}
         >
           회원 탈퇴
         </Button>

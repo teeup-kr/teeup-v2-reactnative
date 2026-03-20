@@ -1,6 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import Constants from 'expo-constants';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -16,9 +15,12 @@ import Carousel from 'react-native-reanimated-carousel';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppToast, { toastMap } from '@/components/ui/AppToast';
+import StatusBadge from '@/components/ui/StatusBadge';
+import { HOME_BANNER_SLIDES } from '@/constants/homeBannerSlides';
 import { useAuth } from '@/context/AuthContext';
 import { mypageApi } from '@/lib/api/api';
 import { navigateWithCap } from '@/lib/navigation/cappedHistory';
+import { getMeetingStatusBadgeConfigs, getMeetingTypeBadgeConfig } from '@/lib/util/meetingUtils';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -62,8 +64,6 @@ const QUICK_ACTIONS = [
   },
 ];
 
-const CAROUSEL_IMAGE_NAMES = ['main1.png', 'main2.png', 'main3.png', 'main4.png'];
-const CAROUSEL_HEIGHT = 420;
 const CAROUSEL_SCROLL_ANIMATION_DURATION = 420;
 
 function getMeetingId(meeting) {
@@ -102,46 +102,16 @@ function formatMeetingDate(value) {
   });
 }
 
-function getMeetingStatusBadgeConfig(status) {
-  const key = String(status || '').toUpperCase();
-  if (key === 'IN_PROGRESS') {
-    return {
-      label: '진행중',
-      backgroundColor: colors.success[50],
-      textColor: colors.success[700],
-    };
-  }
-  if (key === 'COMPLETED') {
-    return {
-      label: '완료',
-      backgroundColor: colors.neutral[100],
-      textColor: colors.neutral[700],
-    };
-  }
-  if (key === 'CANCELED') {
-    return {
-      label: '취소',
-      backgroundColor: colors.error[50],
-      textColor: colors.error[700],
-    };
-  }
-  return {
-    label: '예정',
-    backgroundColor: colors.info[50],
-    textColor: colors.info[700],
-  };
-}
-
 export default function HomeScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { toast: toastParam } = useLocalSearchParams();
   const { isAuthenticated } = useAuth();
 
-  const baseUrl = Constants.expoConfig.extra.webOrigin;
   const carouselRef = useRef(null);
   const [toastKey, setToastKey] = useState(null);
-  const [carouselWidth, setCarouselWidth] = useState(Math.max(width, 1));
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [carouselWidth, setCarouselWidth] = useState(320);
   const [activeSlide, setActiveSlide] = useState(0);
   const [failedSlideMap, setFailedSlideMap] = useState({});
   const [upcomingMeetings, setUpcomingMeetings] = useState([]);
@@ -149,10 +119,8 @@ export default function HomeScreen() {
   const [isMeetingLoading, setIsMeetingLoading] = useState(false);
   const [meetingError, setMeetingError] = useState('');
 
-  const bannerImageUrls = useMemo(
-    () => CAROUSEL_IMAGE_NAMES.map((name) => `${baseUrl}/image/${name}`),
-    [baseUrl]
-  );
+  const bannerSlides = HOME_BANNER_SLIDES;
+  const carouselHeight = carouselWidth;
   const visibleUpcomingMeetings = useMemo(
     () => upcomingMeetings.filter((meeting) => getMeetingId(meeting)).slice(0, 2),
     [upcomingMeetings]
@@ -207,12 +175,27 @@ export default function HomeScreen() {
     }
   }, [isAuthenticated]);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadHomeMeetings();
+      return undefined;
+    }, [loadHomeMeetings])
+  );
+
   useEffect(() => {
-    loadHomeMeetings();
-  }, [loadHomeMeetings]);
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!Number.isFinite(width) || width <= 1) return;
+    const nextWidth = Math.round(width);
+    setCarouselWidth((prevWidth) => (prevWidth === nextWidth ? prevWidth : nextWidth));
+  }, [width]);
 
   const handleCarouselLayout = useCallback((event) => {
-    const nextWidth = Math.max(event.nativeEvent.layout.width, 1);
+    const measuredWidth = event.nativeEvent.layout.width;
+    if (!Number.isFinite(measuredWidth) || measuredWidth <= 1) return;
+    const nextWidth = Math.round(measuredWidth);
     setCarouselWidth((prevWidth) => (prevWidth === nextWidth ? prevWidth : nextWidth));
   }, []);
 
@@ -237,13 +220,9 @@ export default function HomeScreen() {
 
   const handleQuickActionPress = useCallback(
     (route) => () => {
-      if (!isAuthenticated) {
-        navigateWithCap(router, '/login');
-        return;
-      }
       navigateWithCap(router, route);
     },
-    [isAuthenticated, router]
+    [router]
   );
 
   const handleOpenMeeting = useCallback(
@@ -259,39 +238,73 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.carouselSection} onLayout={handleCarouselLayout}>
-          <Carousel
-            ref={carouselRef}
-            loop
-            width={carouselWidth}
-            height={CAROUSEL_HEIGHT}
-            data={bannerImageUrls}
-            pagingEnabled
-            maxScrollDistancePerSwipe={carouselWidth}
-            scrollAnimationDuration={CAROUSEL_SCROLL_ANIMATION_DURATION}
-            onConfigurePanGesture={(pan) => {
-              pan.activeOffsetX([-12, 12]).failOffsetY([-8, 8]);
-            }}
-            onSnapToItem={handleSnapToItem}
-            renderItem={({ item: imageUrl, index }) => (
-              <View style={styles.heroSlide}>
-                <ImageBackground
-                  source={{ uri: imageUrl }}
-                  resizeMode="cover"
-                  onError={handleImageError(index)}
-                  style={styles.heroImage}
-                >
-                  <View style={styles.heroOverlay}>
-                    {failedSlideMap[index] ? (
-                      <View style={styles.placeholderWrap}>
-                        <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} />
-                        <Text style={styles.placeholderText}>Placeholder</Text>
+          <View style={[styles.carouselViewport, { height: carouselHeight }]}>
+            {isHydrated ? (
+              <Carousel
+                ref={carouselRef}
+                loop
+                width={carouselWidth}
+                height={carouselHeight}
+                data={bannerSlides}
+                windowSize={Math.max(1, bannerSlides.length)}
+                pagingEnabled
+                maxScrollDistancePerSwipe={carouselWidth}
+                scrollAnimationDuration={CAROUSEL_SCROLL_ANIMATION_DURATION}
+                onConfigurePanGesture={(pan) => {
+                  pan.activeOffsetX([-12, 12]).failOffsetY([-8, 8]);
+                }}
+                onSnapToItem={handleSnapToItem}
+                renderItem={({ item, index }) => (
+                  <View style={[styles.heroSlide, { height: carouselHeight }]}>
+                    <ImageBackground
+                      source={item.source}
+                      resizeMode="cover"
+                      fadeDuration={0}
+                      onError={handleImageError(index)}
+                      style={styles.heroImage}
+                    >
+                      <View style={styles.heroOverlay}>
+                        {failedSlideMap[index] ? (
+                          <View style={styles.placeholderWrap}>
+                            {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
+                            <Text style={styles.placeholderText}>Placeholder</Text>
+                          </View>
+                        ) : null}
                       </View>
-                    ) : null}
+                    </ImageBackground>
                   </View>
-                </ImageBackground>
+                )}
+              />
+            ) : (
+              <View style={[styles.heroSlide, { height: carouselHeight }]}>
+                {bannerSlides[0] ? (
+                  <ImageBackground
+                    source={bannerSlides[0].source}
+                    resizeMode="cover"
+                    fadeDuration={0}
+                    onError={handleImageError(0)}
+                    style={styles.heroImage}
+                  >
+                    <View style={styles.heroOverlay}>
+                      {failedSlideMap[0] ? (
+                        <View style={styles.placeholderWrap}>
+                          {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
+                          <Text style={styles.placeholderText}>Placeholder</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  </ImageBackground>
+                ) : (
+                  <View style={[styles.heroImage, styles.heroOverlay]}>
+                    <View style={styles.placeholderWrap}>
+                      {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
+                      <Text style={styles.placeholderText}>Placeholder</Text>
+                    </View>
+                  </View>
+                )}
               </View>
             )}
-          />
+          </View>
 
           <View pointerEvents="none" style={styles.heroTextWrap}>
             <Text style={styles.heroCaption}>편리한 골프 동호회 운영 관리 플랫폼</Text>
@@ -299,9 +312,9 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.dotRow}>
-            {bannerImageUrls.map((imageUrl, index) => (
+            {bannerSlides.map((slide, index) => (
               <Pressable
-                key={imageUrl}
+                key={slide.id}
                 onPress={() => handleDotPress(index)}
                 style={[styles.dot, activeSlide === index && styles.activeDot]}
               />
@@ -317,7 +330,7 @@ export default function HomeScreen() {
               onPress={handleQuickActionPress(action.route)}
             >
               <View style={[styles.quickIconWrap, { backgroundColor: action.bg }]}>
-                <FontAwesome5 name={action.icon} size={18} color={action.fg} />
+                {isHydrated ? <FontAwesome5 name={action.icon} size={18} color={action.fg} /> : null}
               </View>
               <Text style={[styles.quickLabel, { color: action.fontColor }]}>{action.label}</Text>
             </Pressable>
@@ -335,17 +348,17 @@ export default function HomeScreen() {
 
           <Pressable
             style={styles.summaryCard}
-            onPress={() => navigateWithCap(router, isAuthenticated ? '/mypage?tab=meetings' : '/login')}
+            onPress={() => navigateWithCap(router, '/mypage?tab=meetings')}
           >
             <Text style={styles.summaryTitle}>라운드 기록하기</Text>
             <Text style={styles.summarySubText}>스코어 등록</Text>
-            <FontAwesome5 name="edit" size={20} color={colors.neutral[600]} />
+            {isHydrated ? <FontAwesome5 name="edit" size={20} color={colors.neutral[600]} /> : null}
           </Pressable>
         </View>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.summaryTitle}>다음 라운딩</Text>
-          <Pressable onPress={() => navigateWithCap(router, isAuthenticated ? '/meetings/my' : '/login')}>
+          <Pressable onPress={() => navigateWithCap(router, isAuthenticated ? '/meetings/my' : '/meetings')}>
             <Text style={styles.sectionMore}>더보기</Text>
           </Pressable>
         </View>
@@ -375,12 +388,13 @@ export default function HomeScreen() {
               const maxParticipants = meeting?.max_participants
                 ? `/${meeting.max_participants}`
                 : '';
-              const statusBadge = getMeetingStatusBadgeConfig(meeting?.status);
+              const typeBadge = getMeetingTypeBadgeConfig(meeting?.meeting_type || meeting?.type || 'ROUND');
+              const statusBadges = getMeetingStatusBadgeConfigs(meeting);
 
               return (
                 <Pressable key={String(meetingId)} style={styles.meetingCard} onPress={handleOpenMeeting(meeting)}>
                   <View style={styles.meetingIconWrap}>
-                    <FontAwesome5 name="golf-ball" size={13} color={colors.primary[600]} />
+                    {isHydrated ? <FontAwesome5 name="golf-ball" size={13} color={colors.primary[600]} /> : null}
                   </View>
 
                   <View style={styles.meetingInfo}>
@@ -388,25 +402,38 @@ export default function HomeScreen() {
                     <Text style={styles.meetingDate}>{formatMeetingDate(meeting?.meeting_time)}</Text>
                     {(meeting?.location || meeting?.venue_name) ? (
                       <View style={styles.meetingMetaRow}>
-                        <FontAwesome5 name="map-marker-alt" size={11} color={colors.neutral[500]} />
+                        {isHydrated ? <FontAwesome5 name="map-marker-alt" size={11} color={colors.neutral[500]} /> : null}
                         <Text style={styles.meetingMetaText} numberOfLines={1}>
                           {meeting?.location || meeting?.venue_name}
                         </Text>
                       </View>
                     ) : null}
                     <View style={styles.meetingMetaRow}>
-                      <FontAwesome5 name="users" size={11} color={colors.neutral[500]} />
+                      {isHydrated ? <FontAwesome5 name="users" size={11} color={colors.neutral[500]} /> : null}
                       <Text style={styles.meetingMetaText}>총원 {participantCount}{maxParticipants}명</Text>
                     </View>
                     <View style={styles.meetingBadgeRow}>
-                      <Text style={styles.meetingTypeBadge}>라운딩</Text>
+                      <StatusBadge
+                        text={typeBadge.text}
+                        backgroundColor={typeBadge.backgroundColor}
+                        textColor={typeBadge.textColor}
+                        style={styles.meetingTypeBadge}
+                        textStyle={styles.meetingTypeBadgeText}
+                      />
                     </View>
                   </View>
 
-                  <View style={[styles.meetingStatusBadge, { backgroundColor: statusBadge.backgroundColor }]}>
-                    <Text style={[styles.meetingStatusBadgeText, { color: statusBadge.textColor }]}>
-                      {statusBadge.label}
-                    </Text>
+                  <View style={styles.meetingStatusBadgeWrap}>
+                    {statusBadges.map((badge) => (
+                      <StatusBadge
+                        key={`${meetingId}-${badge.key}`}
+                        text={badge.text}
+                        backgroundColor={badge.backgroundColor}
+                        textColor={badge.textColor}
+                        style={styles.meetingStatusBadge}
+                        textStyle={styles.meetingStatusBadgeText}
+                      />
+                    ))}
                   </View>
                 </Pressable>
               );
@@ -429,8 +456,11 @@ const styles = StyleSheet.create({
   carouselSection: {
     backgroundColor: colors.neutral[800],
   },
+  carouselViewport: {
+    width: '100%',
+  },
   heroSlide: {
-    height: CAROUSEL_HEIGHT,
+    width: '100%',
   },
   heroImage: {
     flex: 1,
@@ -569,7 +599,7 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.bold,
   },
   sectionMore: {
-    color: colors.neutral[700],
+    color: colors.primary[700],
     fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
   },
@@ -650,18 +680,18 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   meetingTypeBadge: {
+    alignSelf: 'flex-start',
+  },
+  meetingTypeBadgeText: {
     fontSize: tokens.font.xs,
-    color: colors.info[700],
-    backgroundColor: colors.info[50],
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: tokens.radius.pill,
+  },
+  meetingStatusBadgeWrap: {
+    marginLeft: tokens.spacing.xs,
+    alignItems: 'flex-end',
+    gap: 4,
   },
   meetingStatusBadge: {
-    marginLeft: tokens.spacing.xs,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: tokens.radius.pill,
+    alignSelf: 'flex-end',
   },
   meetingStatusBadgeText: {
     fontSize: tokens.font.xs,

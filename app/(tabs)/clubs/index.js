@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import LoginRequired from '@/components/auth/LoginRequired';
 import ClubCard from '@/components/clubs/ClubCard';
 import AppHeader from '@/components/layout/AppHeader';
 import Button from '@/components/ui/Button';
@@ -28,22 +27,14 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { clubsApi, regionApi } from '@/lib/api/api';
 import {
-  createBrowseClubsHandler,
-  createCardPressHandler,
   createClubPressHandler,
   createCreateClubHandler,
-  createDebouncedSearchHandler,
   createFetchClubsHandler,
-  createMyStatusFilterHandler,
   createNextPageHandler,
-  createPageChangeHandler,
   createPrevPageHandler,
-  createSearchTermChangeHandler,
   createSidoSelectHandler,
-  createStatusFilterSelectHandler,
   createTabChangeHandler,
   createToggleGunguHandler,
-  createToggleStatusFilterHandler,
 } from '@/lib/handler/clubs';
 import {
   getClubCardVariant,
@@ -53,6 +44,8 @@ import {
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+import LoginScreen from '../../login';
 
 
 const logoImage = require('../../../public/icons/icon-512-transparent.png');
@@ -96,12 +89,10 @@ export default function ClubsScreen() {
   }, [tabParam]);
 
   const handleDebouncedSearch = useMemo(
-    () =>
-      createDebouncedSearchHandler({
-        searchTerm,
-        setDebouncedSearchTerm,
-        setCurrentPage,
-      }),
+    () => () => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1);
+    },
     [searchTerm, setDebouncedSearchTerm, setCurrentPage]
   );
 
@@ -335,11 +326,14 @@ export default function ClubsScreen() {
     ]
   );
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadClubs();
-    }
-  }, [isAuthenticated, loadClubs]);
+  useFocusEffect(
+    useCallback(() => {
+      if (isAuthenticated) {
+        loadClubs();
+      }
+      return undefined;
+    }, [isAuthenticated, loadClubs])
+  );
 
   const handleTabChange = useMemo(
     () =>
@@ -358,36 +352,40 @@ export default function ClubsScreen() {
   );
 
   const handleCardPress = useMemo(
-    () =>
-      createCardPressHandler({
-        router,
-        onClubPress: handleClubPress,
-      }),
-    [router, handleClubPress]
+    () => (club) => () => {
+      handleClubPress(club);
+    },
+    [handleClubPress]
   );
 
   const handleSearchTermChange = useMemo(
-    () => createSearchTermChangeHandler({ setSearchTerm }),
+    () => (value) => {
+      setSearchTerm(value);
+    },
     [setSearchTerm]
   );
 
   const toggleStatusFilter = useMemo(
-    () => createToggleStatusFilterHandler({ setIsStatusFilterOpen }),
+    () => () => {
+      setIsStatusFilterOpen((prev) => !prev);
+    },
     [setIsStatusFilterOpen]
   );
 
   const handleStatusFilterSelect = useMemo(
-    () =>
-      createStatusFilterSelectHandler({
-        setStatusFilter,
-        setIsStatusFilterOpen,
-        setCurrentPage,
-      }),
+    () => (value) => () => {
+      setStatusFilter(value);
+      setIsStatusFilterOpen(false);
+      setCurrentPage(1);
+    },
     [setStatusFilter, setIsStatusFilterOpen, setCurrentPage]
   );
 
   const handleMyStatusFilter = useMemo(
-    () => createMyStatusFilterHandler({ setMyClubStatusFilter, setCurrentPage }),
+    () => (value) => () => {
+      setMyClubStatusFilter(value);
+      setCurrentPage(1);
+    },
     [setMyClubStatusFilter, setCurrentPage]
   );
 
@@ -397,12 +395,16 @@ export default function ClubsScreen() {
   );
 
   const handleBrowseClubs = useMemo(
-    () => createBrowseClubsHandler({ onTabChange: handleTabChange }),
+    () => () => {
+      handleTabChange('all')();
+    },
     [handleTabChange]
   );
 
   const handlePageChange = useMemo(
-    () => createPageChangeHandler({ setCurrentPage }),
+    () => (pageNum) => () => {
+      setCurrentPage(pageNum);
+    },
     [setCurrentPage]
   );
 
@@ -432,12 +434,7 @@ export default function ClubsScreen() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <LoginRequired
-        message="로그인 후 이용가능합니다"
-        description="클럽 목록을 보려면 로그인이 필요합니다."
-      />
-    );
+    return <LoginScreen />;
   }
 
   return (

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api/api';
 import { backOrHome } from '@/lib/navigation/cappedHistory';
@@ -332,56 +332,58 @@ export default function ScoreInputScreen() {
         )}
       </ScrollView>
 
-      <Modal transparent visible={modalVisible} animationType="fade" onRequestClose={closeModal}>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>{editingScore ? '점수 수정' : '점수 추가'}</Text>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>홀 번호</Text>
-              <TextInput
-                value={form.hole_number}
-                onChangeText={(value) => setForm((prev) => ({ ...prev, hole_number: value.replace(/[^0-9]/g, '') }))}
-                keyboardType="numeric"
-                style={styles.input}
-                placeholder="1"
-                placeholderTextColor={colors.neutral[400]}
-              />
-            </View>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>타수</Text>
-              <TextInput
-                value={form.score}
-                onChangeText={(value) => setForm((prev) => ({ ...prev, score: value.replace(/[^0-9]/g, '') }))}
-                keyboardType="numeric"
-                style={styles.input}
-                placeholder="0"
-                placeholderTextColor={colors.neutral[400]}
-              />
-            </View>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>PAR</Text>
-              <TextInput
-                value={form.par}
-                onChangeText={(value) => setForm((prev) => ({ ...prev, par: value.replace(/[^0-9]/g, '') }))}
-                keyboardType="numeric"
-                style={styles.input}
-                placeholder="4"
-                placeholderTextColor={colors.neutral[400]}
-              />
-            </View>
-
-            <View style={styles.modalActions}>
-              <Button variant="outline" size="sm" onPress={closeModal}>
-                취소
-              </Button>
-              <Button variant="primary" size="sm" onPress={submitScore} disabled={!canSubmit}>
-                {isSaving ? '저장 중...' : editingScore ? '수정' : '추가'}
-              </Button>
-            </View>
+      <Modal
+        visible={modalVisible}
+        title={editingScore ? '점수 수정' : '점수 추가'}
+        onClose={closeModal}
+        animationType="fade"
+        containerStyle={styles.modalCard}
+        backdropStyle={styles.modalBackdrop}
+        footer={(
+          <View style={styles.modalActions}>
+            <Button variant="outline" size="sm" onPress={closeModal}>
+              취소
+            </Button>
+            <Button variant="primary" size="sm" onPress={submitScore} disabled={!canSubmit}>
+              {isSaving ? '저장 중...' : editingScore ? '수정' : '추가'}
+            </Button>
           </View>
+        )}
+      >
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>홀 번호</Text>
+          <TextInput
+            value={form.hole_number}
+            onChangeText={(value) => setForm((prev) => ({ ...prev, hole_number: value.replace(/[^0-9]/g, '') }))}
+            keyboardType="numeric"
+            style={styles.input}
+            placeholder="1"
+            placeholderTextColor={colors.neutral[400]}
+          />
+        </View>
+
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>타수</Text>
+          <TextInput
+            value={form.score}
+            onChangeText={(value) => setForm((prev) => ({ ...prev, score: value.replace(/[^0-9]/g, '') }))}
+            keyboardType="numeric"
+            style={styles.input}
+            placeholder="0"
+            placeholderTextColor={colors.neutral[400]}
+          />
+        </View>
+
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>PAR</Text>
+          <TextInput
+            value={form.par}
+            onChangeText={(value) => setForm((prev) => ({ ...prev, par: value.replace(/[^0-9]/g, '') }))}
+            keyboardType="numeric"
+            style={styles.input}
+            placeholder="4"
+            placeholderTextColor={colors.neutral[400]}
+          />
         </View>
       </Modal>
     </SafeAreaView>
@@ -542,21 +544,12 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.semibold,
   },
   modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.5)',
     paddingHorizontal: 18,
-    justifyContent: 'center',
   },
   modalCard: {
-    backgroundColor: colors.white,
-    borderRadius: tokens.radius.lg,
-    padding: tokens.padding.md,
-  },
-  modalTitle: {
-    fontSize: tokens.font.lg,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[900],
-    marginBottom: tokens.spacing.sm2,
+    width: '100%',
+    maxWidth: 466,
+    alignSelf: 'center',
   },
   fieldGroup: {
     marginBottom: tokens.spacing.sm2,

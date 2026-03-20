@@ -1,38 +1,29 @@
 
 import * as NavigationBar from 'expo-navigation-bar';
-import * as Notifications from 'expo-notifications';
 import {
   Slot,
+  useGlobalSearchParams,
   usePathname,
   useRouter
 } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { BackHandler, Platform, StyleSheet, ToastAndroid, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// import DebugConsoleOverlay from '@/components/debug/DebugConsoleOverlay';
+import DebugConsoleOverlay from '@/components/debug/DebugConsoleOverlay';
 import BottomNavigationBar, { bottomNavHeight } from '@/components/layout/BottomNavigationBar';
 import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
-import { navigateWithCap, recordRoute } from '@/lib/navigation/cappedHistory';
+import { backOrHome, getHistorySnapshot, markHistoryTraversal, navigateWithCap, syncRouteHistory } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 
 /** Google Tag Manager 컨테이너 ID (웹 전용) */
 const GTM_CONTAINER_ID = 'GTM-NG89M36G';
-
-if (Platform.OS !== 'web') {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-    }),
-  });
-}
+const GOOGLE_CALLBACK_PATH = '/auth/google/callback';
 
 function getNotificationRoute(data = {}) {
   const category = data?.category || data?.type || data?.notification_type;
@@ -63,7 +54,7 @@ function routeByNotification(router, notification) {
   navigateWithCap(router, route);
 }
 
-async function setupNotificationChannel() {
+async function setupNotificationChannel(Notifications) {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync('default', {
     name: '기본',
@@ -71,31 +62,109 @@ async function setupNotificationChannel() {
   });
 }
 
-async function ensureNotificationPermission() {
+async function ensureNotificationPermission(Notifications) {
   const permission = await Notifications.getPermissionsAsync();
   if (permission.granted) return true;
   const requested = await Notifications.requestPermissionsAsync();
   return Boolean(requested.granted);
 }
 
+function buildRouteWithSearch(pathname, params) {
+  const entries = Object.entries(params || {}).filter(([, value]) => value !== undefined);
+  if (!entries.length) return pathname;
+
+  const searchParams = new URLSearchParams();
+  entries
+    .sort(([left], [right]) => left.localeCompare(right))
+    .forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((item) => {
+          searchParams.append(key, String(item));
+        });
+        return;
+      }
+
+      searchParams.append(key, String(value));
+    });
+
+  const query = searchParams.toString();
+  return query ? `${pathname}?${query}` : pathname;
+}
+
 function AppShell() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
+  const globalSearchParams = useGlobalSearchParams();
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
   const handledNotificationIdsRef = useRef(new Set());
+  const lastBackPressedAtRef = useRef(0);
+  const [isClientReady, setIsClientReady] = useState(false);
   const isRootEntry = pathname === '/';
+  const isGoogleCallbackRoute = pathname === GOOGLE_CALLBACK_PATH;
+  const showAppChrome = !isRootEntry && !isGoogleCallbackRoute;
+  const currentRoute = buildRouteWithSearch(pathname, globalSearchParams);
 
   useEffect(() => {
-    if (isRootEntry) return;
-    recordRoute(pathname);
-  }, [pathname, isRootEntry]);
+    setIsClientReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (isRootEntry || isGoogleCallbackRoute) return;
+    syncRouteHistory(currentRoute);
+  }, [currentRoute, isGoogleCallbackRoute, isRootEntry]);
+
+  useEffect(() => {
+    if (isRootEntry || isGoogleCallbackRoute) return undefined;
+
+    if (Platform.OS === 'android') {
+      const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+        if (pathname === '/app' && getHistorySnapshot().length <= 1) {
+          const now = Date.now();
+          if (now - lastBackPressedAtRef.current < 2000) {
+            BackHandler.exitApp();
+            return true;
+          }
+          lastBackPressedAtRef.current = now;
+          ToastAndroid.show('한 번 더 누르면 종료됩니다.', ToastAndroid.SHORT);
+          return true;
+        }
+        backOrHome(router);
+        return true;
+      });
+
+      return () => {
+        subscription.remove();
+      };
+    }
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const handlePopstate = () => {
+        if (getHistorySnapshot().length <= 1) {
+          backOrHome(router);
+          return;
+        }
+
+        markHistoryTraversal();
+      };
+
+      window.addEventListener('popstate', handlePopstate);
+
+      return () => {
+        window.removeEventListener('popstate', handlePopstate);
+      };
+    }
+
+    return undefined;
+  }, [isGoogleCallbackRoute, isRootEntry, pathname, router]);
 
   useEffect(() => {
     if (Platform.OS === 'web') return undefined;
     if (isLoading || !isAuthenticated) return undefined;
 
     let isUnmounted = false;
+    let receivedSubscription = null;
+    let responseSubscription = null;
 
     const handleRouteOnce = (notification) => {
       const identifier = notification?.request?.identifier;
@@ -111,8 +180,20 @@ function AppShell() {
 
     const setup = async () => {
       try {
-        await setupNotificationChannel();
-        const granted = await ensureNotificationPermission();
+        const Notifications = await import('expo-notifications');
+        if (isUnmounted) return;
+
+        receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
+          const data = notification?.request?.content?.data;
+          console.log('[Push Received]', data);
+        });
+
+        responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
+          handleRouteOnce(response?.notification);
+        });
+
+        await setupNotificationChannel(Notifications);
+        const granted = await ensureNotificationPermission(Notifications);
         await authApi.syncPushToken({ enabled: true });
         if (!granted || isUnmounted) return;
 
@@ -125,52 +206,18 @@ function AppShell() {
       }
     };
 
-    const receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
-      const data = notification?.request?.content?.data;
-      console.log('[Push Received]', data);
-    });
-
-    const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
-      handleRouteOnce(response?.notification);
-    });
-
     setup();
 
     return () => {
       isUnmounted = true;
-      receivedSubscription.remove();
-      responseSubscription.remove();
+      receivedSubscription?.remove();
+      responseSubscription?.remove();
     };
   }, [isAuthenticated, isLoading, router]);
 
-  return (
-    <View style={[styles.root, Platform.OS === 'web' && styles.rootWeb]}>
-      <View style={[styles.shell, { paddingBottom: isRootEntry ? 0 : bottomNavHeight(insets) }]}>
-        <View style={styles.main}>
-          <Slot />
-        </View>
-      </View>
-      {!isRootEntry ? <BottomNavigationBar /> : null}
-      {!isRootEntry ? <FullMenu /> : null}
-      {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 TODO 출시시 삭제 !!!!!!!!!!!!!!!!!!!!!! */}
-      {/* <DebugConsoleOverlay /> */}
-      {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 !!!!!!!!!!!!!!!!!!!!!! */}
-    </View>
-  );
-}
-
-export default function RootLayout() {
+  // 웹 전용: Google Tag Manager (/에서는 로드하지 않음)
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      NavigationBar.setPositionAsync('relative');
-      NavigationBar.setBackgroundColorAsync(colors.white);
-      NavigationBar.setButtonStyleAsync('dark');
-    }
-  }, []);
-
-  // 웹 전용: Google Tag Manager
-  useEffect(() => {
-    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    if (Platform.OS !== 'web' || typeof document === 'undefined' || isRootEntry || isGoogleCallbackRoute) return;
 
     const script = document.createElement('script');
     script.innerHTML = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -189,6 +236,51 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     iframe.style.visibility = 'hidden';
     noscript.appendChild(iframe);
     document.body.insertBefore(noscript, document.body.firstChild);
+
+    return () => {
+      script.remove();
+      noscript.remove();
+    };
+  }, [isGoogleCallbackRoute, isRootEntry]);
+
+  return (
+    <View style={[styles.root, Platform.OS === 'web' && !isRootEntry && styles.rootWeb]}>
+      <View style={[styles.shell, { paddingBottom: showAppChrome ? bottomNavHeight(insets) : 0 }]}>
+        <View style={styles.main}>
+          <Slot />
+        </View>
+      </View>
+      {showAppChrome ? <BottomNavigationBar /> : null}
+      {showAppChrome ? <FullMenu /> : null}
+      {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 TODO 출시시 삭제 !!!!!!!!!!!!!!!!!!!!!! */}
+      {isClientReady && !isGoogleCallbackRoute ? <DebugConsoleOverlay /> : null}
+      {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 !!!!!!!!!!!!!!!!!!!!!! */}
+    </View>
+  );
+}
+
+export default function RootLayout() {
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+
+    (async () => {
+      const Notifications = await import('expo-notifications');
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        }),
+      });
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      NavigationBar.setPositionAsync('relative');
+      NavigationBar.setBackgroundColorAsync(colors.white);
+      NavigationBar.setButtonStyleAsync('dark');
+    }
   }, []);
 
   return (
@@ -199,7 +291,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <link rel="manifest" href="/manifest.json" />
 
         {/* iOS PWA */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="TeeUp" />
         <link rel="apple-touch-icon" href="/icons/icon-600-full.png" />

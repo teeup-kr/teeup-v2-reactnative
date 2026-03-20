@@ -22,8 +22,6 @@ import { mypageApi } from '@/lib/api/api';
 import {
   createFetchClubsHandler,
   createFetchProfileHandler,
-  createOpenClubDetailHandler,
-  createOpenClubsHandler,
 } from '@/lib/handler/mypage';
 import {
   buildProfileInfoItems,
@@ -91,12 +89,16 @@ export default function OverviewScreen() {
   }, [profile]);
 
   const handleOpenClubs = useMemo(
-    () => createOpenClubsHandler(router),
+    () => () => {
+      router.push('/clubs');
+    },
     [router],
   );
 
   const createOpenClub = useMemo(
-    () => (clubId) => createOpenClubDetailHandler(router, clubId),
+    () => (clubId) => () => {
+      router.push(`/clubs/${clubId}`);
+    },
     [router],
   );
 

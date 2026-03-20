@@ -50,7 +50,7 @@ export default function BatchFormationModal({
   };
 
   const handleRunBatch = async () => {
-    if (!selectedModes.length || !onFormTeams) return;
+    if (!onFormTeams) return;
     setLoading(true);
     setResults([]);
 
@@ -100,7 +100,7 @@ export default function BatchFormationModal({
           <Button variant="outline" size="sm" style={styles.footerButton} onPress={onClose}>
             닫기
           </Button>
-          <Button size="sm" style={styles.footerButton} onPress={handleRunBatch} disabled={!selectedModes.length} loading={loading || processing}>
+          <Button size="sm" style={styles.footerButton} onPress={handleRunBatch} loading={loading || processing}>
             비교 시작
           </Button>
         </View>
@@ -169,7 +169,7 @@ export default function BatchFormationModal({
                     </Button>
                     <Button
                       size="sm"
-                      style={styles.resultActionButton}
+                      style={[styles.resultActionButton, { backgroundColor: colors.accent[600] }]}
                       onPress={() => {
                         if (onFormTeams) {
                           onFormTeams({

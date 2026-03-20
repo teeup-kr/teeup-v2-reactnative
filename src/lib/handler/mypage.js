@@ -1,122 +1,7 @@
 import { Platform } from 'react-native';
 
-import { formatDateYYYYMMDD, getChangePasswordScreenError, validateChangePasswordForm, validateProfileForm } from '../util/mypageUtils';
-
-export function createPasswordFieldChangeHandler({
-    setForm,
-    setError,
-    setSuccess,
-    field,
-}) {
-    return (value) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
-        setError('');
-        setSuccess('');
-    };
-}
-
-export function createSubmitChangePasswordHandler({
-    form,
-    isSubmitting,
-    setError,
-    setSuccess,
-    setIsSubmitting,
-    changePassword,
-}) {
-    return async function () {
-        if (isSubmitting) return;
-
-        setError('');
-        setSuccess('');
-
-        const errorMessage = getChangePasswordScreenError(form);
-        if (errorMessage) {
-            setError(errorMessage);
-            return;
-        }
-
-        try {
-            setIsSubmitting(true);
-            const payload = {
-                current_password: form.currentPassword,
-                new_password: form.newPassword,
-                confirm_password: form.confirmPassword,
-            };
-            await changePassword(payload);
-            setSuccess('비밀번호가 변경되었습니다.');
-        } catch (error) {
-            setError(error?.message || '비밀번호 변경에 실패했습니다.');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-}
-
-export function createResetPasswordModalHandler({
-    setFormData,
-    setValidationErrors,
-    setError,
-    setSuccess,
-}) {
-    return () => {
-        setFormData({
-            currentPassword: '',
-            newPassword: '',
-            confirmPassword: '',
-        });
-        setValidationErrors({});
-        setError(null);
-        setSuccess(false);
-    };
-}
-
-export function createValidatePasswordModalHandler({
-    formData,
-    setValidationErrors,
-}) {
-    return () => {
-        const errors = validateChangePasswordForm(formData);
-        setValidationErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
-}
-
-export function createSubmitPasswordModalHandler({
-    formData,
-    validateForm,
-    changePassword,
-    setLoading,
-    setError,
-    setSuccess,
-    onClose,
-    onLogout,
-}) {
-    return async function () {
-        if (!validateForm()) return;
-
-        try {
-            setLoading(true);
-            setError(null);
-
-            await changePassword({
-                current_password: formData.currentPassword,
-                new_password: formData.newPassword,
-                confirm_password: formData.confirmPassword,
-            });
-
-            setSuccess(true);
-
-            setTimeout(() => {
-                onClose();
-                onLogout?.();
-            }, 3000);
-        } catch (error) {
-            setError(error?.response?.data?.message || '비밀번호 변경에 실패했습니다.');
-        } finally {
-            setLoading(false);
-        }
-    };
-}
+import { replaceWithPolicy } from '../navigation/cappedHistory';
+import { formatDateYYYYMMDD, validateProfileForm } from '../util/mypageUtils';
 
 export function createInputChangeHandler({
     setFormData,
@@ -280,8 +165,6 @@ export function createSaveProfileHandler({
             );
         }
 
-        console.log('[UPDATE PROFILE PAYLOAD]', payload);
-
         try {
             setUpdateProfilePending(true);
             await updateMyProfile(payload);
@@ -302,24 +185,6 @@ export function createSaveProfileHandler({
 }
 
 
-export function createPasswordModalOpenHandler(setShowPasswordModal) {
-    return () => {
-        setShowPasswordModal(true);
-    };
-}
-
-export function createPasswordModalCloseHandler(setShowPasswordModal) {
-    return () => {
-        setShowPasswordModal(false);
-    };
-}
-
-export function createBirthPickerOpenHandler(setShowBirthPicker) {
-    return () => {
-        setShowBirthPicker(true);
-    };
-}
-
 export function createCompositionStartHandler(setIsNameComposing) {
     return () => {
         setIsNameComposing(true);
@@ -330,18 +195,6 @@ export function createCompositionEndHandler({ setIsNameComposing, handleInputCha
     return (event) => {
         setIsNameComposing(false);
         handleInputChange('realname', event?.nativeEvent?.text ?? fallbackValue);
-    };
-}
-
-export function createShowToastHandler(setToast) {
-    return (tone, message) => {
-        setToast({ open: true, tone, message });
-    };
-}
-
-export function createFieldChangeHandler(handleInputChange, field) {
-    return (value) => {
-        handleInputChange(field, value);
     };
 }
 
@@ -686,13 +539,6 @@ export function createTypeFilterHandler({ setTypeFilter, setPage }) {
     };
 }
 
-export function createTypeTabPressHandler({ onSelect }) {
-    return (tabId) =>
-        () => {
-            onSelect(tabId);
-        };
-}
-
 export function createResetFiltersHandler({ setTypeFilter, setStatusFilter, setStartDate, setEndDate, setPage }) {
     return () => {
         setTypeFilter('all');
@@ -796,13 +642,6 @@ export function createToggleSelectHandler({ setSelected }) {
     };
 }
 
-export function createToggleSelectPressHandler({ onToggle }) {
-    return (id) =>
-        () => {
-            onToggle(id);
-        };
-}
-
 export function createSelectAllHandler({ notifications, selected, setSelected }) {
     return () => {
         if (selected.length === notifications.length) setSelected([]);
@@ -839,33 +678,6 @@ export function createOpenNotificationHandler({ isUnreadNotification, markAsRead
         if (notification.related_entity_type === 'CLUB_NOTICE' && notification.extra_data?.club_id) {
             router.push(`/clubs/${notification.extra_data.club_id}/notices`);
         }
-    };
-}
-
-export function createOpenNotificationPressHandler({ onOpen }) {
-    return (notification) =>
-        () => {
-            onOpen(notification);
-        };
-}
-
-export function createFilterPressHandler({ setFilter }) {
-    return (nextFilter) =>
-        () => {
-            setFilter(nextFilter);
-        };
-}
-
-export function createDeleteTargetHandler({ setDeleteTarget }) {
-    return (id) =>
-        () => {
-            setDeleteTarget(id);
-        };
-}
-
-export function createClearDeleteTargetHandler({ setDeleteTarget }) {
-    return () => {
-        setDeleteTarget(null);
     };
 }
 
@@ -917,34 +729,15 @@ export function createFetchClubsHandler({
             setClubs(items);
         } catch (fetchError) {
             console.error('클럽 목록 조회 실패:', fetchError);
-            setClubs([]);
-        }
-    };
-}
-
-export function createOpenClubsHandler(router) {
-    return () => {
-        router.push('/clubs');
-    };
-}
-
-export function createOpenClubDetailHandler(router, clubId) {
-    return () => {
-        router.push(`/clubs/${clubId}`);
-    };
+        setClubs([]);
+    }
+};
 }
 export function createScoreStatusHandler({ setScoreStatus, setPage }) {
     return (nextStatus) => {
         setScoreStatus(nextStatus);
         setPage(1);
     };
-}
-
-export function createScoreStatusPressHandler({ onSelect }) {
-    return (status) =>
-        () => {
-            onSelect(status);
-        };
 }
 
 export function createPrevPageHandler({ setPage }) {
@@ -965,18 +758,6 @@ export function createCloseScoreModalHandler({ setShowScoreModal, setSelectedMee
         setShowScoreModal(false);
         setSelectedMeeting(null);
         setSelectedParticipantId(null);
-    };
-}
-
-export function createOpenComingSoonHandler({ setShowComingSoonModal }) {
-    return () => {
-        setShowComingSoonModal(true);
-    };
-}
-
-export function createCloseComingSoonHandler({ setShowComingSoonModal }) {
-    return () => {
-        setShowComingSoonModal(false);
     };
 }
 
@@ -1306,7 +1087,7 @@ export function createConfirmWithdrawHandler({
             await deleteAccount();
             setResultMessage('회원 탈퇴가 완료되었습니다.');
             setModalOpen(false);
-            router.replace('/login');
+            replaceWithPolicy(router, '/login');
         } catch (error) {
             setError(error?.message || '회원 탈퇴에 실패했습니다.');
         } finally {
@@ -1316,11 +1097,6 @@ export function createConfirmWithdrawHandler({
 }
 
 // export const mypageRenderUtils = {
-//     createPasswordFieldChangeHandler,
-//     createSubmitChangePasswordHandler,
-//     createResetPasswordModalHandler,
-//     createValidatePasswordModalHandler,
-//     createSubmitPasswordModalHandler,
 //     createInputChangeHandler,
 //     createCheckNicknameDuplicateHandler,
 //     createBirthPickerChangeHandler,
@@ -1338,7 +1114,6 @@ export function createConfirmWithdrawHandler({
 //     getMyPageTabContent,
 //     createOpenDatePickerHandler,
 //     createTypeFilterHandler,
-//     createTypeTabPressHandler,
 //     createResetFiltersHandler,
 //     createMeetingDetailHandler,
 //     createNextPageHandler,
@@ -1347,27 +1122,19 @@ export function createConfirmWithdrawHandler({
 //     createMarkAllAsReadHandler,
 //     createDeleteNotificationHandler,
 //     createToggleSelectHandler,
-//     createToggleSelectPressHandler,
 //     createSelectAllHandler,
 //     createBulkReadHandler,
 //     createBulkDeleteHandler,
 //     createOpenNotificationHandler,
-//     createOpenNotificationPressHandler,
-//     createFilterPressHandler,
-//     createDeleteTargetHandler,
-//     createClearDeleteTargetHandler,
 //     createConfirmDeleteHandler,
 //     createFetchProfileHandler,
 //     createFetchClubsHandler,
 //     createOpenClubsHandler,
 //     createOpenClubDetailHandler,
 //     createScoreStatusHandler,
-//     createScoreStatusPressHandler,
 //     createPrevPageHandler,
 //     createGoToDetailHandler,
 //     createCloseScoreModalHandler,
-//     createOpenComingSoonHandler,
-//     createCloseComingSoonHandler,
 //     createFetchStatsHandler,
 //     createFetchMeetingsHandler,
 //     createFetchHandicapHandler,

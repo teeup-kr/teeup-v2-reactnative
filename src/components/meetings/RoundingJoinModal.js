@@ -1,19 +1,13 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { formatDateTime } from '@/lib/util/meetingUtils';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Modal from '../ui/Modal';
-
-const formatDatetime = (value) => {
-  if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleString('ko-KR');
-};
 
 export default function RoundingJoinModal({
   isOpen,
@@ -24,12 +18,16 @@ export default function RoundingJoinModal({
   setUserInfo,
   userInfoLoading,
   handicapInfo,
-  handicapLoading,
+  handicapLoading = false,
   isEditingUserInfo,
   onEditUserInfo,
   onUpdateUserInfo,
   onJoin,
   processingAction,
+  title = '라운딩 모임 참가 신청',
+  showAverageScore = true,
+  showHandicap = true,
+  showGenderInReadonly = false,
 }) {
   const isVisible = visible ?? isOpen;
   if (!isVisible) return null;
@@ -40,7 +38,11 @@ export default function RoundingJoinModal({
       return;
     }
 
-    if (handicapInfo?.initial_handicap !== null && handicapInfo?.initial_handicap !== undefined) {
+    if (
+      showHandicap &&
+      handicapInfo?.initial_handicap !== null &&
+      handicapInfo?.initial_handicap !== undefined
+    ) {
       setUserInfo((prev) => ({
         ...prev,
         handicap: String(handicapInfo.initial_handicap),
@@ -52,7 +54,7 @@ export default function RoundingJoinModal({
   return (
     <Modal
       visible={isVisible}
-      title="라운딩 모임 참가 신청"
+      title={title}
       onClose={onClose}
       footer={(
         <View style={styles.footerRow}>
@@ -77,7 +79,7 @@ export default function RoundingJoinModal({
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>일시</Text>
-          <Text style={styles.infoValue}>{formatDatetime(meeting?.meeting_time)}</Text>
+          <Text style={styles.infoValue}>{formatDateTime(meeting?.meeting_time)}</Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>장소</Text>
@@ -92,7 +94,7 @@ export default function RoundingJoinModal({
         </View>
         <Button
           size="sm"
-          variant={isEditingUserInfo ? 'outline' : 'outline'}
+          variant="outline"
           onPress={handleEditToggle}
           style={styles.editButton}
         >
@@ -108,13 +110,15 @@ export default function RoundingJoinModal({
             onChangeText={(value) => setUserInfo((prev) => ({ ...prev, realname: value }))}
             placeholder="실명을 입력하세요"
           />
-          <Input
-            label="평균 타수"
-            value={userInfo?.average_score ? String(userInfo.average_score) : ''}
-            onChangeText={(value) => setUserInfo((prev) => ({ ...prev, average_score: value }))}
-            placeholder="평균 타수를 입력하세요"
-            keyboardType="number-pad"
-          />
+          {showAverageScore ? (
+            <Input
+              label="평균 타수"
+              value={userInfo?.average_score ? String(userInfo.average_score) : ''}
+              onChangeText={(value) => setUserInfo((prev) => ({ ...prev, average_score: value }))}
+              placeholder="평균 타수를 입력하세요"
+              keyboardType="number-pad"
+            />
+          ) : null}
           <Input
             label="전화번호"
             value={userInfo?.phone_number || ''}
@@ -128,13 +132,15 @@ export default function RoundingJoinModal({
             onChangeText={(value) => setUserInfo((prev) => ({ ...prev, birthdate: value }))}
             placeholder="YYYY-MM-DD"
           />
-          <Input
-            label="핸디캡"
-            value={userInfo?.handicap ? String(userInfo.handicap) : ''}
-            onChangeText={(value) => setUserInfo((prev) => ({ ...prev, handicap: value }))}
-            placeholder="예: 15.8"
-            keyboardType="decimal-pad"
-          />
+          {showHandicap ? (
+            <Input
+              label="핸디캡"
+              value={userInfo?.handicap ? String(userInfo.handicap) : ''}
+              onChangeText={(value) => setUserInfo((prev) => ({ ...prev, handicap: value }))}
+              placeholder="예: 15.8"
+              keyboardType="decimal-pad"
+            />
+          ) : null}
           <Button size="sm" onPress={onUpdateUserInfo} loading={processingAction}>
             정보 저장
           </Button>
@@ -142,12 +148,19 @@ export default function RoundingJoinModal({
       ) : (
         <View style={styles.readonlyCard}>
           <Text style={styles.readonlyText}>실명: {userInfoLoading ? '불러오는 중...' : userInfo?.realname || '미등록'}</Text>
-          <Text style={styles.readonlyText}>평균 타수: {userInfoLoading ? '-' : userInfo?.average_score || '미등록'}</Text>
+          {showAverageScore ? (
+            <Text style={styles.readonlyText}>평균 타수: {userInfoLoading ? '-' : userInfo?.average_score || '미등록'}</Text>
+          ) : null}
           <Text style={styles.readonlyText}>전화번호: {userInfoLoading ? '-' : userInfo?.phone_number || '미등록'}</Text>
           <Text style={styles.readonlyText}>생년월일: {userInfoLoading ? '-' : userInfo?.birthdate || '미등록'}</Text>
-          <Text style={styles.readonlyText}>
-            핸디캡: {handicapLoading ? '-' : handicapInfo?.calculated_handicap ?? handicapInfo?.initial_handicap ?? '미등록'}
-          </Text>
+          {showHandicap ? (
+            <Text style={styles.readonlyText}>
+              핸디캡: {handicapLoading ? '-' : handicapInfo?.calculated_handicap ?? handicapInfo?.initial_handicap ?? '미등록'}
+            </Text>
+          ) : null}
+          {showGenderInReadonly ? (
+            <Text style={styles.readonlyText}>성별: {userInfo?.gender === 'MALE' ? '남성' : userInfo?.gender === 'FEMALE' ? '여성' : '미등록'}</Text>
+          ) : null}
         </View>
       )}
     </Modal>

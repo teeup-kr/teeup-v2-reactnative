@@ -9,7 +9,7 @@ export default function AppFooter() {
   }
   return (
     <View style={styles.container}>
-      <Text style={styles.meta}>© {new Date().getFullYear()} 티업링크. All rights reserved.</Text>
+      <Text style={styles.meta}>© 티업링크. All rights reserved.</Text>
     </View>
   );
 }

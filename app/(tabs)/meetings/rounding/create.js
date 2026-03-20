@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
-    Modal,
     Platform,
     Pressable,
     ScrollView,
@@ -19,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import DateTimeField from '@/components/ui/DateTimeField';
+import Modal from '@/components/ui/Modal';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import SelectableChip from '@/components/ui/SelectableChip';
 import {
@@ -31,8 +31,6 @@ import { clubsApi, meetingsApi, mypageApi } from '@/lib/api/api';
 import {
     createFetchClubsHandler,
     createFetchMeetingHandler,
-    createFieldChangeHandler,
-    createOptionPressHandler,
     createSubmitHandler,
 } from '@/lib/handler/meetings';
 import { leaveMeetingFormScreen } from '@/lib/navigation/cappedHistory';
@@ -158,7 +156,7 @@ export function RoundingForm({ mode = 'create' }) {
     tee_times: [],
     max_participants: '',
     team_size: '4',
-    team_formation_mode: 'GENDER_SEPARATED',
+    team_formation_mode: 'GENDER_SEPARATED_HANDICAP',
     meeting_subtype: 'REGULAR',
     green_fee: '',
     caddy_fee: '',
@@ -213,8 +211,28 @@ export function RoundingForm({ mode = 'create' }) {
   );
 
   const handleFieldChange = useMemo(
-    () => createFieldChangeHandler({ setForm }),
-    [setForm]
+    () =>
+      (field) =>
+        (value) => {
+          if (field === 'max_participants') {
+            const nextValue = String(value ?? '');
+            const digitsOnly = nextValue.replace(/\D/g, '');
+
+            setForm((prev) => ({ ...prev, [field]: digitsOnly }));
+            setFieldErrors((prev) => {
+              if (nextValue !== digitsOnly) {
+                return { ...prev, max_participants: '숫자만 입력해주세요.' };
+              }
+              if (!prev.max_participants) return prev;
+              const nextErrors = { ...prev };
+              delete nextErrors.max_participants;
+              return nextErrors;
+            });
+            return;
+          }
+          setForm((prev) => ({ ...prev, [field]: value }));
+        },
+    [setForm, setFieldErrors]
   );
 
   const addTeeTime = useCallback(() => {
@@ -236,19 +254,35 @@ export function RoundingForm({ mode = 'create' }) {
   }, []);
 
   const handleClubSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'club_id' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('club_id')(value);
+        },
     [handleFieldChange]
   );
   const handleTeamModeSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'team_formation_mode' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('team_formation_mode')(value);
+        },
     [handleFieldChange]
   );
   const handleMeetingSubtypeSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'meeting_subtype' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('meeting_subtype')(value);
+        },
     [handleFieldChange]
   );
   const handleSettlementSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'settlement_method' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('settlement_method')(value);
+        },
     [handleFieldChange]
   );
 
@@ -297,6 +331,38 @@ export function RoundingForm({ mode = 'create' }) {
   useEffect(() => {
     fetchMeeting();
   }, [fetchMeeting]);
+
+  useEffect(() => {
+    const relationError = '신청 마감일은 모임 시간 이전이어야 합니다.';
+
+    setFieldErrors((prev) => {
+      const hasRelationError = prev.application_deadline === relationError;
+
+      if (!form.meeting_time || !form.application_deadline) {
+        if (!hasRelationError) return prev;
+        const nextErrors = { ...prev };
+        delete nextErrors.application_deadline;
+        return nextErrors;
+      }
+
+      const meetingDate = new Date(form.meeting_time);
+      const deadlineDate = new Date(form.application_deadline);
+      const isInvalidOrder =
+        !Number.isNaN(meetingDate.getTime()) &&
+        !Number.isNaN(deadlineDate.getTime()) &&
+        meetingDate < deadlineDate;
+
+      if (!isInvalidOrder) {
+        if (!hasRelationError) return prev;
+        const nextErrors = { ...prev };
+        delete nextErrors.application_deadline;
+        return nextErrors;
+      }
+
+      if (hasRelationError) return prev;
+      return { ...prev, application_deadline: relationError };
+    });
+  }, [form.application_deadline, form.meeting_time]);
 
   useEffect(() => {
     let isMounted = true;
@@ -916,11 +982,13 @@ export function RoundingForm({ mode = 'create' }) {
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>티타임</Text>
                 <View style={styles.teeTimeRow}>
-                  <View style={styles.teeTimePickerWrap}>
+                  <View style={styles.teeTimeSelectBox}>
+                    <Text style={styles.teeTimeSelectText}>{`${String(teeTimeHour).padStart(2, '0')}시`}</Text>
+                    <Text style={styles.teeTimeSelectArrow}>▼</Text>
                     <Picker
                       selectedValue={teeTimeHour}
                       onValueChange={(v) => setTeeTimeHour(Number(v))}
-                      style={styles.teeTimePicker}
+                      style={styles.teeTimeHiddenPicker}
                       mode={Platform.OS === 'android' ? 'dropdown' : 'dialog'}
                       dropdownIconColor={colors.neutral[600]}
                     >
@@ -929,11 +997,13 @@ export function RoundingForm({ mode = 'create' }) {
                       ))}
                     </Picker>
                   </View>
-                  <View style={styles.teeTimePickerWrap}>
+                  <View style={styles.teeTimeSelectBox}>
+                    <Text style={styles.teeTimeSelectText}>{`${String(teeTimeMinute).padStart(2, '0')}분`}</Text>
+                    <Text style={styles.teeTimeSelectArrow}>▼</Text>
                     <Picker
                       selectedValue={teeTimeMinute}
                       onValueChange={(v) => setTeeTimeMinute(Number(v))}
-                      style={styles.teeTimePicker}
+                      style={styles.teeTimeHiddenPicker}
                       mode={Platform.OS === 'android' ? 'dropdown' : 'dialog'}
                       dropdownIconColor={colors.neutral[600]}
                     >
@@ -1339,19 +1409,14 @@ export function RoundingForm({ mode = 'create' }) {
 
       <Modal
         visible={participantModalVisible}
-        transparent
+        title="참가자 편집"
+        onClose={handleCloseParticipantModal}
         animationType="slide"
-        onRequestClose={handleCloseParticipantModal}
+        scroll={false}
+        containerStyle={styles.participantModalCard}
+        backdropStyle={styles.participantModalBackdrop}
+        bodyStyle={styles.participantModalBody}
       >
-        <View style={styles.participantModalBackdrop}>
-          <View style={styles.participantModalCard}>
-            <View style={styles.participantModalHeader}>
-              <Text style={styles.participantModalTitle}>참가자 편집</Text>
-              <Pressable onPress={handleCloseParticipantModal} style={styles.participantModalCloseButton}>
-                <FontAwesome5 name="times" size={16} color={colors.neutral[600]} />
-              </Pressable>
-            </View>
-
             <View style={styles.participantSearchRow}>
               <TextInput
                 value={participantSearchKeyword}
@@ -1546,8 +1611,6 @@ export function RoundingForm({ mode = 'create' }) {
                 </Pressable>
               </View>
             </View>
-          </View>
-        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -1585,16 +1648,18 @@ const styles = StyleSheet.create({
     gap: tokens.spacing.xs,
     marginBottom: tokens.spacing.xs2,
   },
-  teeTimePickerWrap: {
+  teeTimeSelectBox: {
+    ...base.selectBox,
     flex: 1,
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: tokens.radius.base,
-    backgroundColor: colors.white,
-    minHeight: 44,
   },
-  teeTimePicker: {
-    height: 44,
+  teeTimeSelectText: {
+    ...base.selectBoxText,
+  },
+  teeTimeSelectArrow: {
+    ...base.selectBoxArrow,
+  },
+  teeTimeHiddenPicker: {
+    ...base.hiddenPicker,
   },
   teeTimeAddBtn: {
     minWidth: 64,
@@ -1699,34 +1764,17 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.semibold,
   },
   participantModalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: tokens.padding.md,
     paddingVertical: tokens.padding.lg,
   },
   participantModalCard: {
-    backgroundColor: colors.white,
-    borderRadius: tokens.radius.xl,
-    padding: tokens.padding.md,
     width: '100%',
-    maxWidth: 720,
+    maxWidth: 462,
     height: '90%',
+    alignSelf: 'center',
   },
-  participantModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: tokens.spacing.sm2,
-  },
-  participantModalTitle: {
-    fontSize: tokens.font.title,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[900],
-  },
-  participantModalCloseButton: {
-    padding: tokens.padding.xs,
+  participantModalBody: {
+    flex: 1,
   },
   participantSearchRow: {
     flexDirection: 'row',

@@ -71,7 +71,10 @@ export default function TeamFormationPreviewModal({
                 members.map((member, memberIndex) => (
                   <View key={member.id || memberIndex} style={styles.memberRow}>
                     <Text style={styles.memberName}>{member.user_name || member.name || member.guest_name || '이름 없음'}</Text>
-                    <Text style={styles.memberMeta}>{member.handicap_index ?? member.handicap ?? '-'}</Text>
+                    <View style={styles.memberMetaRow}>
+                      <Text style={styles.memberMetaLabel}>핸디캡</Text>
+                      <Text style={styles.memberMetaValue}>{member.handicap_index ?? member.handicap ?? '-'}</Text>
+                    </View>
                   </View>
                 ))
               )}
@@ -128,6 +131,23 @@ const styles = StyleSheet.create({
   memberMeta: {
     fontSize: tokens.font.xs,
     color: colors.neutral[500],
+  },
+  memberMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 72,
+  },
+  memberMetaLabel: {
+    width: 40,
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+  },
+  memberMetaValue: {
+    flex: 1,
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+    fontVariant: ['tabular-nums'],
+    textAlign: 'right',
   },
   emptyText: {
     fontSize: tokens.font.xs,

@@ -19,13 +19,6 @@ export function parseYmd(value) {
   return new Date(yyyy, mm - 1, dd);
 };
 
-/** 입력용: 숫자만 남기고 최대 8자리 (YYYYMMDD) */
-export function normalizeBirthdateInput(value) {
-  if (value == null || value === '') return '';
-  const digits = String(value).replace(/\D/g, '').slice(0, 8);
-  return digits;
-}
-
 const BIRTHDATE_YEAR_MIN = 1900;
 const BIRTHDATE_YEAR_MAX = new Date().getFullYear();
 
@@ -70,92 +63,6 @@ export function isPastDateTime(value) {
   } catch {
     return false;
   }
-};
-
-export function getDateRange(startDate, endDate) {
-  if (!startDate && !endDate) return null;
-  const start = startDate ? new Date(startDate) : null;
-  const end = endDate ? new Date(endDate) : null;
-  if (end) {
-    end.setHours(23, 59, 59, 999);
-  }
-  return { startDate: start, endDate: end };
-};
-
-export function filterByDate(meetings, dateRange) {
-  if (!dateRange || (!dateRange.startDate && !dateRange.endDate)) return meetings;
-  return meetings.filter((meeting) => {
-    if (!meeting?.meeting_time) return false;
-    const meetingDate = new Date(meeting.meeting_time);
-    if (Number.isNaN(meetingDate.getTime())) return false;
-
-    if (dateRange.startDate && dateRange.endDate) {
-      return meetingDate >= dateRange.startDate && meetingDate <= dateRange.endDate;
-    }
-    if (dateRange.startDate) {
-      return meetingDate >= dateRange.startDate;
-    }
-    if (dateRange.endDate) {
-      return meetingDate <= dateRange.endDate;
-    }
-    return true;
-  });
-};
-
-export function isMeetingActive(meeting) {
-  const status = meeting?.status;
-  const participantCount = meeting?.participant_count || 0;
-  const applicationDeadline = meeting?.application_deadline;
-  const applicationClosedEarly = meeting?.application_closed_early || false;
-  const meetingType = meeting?.meeting_type || meeting?.type;
-  const isRoundingMeeting = meetingType === 'ROUND' || meetingType === 'ROUNDING';
-  const meetingTime = meeting?.meeting_time;
-  const settlementConfirmed = meeting?.settlement_confirmed;
-  const roundingCompletedAt = meeting?.rounding_completed_at;
-
-  const isMinParticipantsNotMet = isRoundingMeeting
-    ? participantCount >= 1 && participantCount <= 3
-    : participantCount === 1;
-
-  const isDeadlinePassed = applicationDeadline ? isPastDateTime(applicationDeadline) : false;
-  const isApplicationClosed = isDeadlinePassed || applicationClosedEarly;
-
-  const isCanceled =
-    status === 'CANCELED' || (status === 'SCHEDULED' && isApplicationClosed && isMinParticipantsNotMet);
-
-  if (settlementConfirmed === true) {
-    return false;
-  }
-
-  if (meeting?.is_completed === true) {
-    return false;
-  }
-
-  if (status === 'COMPLETED') {
-    return false;
-  }
-
-  const isMeetingTimePassed = meetingTime ? isPastDateTime(meetingTime) : false;
-
-  if (isRoundingMeeting) {
-    if (roundingCompletedAt) {
-      return false;
-    }
-    if (isMeetingTimePassed && !roundingCompletedAt) {
-      return false;
-    }
-  } else if (isMeetingTimePassed) {
-    return false;
-  }
-
-  return !isCanceled;
-};
-
-export function filterByStatus(meetings, statusFilter) {
-  if (statusFilter === 'active') {
-    return meetings.filter((meeting) => isMeetingActive(meeting));
-  }
-  return meetings.filter((meeting) => !isMeetingActive(meeting));
 };
 
 export function formatMeetingTime(meetingTime) {
@@ -393,11 +300,17 @@ export function formatDateTime(value) {
   return date.toLocaleString('ko-KR');
 };
 
-export function formatMeetingListDate(value) {
+export function formatDateTimeWithMinute(value) {
   if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleDateString('ko-KR');
+  const date = typeof value === 'string' ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
 export function getPageNumbers({ currentPage, totalPages }) {
   if (totalPages <= 5) {
@@ -440,7 +353,7 @@ export function getMeetingDomainType(typeSlug) { return typeSlug === 'social' ? 
  * API 응답에서 meeting_type / settlement_method 등이 문자열("ROUND") 또는 Enum 직렬화 객체로 올 수 있음.
  * 항상 문자열로 비교할 수 있도록 값만 추출.
  */
-export function normalizeEnumValue(v) {
+function normalizeEnumValue(v) {
   if (v == null) return null;
   if (typeof v === 'string') return v;
   return v?.value ?? null;
@@ -449,11 +362,6 @@ export function normalizeEnumValue(v) {
 /** meeting의 모임 타입 문자열 (ROUND / SOCIAL) */
 export function getMeetingTypeValue(meeting) {
   return normalizeEnumValue(meeting?.meeting_type ?? meeting?.type) ?? null;
-}
-
-/** meeting의 정산 방법 문자열 (EQUAL_SPLIT / INDIVIDUAL 등) */
-export function getSettlementMethodValue(meeting) {
-  return normalizeEnumValue(meeting?.settlement_method) ?? null;
 }
 
 export function getMyParticipantId({ user, participants }) {
@@ -478,94 +386,11 @@ export function buildUserInfoFromProfile(profile) {
 export function getIsJoined({ participants, user }) { return participants.some((participant) => participant.user_id === user?.id); }
 
 export function getUserRole({ meeting, user }) { return meeting?.user_role || meeting?.role || user?.role; }
-export function getExpenseAmountValue(expense) { return expense?.amount ?? expense?.price ?? expense?.cost; }
-
-export function formatExpenseAmount(expense) {
-  const value = getExpenseAmountValue(expense);
-  return value !== undefined && value !== null
-    ? `${Number(value).toLocaleString('ko-KR')}원`
-    : '-';
-};
-
-export function getExpenseLabel(expense) { return expense?.label || expense?.title || '경비'; }
-
-export function getTotalExpenseAmount(expenses) {
-  const amounts = expenses
-    .map((expense) => {
-      const value = getExpenseAmountValue(expense);
-      return value !== undefined && value !== null ? Number(value) : null;
-    })
-    .filter((value) => Number.isFinite(value));
-  if (amounts.length === 0) return '-';
-  const total = amounts.reduce((sum, value) => sum + value, 0);
-  return `${total.toLocaleString('ko-KR')}원`;
-};
-
-export function normalizeMyMeetings(meetings) {
-  return meetings.map((meeting) => {
-    const meetingType = getMeetingTypeValue(meeting) || meeting?.meeting_type || meeting?.type || 'ROUND';
-    const typeSlug = meetingType === 'ROUND' || meetingType === 'ROUNDING' ? 'rounding' : 'social';
-    return {
-      id: meeting?.id || meeting?.meeting_id,
-      name: meeting?.meeting_name || meeting?.title || '모임',
-      type: typeSlug,
-      date: formatMeetingListDate(meeting?.meeting_time || meeting?.date),
-      status: meeting?.status || meeting?.application_status || '-',
-    };
-  });
-}
-export function normalizePlayers(participants) {
-  return participants.map((participant) => ({
-    id: participant?.id || participant?.participant_id || participant?.user_id,
-    name:
-      participant?.user?.name ||
-      participant?.user?.realname ||
-      participant?.user?.nickname ||
-      participant?.name ||
-      participant?.nickname ||
-      '-',
-    score:
-      participant?.score ??
-      participant?.total_score ??
-      participant?.simple_score ??
-      participant?.average_score ??
-      '',
-  }));
-}
-export function getParticipantsFromResponse(response) {
-  if (Array.isArray(response?.data)) return response.data;
-  if (Array.isArray(response)) return response;
-  if (Array.isArray(response?.items)) return response.items;
-  return [];
-};
-
-export function buildMeetingStats({ participants, meeting }) {
-  const participantCount = participants.length;
-  const scoreValues = participants
-    .map((participant) => {
-      const score = participant?.score ?? participant?.total_score ?? participant?.average_score;
-      return score !== undefined && score !== null ? Number(score) : null;
-    })
-    .filter((value) => Number.isFinite(value));
-  const average = scoreValues.length
-    ? (scoreValues.reduce((sum, value) => sum + value, 0) / scoreValues.length).toFixed(1)
-    : meeting?.average_score ?? '-';
-  const best = scoreValues.length ? Math.min(...scoreValues) : meeting?.best_score ?? '-';
-
-  return [
-    { id: 'participants', label: '참가자', value: `${participantCount}명` },
-    { id: 'average', label: '평균 타수', value: average },
-    { id: 'best', label: '베스트 스코어', value: best },
-  ];
-};
 
 // export const meetingUtils = {
 //   formatYmd,
 //   parseYmd,
 //   isPastDateTime,
-//   getDateRange,
-//   filterByDate,
-//   filterByStatus,
 //   formatMeetingTime,
 //   formatMeetingTimeShort,
 //   formatCost,
@@ -578,7 +403,6 @@ export function buildMeetingStats({ participants, meeting }) {
 //   parseTeeTimes,
 //   validateMeetingTimeWithTeeTimes,
 //   formatDateTime,
-//   formatMeetingListDate,
 //   getPageNumbers,
 //   getActiveFilters,
 //   getTypeSlug,
@@ -588,11 +412,4 @@ export function buildMeetingStats({ participants, meeting }) {
 //   buildUserInfoFromProfile,
 //   getIsJoined,
 //   getUserRole,
-//   formatExpenseAmount,
-//   getExpenseLabel,
-//   getTotalExpenseAmount,
-//   normalizeMyMeetings,
-//   normalizePlayers,
-//   getParticipantsFromResponse,
-//   buildMeetingStats,
 // };

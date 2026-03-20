@@ -1,11 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView, StyleSheet, Text,
-    TextInput,
-    View
+  ActivityIndicator,
+  Alert,
+  ScrollView, StyleSheet, Text,
+  TextInput,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -17,23 +17,21 @@ import SelectableChip from '@/components/ui/SelectableChip';
 import { socialSettlementMethods, socialTypeOptions } from '@/constants/meetingConstants';
 import { meetingsApi } from '@/lib/api/api';
 import {
-    createFetchClubsHandler,
-    createFetchMeetingHandler,
-    createFieldChangeHandler,
-    createOptionPressHandler,
-    createParticipantTypeHandler,
-    createSubmitHandler,
+  createFetchClubsHandler,
+  createFetchMeetingHandler,
+  createParticipantTypeHandler,
+  createSubmitHandler,
 } from '@/lib/handler/meetings';
 import { leaveMeetingFormScreen } from '@/lib/navigation/cappedHistory';
 import { confirmDiscardDraft } from '@/lib/util/confirmDiscard';
 import { extractData, extractList } from '@/lib/util/meetingUtils';
 import {
-    buildSocialFormFromData,
-    buildSocialPayload,
-    getParticipantTypeFromData,
-    getSocialMeetingTitle,
-    normalizeMaxParticipantsInput,
-    validateSocialForm,
+  buildSocialFormFromData,
+  buildSocialPayload,
+  getParticipantTypeFromData,
+  getSocialMeetingTitle,
+  normalizeMaxParticipantsInput,
+  validateSocialForm,
 } from '@/lib/util/socialForm';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -84,19 +82,51 @@ export function SocialForm({ mode = 'create' }) {
   );
 
   const handleFieldChange = useMemo(
-    () => createFieldChangeHandler({ setForm }),
-    [setForm]
+    () =>
+      (field) =>
+        (value) => {
+          if (field === 'max_participants') {
+            const nextValue = String(value ?? '');
+            const digitsOnly = nextValue.replace(/\D/g, '');
+
+            setForm((prev) => ({ ...prev, [field]: digitsOnly }));
+            setFieldErrors((prev) => {
+              if (nextValue !== digitsOnly) {
+                return { ...prev, max_participants: '숫자만 입력해주세요.' };
+              }
+              if (!prev.max_participants) return prev;
+              const nextErrors = { ...prev };
+              delete nextErrors.max_participants;
+              return nextErrors;
+            });
+            return;
+          }
+          setForm((prev) => ({ ...prev, [field]: value }));
+        },
+    [setForm, setFieldErrors]
   );
   const handleTypeSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'type' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('type')(value);
+        },
     [handleFieldChange]
   );
   const handleClubSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'club_id' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('club_id')(value);
+        },
     [handleFieldChange]
   );
   const handleSettlementSelect = useMemo(
-    () => createOptionPressHandler({ onChange: handleFieldChange, field: 'settlement_method' }),
+    () =>
+      (value) =>
+        () => {
+          handleFieldChange('settlement_method')(value);
+        },
     [handleFieldChange]
   );
   const handleParticipantTypeSelect = useMemo(
@@ -158,6 +188,38 @@ export function SocialForm({ mode = 'create' }) {
   useEffect(() => {
     fetchMeeting();
   }, [fetchMeeting]);
+
+  useEffect(() => {
+    const relationError = '신청 마감일은 모임 시간 이전이어야 합니다.';
+
+    setFieldErrors((prev) => {
+      const hasRelationError = prev.application_deadline === relationError;
+
+      if (!form.meeting_time || !form.application_deadline) {
+        if (!hasRelationError) return prev;
+        const nextErrors = { ...prev };
+        delete nextErrors.application_deadline;
+        return nextErrors;
+      }
+
+      const meetingDate = new Date(form.meeting_time);
+      const deadlineDate = new Date(form.application_deadline);
+      const isInvalidOrder =
+        !Number.isNaN(meetingDate.getTime()) &&
+        !Number.isNaN(deadlineDate.getTime()) &&
+        meetingDate < deadlineDate;
+
+      if (!isInvalidOrder) {
+        if (!hasRelationError) return prev;
+        const nextErrors = { ...prev };
+        delete nextErrors.application_deadline;
+        return nextErrors;
+      }
+
+      if (hasRelationError) return prev;
+      return { ...prev, application_deadline: relationError };
+    });
+  }, [form.application_deadline, form.meeting_time]);
 
   const handleSubmit = useMemo(
     () =>
@@ -331,7 +393,6 @@ export function SocialForm({ mode = 'create' }) {
                   <Text style={styles.errorText}>{fieldErrors.venue_name}</Text>
                 )}
               </View>
-
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>정산 방식</Text>
                 <View style={styles.chipRow}>
@@ -345,6 +406,7 @@ export function SocialForm({ mode = 'create' }) {
                     />
                   ))}
                 </View>
+                <Text style={styles.label}>참가자 안내용으로 기록하는 항목입니다.</Text>
               </View>
             </Card>
 

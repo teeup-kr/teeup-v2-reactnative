@@ -3,39 +3,16 @@ import { router } from "expo-router";
 import { Alert, Platform } from 'react-native';
 import { URLSearchParams } from 'react-native-url-polyfill';
 
+import { replaceWithPolicy } from '../navigation/cappedHistory';
 import { tokenStorage } from '../tokenStorage';
 
-let extra =
+const extra =
   Constants.expoConfig?.extra ??
   Constants.manifest?.extra;
 
-// 런타임에 3000을 8200으로 강제 변경
-if (extra?.apiBaseUrl && extra.apiBaseUrl.includes('3000')) {
-  console.warn('⚠️ apiClient.js - Force replacing 3000 with 8200 in apiBaseUrl');
-  extra = {
-    ...extra,
-    apiBaseUrl: extra.apiBaseUrl.replace(/3000/g, '8200'),
-  };
-}
-
-// redirectUri에 /callback이 없으면 추가
-if (extra?.googleAuth?.redirectUri && !extra.googleAuth.redirectUri.includes('/callback')) {
-  console.warn('⚠️ apiClient.js - Adding /callback to redirectUri');
-  extra = {
-    ...extra,
-    googleAuth: {
-      ...extra.googleAuth,
-      redirectUri: extra.googleAuth.redirectUri + '/callback',
-    },
-  };
-}
-
 const API_BASE_URL = extra?.apiBaseUrl;
-
-console.log('!!! apiClient.js - Constants.expoConfig:', Constants.expoConfig);
-console.log('!!! apiClient.js - Constants.manifest:', Constants.manifest);
-console.log('!!! apiClient.js - extra (after fix):', JSON.stringify(extra, null, 2));
-console.log('!!! apiClient.js - API_BASE_URL:', API_BASE_URL);
+const isWeb = Platform.OS === 'web';
+const CLIENT_TYPE = isWeb ? 'web' : Platform.OS;
 
 const sensitiveKeys = ['password', 'token', 'authorization', 'refresh', 'access'];
 const REFRESH_PATH = '/auth/refresh';
@@ -48,6 +25,10 @@ function getClientType() {
   if (os === 'android') return 'android';
   if (os === 'ios') return 'ios';
   return 'web';
+}
+
+function debugLog(...args) {
+  console.log(...args);
 }
 
 function maskValue(value) {
@@ -95,10 +76,11 @@ function buildUrl(path) {
   if (!path) {
     throw new Error('요청 경로를 지정해주세요.');
   }
+  if (!API_BASE_URL) {
+    throw new Error('API_BASE_URL이 설정되지 않았습니다.');
+  }
   const urlPath = path.startsWith('/') ? path : `/${path}`;
-  const fullUrl = `${API_BASE_URL}${urlPath}`;
-  console.log('!!! buildUrl - path:', path, '-> fullUrl:', fullUrl);
-  return fullUrl;
+  return `${API_BASE_URL}${urlPath}`;
 };
 
 function buildRequestConfig(config = {}) {
@@ -129,28 +111,41 @@ function getErrorMessage(payload) {
 
 export { getErrorMessage };
 
+function buildFetchOptions(options = {}) {
+  if (!isWeb) return options;
+  return {
+    ...options,
+    credentials: 'include',
+  };
+}
+
 async function requestTokenRefresh() {
   if (refreshPromise) {
     return refreshPromise;
   }
 
   refreshPromise = (async () => {
-    const refreshToken = await tokenStorage.getRefreshToken();
-    if (!refreshToken) {
-      return null;
+    const refreshHeaders = {
+      'Content-Type': 'application/json',
+      'X-Client-Type': CLIENT_TYPE,
+    };
+    const refreshRequest = {
+      method: 'POST',
+      headers: refreshHeaders,
+    };
+
+    if (!isWeb) {
+      const refreshToken = await tokenStorage.getRefreshToken();
+      if (!refreshToken) {
+        return null;
+      }
+      refreshRequest.body = JSON.stringify({ refresh_token: refreshToken });
     }
 
     const refreshUrl = buildUrl(REFRESH_PATH);
     let refreshResponse;
     try {
-      refreshResponse = await fetch(refreshUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Type': getClientType(),
-        },
-        body: JSON.stringify({ refresh_token: refreshToken }),
-      });
+      refreshResponse = await fetch(refreshUrl, buildFetchOptions(refreshRequest));
     } catch (error) {
       console.warn('[Auth Refresh Network Error]', {
         url: refreshUrl,
@@ -160,18 +155,29 @@ async function requestTokenRefresh() {
     }
 
     const refreshPayload = await parseJsonPayload(refreshResponse);
-    console.log('[Auth Refresh Response]', {
+    debugLog('[Auth Refresh Response]', {
       url: refreshUrl,
       status: refreshResponse.status,
       payload: sanitizePayload(refreshPayload),
     });
 
-    if (!refreshResponse.ok || !refreshPayload?.access_token) {
+    if (!refreshResponse.ok) {
+      return null;
+    }
+
+    if (isWeb) {
+      return { refreshed: true };
+    }
+
+    if (!refreshPayload?.access_token) {
       return null;
     }
 
     await tokenStorage.setTokens(refreshPayload.access_token, refreshPayload.refresh_token);
-    return refreshPayload.access_token;
+    return {
+      refreshed: true,
+      accessToken: refreshPayload.access_token,
+    };
   })();
 
   try {
@@ -185,7 +191,7 @@ async function handleAuthExpired() {
   console.info('[Auth] Session expired → logout');
   await tokenStorage.clearTokens();
   await tokenStorage.clearUser();
-  router.replace('/login');
+  replaceWithPolicy(router, '/login');
 }
 
 async function apiRequest(path, options = {}) {
@@ -203,14 +209,20 @@ async function apiRequest(path, options = {}) {
 
   const requestHeaders = {
     ...(isForm ? {} : { 'Content-Type': 'application/json' }),
-    'X-Client-Type': getClientType(),
     ...headers,
+    'X-Client-Type': CLIENT_TYPE,
   };
 
+  if (isWeb && requestHeaders.Authorization) {
+    delete requestHeaders.Authorization;
+  }
+
   if (auth) {
-    const token = await tokenStorage.getAccessToken();
-    if (token) {
-      requestHeaders.Authorization = `Bearer ${token}`;
+    if (!isWeb) {
+      const token = await tokenStorage.getAccessToken();
+      if (token) {
+        requestHeaders.Authorization = `Bearer ${token}`;
+      }
     }
   }
 
@@ -219,7 +231,7 @@ async function apiRequest(path, options = {}) {
     logHeaders.Authorization = `Bearer ${maskValue(logHeaders.Authorization.replace('Bearer ', ''))}`;
   }
 
-  console.log('[API Request]', {
+  debugLog('[API Request]', {
     method,
     url,
     params,
@@ -230,11 +242,11 @@ async function apiRequest(path, options = {}) {
   const requestOnce = async (headersToUse) => {
     const result = {};
     try {
-      result.response = await fetch(url, {
+      result.response = await fetch(url, buildFetchOptions({
         method,
         headers: headersToUse,
         body: isForm ? formData : (body ? JSON.stringify(body) : undefined),
-      });
+      }));
     } catch (networkError) {
       console.warn('[API Network Error]', {
         method,
@@ -250,7 +262,7 @@ async function apiRequest(path, options = {}) {
 
   let { response, payload } = await requestOnce(requestHeaders);
 
-  console.log(
+  debugLog(
     '[API Response]\n' +
     JSON.stringify({
       method,
@@ -262,6 +274,7 @@ async function apiRequest(path, options = {}) {
 
   if (!response.ok) {
     const hasAuthHeader = Boolean(requestHeaders.Authorization);
+    const hasAuthContext = hasAuthHeader || (isWeb && auth);
     const detailText =
       typeof payload?.detail === 'string'
         ? payload.detail
@@ -270,25 +283,27 @@ async function apiRequest(path, options = {}) {
           : '';
     const isAuthForbidden =
       response.status === 403 &&
-      hasAuthHeader &&
+      hasAuthContext &&
       (
         detailText.toLowerCase().includes('not authenticated') ||
         payload?.detail?.code === 'NOT_AUTHENTICATED'
       );
-    const isAuthFailure = auth && ((response.status === 401 && hasAuthHeader) || isAuthForbidden);
+    const isAuthFailure = auth && (response.status === 401 || isAuthForbidden);
 
     if (isAuthFailure) {
-      const refreshedAccessToken = await requestTokenRefresh();
-      if (refreshedAccessToken) {
-        const retryHeaders = {
-          ...requestHeaders,
-          Authorization: `Bearer ${refreshedAccessToken}`,
-        };
+      const refreshResult = await requestTokenRefresh();
+      if (refreshResult?.refreshed) {
+        const retryHeaders = refreshResult.accessToken
+          ? {
+            ...requestHeaders,
+            Authorization: `Bearer ${refreshResult.accessToken}`,
+          }
+          : requestHeaders;
         const retryResult = await requestOnce(retryHeaders);
         response = retryResult.response;
         payload = retryResult.payload;
 
-        console.log(
+        debugLog(
           '[API Retry Response]\n' +
           JSON.stringify({
             method,
@@ -303,6 +318,7 @@ async function apiRequest(path, options = {}) {
         }
 
         const retryHasAuthHeader = Boolean(retryHeaders.Authorization);
+        const retryHasAuthContext = retryHasAuthHeader || (isWeb && auth);
         const retryDetailText =
           typeof payload?.detail === 'string'
             ? payload.detail
@@ -311,13 +327,13 @@ async function apiRequest(path, options = {}) {
               : '';
         const retryIsAuthForbidden =
           response.status === 403 &&
-          retryHasAuthHeader &&
+          retryHasAuthContext &&
           (
             retryDetailText.toLowerCase().includes('not authenticated') ||
             payload?.detail?.code === 'NOT_AUTHENTICATED'
           );
 
-        if ((response.status === 401 && retryHasAuthHeader) || retryIsAuthForbidden) {
+        if ((response.status === 401 && retryHasAuthContext) || retryIsAuthForbidden) {
           await handleAuthExpired();
           return;
         }
@@ -488,7 +504,7 @@ export const oauthRequest = async (path, authData) => {
   const isJson = response.headers.get('content-type')?.includes('application/json');
   const payload = isJson ? await response.json() : null;
 
-  console.log('[OAuth Response]', {
+  debugLog('[OAuth Response]', {
     method: 'POST',
     url,
     status: response.status,

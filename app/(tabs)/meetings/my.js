@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import LoginRequired from '@/components/auth/LoginRequired';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ScreenHeader from '@/components/ui/ScreenHeader';
@@ -21,6 +20,8 @@ import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
+
+import LoginScreen from '../../login';
 
 const TABS = [
   { id: 'all', label: '전체' },
@@ -172,12 +173,7 @@ export default function MyMeetingsScreen() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <LoginRequired
-        message="로그인 후 이용가능합니다"
-        description="내 모임을 보려면 로그인이 필요합니다."
-      />
-    );
+    return <LoginScreen />;
   }
 
   return (
