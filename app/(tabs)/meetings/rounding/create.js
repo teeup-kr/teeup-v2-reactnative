@@ -33,7 +33,7 @@ import {
     createFetchMeetingHandler,
     createSubmitHandler,
 } from '@/lib/handler/meetings';
-import { leaveMeetingFormScreen } from '@/lib/navigation/cappedHistory';
+import { backOrHome } from '@/lib/navigation/cappedHistory';
 import { confirmDiscardDraft } from '@/lib/util/confirmDiscard';
 import { extractData, extractList } from '@/lib/util/meetingUtils';
 import {
@@ -787,7 +787,7 @@ export function RoundingForm({ mode = 'create' }) {
   );
 
   const handleCancel = useCallback(() => {
-    const leave = () => leaveMeetingFormScreen(router);
+    const leave = () => backOrHome(router);
 
     if (!isEditMode && !hasDraft) {
       leave();

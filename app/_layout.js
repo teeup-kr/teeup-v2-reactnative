@@ -18,7 +18,7 @@ import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
-import { backOrHome, getHistorySnapshot, markHistoryTraversal, navigateWithCap, syncRouteHistory } from '@/lib/navigation/cappedHistory';
+import { backOrHome, getHistorySnapshot, handleWebPopstateBack, navigateWithCap, syncRouteHistory } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 
 /** Google Tag Manager 컨테이너 ID (웹 전용) */
@@ -140,12 +140,10 @@ function AppShell() {
 
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const handlePopstate = () => {
-        if (getHistorySnapshot().length <= 1) {
-          backOrHome(router);
+        const handled = handleWebPopstateBack(router);
+        if (handled) {
           return;
         }
-
-        markHistoryTraversal();
       };
 
       window.addEventListener('popstate', handlePopstate);
