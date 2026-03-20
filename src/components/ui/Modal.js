@@ -15,26 +15,50 @@ export default function Modal({
   children,
   onClose,
   footer,
+  animationType = 'fade',
+  containerStyle,
+  backdropStyle,
+  bodyStyle,
+  scroll = true,
+  closeOnBackdropPress = false,
 }) {
+  const content = (
+    <View style={[styles.container, containerStyle]}>
+      <View style={styles.header}>
+        <Text style={styles.title}>{title}</Text>
+        {onClose ? (
+          <Pressable onPress={onClose} style={styles.closeButton}>
+            <Text style={styles.closeText}>x</Text>
+          </Pressable>
+        ) : null}
+      </View>
+      {scroll ? (
+        <ScrollView contentContainerStyle={[styles.body, bodyStyle]}>{children}</ScrollView>
+      ) : (
+        <View style={[styles.body, bodyStyle]}>{children}</View>
+      )}
+      {footer ? <View style={styles.footer}>{footer}</View> : null}
+    </View>
+  );
+
   return (
     <RNModal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType={animationType}
       onRequestClose={onClose}
     >
-      <View style={styles.backdrop}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
-            <Pressable onPress={onClose} style={styles.closeButton}>
-              <Text style={styles.closeText}>x</Text>
-            </Pressable>
-          </View>
-          <ScrollView contentContainerStyle={styles.body}>{children}</ScrollView>
-          {footer ? <View style={styles.footer}>{footer}</View> : null}
+      {closeOnBackdropPress ? (
+        <Pressable style={[styles.backdrop, backdropStyle]} onPress={onClose}>
+          <Pressable onPress={(event) => event.stopPropagation?.()}>
+            {content}
+          </Pressable>
+        </Pressable>
+      ) : (
+        <View style={[styles.backdrop, backdropStyle]}>
+          {content}
         </View>
-      </View>
+      )}
     </RNModal>
   );
 }
@@ -44,12 +68,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
+    alignItems: 'center',
     padding: tokens.padding.md,
   },
   container: {
     backgroundColor: colors.white,
     borderRadius: tokens.radius.lg,
     maxHeight: '80%',
+    width: '100%',
+    maxWidth: 470,
     overflow: 'hidden',
   },
   header: {

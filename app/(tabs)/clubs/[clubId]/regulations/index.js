@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -17,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi } from '@/lib/api/api';
 import {
@@ -297,39 +297,37 @@ export default function ClubRegulationsScreen() {
 
       <Modal
         visible={categoryModalVisible}
-        transparent
+        title={editingCategory ? '카테고리 수정' : '카테고리 추가'}
+        onClose={closeCategoryModal}
         animationType="fade"
-        onRequestClose={closeCategoryModal}
+        closeOnBackdropPress
+        containerStyle={styles.modalContent}
+        backdropStyle={styles.modalOverlay}
+        footer={(
+          <View style={styles.modalActions}>
+            <Button variant="outline" onPress={closeCategoryModal} style={styles.modalBtn}>
+              취소
+            </Button>
+            <Button
+              variant="primary"
+              onPress={handleSaveCategory}
+              disabled={isCategorySubmitting}
+              style={styles.modalBtn}
+            >
+              {isCategorySubmitting ? '저장 중...' : '저장'}
+            </Button>
+          </View>
+        )}
       >
-        <Pressable style={styles.modalOverlay} onPress={closeCategoryModal}>
-          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.modalTitle}>
-              {editingCategory ? '카테고리 수정' : '카테고리 추가'}
-            </Text>
-            <Text style={styles.label}>카테고리 이름 *</Text>
-            <TextInput
-              value={categoryName}
-              onChangeText={setCategoryName}
-              placeholder="예: 회칙, 운영규정"
-              style={styles.modalInput}
-              placeholderTextColor={colors.neutral[400]}
-              autoFocus
-            />
-            <View style={styles.modalActions}>
-              <Button variant="outline" onPress={closeCategoryModal} style={styles.modalBtn}>
-                취소
-              </Button>
-              <Button
-                variant="primary"
-                onPress={handleSaveCategory}
-                disabled={isCategorySubmitting}
-                style={styles.modalBtn}
-              >
-                {isCategorySubmitting ? '저장 중...' : '저장'}
-              </Button>
-            </View>
-          </Pressable>
-        </Pressable>
+        <Text style={styles.label}>카테고리 이름 *</Text>
+        <TextInput
+          value={categoryName}
+          onChangeText={setCategoryName}
+          placeholder="예: 회칙, 운영규정"
+          style={styles.modalInput}
+          placeholderTextColor={colors.neutral[400]}
+          autoFocus
+        />
       </Modal>
     </SafeAreaView>
   );
@@ -408,24 +406,11 @@ const styles = StyleSheet.create({
     marginTop: tokens.spacing.hairline,
   },
   modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
     padding: tokens.spacing.lg,
   },
   modalContent: {
-    backgroundColor: colors.white,
-    borderRadius: tokens.radius.lg,
-    padding: tokens.spacing.lg,
     width: '100%',
     maxWidth: 360,
-  },
-  modalTitle: {
-    fontSize: tokens.font.title,
-    fontWeight: tokens.fontWeight.semibold,
-    color: colors.neutral[900],
-    marginBottom: tokens.spacing.md,
   },
   label: base.labelSm,
   modalInput: {

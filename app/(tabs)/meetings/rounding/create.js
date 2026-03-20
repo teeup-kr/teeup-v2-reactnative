@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
-    Modal,
     Platform,
     Pressable,
     ScrollView,
@@ -19,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import DateTimeField from '@/components/ui/DateTimeField';
+import Modal from '@/components/ui/Modal';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import SelectableChip from '@/components/ui/SelectableChip';
 import {
@@ -214,9 +214,25 @@ export function RoundingForm({ mode = 'create' }) {
     () =>
       (field) =>
         (value) => {
+          if (field === 'max_participants') {
+            const nextValue = String(value ?? '');
+            const digitsOnly = nextValue.replace(/\D/g, '');
+
+            setForm((prev) => ({ ...prev, [field]: digitsOnly }));
+            setFieldErrors((prev) => {
+              if (nextValue !== digitsOnly) {
+                return { ...prev, max_participants: '숫자만 입력해주세요.' };
+              }
+              if (!prev.max_participants) return prev;
+              const nextErrors = { ...prev };
+              delete nextErrors.max_participants;
+              return nextErrors;
+            });
+            return;
+          }
           setForm((prev) => ({ ...prev, [field]: value }));
         },
-    [setForm]
+    [setForm, setFieldErrors]
   );
 
   const addTeeTime = useCallback(() => {
@@ -1393,19 +1409,14 @@ export function RoundingForm({ mode = 'create' }) {
 
       <Modal
         visible={participantModalVisible}
-        transparent
+        title="참가자 편집"
+        onClose={handleCloseParticipantModal}
         animationType="slide"
-        onRequestClose={handleCloseParticipantModal}
+        scroll={false}
+        containerStyle={styles.participantModalCard}
+        backdropStyle={styles.participantModalBackdrop}
+        bodyStyle={styles.participantModalBody}
       >
-        <View style={styles.participantModalBackdrop}>
-          <View style={styles.participantModalCard}>
-            <View style={styles.participantModalHeader}>
-              <Text style={styles.participantModalTitle}>참가자 편집</Text>
-              <Pressable onPress={handleCloseParticipantModal} style={styles.participantModalCloseButton}>
-                <FontAwesome5 name="times" size={16} color={colors.neutral[600]} />
-              </Pressable>
-            </View>
-
             <View style={styles.participantSearchRow}>
               <TextInput
                 value={participantSearchKeyword}
@@ -1600,8 +1611,6 @@ export function RoundingForm({ mode = 'create' }) {
                 </Pressable>
               </View>
             </View>
-          </View>
-        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -1755,34 +1764,17 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.semibold,
   },
   participantModalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: tokens.padding.md,
     paddingVertical: tokens.padding.lg,
   },
   participantModalCard: {
-    backgroundColor: colors.white,
-    borderRadius: tokens.radius.xl,
-    padding: tokens.padding.md,
     width: '100%',
-    maxWidth: 720,
+    maxWidth: 462,
     height: '90%',
+    alignSelf: 'center',
   },
-  participantModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: tokens.spacing.sm2,
-  },
-  participantModalTitle: {
-    fontSize: tokens.font.title,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.neutral[900],
-  },
-  participantModalCloseButton: {
-    padding: tokens.padding.xs,
+  participantModalBody: {
+    flex: 1,
   },
   participantSearchRow: {
     flexDirection: 'row',

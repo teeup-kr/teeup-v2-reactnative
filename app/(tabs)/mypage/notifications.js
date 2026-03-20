@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Modal,
   Pressable,
   ScrollView, StyleSheet, Text,
   View
@@ -15,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AppToast from '@/components/ui/AppToast';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
 import { notificationsApi } from '@/lib/api/api';
 import {
   createBulkDeleteHandler,
@@ -341,24 +341,27 @@ export default function NotificationsTab() {
         )}
         </ScrollView>
 
-        <Modal visible={!!deleteTarget} transparent>
-          <View style={styles.modalBg}>
-            <View style={styles.modalBox}>
-              <Text style={styles.modalTitle}>알림 삭제</Text>
-              <Text style={{ marginBottom: tokens.spacing.md }}>이 알림을 삭제하시겠습니까?</Text>
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                <Button style={styles.modalBtn} variant="outline" onPress={clearDeleteTarget}>
-                  <Text>취소</Text>
-                </Button>
-                <Button
-                  style={[styles.modalBtn, { backgroundColor: colors.error[600] }]}
-                  onPress={confirmDelete}
-                >
-                  <Text style={{ color: 'white' }}>삭제</Text>
-                </Button>
-              </View>
+        <Modal
+          visible={!!deleteTarget}
+          title="알림 삭제"
+          onClose={clearDeleteTarget}
+          containerStyle={styles.modalBox}
+          backdropStyle={styles.modalBg}
+          footer={(
+            <View style={styles.modalButtonRow}>
+              <Button style={styles.modalBtn} variant="outline" onPress={clearDeleteTarget}>
+                <Text>취소</Text>
+              </Button>
+              <Button
+                style={[styles.modalBtn, { backgroundColor: colors.error[600] }]}
+                onPress={confirmDelete}
+              >
+                <Text style={{ color: 'white' }}>삭제</Text>
+              </Button>
             </View>
-          </View>
+          )}
+        >
+          <Text style={styles.modalMessage}>이 알림을 삭제하시겠습니까?</Text>
         </Modal>
 
         <AppToast
@@ -420,23 +423,13 @@ const styles = StyleSheet.create({
   },
 
   modalBg: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   modalBox: {
-    backgroundColor: 'white',
-    padding: tokens.padding.lg,
-    borderRadius: tokens.radius.baseLg,
-    width: '80%',
+    width: '100%',
+    maxWidth: 430,
   },
-  modalTitle: {
-    fontSize: tokens.font.title,
-    fontWeight: tokens.fontWeight.black,
-    marginBottom: tokens.spacing.sm,
-  },
-
+  modalMessage: { marginBottom: tokens.spacing.md },
+  modalButtonRow: { flexDirection: 'row', gap: 12 },
   modalBtn: {
     flex: 1,
     padding: tokens.padding.sm,

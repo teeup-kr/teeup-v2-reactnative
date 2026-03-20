@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,12 +15,15 @@ import LoginScreen from '../../login';
 
 export default function GoogleOAuthCallback() {
   const router = useRouter();
-  const { refreshAuth, setAuthError } = useAuth();
+  const { setAuthError, setUser } = useAuth();
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const hasHandledRef = useRef(false);
 
   useEffect(() => {
     if (Platform.OS !== 'web') return;
+    if (hasHandledRef.current) return;
+    hasHandledRef.current = true;
 
     const params = new URLSearchParams(window.location.search);
 
@@ -39,11 +42,13 @@ export default function GoogleOAuthCallback() {
         setAuthError(`Google 로그인 실패: ${authError}`);
         await tokenStorage.clearOauth();
         resetUrl();
+        setIsLoading(false);
         return;
       }
 
       if (!authorizationCode) {
         resetUrl();
+        setIsLoading(false);
         return;
       }
 
@@ -65,7 +70,12 @@ export default function GoogleOAuthCallback() {
           redirectUri: googleAuthConfig.redirectUrl,
         });
 
-        await refreshAuth();
+        if (!response?.user) {
+          throw new Error('사용자 정보가 없습니다.');
+        }
+
+        setAuthError(null);
+        setUser(response.user);
         const needsTermsAgreement = response?.user?.needs_terms_agreement === true;
         if (needsTermsAgreement) {
           replaceWithPolicy(router, '/terms-agree', { webHardReplace: true });
@@ -111,7 +121,7 @@ export default function GoogleOAuthCallback() {
     };
 
     void handleCallback();
-  }, [router, refreshAuth, setAuthError]);
+  }, [router, setAuthError, setUser]);
 
   // 로딩 또는 에러 화면 표시
   if (Platform.OS === 'web') {

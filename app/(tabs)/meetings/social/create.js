@@ -1,11 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView, StyleSheet, Text,
-    TextInput,
-    View
+  ActivityIndicator,
+  Alert,
+  ScrollView, StyleSheet, Text,
+  TextInput,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -17,21 +17,21 @@ import SelectableChip from '@/components/ui/SelectableChip';
 import { socialSettlementMethods, socialTypeOptions } from '@/constants/meetingConstants';
 import { meetingsApi } from '@/lib/api/api';
 import {
-    createFetchClubsHandler,
-    createFetchMeetingHandler,
-    createParticipantTypeHandler,
-    createSubmitHandler,
+  createFetchClubsHandler,
+  createFetchMeetingHandler,
+  createParticipantTypeHandler,
+  createSubmitHandler,
 } from '@/lib/handler/meetings';
 import { leaveMeetingFormScreen } from '@/lib/navigation/cappedHistory';
 import { confirmDiscardDraft } from '@/lib/util/confirmDiscard';
 import { extractData, extractList } from '@/lib/util/meetingUtils';
 import {
-    buildSocialFormFromData,
-    buildSocialPayload,
-    getParticipantTypeFromData,
-    getSocialMeetingTitle,
-    normalizeMaxParticipantsInput,
-    validateSocialForm,
+  buildSocialFormFromData,
+  buildSocialPayload,
+  getParticipantTypeFromData,
+  getSocialMeetingTitle,
+  normalizeMaxParticipantsInput,
+  validateSocialForm,
 } from '@/lib/util/socialForm';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
@@ -85,9 +85,25 @@ export function SocialForm({ mode = 'create' }) {
     () =>
       (field) =>
         (value) => {
+          if (field === 'max_participants') {
+            const nextValue = String(value ?? '');
+            const digitsOnly = nextValue.replace(/\D/g, '');
+
+            setForm((prev) => ({ ...prev, [field]: digitsOnly }));
+            setFieldErrors((prev) => {
+              if (nextValue !== digitsOnly) {
+                return { ...prev, max_participants: '숫자만 입력해주세요.' };
+              }
+              if (!prev.max_participants) return prev;
+              const nextErrors = { ...prev };
+              delete nextErrors.max_participants;
+              return nextErrors;
+            });
+            return;
+          }
           setForm((prev) => ({ ...prev, [field]: value }));
         },
-    [setForm]
+    [setForm, setFieldErrors]
   );
   const handleTypeSelect = useMemo(
     () =>
@@ -377,7 +393,6 @@ export function SocialForm({ mode = 'create' }) {
                   <Text style={styles.errorText}>{fieldErrors.venue_name}</Text>
                 )}
               </View>
-
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>정산 방식</Text>
                 <View style={styles.chipRow}>
@@ -391,6 +406,7 @@ export function SocialForm({ mode = 'create' }) {
                     />
                   ))}
                 </View>
+                <Text style={styles.label}>참가자 안내용으로 기록하는 항목입니다.</Text>
               </View>
             </Card>
 

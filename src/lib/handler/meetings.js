@@ -350,7 +350,7 @@ export function createConfirmTeamsHandler({
     confirmTeamFormation,
     router,
     setProcessingAction,
-    setTeamPreviewOpen,
+    onCloseAllTeamFormationModals,
     fetchTeams,
     fetchMeeting,
     alert,
@@ -362,7 +362,7 @@ export function createConfirmTeamsHandler({
         try {
             setProcessingAction(true);
             await confirmTeamFormation(meetingIdValue);
-            setTeamPreviewOpen(false);
+            onCloseAllTeamFormationModals();
             fetchTeams();
             fetchMeeting();
         } catch (error) {

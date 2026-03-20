@@ -18,8 +18,12 @@ export const socialSettlementMethods = [
 ];
 
 export const roundingTeamModes = [
-  { id: 'GENDER_SEPARATED', label: '성별 분리' },
-  { id: 'MIXED', label: '혼성' },
+  { id: 'GENDER_SEPARATED_HANDICAP', label: '성별 분리 + 핸디캡 기준' },
+  { id: 'GENDER_SEPARATED_PREVIOUS_RECORD', label: '성별 분리 + 직전대회 성적 기준' },
+  { id: 'GENDER_SEPARATED_RANDOM', label: '성별 분리 + 랜덤' },
+  { id: 'GENDER_MIXED_HANDICAP', label: '성별 혼합 + 핸디캡 기준' },
+  { id: 'GENDER_MIXED_PREVIOUS_RECORD', label: '성별 혼합 + 직전대회 성적 기준' },
+  { id: 'GENDER_MIXED_RANDOM', label: '성별 혼합 + 랜덤' },
 ];
 
 export const roundingMeetingSubtypes = [
