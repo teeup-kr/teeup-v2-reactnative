@@ -110,7 +110,8 @@ function AppShell() {
   }, []);
 
   useEffect(() => {
-    if (isRootEntry || isGoogleCallbackRoute) return;
+    if (isGoogleCallbackRoute) return;
+    if (isRootEntry && Platform.OS !== 'web') return;
     syncRouteHistory(currentRoute);
   }, [currentRoute, isGoogleCallbackRoute, isRootEntry]);
 

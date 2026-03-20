@@ -4,6 +4,8 @@ const MAX_STACK = 5;
 const history = [];
 const TAB_ROOT_ROUTES = ['/app', '/clubs', '/meetings', '/mypage'];
 const WEB_HARD_REPLACE_TARGETS = ['/app', '/terms-agree'];
+const WEB_GUARD_STATE_KEY = '__teeupGuard';
+const WEB_GUARD_ROUTE_KEY = '__teeupGuardRoute';
 const BACK_EXCLUDED_ROUTE_RULES = [
   { pattern: /^\/meetings\/social\/create$/, fallback: '/meetings/my' },
   { pattern: /^\/meetings\/social\/[^/]+\/edit$/, fallback: '/meetings/my' },
@@ -82,6 +84,42 @@ function shouldUseWebHardReplace(route) {
   return WEB_HARD_REPLACE_TARGETS.includes(path);
 }
 
+function getCurrentWebRoute() {
+  if (!isWebRuntime() || typeof window === 'undefined') return '';
+  return `${window.location.pathname}${window.location.search}`;
+}
+
+function shouldUseWebBackGuard(route) {
+  return stripQueryAndHash(route) !== '/';
+}
+
+function buildWebGuardState(route, guarded) {
+  const state = window.history.state;
+  const baseState = state && typeof state === 'object' ? state : {};
+
+  return {
+    ...baseState,
+    [WEB_GUARD_ROUTE_KEY]: route,
+    [WEB_GUARD_STATE_KEY]: guarded,
+  };
+}
+
+function ensureWebBackGuard(route) {
+  if (!isWebRuntime() || typeof window === 'undefined') return;
+
+  const next = normalizeRoute(route);
+  if (!next || !shouldUseWebBackGuard(next)) return;
+  if (getCurrentWebRoute() !== next) return;
+
+  const state = window.history.state;
+  if (state?.[WEB_GUARD_STATE_KEY] === true && state?.[WEB_GUARD_ROUTE_KEY] === next) {
+    return;
+  }
+
+  window.history.replaceState(buildWebGuardState(next, false), '', next);
+  window.history.pushState(buildWebGuardState(next, true), '', next);
+}
+
 function getBackExcludedRouteMatch(route) {
   const path = stripQueryAndHash(route);
   if (!path) return null;
@@ -139,6 +177,7 @@ function getBackNavigationState(home = '/app') {
     return {
       fallbackRoute,
       stepCount: 0,
+      targetIndex,
       targetRoute: fallbackRoute,
       useFallback: true,
     };
@@ -147,6 +186,7 @@ function getBackNavigationState(home = '/app') {
   return {
     fallbackRoute,
     stepCount: history.length - 1 - targetIndex,
+    targetIndex,
     targetRoute: history[targetIndex],
     useFallback: false,
   };
@@ -160,7 +200,7 @@ function recordRoute(route) {
   if (last === next) return;
 
   history.push(next);
-  if (history.length > MAX_STACK) {
+  if (!isWebRuntime() && history.length > MAX_STACK) {
     history.shift();
   }
 }
@@ -178,16 +218,19 @@ export function syncRouteHistory(route) {
     const existingIndex = history.lastIndexOf(next);
     if (existingIndex >= 0) {
       history.splice(existingIndex + 1);
+      ensureWebBackGuard(next);
       return;
     }
 
     recordRoute(next);
+    ensureWebBackGuard(next);
     return;
   }
 
   const last = history[history.length - 1];
   if (last === next) {
     isHistoryTraversalPending = false;
+    ensureWebBackGuard(next);
     return;
   }
 
@@ -197,11 +240,13 @@ export function syncRouteHistory(route) {
     const existingIndex = history.lastIndexOf(next);
     if (existingIndex >= 0) {
       history.splice(existingIndex + 1);
+      ensureWebBackGuard(next);
       return;
     }
   }
 
   recordRoute(next);
+  ensureWebBackGuard(next);
 }
 
 export function markHistoryTraversal() {
@@ -255,7 +300,7 @@ export function navigateWithCap(router, href) {
 }
 
 export function backOrHome(router, home = '/app') {
-  const { fallbackRoute, stepCount, targetRoute, useFallback } = getBackNavigationState(home);
+  const { fallbackRoute, targetIndex, targetRoute, useFallback } = getBackNavigationState(home);
 
   if (useFallback || !targetRoute) {
     history.length = 0;
@@ -265,21 +310,14 @@ export function backOrHome(router, home = '/app') {
     return;
   }
 
-  if (isWebRuntime()) {
-    blurActiveElementOnWeb();
-    markForcedHistoryTraversal(targetRoute);
-    window.history.go(-stepCount);
-    return;
-  }
-
-  history.splice(findBackTargetIndex() + 1);
+  history.splice(targetIndex + 1);
   replaceWithPolicy(router, targetRoute);
 }
 
 export function handleWebPopstateBack(router, home = '/app') {
   if (!isWebRuntime()) return false;
 
-  const { fallbackRoute, stepCount, targetRoute, useFallback } = getBackNavigationState(home);
+  const { fallbackRoute, targetIndex, targetRoute, useFallback } = getBackNavigationState(home);
 
   if (useFallback || !targetRoute) {
     history.length = 0;
@@ -289,14 +327,8 @@ export function handleWebPopstateBack(router, home = '/app') {
     return true;
   }
 
-  markForcedHistoryTraversal(targetRoute);
-
-  if (stepCount <= 1) {
-    return false;
-  }
-
-  blurActiveElementOnWeb();
-  window.history.go(-(stepCount - 1));
+  history.splice(targetIndex + 1);
+  replaceWithPolicy(router, targetRoute);
   return true;
 }
 
