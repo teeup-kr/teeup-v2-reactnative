@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import HtmlContent from '@/components/ui/HtmlContent';
 import Modal from '@/components/ui/Modal';
 import { termsApi } from '@/lib/api/api';
+import { replaceWithPolicy } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 
 const TermsAgreeScreen = () => {
@@ -123,10 +124,13 @@ const TermsAgreeScreen = () => {
 
     try {
       await termsApi.postAgreementsBulk(payload);
-      // 약관 모달이 열려있다면 닫고, 메인 홈으로 이동
-      setModalVisible(false);
-      setCurrentTermsKey(null);
-      router.replace('/app');
+      if (Platform.OS === 'web') {
+        replaceWithPolicy(router, '/app', { webHardReplace: true });
+        return;
+      }
+      Alert.alert('완료', '약관 동의가 완료되었습니다.', [
+        { text: '확인', onPress: () => replaceWithPolicy(router, '/app') },
+      ]);
     } catch (e) {
       console.error(e);
       Alert.alert('오류', '약관 동의 처리에 실패했습니다.');

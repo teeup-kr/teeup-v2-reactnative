@@ -51,6 +51,7 @@ const BACK_EXCLUDED_ROUTE_RULES = [
 ];
 let isHistoryTraversalPending = false;
 let pendingForcedRoute = '';
+let pendingWebNavigationRoute = '';
 
 function normalizeRoute(route) {
   if (Array.isArray(route)) return String(route[0] || '');
@@ -61,6 +62,20 @@ function stripQueryAndHash(route) {
   return String(route || '').split('?')[0].split('#')[0];
 }
 
+function normalizeTrailingSlash(route) {
+  const value = normalizeRoute(route);
+  if (!value || value === '/') return value;
+
+  const match = value.match(/^([^?#]*)(.*)$/);
+  const pathname = match?.[1] || '';
+  const suffix = match?.[2] || '';
+  if (!pathname || pathname === '/' || !pathname.endsWith('/')) {
+    return `${pathname}${suffix}`;
+  }
+
+  return `${pathname.slice(0, -1)}${suffix}`;
+}
+
 function isTabRootRoute(route) {
   const path = stripQueryAndHash(route);
   return TAB_ROOT_ROUTES.includes(path);
@@ -68,6 +83,25 @@ function isTabRootRoute(route) {
 
 function isWebRuntime() {
   return Platform.OS === 'web';
+}
+
+function getNavigationStateSnapshot(route) {
+  return {
+    route: normalizeRoute(route) || history[history.length - 1] || '',
+    history: [...history],
+    pendingForcedRoute,
+    pendingWebNavigationRoute,
+    isHistoryTraversalPending,
+    webRoute: getCurrentWebRoute(),
+  };
+}
+
+function logNavigationTransition(action, currentState, nextState) {
+  console.info('[Navigation]', {
+    currentState,
+    action,
+    nextState,
+  });
 }
 
 function blurActiveElementOnWeb() {
@@ -86,11 +120,12 @@ function shouldUseWebHardReplace(route) {
 
 function getCurrentWebRoute() {
   if (!isWebRuntime() || typeof window === 'undefined') return '';
-  return `${window.location.pathname}${window.location.search}`;
+  return normalizeTrailingSlash(`${window.location.pathname}${window.location.search}`);
 }
 
 function shouldUseWebBackGuard(route) {
-  return stripQueryAndHash(route) !== '/';
+  const path = stripQueryAndHash(route);
+  return path !== '/' && !isTabRootRoute(path);
 }
 
 function buildWebGuardState(route, guarded) {
@@ -208,6 +243,7 @@ function recordRoute(route) {
 export function syncRouteHistory(route) {
   const next = normalizeRoute(route);
   if (!next) return;
+  const currentState = getNavigationStateSnapshot();
 
   if (pendingForcedRoute) {
     if (next !== pendingForcedRoute) return;
@@ -219,11 +255,29 @@ export function syncRouteHistory(route) {
     if (existingIndex >= 0) {
       history.splice(existingIndex + 1);
       ensureWebBackGuard(next);
+      logNavigationTransition(
+        {
+          type: 'syncRouteHistory',
+          route: next,
+          reason: 'pendingForcedRoute-resolved-existing',
+        },
+        currentState,
+        getNavigationStateSnapshot(next)
+      );
       return;
     }
 
     recordRoute(next);
     ensureWebBackGuard(next);
+    logNavigationTransition(
+      {
+        type: 'syncRouteHistory',
+        route: next,
+        reason: 'pendingForcedRoute-resolved-recorded',
+      },
+      currentState,
+      getNavigationStateSnapshot(next)
+    );
     return;
   }
 
@@ -231,6 +285,15 @@ export function syncRouteHistory(route) {
   if (last === next) {
     isHistoryTraversalPending = false;
     ensureWebBackGuard(next);
+    logNavigationTransition(
+      {
+        type: 'syncRouteHistory',
+        route: next,
+        reason: 'same-route',
+      },
+      currentState,
+      getNavigationStateSnapshot(next)
+    );
     return;
   }
 
@@ -241,12 +304,30 @@ export function syncRouteHistory(route) {
     if (existingIndex >= 0) {
       history.splice(existingIndex + 1);
       ensureWebBackGuard(next);
+      logNavigationTransition(
+        {
+          type: 'syncRouteHistory',
+          route: next,
+          reason: 'historyTraversal-existing',
+        },
+        currentState,
+        getNavigationStateSnapshot(next)
+      );
       return;
     }
   }
 
   recordRoute(next);
   ensureWebBackGuard(next);
+  logNavigationTransition(
+    {
+      type: 'syncRouteHistory',
+      route: next,
+      reason: 'recorded',
+    },
+    currentState,
+    getNavigationStateSnapshot(next)
+  );
 }
 
 export function markHistoryTraversal() {
@@ -257,6 +338,7 @@ export function markHistoryTraversal() {
 export function replaceWithPolicy(router, href, options = {}) {
   const next = normalizeRoute(href);
   if (!next) return;
+  const currentState = getNavigationStateSnapshot();
 
   recordRoute(next);
   blurActiveElementOnWeb();
@@ -267,20 +349,48 @@ export function replaceWithPolicy(router, href, options = {}) {
     isWebRuntime();
 
   if (useWebHardReplace) {
+    logNavigationTransition(
+      {
+        type: 'replaceWithPolicy',
+        route: next,
+        method: 'window.location.replace',
+      },
+      currentState,
+      getNavigationStateSnapshot(next)
+    );
     window.location.replace(next);
     return;
   }
 
+  logNavigationTransition(
+    {
+      type: 'replaceWithPolicy',
+      route: next,
+      method: 'router.replace',
+    },
+    currentState,
+    getNavigationStateSnapshot(next)
+  );
   router.replace(next);
 }
 
 export function navigateWithCap(router, href) {
   const next = normalizeRoute(href);
   if (!next) return;
+  const currentState = getNavigationStateSnapshot();
 
   const current = history[history.length - 1];
   if (current === next) {
     blurActiveElementOnWeb();
+    logNavigationTransition(
+      {
+        type: 'navigateWithCap',
+        route: next,
+        method: 'noop',
+      },
+      currentState,
+      getNavigationStateSnapshot(next)
+    );
     return;
   }
 
@@ -288,11 +398,44 @@ export function navigateWithCap(router, href) {
   blurActiveElementOnWeb();
 
   if (isWebRuntime()) {
+    if (isTabRootRoute(next)) {
+      pendingWebNavigationRoute = normalizeTrailingSlash(next);
+      logNavigationTransition(
+        {
+          type: 'navigateWithCap',
+          route: next,
+          method: 'router.navigate',
+        },
+        currentState,
+        getNavigationStateSnapshot(next)
+      );
+      router.navigate(next);
+      return;
+    }
+
+    logNavigationTransition(
+      {
+        type: 'navigateWithCap',
+        route: next,
+        method: 'router.push',
+      },
+      currentState,
+      getNavigationStateSnapshot(next)
+    );
     router.push(next);
     return;
   }
 
   if (isTabRootRoute(next)) {
+    logNavigationTransition(
+      {
+        type: 'navigateWithCap',
+        route: next,
+        method: 'router.navigate',
+      },
+      currentState,
+      getNavigationStateSnapshot(next)
+    );
     router.navigate(next);
     return;
   }
@@ -300,22 +443,63 @@ export function navigateWithCap(router, href) {
 }
 
 export function backOrHome(router, home = '/app') {
+  const currentState = getNavigationStateSnapshot();
   const { fallbackRoute, targetIndex, targetRoute, useFallback } = getBackNavigationState(home);
 
   if (useFallback || !targetRoute) {
     history.length = 0;
     history.push(fallbackRoute);
     markForcedHistoryTraversal(fallbackRoute);
+    logNavigationTransition(
+      {
+        type: 'backOrHome',
+        method: 'fallback',
+        route: fallbackRoute,
+      },
+      currentState,
+      getNavigationStateSnapshot(fallbackRoute)
+    );
     replaceWithPolicy(router, fallbackRoute, { webHardReplace: isWebRuntime() });
     return;
   }
 
   history.splice(targetIndex + 1);
+  logNavigationTransition(
+    {
+      type: 'backOrHome',
+      method: 'target',
+      route: targetRoute,
+      targetIndex,
+    },
+    currentState,
+    getNavigationStateSnapshot(targetRoute)
+  );
   replaceWithPolicy(router, targetRoute);
 }
 
 export function handleWebPopstateBack(router, home = '/app') {
   if (!isWebRuntime()) return false;
+  const currentState = getNavigationStateSnapshot();
+  const currentWebRoute = getCurrentWebRoute();
+
+  if (pendingWebNavigationRoute) {
+    const expectedRoute = pendingWebNavigationRoute;
+    pendingWebNavigationRoute = '';
+
+    if (currentWebRoute === expectedRoute) {
+      logNavigationTransition(
+        {
+          type: 'handleWebPopstateBack',
+          method: 'suppressed',
+          route: expectedRoute,
+          reason: 'pendingWebNavigation',
+        },
+        currentState,
+        getNavigationStateSnapshot(expectedRoute)
+      );
+      return true;
+    }
+  }
 
   const { fallbackRoute, targetIndex, targetRoute, useFallback } = getBackNavigationState(home);
 
@@ -323,11 +507,30 @@ export function handleWebPopstateBack(router, home = '/app') {
     history.length = 0;
     history.push(fallbackRoute);
     markForcedHistoryTraversal(fallbackRoute);
+    logNavigationTransition(
+      {
+        type: 'handleWebPopstateBack',
+        method: 'fallback',
+        route: fallbackRoute,
+      },
+      currentState,
+      getNavigationStateSnapshot(fallbackRoute)
+    );
     replaceWithPolicy(router, fallbackRoute, { webHardReplace: true });
     return true;
   }
 
   history.splice(targetIndex + 1);
+  logNavigationTransition(
+    {
+      type: 'handleWebPopstateBack',
+      method: 'target',
+      route: targetRoute,
+      targetIndex,
+    },
+    currentState,
+    getNavigationStateSnapshot(targetRoute)
+  );
   replaceWithPolicy(router, targetRoute);
   return true;
 }
