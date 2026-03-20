@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import { router } from "expo-router";
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { URLSearchParams } from 'react-native-url-polyfill';
 
 import { tokenStorage } from '../tokenStorage';
@@ -40,6 +40,15 @@ console.log('!!! apiClient.js - API_BASE_URL:', API_BASE_URL);
 const sensitiveKeys = ['password', 'token', 'authorization', 'refresh', 'access'];
 const REFRESH_PATH = '/auth/refresh';
 let refreshPromise = null;
+
+/** 백엔드 인증/oauth에서 요구하는 클라이언트 타입 (web | android | ios) */
+function getClientType() {
+  const os = Platform.OS;
+  if (os === 'web') return 'web';
+  if (os === 'android') return 'android';
+  if (os === 'ios') return 'ios';
+  return 'web';
+}
 
 function maskValue(value) {
   if (typeof value !== 'string') return value;
@@ -98,7 +107,27 @@ function buildRequestConfig(config = {}) {
     headers: config.headers,
     auth: config.auth !== false,
   };
-};
+}
+
+/** API 오류 응답에서 사용자에게 보여줄 문자열 추출 (detail이 객체일 때 [object Object] 방지) */
+function getErrorMessage(payload) {
+  if (!payload) return '요청에 실패했습니다.';
+  const d = payload.detail;
+  if (typeof d === 'string') return d;
+  if (typeof payload.message === 'string') return payload.message;
+  if (d && typeof d === 'object') {
+    if (typeof d.message === 'string') return d.message;
+    if (typeof d.msg === 'string') return d.msg;
+    if (Array.isArray(d) && d.length > 0) {
+      const first = d[0];
+      if (first?.loc && first?.msg) return first.msg;
+      if (typeof first === 'string') return first;
+    }
+  }
+  return '요청에 실패했습니다.';
+}
+
+export { getErrorMessage };
 
 async function requestTokenRefresh() {
   if (refreshPromise) {
@@ -116,7 +145,10 @@ async function requestTokenRefresh() {
     try {
       refreshResponse = await fetch(refreshUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Type': getClientType(),
+        },
         body: JSON.stringify({ refresh_token: refreshToken }),
       });
     } catch (error) {
@@ -171,6 +203,7 @@ async function apiRequest(path, options = {}) {
 
   const requestHeaders = {
     ...(isForm ? {} : { 'Content-Type': 'application/json' }),
+    'X-Client-Type': getClientType(),
     ...headers,
   };
 
@@ -294,7 +327,7 @@ async function apiRequest(path, options = {}) {
       }
     }
 
-    const error = new Error(payload?.detail || payload?.message || '요청에 실패했습니다.');
+    const error = new Error(getErrorMessage(payload));
     error.status = response.status;
     error.payload = payload;
 

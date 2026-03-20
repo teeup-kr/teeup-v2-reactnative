@@ -14,8 +14,7 @@ export const socialTypeOptions = [
 
 export const socialSettlementMethods = [
   { id: 'EQUAL_SPLIT', label: 'N분의 1' },
-  { id: 'TREASURER_PREPAID', label: '총무 선결제' },
-  { id: 'CLUB_FUND', label: '회비에서 지출' },
+  { id: 'CLUB_FUND', label: '전체 회비에서 처리' },
 ];
 
 export const roundingTeamModes = [
@@ -38,5 +37,4 @@ export const meetingDetailTabs = [
   { key: 'participants', label: '참가자' },
   { key: 'teams', label: '팀' },
   { key: 'settlement', label: '정산' },
-  { key: 'my-settlement', label: '내 정산' },
 ];

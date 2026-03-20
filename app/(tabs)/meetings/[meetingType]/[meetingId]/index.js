@@ -15,7 +15,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BatchFormationModal from '@/components/meetings/BatchFormationModal';
 import FormationHistoryModal from '@/components/meetings/FormationHistoryModal';
 import MeetingWorkflowStatus from '@/components/meetings/MeetingWorkflowStatus';
-import MySettlementView from '@/components/meetings/MySettlementView';
 import RoundingCompleteModal from '@/components/meetings/RoundingCompleteModal';
 import RoundingJoinModal from '@/components/meetings/RoundingJoinModal';
 import SettlementManager from '@/components/meetings/SettlementManager';
@@ -89,8 +88,8 @@ const SETTLEMENT_METHOD_LABELS = {
 
 const SOCIAL_SETTLEMENT_METHOD_LABELS = {
   EQUAL_SPLIT: 'N분의 1',
-  TREASURER_PREPAID: '총무 선결제',
-  CLUB_FUND: '클럽 회비 사용',
+  CLUB_FUND: '전체 회비에서 처리',
+  TREASURER_PREPAID: '전체 회비에서 처리',
   INDIVIDUAL: '개별 정산',
 };
 
@@ -234,6 +233,7 @@ export default function MeetingDetailScreen() {
     handicap: '',
     average_score: '',
   });
+  const [showRecordIncompleteModal, setShowRecordIncompleteModal] = useState(false);
 
   const myParticipantId = useMemo(
     () => getMyParticipantId({ user, participants }),
@@ -366,6 +366,22 @@ export default function MeetingDetailScreen() {
     };
   }, [fetchParticipants, fetchTeams, fetchStatus]);
 
+  const checkHasUnenteredRoundingRecord = useCallback(async (excludeMeetingId) => {
+    try {
+      const res = await usersApi.getMyRoundingMeetings({ limit: 50 });
+      const list = extractList(res);
+      return list.some(
+        (m) =>
+          String(m?.id) !== String(excludeMeetingId) &&
+          (m?.rounding_completed_at || m?.settlement_confirmed) &&
+          m?.has_hole_scores === false
+      );
+    } catch (e) {
+      console.warn('미입력 라운딩 확인 실패:', e);
+      return false;
+    }
+  }, []);
+
   const handleUpdateUserInfo = useMemo(
     () =>
       createUpdateUserInfoHandler({
@@ -394,8 +410,9 @@ export default function MeetingDetailScreen() {
         fetchParticipants,
         fetchMeeting,
         alert: Alert.alert,
+        checkHasUnenteredRoundingRecord: typeSlug === 'rounding' ? checkHasUnenteredRoundingRecord : undefined,
       }),
-    [typeSlug, meetingIdValue, router, setJoinModalOpen, setProcessingAction, fetchParticipants, fetchMeeting]
+    [typeSlug, meetingIdValue, router, setJoinModalOpen, setProcessingAction, fetchParticipants, fetchMeeting, checkHasUnenteredRoundingRecord]
   );
 
   const handleLeave = useMemo(
@@ -484,7 +501,8 @@ export default function MeetingDetailScreen() {
     [meetingIdValue, router, setProcessingAction, setRoundingCompleteOpen, fetchMeeting]
   );
 
-  const handleConfirmSettlement = useMemo(
+  const openScoreModal = useMemo(() => () => setScoreModalOpen(true), []);
+  const runConfirmSettlement = useMemo(
     () =>
       createConfirmSettlementHandler({
         meetingIdValue,
@@ -493,9 +511,38 @@ export default function MeetingDetailScreen() {
         setProcessingAction,
         fetchMeeting,
         alert: Alert.alert,
+        onSuccess: isRoundingMeeting ? openScoreModal : undefined,
       }),
-    [meetingIdValue, router, setProcessingAction, fetchMeeting]
+    [
+      meetingIdValue,
+      router,
+      setProcessingAction,
+      fetchMeeting,
+      openScoreModal,
+      isRoundingMeeting,
+    ]
   );
+  const handleConfirmSettlement = useCallback(() => {
+    if (!isRoundingMeeting) {
+      Alert.alert(
+        '정산 확정',
+        '정산 확정 시 소셜 모임이 마무리 처리됩니다.\n\n정산을 확정하시겠습니까?',
+        [
+          { text: '아니오', style: 'cancel' },
+          { text: '예', onPress: () => runConfirmSettlement() },
+        ]
+      );
+      return;
+    }
+    Alert.alert(
+      '정산 완료',
+      '정산 완료 시 라운딩 종료 처리가 완료됩니다.',
+      [
+        { text: '취소', style: 'cancel' },
+        { text: '확인', onPress: () => runConfirmSettlement() },
+      ]
+    );
+  }, [runConfirmSettlement, isRoundingMeeting]);
 
   const handleSyncMeetingToSettlement = useCallback(
     async (payload) => {
@@ -715,7 +762,6 @@ export default function MeetingDetailScreen() {
     []
   );
   const closeRoundingComplete = useMemo(() => () => setRoundingCompleteOpen(false), []);
-  const openScoreModal = useMemo(() => () => setScoreModalOpen(true), []);
   const closeScoreModal = useMemo(() => () => setScoreModalOpen(false), []);
   const handleInputLater = useMemo(() => () => setScoreModalOpen(false), []);
   const handleTeamsSave = useMemo(
@@ -853,6 +899,27 @@ export default function MeetingDetailScreen() {
     () => participants.find((participant) => `${participant?.user_id}` === `${user?.id}`),
     [participants, user?.id]
   );
+
+  useEffect(() => {
+    if (!meeting?.id || !isRoundingMeeting || !myParticipant) return;
+    const completed = meeting?.rounding_completed_at || meeting?.settlement_confirmed;
+    if (!completed) return;
+
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await usersApi.getMyRoundingMeetings({ limit: 50 });
+        const list = extractList(res);
+        const thisMeeting = list.find((m) => String(m?.id) === String(meeting.id));
+        if (mounted && thisMeeting && thisMeeting.has_hole_scores === false) {
+          setShowRecordIncompleteModal(true);
+        }
+      } catch (e) {
+        console.warn('내 라운딩 목록 조회 실패:', e);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [meeting?.id, meeting?.rounding_completed_at, meeting?.settlement_confirmed, isRoundingMeeting, myParticipant]);
 
   const isJoined = useMemo(
     () => getIsJoined({ participants, user }),
@@ -1099,21 +1166,13 @@ export default function MeetingDetailScreen() {
     [participantsLoaded, userInfoLoading]
   );
 
-  const canShowMySettlementTab = useMemo(() => {
-    if (isRoundingMeeting) {
-      return Boolean(meeting?.rounding_completed_at || meeting?.settlement_confirmed);
-    }
-    return meeting?.settlement_confirmed !== undefined;
-  }, [isRoundingMeeting, meeting?.rounding_completed_at, meeting?.settlement_confirmed]);
-
   const visibleTabs = useMemo(
     () =>
       meetingDetailTabs.filter((tab) => {
         if (!isRoundingMeeting && tab.key === 'teams') return false;
-        if (tab.key === 'my-settlement') return canShowMySettlementTab;
         return true;
       }),
-    [isRoundingMeeting, canShowMySettlementTab]
+    [isRoundingMeeting]
   );
 
   const canAccessTeamTab = useMemo(
@@ -1340,9 +1399,7 @@ export default function MeetingDetailScreen() {
       return items;
     }
 
-    if (socialCost !== null && socialCost !== undefined) {
-      return [{ key: 'social_cost', label: '소셜 비용', value: formatCurrency(socialCost) }];
-    }
+    // 소셜은 비용 정보 미표시 (운영진용 메모로 대체)
     return [];
   }, [meeting, settlement, isRoundingMeeting]);
 
@@ -1678,6 +1735,22 @@ export default function MeetingDetailScreen() {
               </View>
             </View>
           ) : null}
+
+          {!isRoundingMeeting && isManager ? (
+            <View style={styles.embeddedSection}>
+              <Text style={styles.sectionHeading}>운영진용 메모</Text>
+              <View style={styles.infoList}>
+                <View style={styles.infoItemRow}>
+                  <FontAwesome5 name="sticky-note" size={13} color={colors.primary[600]} style={styles.infoIcon} />
+                  <View style={[styles.infoTextWrap, { flex: 1 }]}>
+                    <Text style={[styles.infoValue, styles.infoValueMultiline]}>
+                      {meeting?.social_notes?.trim() || '메모가 없습니다.'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          ) : null}
         </Card>
 
         {isRoundingMeeting && (
@@ -1976,6 +2049,7 @@ export default function MeetingDetailScreen() {
                       ? confirmedParticipants
                       : participants
                   }
+                  teams={teams}
                   onSettlementCreated={async () => {
                     await fetchMeeting();
                     await fetchSettlement();
@@ -1987,12 +2061,30 @@ export default function MeetingDetailScreen() {
               )
             )}
 
-            {activeTab === 'my-settlement' && (
-              <MySettlementView meetingId={meetingIdValue} />
-            )}
           </View>
         </Card>
       </ScrollView>
+
+      <Modal
+        transparent
+        visible={showRecordIncompleteModal}
+        animationType="fade"
+        onRequestClose={() => setShowRecordIncompleteModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>안내</Text>
+            <Text style={styles.modalMessage}>
+              해당 라운드에 대한 기록이 완료되지 않았습니다.
+            </Text>
+            <Button
+              title="확인"
+              onPress={() => setShowRecordIncompleteModal(false)}
+              variant="primary"
+            />
+          </View>
+        </View>
+      </Modal>
 
       <RoundingJoinModal
         visible={joinModalOpen && isRoundingMeeting}
@@ -2733,6 +2825,11 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.bold,
     color: colors.neutral[900],
     marginBottom: tokens.spacing.sm2,
+  },
+  modalMessage: {
+    fontSize: tokens.font.sm,
+    color: colors.neutral[700],
+    marginBottom: tokens.spacing.md,
   },
   fieldGroup: {
     marginBottom: tokens.spacing.sm2,

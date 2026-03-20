@@ -144,11 +144,11 @@ export default function SimpleScoreInputModal({
             {newHandicap !== null && (
               <View style={styles.previewBox}>
                 <View style={styles.previewRow}>
-                  <Text style={styles.previewLabel}>새로운 핸디캡 (예상)</Text>
+                  <Text style={styles.previewLabel}>이번 라운딩 핸디캡 (예상)</Text>
                   <Text style={styles.previewValue}>{newHandicap}</Text>
                 </View>
                 <Text style={styles.previewHint}>
-                  라운딩 스코어 - 72 = 새로운 핸디캡{'\n'}(최근 5경기 평균으로
+                  라운딩 스코어 - 72 = 이번 라운딩 핸디캡{'\n'}(최근 5경기 평균으로
                   재계산됩니다)
                 </Text>
               </View>

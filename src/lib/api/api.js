@@ -7,17 +7,27 @@ import { apiClient } from './apiClient';
 
 const AUTH_PREFIX = '/auth';
 
+/**
+ * 서버는 API 요청 시 "access" 타입 토큰만 허용합니다.
+ * id_token(Google 등)은 저장하지 않고, 반드시 access_token만 사용합니다.
+ */
 async function saveAuthData(authResponse) {
-  if (!authResponse?.access_token) {
+  const data = authResponse?.data ?? authResponse;
+  const accessToken = data?.access_token ?? data?.accessToken;
+  const refreshToken = data?.refresh_token ?? data?.refreshToken;
+  const user = data?.user ?? authResponse?.user;
+
+  if (!accessToken || typeof accessToken !== 'string') {
     throw new Error('액세스 토큰이 없습니다.');
   }
 
-  await tokenStorage.setTokens(authResponse.access_token, authResponse.refresh_token);
-  if (authResponse.user) {
-    await tokenStorage.setUser(authResponse.user);
+  // id_token은 사용하지 않음(서버가 access 토큰만 허용)
+  await tokenStorage.setTokens(accessToken, refreshToken);
+  if (user) {
+    await tokenStorage.setUser(user);
   }
 
-  return authResponse.user;
+  return user;
 }
 
 function buildNotificationParams(params = {}) {
@@ -91,7 +101,12 @@ async function register(userData) {
 
 async function refreshToken(refreshToken) {
   const response = await apiClient.post(`${AUTH_PREFIX}/refresh`, { refresh_token: refreshToken }, { auth: false });
-  await tokenStorage.setTokens(response.access_token, response.refresh_token);
+  const data = response?.data ?? response;
+  const accessToken = data?.access_token ?? data?.accessToken;
+  const newRefreshToken = data?.refresh_token ?? data?.refreshToken;
+  if (accessToken) {
+    await tokenStorage.setTokens(accessToken, newRefreshToken);
+  }
   return response;
 }
 
@@ -136,7 +151,9 @@ async function checkNickname(nickname) {
 async function googleLogin(oauthData) {
   const response = await apiClient.post(`${AUTH_PREFIX}/oauth/google/callback`, oauthData, { auth: false });
   await saveAuthData(response);
-  return response;
+  // 호출부에서 response.user 사용 시 대비 (서버가 data 안에 넣어줄 수 있음)
+  const normalized = response?.data ?? response;
+  return { ...response, user: response?.user ?? normalized?.user };
 }
 
 async function logout() {

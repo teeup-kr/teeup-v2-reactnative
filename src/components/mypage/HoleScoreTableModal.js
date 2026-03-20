@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +12,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 
 import { roundsApi } from '@/lib/api/api';
 import { extractData, extractList } from '@/lib/util/responseUtils';
@@ -19,6 +21,22 @@ import { tokens } from '@/styles/style';
 
 const DEFAULT_HOLE_COUNT = 18;
 const DEFAULT_PAR = '4';
+
+/** PAR 드롭다운 옵션 */
+const PAR_OPTIONS = [3, 4, 5];
+
+/** +/- 계산값에 해당하는 이름 (있으면 "이름 (±n)" 형태로 표기) */
+const DIFF_LABELS = {
+  [-4]: '콘도르 (-4)',
+  [-3]: '알바트로스 (-3)',
+  [-2]: '이글 (-2)',
+  [-1]: '버디 (-1)',
+  0: '파 (0)',
+  1: '보기 (+1)',
+  2: '더블보기 (+2)',
+  3: '트리플보기 (+3)',
+  4: '쿼드러플 보기 (+4)',
+};
 
 function toDigits(value) {
   return String(value ?? '').replace(/[^0-9]/g, '');
@@ -45,12 +63,13 @@ function normalizeScoreItem(item) {
   };
 }
 
-function getDiffText(strokes, par) {
+/** +/- 표기: 이름 있으면 "알바트로스 (-3)" 형태, 없으면 "+5" / "-4" 등 숫자만 */
+function getDiffDisplayText(strokes, par) {
   const strokeNum = Number(strokes);
   const parNum = Number(par);
   if (!Number.isFinite(strokeNum) || !Number.isFinite(parNum)) return '-';
   const diff = strokeNum - parNum;
-  if (diff === 0) return 'PAR';
+  if (DIFF_LABELS[diff] != null) return DIFF_LABELS[diff];
   return diff > 0 ? `+${diff}` : `${diff}`;
 }
 
@@ -128,7 +147,7 @@ export default function HoleScoreTableModal({
         return {
           hole_number: row.hole_number,
           par: String(existing.par ?? DEFAULT_PAR),
-          strokes: existing.strokes !== null && existing.strokes !== undefined
+          strokes: existing.strokes != null && existing.strokes !== undefined
             ? String(existing.strokes)
             : '',
         };
@@ -162,11 +181,10 @@ export default function HoleScoreTableModal({
   }, [visible, normalizedHoleCount, loadScores]);
 
   const handleParChange = useCallback((holeNumber, value) => {
+    const normalized = value != null ? String(value) : DEFAULT_PAR;
     setRows((prev) =>
       prev.map((row) =>
-        row.hole_number === holeNumber
-          ? { ...row, par: toDigits(value) }
-          : row
+        row.hole_number === holeNumber ? { ...row, par: normalized } : row
       )
     );
   }, []);
@@ -344,15 +362,22 @@ export default function HoleScoreTableModal({
                     </View>
 
                     <View style={[styles.bodyCell, styles.parCol]}>
-                      <TextInput
-                        value={row.par}
-                        onChangeText={(value) => handleParChange(row.hole_number, value)}
-                        keyboardType="number-pad"
-                        editable={!isSaving}
-                        style={styles.input}
-                        placeholder="4"
-                        placeholderTextColor={colors.neutral[400]}
-                      />
+                      <View style={styles.pickerWrap}>
+                        <Picker
+                          selectedValue={PAR_OPTIONS.map(String).includes(row.par) ? row.par : DEFAULT_PAR}
+                          onValueChange={(value) => handleParChange(row.hole_number, value)}
+                          enabled={!isSaving}
+                          style={styles.picker}
+                          mode={Platform.OS === 'android' ? 'dropdown' : undefined}
+                          dropdownIconColor={colors.neutral[600]}
+                          itemStyle={Platform.OS === 'ios' ? styles.pickerItem : undefined}
+                          prompt="PAR 선택"
+                        >
+                          {PAR_OPTIONS.map((p) => (
+                            <Picker.Item key={p} label={String(p)} value={String(p)} />
+                          ))}
+                        </Picker>
+                      </View>
                     </View>
 
                     <View style={[styles.bodyCell, styles.strokeCol]}>
@@ -368,8 +393,11 @@ export default function HoleScoreTableModal({
                     </View>
 
                     <View style={[styles.bodyCell, styles.diffCol]}>
-                      <Text style={[styles.diffText, { color: getDiffColor(row.strokes, row.par) }]}>
-                        {getDiffText(row.strokes, row.par)}
+                      <Text
+                        style={[styles.diffText, { color: getDiffColor(row.strokes, row.par) }]}
+                        numberOfLines={1}
+                      >
+                        {getDiffDisplayText(row.strokes, row.par)}
                       </Text>
                     </View>
                   </View>
@@ -550,6 +578,25 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.extrabold,
     color: colors.neutral[800],
+  },
+  pickerWrap: {
+    width: '80%',
+    minWidth: 52,
+    minHeight: 40,
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+    borderRadius: tokens.radius.base,
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 40,
+    fontSize: tokens.font.sm,
+    color: colors.neutral[900],
+  },
+  pickerItem: {
+    fontSize: tokens.font.sm,
   },
   input: {
     width: '80%',

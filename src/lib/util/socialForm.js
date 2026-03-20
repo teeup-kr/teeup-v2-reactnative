@@ -1,5 +1,18 @@
 import { convertToKST, normalizeNumber, toDateTimeLocalValue } from "./meetingUtils";
 
+/**
+ * 참가자 수 입력 정규화: 숫자만 허용, 앞쪽 0 제거, 소수·음수 불가.
+ * @param {string} value - 입력값
+ * @returns {string} - 정규화된 문자열 (빈 문자열 또는 양의 정수 문자열)
+ */
+export function normalizeMaxParticipantsInput(value) {
+  const digits = String(value ?? '').replace(/\D/g, '');
+  if (digits === '') return '';
+  const num = parseInt(digits, 10);
+  if (Number.isNaN(num) || num < 0) return '';
+  return String(num);
+}
+
 export function getSocialMeetingTitle(isEditMode) { return isEditMode ? '소셜 모임 수정' : '소셜 모임 만들기'; }
 
 export function buildSocialFormFromData({ data, fallback }) {
@@ -13,8 +26,12 @@ export function buildSocialFormFromData({ data, fallback }) {
     application_deadline: toDateTimeLocalValue(data.application_deadline),
     max_participants: data.max_participants !== undefined ? String(data.max_participants) : '',
     social_cost: data.social_cost !== undefined ? String(data.social_cost) : '',
-    settlement_method: data.settlement_method ?? fallback.settlement_method,
+    settlement_method:
+      data.settlement_method === 'TREASURER_PREPAID'
+        ? 'CLUB_FUND'
+        : (data.settlement_method ?? fallback.settlement_method),
     club_id: data.club_id ?? data.club?.id ?? '',
+    social_notes: data.social_notes ?? '',
   });
 }
 
@@ -38,11 +55,6 @@ export function validateSocialForm({ form, participantType }) {
   }
   if (!form.club_id) errors.club_id = '클럽을 선택해주세요.';
 
-  const socialCost = normalizeNumber(form.social_cost, null);
-  if (socialCost === null || Number.isNaN(socialCost) || socialCost < 0) {
-    errors.social_cost = '참가 비용을 입력해주세요.';
-  }
-
   if (participantType === 'LIMITED') {
     const maxParticipants = normalizeNumber(form.max_participants, 0);
     if (!maxParticipants || maxParticipants <= 0) {
@@ -53,7 +65,10 @@ export function validateSocialForm({ form, participantType }) {
   return errors;
 };
 
-export function resolveSocialSettlementMethod(method, settlementMethods) { return settlementMethods.some((item) => item.id === method) ? method : 'EQUAL_SPLIT'; }
+export function resolveSocialSettlementMethod(method, settlementMethods) {
+  const normalized = method === 'TREASURER_PREPAID' ? 'CLUB_FUND' : method;
+  return settlementMethods.some((item) => item.id === normalized) ? normalized : 'EQUAL_SPLIT';
+}
 
 export function buildSocialPayload({ form, participantType, settlementMethods }) {
   return ({
@@ -71,6 +86,7 @@ export function buildSocialPayload({ form, participantType, settlementMethods })
       settlementMethods
     ),
     club_id: form.club_id || undefined,
+    social_notes: form.social_notes?.trim() || undefined,
   });
 }
 

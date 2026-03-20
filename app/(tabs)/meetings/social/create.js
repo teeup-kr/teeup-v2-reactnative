@@ -24,13 +24,15 @@ import {
     createParticipantTypeHandler,
     createSubmitHandler,
 } from '@/lib/handler/meetings';
-import { backOrHome } from '@/lib/navigation/cappedHistory';
+import { leaveMeetingFormScreen } from '@/lib/navigation/cappedHistory';
+import { confirmDiscardDraft } from '@/lib/util/confirmDiscard';
 import { extractData, extractList } from '@/lib/util/meetingUtils';
 import {
     buildSocialFormFromData,
     buildSocialPayload,
     getParticipantTypeFromData,
     getSocialMeetingTitle,
+    normalizeMaxParticipantsInput,
     validateSocialForm,
 } from '@/lib/util/socialForm';
 import { colors } from '@/styles/colors';
@@ -57,6 +59,7 @@ export function SocialForm({ mode = 'create' }) {
     social_cost: '',
     settlement_method: 'EQUAL_SPLIT',
     club_id: '',
+    social_notes: '',
   });
   const [participantType, setParticipantType] = useState('ALL');
   const [clubs, setClubs] = useState([]);
@@ -75,7 +78,7 @@ export function SocialForm({ mode = 'create' }) {
           form.application_deadline ||
           form.club_id ||
           form.max_participants ||
-          Number(form.social_cost) > 0
+          form.social_notes.trim()
       ),
     [form]
   );
@@ -99,6 +102,13 @@ export function SocialForm({ mode = 'create' }) {
   const handleParticipantTypeSelect = useMemo(
     () => createParticipantTypeHandler({ setParticipantType, onChange: handleFieldChange }),
     [setParticipantType, handleFieldChange]
+  );
+  const handleMaxParticipantsChange = useCallback(
+    (raw) => {
+      const normalized = normalizeMaxParticipantsInput(raw);
+      setForm((prev) => ({ ...prev, max_participants: normalized }));
+    },
+    [setForm]
   );
 
   const meetingTitle = useMemo(
@@ -181,30 +191,25 @@ export function SocialForm({ mode = 'create' }) {
   );
 
   const handleCancel = useCallback(() => {
+    const leave = () => leaveMeetingFormScreen(router);
+
     if (!isEditMode && !hasDraft) {
-      backOrHome(router);
+      leave();
       return;
     }
 
-    Alert.alert(
-      '취소 확인',
-      isEditMode
+    confirmDiscardDraft({
+      title: '취소 확인',
+      message: isEditMode
         ? '저장하지 않은 변경 사항이 모두 사라집니다. 수정을 취소하시겠습니까?'
         : '작성 중인 내용이 모두 사라집니다. 모임 생성을 취소하시겠습니까?',
-      [
-        { text: '아니오', style: 'cancel' },
-        {
-          text: '취소',
-          style: 'destructive',
-          onPress: () => backOrHome(router),
-        },
-      ]
-    );
+      onConfirm: leave,
+    });
   }, [hasDraft, isEditMode, router]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScreenHeader title={meetingTitle} />
+      <ScreenHeader title={meetingTitle} onBack={handleCancel} />
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {loading ? (
           <View style={styles.loadingContainer}>
@@ -311,6 +316,7 @@ export function SocialForm({ mode = 'create' }) {
             <Card style={styles.card}>
               <Text style={styles.sectionTitle}>장소 및 비용</Text>
               <Text style={styles.sectionSubtitle}>장소와 비용 정보를 입력해주세요.</Text>
+              <Text style={styles.sectionNotice}>참가자 안내용으로 기록하는 항목입니다.</Text>
 
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>장소명</Text>
@@ -323,21 +329,6 @@ export function SocialForm({ mode = 'create' }) {
                 />
                 {fieldErrors.venue_name && (
                   <Text style={styles.errorText}>{fieldErrors.venue_name}</Text>
-                )}
-              </View>
-
-              <View style={styles.fieldGroup}>
-                <Text style={styles.label}>참가 비용</Text>
-                <TextInput
-                  value={form.social_cost}
-                  onChangeText={handleFieldChange('social_cost')}
-                  placeholder="예: 30000"
-                  keyboardType="numeric"
-                  style={[styles.input, fieldErrors.social_cost && styles.inputError]}
-                  placeholderTextColor={colors.neutral[400]}
-                />
-                {fieldErrors.social_cost && (
-                  <Text style={styles.errorText}>{fieldErrors.social_cost}</Text>
                 )}
               </View>
 
@@ -383,7 +374,7 @@ export function SocialForm({ mode = 'create' }) {
                   <Text style={styles.label}>참가자 수</Text>
                   <TextInput
                     value={form.max_participants}
-                    onChangeText={handleFieldChange('max_participants')}
+                    onChangeText={handleMaxParticipantsChange}
                     placeholder="예: 20"
                     keyboardType="numeric"
                     style={[styles.input, fieldErrors.max_participants && styles.inputError]}
@@ -394,6 +385,22 @@ export function SocialForm({ mode = 'create' }) {
                   )}
                 </View>
               )}
+            </Card>
+
+            <Card style={styles.card}>
+              <Text style={styles.sectionTitle}>운영진용 메모</Text>
+              <Text style={styles.sectionSubtitle}>참가자에게 보이지 않으며, 운영진만 볼 수 있습니다.</Text>
+              <View style={styles.fieldGroup}>
+                <TextInput
+                  value={form.social_notes}
+                  onChangeText={handleFieldChange('social_notes')}
+                  placeholder="메모를 입력하세요 (선택)"
+                  style={[styles.input, styles.textArea]}
+                  multiline
+                  placeholderTextColor={colors.neutral[400]}
+                  textAlignVertical="top"
+                />
+              </View>
             </Card>
 
             <View style={styles.submitRow}>
@@ -436,6 +443,10 @@ const styles = StyleSheet.create({
   loadingText: base.formScreenLoadingText,
   sectionTitle: base.sectionTitle,
   sectionSubtitle: base.formScreenSectionSubtitle,
+  sectionNotice: {
+    ...base.textSmSubtle,
+    marginTop: tokens.spacing.xxs,
+  },
   label: base.labelSm,
   helperText: base.textSmSubtle,
   input: { ...base.formInput, marginBottom: tokens.spacing.sm2 },
