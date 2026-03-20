@@ -12,6 +12,7 @@ const extra =
 
 const API_BASE_URL = extra?.apiBaseUrl;
 const isWeb = Platform.OS === 'web';
+const CLIENT_TYPE = isWeb ? 'web' : Platform.OS;
 
 const sensitiveKeys = ['password', 'token', 'authorization', 'refresh', 'access'];
 const REFRESH_PATH = '/auth/refresh';
@@ -126,7 +127,7 @@ async function requestTokenRefresh() {
   refreshPromise = (async () => {
     const refreshHeaders = {
       'Content-Type': 'application/json',
-      'X-Client-Type': getClientType(),
+      'X-Client-Type': CLIENT_TYPE,
     };
     const refreshRequest = {
       method: 'POST',
@@ -208,9 +209,13 @@ async function apiRequest(path, options = {}) {
 
   const requestHeaders = {
     ...(isForm ? {} : { 'Content-Type': 'application/json' }),
-    'X-Client-Type': getClientType(),
     ...headers,
+    'X-Client-Type': CLIENT_TYPE,
   };
+
+  if (isWeb && requestHeaders.Authorization) {
+    delete requestHeaders.Authorization;
+  }
 
   if (auth) {
     if (!isWeb) {

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
 import { authApi } from '@/lib/api/api';
@@ -8,21 +8,31 @@ import { tokenStorage } from '@/lib/tokenStorage';
 
 const AuthContext = createContext(null);
 const isWeb = Platform.OS === 'web';
+const GOOGLE_CALLBACK_PATH = '/auth/google/callback';
+
+function getWebPathname() {
+  if (!isWeb || typeof window === 'undefined') return '';
+  return window.location.pathname;
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const refreshRunIdRef = useRef(0);
 
   const setAuthError = useCallback((nextError) => {
     setError(nextError);
   }, []);
 
   const refreshAuth = useCallback(async () => {
+    const runId = ++refreshRunIdRef.current;
     setIsLoading(true);
     setAuthError(null);
     try {
       const storedUser = await tokenStorage.getUser();
+
+      if (runId !== refreshRunIdRef.current) return null;
 
       if (storedUser) {
         setUser(storedUser);
@@ -35,29 +45,35 @@ export function AuthProvider({ children }) {
         ]);
 
         if (!accessToken && !refreshToken) {
+          if (runId !== refreshRunIdRef.current) return null;
           setUser(null);
-          return;
+          return null;
         }
 
         if (!accessToken && refreshToken) {
           await authApi.refreshToken(refreshToken);
+          if (runId !== refreshRunIdRef.current) return null;
         }
-      } else {
-        await authApi.refreshToken();
       }
 
       const currentUser = await authApi.getCurrentUser();
+      if (runId !== refreshRunIdRef.current) return null;
       if (currentUser) {
         setUser(currentUser);
         await tokenStorage.setUser(currentUser);
       }
+      return currentUser ?? null;
     } catch (authError) {
+      if (runId !== refreshRunIdRef.current) return null;
       setUser(null);
       setAuthError(authError);
       await tokenStorage.clearTokens();
       await tokenStorage.clearUser();
+      return null;
     } finally {
-      setIsLoading(false);
+      if (runId === refreshRunIdRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [setAuthError]);
 
@@ -67,7 +83,11 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    refreshAuth();
+    if (getWebPathname() === GOOGLE_CALLBACK_PATH) {
+      setIsLoading(false);
+      return;
+    }
+    void refreshAuth();
   }, [refreshAuth]);
 
   const value = useMemo(
