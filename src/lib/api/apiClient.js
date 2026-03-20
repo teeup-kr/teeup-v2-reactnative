@@ -88,6 +88,7 @@ function buildRequestConfig(config = {}) {
     params: config.params,
     headers: config.headers,
     auth: config.auth !== false,
+    redirectOnAuthExpired: config.redirectOnAuthExpired !== false,
   };
 }
 
@@ -187,11 +188,24 @@ async function requestTokenRefresh() {
   }
 }
 
-async function handleAuthExpired() {
+function createAuthExpiredError(payload, status = 401) {
+  const error = new Error(getErrorMessage(payload));
+  error.status = status;
+  error.payload = payload;
+  return error;
+}
+
+async function handleAuthExpired({ payload, status = 401, redirectOnAuthExpired = true } = {}) {
   console.info('[Auth] Session expired → logout');
   await tokenStorage.clearTokens();
   await tokenStorage.clearUser();
-  replaceWithPolicy(router, '/login');
+
+  if (redirectOnAuthExpired) {
+    replaceWithPolicy(router, '/login');
+    return;
+  }
+
+  throw createAuthExpiredError(payload, status);
 }
 
 async function apiRequest(path, options = {}) {
@@ -202,6 +216,7 @@ async function apiRequest(path, options = {}) {
     body,
     formData,
     auth = false,
+    redirectOnAuthExpired = true,
   } = options;
 
   const url = `${buildUrl(path)}${buildQuery(params)}`;
@@ -334,11 +349,19 @@ async function apiRequest(path, options = {}) {
           );
 
         if ((response.status === 401 && retryHasAuthContext) || retryIsAuthForbidden) {
-          await handleAuthExpired();
+          await handleAuthExpired({
+            payload,
+            status: response.status,
+            redirectOnAuthExpired,
+          });
           return;
         }
       } else {
-        await handleAuthExpired();
+        await handleAuthExpired({
+          payload,
+          status: response.status,
+          redirectOnAuthExpired,
+        });
         return;
       }
     }

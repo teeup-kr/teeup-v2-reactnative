@@ -11,7 +11,7 @@ import { signInWithGoogle } from '@/lib/util/authUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
-const logoImage = require('../../public/icons/icon-512-transparent.png');
+const logoImage = require('../public/icons/icon-512-transparent.png');
 
 export default function LandingScreen() {
   const router = useRouter();
@@ -111,6 +111,7 @@ const styles = StyleSheet.create({
   },
   hero: {
     flex: 1,
+    width: '100%',
     paddingHorizontal: tokens.padding.xl,
     justifyContent: 'center',
     alignItems: 'center',

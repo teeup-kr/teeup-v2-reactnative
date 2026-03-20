@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
-const splashLogo = require('../../public/icons/icon-512-transparent.png');
+const splashLogo = require('../public/icons/icon-512-transparent.png');
 const SPLASH_REDIRECT_DELAY_MS = 180;
 
 export default function NativeEntryScreen() {

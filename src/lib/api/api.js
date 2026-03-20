@@ -111,7 +111,7 @@ async function refreshToken(refreshToken) {
 }
 
 async function getCurrentUser() {
-  return apiClient.get(`${AUTH_PREFIX}/me`, { auth: true });
+  return apiClient.get(`${AUTH_PREFIX}/me`, { auth: true, redirectOnAuthExpired: false });
 }
 
 async function checkNickname(nickname) {
