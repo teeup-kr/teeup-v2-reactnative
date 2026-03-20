@@ -141,7 +141,7 @@ export default function SimpleScoreInputModal({
 
       {newHandicap !== null && (
         <View style={styles.previewCard}>
-          <Text style={styles.previewLabel}>새로운 핸디캡 (예상)</Text>
+          <Text style={styles.previewLabel}>이번 라운딩 핸디캡 (예상)</Text>
           <Text style={styles.previewValue}>{newHandicap}</Text>
           <Text style={styles.previewHint}>라운딩 스코어 - 72로 계산됩니다.</Text>
         </View>

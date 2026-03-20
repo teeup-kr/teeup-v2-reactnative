@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@/lib/api/apiClient';
 import { getMeetingTypeValue } from '@/lib/util/meetingUtils';
 import { ensureProfileCompleted } from '@/lib/util/mypageUtils';
 
@@ -216,10 +217,26 @@ export function createJoinHandler({
     fetchParticipants,
     fetchMeeting,
     alert,
+    /** 라운딩일 때만 사용. (참가하려는 meetingId 제외) 미입력 기록이 있는 완료 라운딩이 있으면 true */
+    checkHasUnenteredRoundingRecord,
 }) {
     return async function () {
         const isCompleted = await ensureMeetingProfileCompleted(router);
         if (!isCompleted) return;
+        if (typeSlug === 'rounding' && typeof checkHasUnenteredRoundingRecord === 'function') {
+            try {
+                const hasUnentered = await checkHasUnenteredRoundingRecord(meetingIdValue);
+                if (hasUnentered) {
+                    alert(
+                        '안내',
+                        '미입력된 라운딩이 있습니다. 기록 입력을 완료한 후 참가 신청할 수 있습니다.'
+                    );
+                    return;
+                }
+            } catch (e) {
+                console.warn('미입력 라운딩 확인 실패:', e);
+            }
+        }
         try {
             setProcessingAction(true);
             if (typeSlug === 'social') {
@@ -399,7 +416,7 @@ export function createCompleteRoundingHandler({
     };
 }
 
-export function createConfirmSettlementHandler({ meetingIdValue, confirmSettlement, router, setProcessingAction, fetchMeeting, alert }) {
+export function createConfirmSettlementHandler({ meetingIdValue, confirmSettlement, router, setProcessingAction, fetchMeeting, alert, onSuccess }) {
     return async function () {
         if (!meetingIdValue) return;
         const isCompleted = await ensureMeetingProfileCompleted(router);
@@ -408,6 +425,7 @@ export function createConfirmSettlementHandler({ meetingIdValue, confirmSettleme
             setProcessingAction(true);
             await confirmSettlement(meetingIdValue);
             fetchMeeting();
+            if (typeof onSuccess === 'function') onSuccess();
         } catch (error) {
             alert('오류', error?.message || '정산 확정에 실패했습니다.');
         } finally {
@@ -1097,7 +1115,11 @@ export function createSubmitHandler({
             }
         } catch (error) {
             console.error(`${meetingTypeSlug === 'rounding' ? '라운딩' : '소셜'} 저장 실패:`, error);
-            alert('오류', error?.message || '모임 저장에 실패했습니다.');
+            const message =
+                (error?.payload && getErrorMessage(error.payload)) ||
+                (typeof error?.message === 'string' && error.message !== '[object Object]' ? error.message : null) ||
+                '모임 저장에 실패했습니다.';
+            alert('오류', message);
         } finally {
             setSaving(false);
         }

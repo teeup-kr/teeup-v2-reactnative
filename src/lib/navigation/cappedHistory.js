@@ -55,6 +55,19 @@ export function backOrHome(router, home = '/app') {
   router.replace(previous || '/app');
 }
 
+/**
+ * 모임 생성/수정 화면 이탈: `router.push`로 들어온 경우 capped history와 달라질 수 있어
+ * 실제 스택의 `back()`을 우선 사용한다.
+ */
+export function leaveMeetingFormScreen(router, fallbackHref = '/meetings/my') {
+  if (typeof router?.canGoBack === 'function' && router.canGoBack()) {
+    router.back();
+    return;
+  }
+  const fallback = normalizeRoute(fallbackHref) || '/meetings/my';
+  router.replace(fallback);
+}
+
 export function getHistorySnapshot() {
   return [...history];
 }

@@ -1,3 +1,4 @@
+import { FontAwesome5 } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -76,9 +77,10 @@ export default function DateTimeField({
             pressed && !disabled && { opacity: 0.9 },
           ]}
         >
-          <Text style={[styles.inputLikeText, !displayValue && styles.placeholderText]}>
+          <Text style={[styles.inputLikeText, !displayValue && styles.placeholderText]} numberOfLines={1}>
             {displayValue || placeholder}
           </Text>
+          <FontAwesome5 name="calendar-alt" size={16} color={colors.neutral[500]} style={styles.inputIcon} />
         </Pressable>
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
       </View>
@@ -145,9 +147,10 @@ export default function DateTimeField({
           pressed && !disabled && { opacity: 0.9 },
         ]}
       >
-        <Text style={[styles.inputLikeText, !displayValue && styles.placeholderText]}>
+        <Text style={[styles.inputLikeText, !displayValue && styles.placeholderText]} numberOfLines={1}>
           {displayValue || placeholder}
         </Text>
+        <FontAwesome5 name="calendar-alt" size={16} color={colors.neutral[500]} style={styles.inputIcon} />
       </Pressable>
       {showPicker && Platform.OS === 'ios' ? (
         <DateTimePicker
@@ -174,6 +177,9 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.semibold,
   },
   inputLike: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: tokens.padding.sm,
     paddingVertical: tokens.padding.base,
     borderWidth: 1,
@@ -182,11 +188,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   inputLikeText: {
+    flex: 1,
+    marginRight: tokens.spacing.xs,
     fontSize: tokens.font.base,
     color: colors.neutral[900],
   },
   placeholderText: {
     color: colors.neutral[400],
+  },
+  inputIcon: {
+    marginLeft: tokens.spacing.xs,
   },
   inputError: {
     borderColor: colors.error[500],

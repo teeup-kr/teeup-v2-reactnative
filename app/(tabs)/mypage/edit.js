@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, usePathname, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -88,6 +88,7 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
   const [nicknameMessage, setNicknameMessage] = useState('');
   const [updateProfilePending, setUpdateProfilePending] = useState(false);
   const [toast, setToast] = useState({ open: false, tone: 'success', message: '' });
+  const initialFormRef = useRef(null);
 
   const hasFinalAverageScore = useMemo(() => { return profile?.average_score != null; }, [profile]);
   const initialAverageScoreInit = useMemo(() => {
@@ -103,7 +104,22 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
     return getAverageScoreInitError(formData.average_score_init);
   }, [formData.average_score_init, hasFinalAverageScore, isAverageScoreInitChanged]);
   const averageScoreInitErrorMessage = errors.average_score_init || averageScoreInitValidationError;
-  const isSaveDisabled = updateProfilePending || (!hasFinalAverageScore && Boolean(averageScoreInitErrorMessage));
+
+  const hasFormChanges = useMemo(() => {
+    const initial = initialFormRef.current;
+    if (!initial) return false;
+    return (
+      String(formData.nickname ?? '') !== String(initial.nickname ?? '') ||
+      String(formData.realname ?? '') !== String(initial.realname ?? '') ||
+      String(formData.phone_number ?? '') !== String(initial.phone_number ?? '') ||
+      String(formData.birthdate ?? '') !== String(initial.birthdate ?? '') ||
+      String(formData.gender ?? '') !== String(initial.gender ?? '') ||
+      String(formData.average_score_init ?? '') !== String(initial.average_score_init ?? '') ||
+      String(formData.handicap_init ?? '') !== String(initial.handicap_init ?? '')
+    );
+  }, [formData.nickname, formData.realname, formData.phone_number, formData.birthdate, formData.gender, formData.average_score_init, formData.handicap_init]);
+
+  const isSaveDisabled = !hasFormChanges || updateProfilePending || (!hasFinalAverageScore && Boolean(averageScoreInitErrorMessage));
 
 
   const birthDateValue = useMemo(() => {
@@ -271,25 +287,22 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
       const response = await mypageApi.fetchMyProfile();
       const user = extractData(response);
       setProfile(user || {});
-      setFormData(prev => ({
-        ...prev,
+      const nextForm = {
         nickname: user?.nickname ?? '',
         realname: user?.realname ?? '',
         phone_number: user?.phone_number ?? '',
-        birthdate: user?.birthdate
-          ? formatDateYYYYMMDD(user.birthdate)
-          : '',
+        birthdate: user?.birthdate ? formatDateYYYYMMDD(user.birthdate) : '',
         gender: user?.gender ?? '',
-        average_score_init:
-          user?.average_score == null
-            ? String(user?.average_score_init ?? '')
-            : '',
-        handicap_init:
-          user?.handicap == null
-            ? String(user?.handicap_init ?? '')
-            : '',
+        average_score_init: user?.average_score == null ? String(user?.average_score_init ?? '') : '',
+        handicap_init: user?.handicap == null ? String(user?.handicap_init ?? '') : '',
+      };
+      initialFormRef.current = { ...nextForm };
+      setFormData(prev => ({
+        ...prev,
+        ...nextForm,
         calculatedHandicap: null,
-      })); setNicknameChecked(Boolean(user?.nickname));
+      }));
+      setNicknameChecked(Boolean(user?.nickname));
       setNicknameMessage('');
       if (user?.id) {
         setHandicapLoading(true);
@@ -373,9 +386,6 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
               <Text style={styles.label}>
                 닉네임 <Text style={styles.required}>*</Text>
               </Text>
-              <Text style={styles.helperText}>
-                닉네임은 영문, 한글, 숫자만 입력 가능합니다.(공백 불가)
-              </Text>
 
               <View style={styles.rowGap}>
                 <TextInput
@@ -418,6 +428,10 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
                   </Text>
                 </Pressable>
               </View>
+
+              <Text style={styles.helperText}>
+                닉네임은 영문, 한글, 숫자만 입력 가능합니다.(공백 불가)
+              </Text>
 
               {!!errors.nickname && (
                 <Text style={styles.errorText}>
@@ -500,15 +514,17 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
                   onPress={openBirthPicker}
                   style={({ pressed }) => [
                     styles.input,
+                    styles.dateInputRow,
                     errors.birthdate
                       ? styles.inputError
                       : styles.inputNormal,
                     pressed && styles.inputPressed,
                   ]}
                 >
-                  <Text style={styles.inputLikeText}>
+                  <Text style={styles.inputLikeText} numberOfLines={1}>
                     {formData.birthdate || '날짜를 선택하세요'}
                   </Text>
+                  <FontAwesome5 name="calendar-alt" size={16} color={colors.neutral[500]} style={styles.dateInputIcon} />
                 </Pressable>
               ) : (
                 <>
@@ -516,15 +532,17 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
                     onPress={openBirthPicker}
                     style={({ pressed }) => [
                       styles.inputLike,
+                      styles.dateInputRow,
                       errors.birthdate
                         ? styles.inputError
                         : styles.inputNormal,
                       pressed && styles.inputPressed,
                     ]}
                   >
-                    <Text style={styles.inputLikeText}>
+                    <Text style={styles.inputLikeText} numberOfLines={1}>
                       {formData.birthdate || '날짜를 선택하세요'}
                     </Text>
+                    <FontAwesome5 name="calendar-alt" size={16} color={colors.neutral[500]} style={styles.dateInputIcon} />
                   </Pressable>
 
                   {showBirthPicker && (
@@ -745,7 +763,15 @@ const styles = StyleSheet.create({
     borderColor: colors.neutral[300],
     backgroundColor: colors.white,
   },
-  inputLikeText: { fontSize: tokens.font.base, color: colors.neutral[900] },
+  dateInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateInputIcon: {
+    marginLeft: tokens.spacing.xs,
+  },
+  inputLikeText: { fontSize: tokens.font.base, color: colors.neutral[900], flex: 1, marginRight: tokens.spacing.xs },
   inputPressed: { opacity: 0.9 },
 
   inputNormal: { borderColor: colors.neutral[300] },
@@ -879,7 +905,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveBtnDisabled: {
-    backgroundColor: colors.neutral[300],
+    backgroundColor: colors.neutral[400],
+    opacity: 0.75,
   },
   saveBtnText: { color: colors.white, fontWeight: tokens.fontWeight.extrabold, fontSize: tokens.font.sm },
   genderSelectRow: {
