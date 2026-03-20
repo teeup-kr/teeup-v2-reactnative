@@ -35,7 +35,8 @@ import {
     createOptionPressHandler,
     createSubmitHandler,
 } from '@/lib/handler/meetings';
-import { backOrHome } from '@/lib/navigation/cappedHistory';
+import { leaveMeetingFormScreen } from '@/lib/navigation/cappedHistory';
+import { confirmDiscardDraft } from '@/lib/util/confirmDiscard';
 import { extractData, extractList } from '@/lib/util/meetingUtils';
 import {
     buildRoundingFormFromData,
@@ -720,30 +721,25 @@ export function RoundingForm({ mode = 'create' }) {
   );
 
   const handleCancel = useCallback(() => {
+    const leave = () => leaveMeetingFormScreen(router);
+
     if (!isEditMode && !hasDraft) {
-      backOrHome(router);
+      leave();
       return;
     }
 
-    Alert.alert(
-      '취소 확인',
-      isEditMode
+    confirmDiscardDraft({
+      title: '취소 확인',
+      message: isEditMode
         ? '저장하지 않은 변경 사항이 모두 사라집니다. 수정을 취소하시겠습니까?'
         : '작성 중인 내용이 모두 사라집니다. 모임 생성을 취소하시겠습니까?',
-      [
-        { text: '아니오', style: 'cancel' },
-        {
-          text: '취소',
-          style: 'destructive',
-          onPress: () => backOrHome(router),
-        },
-      ]
-    );
+      onConfirm: leave,
+    });
   }, [hasDraft, isEditMode, router]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScreenHeader title={meetingTitle} />
+      <ScreenHeader title={meetingTitle} onBack={handleCancel} />
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {loading ? (
           <View style={styles.loadingContainer}>
@@ -1246,7 +1242,7 @@ export function RoundingForm({ mode = 'create' }) {
               <Text style={styles.sectionTitle}>정산 정보</Text>
               <Text style={styles.sectionSubtitle}>비용 정보를 입력해주세요.</Text>
               <Text style={styles.settlementNotice}>
-                안내를 위한 설정이며, 실제 정산 작업 시 일부는 변경할 수 있습니다.
+                참가자에게 안내를 위해 입력하는 부분이며, 실제는 조금 다를 수 있습니다.
               </Text>
 
               <View style={styles.fieldGroup}>
