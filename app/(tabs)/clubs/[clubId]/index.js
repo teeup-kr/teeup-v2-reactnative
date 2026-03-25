@@ -11,11 +11,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubsApi, regionApi } from '@/lib/api/api';
 import {
   createFetchClubDetailHandler,
-  createJoinRequestHandler,
   createOpenManageHandler,
   createOpenMembersHandler,
 } from '@/lib/handler/clubs';
@@ -37,6 +37,11 @@ export default function ClubDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isJoinSubmitting, setIsJoinSubmitting] = useState(false);
+  const [profileRequiredModalOpen, setProfileRequiredModalOpen] = useState(false);
+  const [profileRequiredRedirect, setProfileRequiredRedirect] = useState('/mypage/edit?profile_required=1');
+  const [profileRequiredMessage, setProfileRequiredMessage] = useState(
+    '클럽 가입을 위해서는 실명이 필요합니다. 프로필을 먼저 완성해주세요.'
+  );
 
   const loadClub = useMemo(
     () =>
@@ -136,16 +141,57 @@ export default function ClubDetailScreen() {
     [router]
   );
   const handleJoinPress = useMemo(
-    () =>
-      createJoinRequestHandler({
-        clubId: resolvedId,
-        requestJoinClub: clubsApi.joinClub,
-        setIsSubmitting: setIsJoinSubmitting,
-        onSuccess: loadClub,
-        alert: Alert.alert,
-        onOpenJoinApplications: handleOpenJoinApplications,
-      }),
+    () => async () => {
+      if (!resolvedId) return;
+      try {
+        setIsJoinSubmitting(true);
+        const response = await clubsApi.joinClub(resolvedId);
+        if (!response) return;
+        const message = response?.message || '클럽 가입 신청이 완료되었습니다.';
+        Alert.alert('가입 신청 완료', message, [
+          { text: '닫기', style: 'cancel' },
+          { text: '가입 신청 내역 보기', onPress: () => handleOpenJoinApplications?.() },
+        ]);
+        await loadClub?.();
+      } catch (joinError) {
+        const isProfileNotCompleted =
+          joinError?.status === 403 &&
+          (
+            joinError?.payload?.detail?.code === 'PROFILE_NOT_COMPLETED' ||
+            joinError?.code === 'PROFILE_NOT_COMPLETED'
+          );
+        if (isProfileNotCompleted) {
+          setProfileRequiredMessage(
+            '클럽 가입을 위해서는 실명이 필요합니다. 프로필을 먼저 완성해주세요.'
+          );
+          setProfileRequiredRedirect(
+            joinError?.redirect ||
+            joinError?.payload?.detail?.redirect ||
+            '/mypage/edit?profile_required=1'
+          );
+          setProfileRequiredModalOpen(true);
+          return;
+        }
+
+        console.error('클럽 가입 신청 실패:', joinError);
+        Alert.alert('가입 신청 실패', joinError?.message || '클럽 가입 신청 중 오류가 발생했습니다.');
+      } finally {
+        setIsJoinSubmitting(false);
+      }
+    },
     [resolvedId, loadClub, handleOpenJoinApplications]
+  );
+
+  const closeProfileRequiredModal = useMemo(
+    () => () => setProfileRequiredModalOpen(false),
+    []
+  );
+  const goProfileEditFromModal = useMemo(
+    () => () => {
+      setProfileRequiredModalOpen(false);
+      router.replace(profileRequiredRedirect);
+    },
+    [router, profileRequiredRedirect]
   );
 
   const membershipStatus = String(club?.membership_status || '').toUpperCase().trim();
@@ -154,6 +200,25 @@ export default function ClubDetailScreen() {
   const isManagerOrLeader = isApprovedMember && ['LEADER', 'MANAGER'].includes(membershipRole);
   const isGeneralMember = isApprovedMember && membershipRole === 'MEMBER';
   const isPendingApplicant = membershipStatus === 'PENDING';
+
+  const handleOpenNotices = useMemo(
+    () => () => {
+      router.push(`/clubs/${resolvedId}/notices`);
+    },
+    [router, resolvedId]
+  );
+  const handleOpenRegulations = useMemo(
+    () => () => {
+      router.push(`/clubs/${resolvedId}/regulations`);
+    },
+    [router, resolvedId]
+  );
+  const handleOpenFees = useMemo(
+    () => () => {
+      router.push(`/clubs/${resolvedId}/fees`);
+    },
+    [router, resolvedId]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -207,10 +272,6 @@ export default function ClubDetailScreen() {
                 <Text style={styles.infoValue}>{display.createdAtDisplay}</Text>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>회비</Text>
-                <Text style={styles.infoValue}>{display.feeSummaryDisplay}</Text>
-              </View>
-              <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>활동 지역</Text>
                 <Text style={styles.infoValue}>{locationDisplay}</Text>
               </View>
@@ -227,6 +288,27 @@ export default function ClubDetailScreen() {
                 <Text style={styles.infoValue}>{display.additionalInfo}</Text>
               </View>
             </Card>
+
+            {isApprovedMember ? (
+              <Card style={styles.sectionCard}>
+                <Text style={styles.sectionTitle}>클럽 메뉴</Text>
+                <Text style={styles.sectionText}>공지/규정/회비 정보를 확인하세요.</Text>
+                <View style={styles.memberMenuRow}>
+                  <Button variant="outline" size="sm" onPress={handleOpenMemberListPress} style={styles.memberMenuButton}>
+                    회원목록
+                  </Button>
+                  <Button variant="outline" size="sm" onPress={handleOpenNotices} style={styles.memberMenuButton}>
+                    클럽 공지사항
+                  </Button>
+                  <Button variant="outline" size="sm" onPress={handleOpenRegulations} style={styles.memberMenuButton}>
+                    클럽 규정
+                  </Button>
+                  <Button variant="outline" size="sm" onPress={handleOpenFees} style={styles.memberMenuButton}>
+                    클럽 회비
+                  </Button>
+                </View>
+              </Card>
+            ) : null}
           </>
         )}
 
@@ -241,11 +323,7 @@ export default function ClubDetailScreen() {
                   가입 신청 현황
                 </Button>
               </>
-            ) : isGeneralMember ? (
-              <Button variant="outline" size="lg" onPress={handleOpenMemberListPress}>
-                회원목록
-              </Button>
-            ) : isPendingApplicant ? (
+            ) : isGeneralMember ? null : isPendingApplicant ? (
               <Button variant="outline" size="lg" onPress={handleOpenJoinApplications}>
                 가입 신청 내역 보기
               </Button>
@@ -257,6 +335,31 @@ export default function ClubDetailScreen() {
           </View>
         ) : null}
       </ScrollView>
+
+      <Modal
+        visible={profileRequiredModalOpen}
+        title="프로필 미완성"
+        onClose={closeProfileRequiredModal}
+        animationType="fade"
+        containerStyle={styles.modalCard}
+        backdropStyle={styles.modalBackdrop}
+        footer={(
+          <View style={styles.modalActionRow}>
+            <Button size="sm" variant="outline" onPress={closeProfileRequiredModal}>
+              아니오
+            </Button>
+            <Button size="sm" onPress={goProfileEditFromModal}>
+              예
+            </Button>
+          </View>
+        )}
+      >
+        <Text style={styles.modalMessage}>
+          {profileRequiredMessage}
+          {'\n\n'}
+          프로필을 만들겠습니까?
+        </Text>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -264,6 +367,24 @@ export default function ClubDetailScreen() {
 const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
   container: base.containerLg,
+  modalCard: {
+    width: '100%',
+    maxWidth: 462,
+    alignSelf: 'center',
+  },
+  modalBackdrop: {
+    backgroundColor: 'rgba(15, 23, 42, 0.52)',
+  },
+  modalActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: tokens.spacing.xs,
+  },
+  modalMessage: {
+    fontSize: tokens.font.sm,
+    color: colors.neutral[700],
+  },
   heroCard: {
     marginBottom: tokens.spacing.md,
   },
@@ -347,6 +468,15 @@ const styles = StyleSheet.create({
   },
   actionGap: {
     marginTop: tokens.spacing.sm2,
+  },
+  memberMenuRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: tokens.spacing.sm2,
+  },
+  memberMenuButton: {
+    flexGrow: 1,
   },
   errorText: base.textSmError,
 });

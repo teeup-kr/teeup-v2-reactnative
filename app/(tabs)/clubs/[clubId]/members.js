@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { clubMemberStatusColors } from '@/constants/clubConstants';
 import { clubsApi } from '@/lib/api/api';
@@ -24,6 +25,28 @@ import { base, tokens } from '@/styles/style';
 
 const CAN_MANAGE_ROLES = ['LEADER', 'MANAGER'];
 const MEMBER_ROLE_OPTIONS = ['MEMBER', 'MANAGER'];
+const VIEWABLE_MEMBERSHIP_STATUSES = ['ACTIVE', 'APPROVED'];
+const STAFF_ROLES = ['LEADER', 'MANAGER'];
+
+function calcAgeFromBirthdate(birthdate) {
+  if (!birthdate) return null;
+  const parsed = new Date(birthdate);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  const today = new Date();
+  let age = today.getFullYear() - parsed.getFullYear();
+  const monthDiff = today.getMonth() - parsed.getMonth();
+  const dayDiff = today.getDate() - parsed.getDate();
+  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) age -= 1;
+  return age >= 0 && Number.isFinite(age) ? age : null;
+}
+
+function formatGenderLabel(gender) {
+  const value = String(gender || '').toUpperCase();
+  if (value === 'MALE' || value === 'M') return '남';
+  if (value === 'FEMALE' || value === 'F') return '여';
+  return null;
+}
 
 export default function ClubMemberManageScreen() {
   const { clubId, manage, role_manage } = useLocalSearchParams();
@@ -42,6 +65,40 @@ export default function ClubMemberManageScreen() {
   const [updatingRoleUserId, setUpdatingRoleUserId] = useState(null);
   const [canManageRole, setCanManageRole] = useState(false);
   const [isRoleLoading, setIsRoleLoading] = useState(false);
+  const [membershipStatus, setMembershipStatus] = useState('');
+  const [membershipLoading, setMembershipLoading] = useState(true);
+  const [membershipError, setMembershipError] = useState('');
+
+  const [recordModalOpen, setRecordModalOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [recordLoading, setRecordLoading] = useState(false);
+  const [recordError, setRecordError] = useState('');
+  const [recordSummary, setRecordSummary] = useState(null);
+
+  const canViewMembers = VIEWABLE_MEMBERSHIP_STATUSES.includes(
+    String(membershipStatus || '').toUpperCase().trim()
+  );
+
+  const loadMembership = useCallback(async () => {
+    if (!resolvedId) {
+      setMembershipStatus('');
+      setMembershipLoading(false);
+      setMembershipError('');
+      return;
+    }
+    try {
+      setMembershipLoading(true);
+      setMembershipError('');
+      const membership = extractData(await clubsApi.getClubMembership(resolvedId));
+      const status = String(membership?.status || membership?.membership_status || '').toUpperCase().trim();
+      setMembershipStatus(status);
+    } catch (err) {
+      setMembershipStatus('');
+      setMembershipError(err?.message || '클럽 가입 상태를 확인하지 못했습니다.');
+    } finally {
+      setMembershipLoading(false);
+    }
+  }, [resolvedId]);
 
   const loadRole = useCallback(async () => {
     if (!resolvedId || !isRoleManageMode) return;
@@ -73,9 +130,22 @@ export default function ClubMemberManageScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      loadMembership();
       loadRole();
+    }, [loadMembership, loadRole])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (membershipLoading) return;
+      if (!canViewMembers) {
+        setMembers([]);
+        setIsLoading(false);
+        if (!membershipError) setError('클럽 가입 후 이용할 수 있습니다.');
+        return;
+      }
       loadMembers();
-    }, [loadRole, loadMembers])
+    }, [membershipLoading, canViewMembers, membershipError, loadMembers])
   );
 
   const { normalizedMembers, pendingCount } = useMemo(
@@ -150,6 +220,33 @@ export default function ClubMemberManageScreen() {
     ]);
   };
 
+  const handleOpenRecordPress = useCallback((member) => async () => {
+    if (!resolvedId || !member?.userId) return;
+    try {
+      setSelectedMember(member);
+      setRecordModalOpen(true);
+      setRecordSummary(null);
+      setRecordError('');
+      setRecordLoading(true);
+      const response = await clubsApi.getClubMemberRecordSummary(resolvedId, member.userId);
+      const data = extractData(response);
+      setRecordSummary(data);
+    } catch (err) {
+      setRecordSummary(null);
+      setRecordError(err?.message || '기록을 불러오지 못했습니다.');
+    } finally {
+      setRecordLoading(false);
+    }
+  }, [resolvedId]);
+
+  const handleCloseRecordModal = useCallback(() => {
+    setRecordModalOpen(false);
+    setSelectedMember(null);
+    setRecordSummary(null);
+    setRecordError('');
+    setRecordLoading(false);
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScreenHeader title={isRoleManageMode ? '멤버 권한 관리' : isManageMode ? '멤버 관리' : '회원목록'} />
@@ -163,7 +260,20 @@ export default function ClubMemberManageScreen() {
         </Card>
 
         <View style={styles.listCard}>
-          {isLoading || (isRoleManageMode && isRoleLoading) ? (
+          {membershipLoading ? (
+            <View style={styles.stateRow}>
+              <ActivityIndicator size="small" color={colors.primary[600]} />
+              <Text style={styles.stateText}>가입 상태를 확인하는 중...</Text>
+            </View>
+          ) : membershipError ? (
+            <View style={styles.stateRow}>
+              <Text style={styles.errorText}>{membershipError}</Text>
+            </View>
+          ) : !canViewMembers ? (
+            <View style={styles.stateRow}>
+              <Text style={styles.stateText}>클럽 가입 후 회원목록을 확인할 수 있습니다.</Text>
+            </View>
+          ) : isLoading || (isRoleManageMode && isRoleLoading) ? (
             <View style={styles.stateRow}>
               <ActivityIndicator size="small" color={colors.primary[600]} />
               <Text style={styles.stateText}>{isRoleManageMode ? '권한 정보를 불러오는 중...' : '멤버를 불러오는 중...'}</Text>
@@ -184,7 +294,17 @@ export default function ClubMemberManageScreen() {
                 </View>
                 <View style={styles.memberInfo}>
                   <Text style={styles.memberName}>{member.name}</Text>
-                  <Text style={styles.memberRole}>{member.roleLabel}</Text>
+                  <Text style={styles.memberRole}>
+                    {[
+                      STAFF_ROLES.includes(member.role) ? member.roleLabel : null,
+                      (() => {
+                        const age = calcAgeFromBirthdate(member.birthdate);
+                        return age !== null ? `${age}세` : null;
+                      })(),
+                      formatGenderLabel(member.gender),
+                      STAFF_ROLES.includes(member.role) ? (member.phoneNumber || null) : null,
+                    ].filter(Boolean).join(' · ') || member.roleLabel}
+                  </Text>
                 </View>
                 <View
                   style={[
@@ -233,12 +353,62 @@ export default function ClubMemberManageScreen() {
                       권한 변경
                     </Button>
                   </View>
+                ) : !isManageMode && !isRoleManageMode && (member.status === 'ACTIVE' || member.status === 'APPROVED') ? (
+                  <View style={styles.actionButtons}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onPress={handleOpenRecordPress(member)}
+                      textStyle={styles.recordButtonText}
+                    >
+                      기록보기
+                    </Button>
+                  </View>
                 ) : null}
               </View>
             ))
           )}
         </View>
       </ScrollView>
+
+      <Modal
+        visible={recordModalOpen}
+        title={selectedMember?.name ? `${selectedMember.name} 기록` : '기록'}
+        onClose={handleCloseRecordModal}
+        animationType="fade"
+        containerStyle={styles.modalCard}
+        backdropStyle={styles.modalBackdrop}
+        footer={(
+          <View style={styles.modalActionRow}>
+            <Button size="sm" variant="outline" onPress={handleCloseRecordModal}>
+              닫기
+            </Button>
+          </View>
+        )}
+      >
+        {recordLoading ? (
+          <View style={styles.stateRow}>
+            <ActivityIndicator size="small" color={colors.primary[600]} />
+            <Text style={styles.stateText}>기록을 불러오는 중...</Text>
+          </View>
+        ) : recordError ? (
+          <Text style={styles.errorText}>{recordError}</Text>
+        ) : recordSummary ? (
+          <View>
+            <Text style={styles.recordRowText}>
+              핸디캡: {recordSummary?.handicap ?? recordSummary?.handicap_index ?? '-'}
+            </Text>
+            <Text style={styles.recordRowText}>
+              평균타수: {recordSummary?.average_score ?? recordSummary?.avg_score ?? '-'}
+            </Text>
+            <Text style={styles.recordRowText}>
+              최근 라운드: {recordSummary?.recent_rounds_count ?? recordSummary?.recentRoundsCount ?? '-'}
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.stateText}>표시할 기록이 없습니다.</Text>
+        )}
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -327,5 +497,28 @@ const styles = StyleSheet.create({
   roleButtonText: {
     fontSize: tokens.font.xs,
     color: colors.info[700],
+  },
+  recordButtonText: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[700],
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 462,
+    alignSelf: 'center',
+  },
+  modalBackdrop: {
+    backgroundColor: 'rgba(15, 23, 42, 0.52)',
+  },
+  modalActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: tokens.spacing.xs,
+  },
+  recordRowText: {
+    fontSize: tokens.font.base,
+    color: colors.neutral[800],
+    marginBottom: tokens.spacing.xs2,
   },
 });
