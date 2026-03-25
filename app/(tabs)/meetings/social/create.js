@@ -150,6 +150,14 @@ export function SocialForm({ mode = 'create' }) {
     [isEditMode, clubs.length]
   );
 
+  const selectedClubSettlementEnabled = useMemo(() => {
+    const id = form.club_id;
+    if (!id || !clubs.length) return true;
+    const c = clubs.find((club) => String(club.id) === String(id));
+    if (!c) return true;
+    return c.settlement_enabled !== false;
+  }, [form.club_id, clubs]);
+
   const fetchClubs = useMemo(
     () =>
       createFetchClubsHandler({
@@ -393,21 +401,23 @@ export function SocialForm({ mode = 'create' }) {
                   <Text style={styles.errorText}>{fieldErrors.venue_name}</Text>
                 )}
               </View>
-              <View style={styles.fieldGroup}>
-                <Text style={styles.label}>정산 방식</Text>
-                <View style={styles.chipRow}>
-                  {socialSettlementMethods.map((method) => (
-                    <SelectableChip
-                      key={method.id}
-                      label={method.label}
-                      selected={form.settlement_method === method.id}
-                      onPress={handleSettlementSelect(method.id)}
-                      styles={styles}
-                    />
-                  ))}
+              {selectedClubSettlementEnabled ? (
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.label}>정산 방식</Text>
+                  <View style={styles.chipRow}>
+                    {socialSettlementMethods.map((method) => (
+                      <SelectableChip
+                        key={method.id}
+                        label={method.label}
+                        selected={form.settlement_method === method.id}
+                        onPress={handleSettlementSelect(method.id)}
+                        styles={styles}
+                      />
+                    ))}
+                  </View>
+                  <Text style={styles.label}>참가자 안내용으로 기록하는 항목입니다.</Text>
                 </View>
-                <Text style={styles.label}>참가자 안내용으로 기록하는 항목입니다.</Text>
-              </View>
+              ) : null}
             </Card>
 
             <Card style={styles.card}>

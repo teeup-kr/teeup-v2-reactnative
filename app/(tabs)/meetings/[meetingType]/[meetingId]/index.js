@@ -22,6 +22,7 @@ import SocialJoinModal from '@/components/meetings/SocialJoinModal';
 import TeamEditorModal from '@/components/meetings/TeamEditorModal';
 import TeamFormationModal from '@/components/meetings/TeamFormationModal';
 import TeamFormationPreviewModal from '@/components/meetings/TeamFormationPreviewModal';
+import AppToast from '@/components/ui/AppToast';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Modal from '@/components/ui/Modal';
@@ -170,7 +171,9 @@ function getMeetingStatusMeta(meeting) {
   if (status === 'IN_PROGRESS') return { label: '진행중', tone: 'warning' };
   if (status === 'COMPLETED') return { label: '완료', tone: 'success' };
   if (status === 'CANCELED') return { label: '취소', tone: 'danger' };
-  if (meeting?.settlement_confirmed) return { label: '정산 완료', tone: 'success' };
+  if (meeting?.settlement_enabled !== false && meeting?.settlement_confirmed) {
+    return { label: '정산 완료', tone: 'success' };
+  }
   if (meeting?.application_closed_early || isPastDateTime(meeting?.application_deadline)) {
     return { label: '모집 마감', tone: 'warning' };
   }
@@ -238,6 +241,7 @@ export default function MeetingDetailScreen() {
     average_score: '',
   });
   const [showRecordIncompleteModal, setShowRecordIncompleteModal] = useState(false);
+  const [settlementToast, setSettlementToast] = useState(null);
 
   const myParticipantId = useMemo(
     () => getMyParticipantId({ user, participants }),
@@ -342,8 +346,13 @@ export default function MeetingDetailScreen() {
   }, [fetchMeeting, fetchUserInfo]);
 
   useEffect(() => {
+    if (!meetingIdValue) return;
+    if (meeting?.settlement_enabled === false) {
+      setSettlement(null);
+      return;
+    }
     fetchSettlement();
-  }, [fetchSettlement]);
+  }, [fetchSettlement, meetingIdValue, meeting?.settlement_enabled]);
 
   useEffect(() => {
     let mounted = true;
@@ -377,7 +386,8 @@ export default function MeetingDetailScreen() {
       return list.some(
         (m) =>
           String(m?.id) !== String(excludeMeetingId) &&
-          (m?.rounding_completed_at || m?.settlement_confirmed) &&
+          (m?.rounding_completed_at ||
+            (m?.settlement_enabled !== false && m?.settlement_confirmed)) &&
           m?.has_hole_scores === false
       );
     } catch (e) {
@@ -518,6 +528,12 @@ export default function MeetingDetailScreen() {
   );
 
   const openScoreModal = useMemo(() => () => setScoreModalOpen(true), []);
+  const showSocialSettlementCompleteToast = useCallback(() => {
+    setSettlementToast({
+      tone: 'success',
+      message: '모임 진행이 모두 마무리되었습니다.',
+    });
+  }, []);
   const runConfirmSettlement = useMemo(
     () =>
       createConfirmSettlementHandler({
@@ -527,7 +543,7 @@ export default function MeetingDetailScreen() {
         setProcessingAction,
         fetchMeeting,
         alert: Alert.alert,
-        onSuccess: isRoundingMeeting ? openScoreModal : undefined,
+        onSuccess: isRoundingMeeting ? openScoreModal : showSocialSettlementCompleteToast,
       }),
     [
       meetingIdValue,
@@ -536,13 +552,15 @@ export default function MeetingDetailScreen() {
       fetchMeeting,
       openScoreModal,
       isRoundingMeeting,
+      showSocialSettlementCompleteToast,
     ]
   );
   const handleConfirmSettlement = useCallback(() => {
+    if (meeting?.settlement_enabled === false) return;
     if (!isRoundingMeeting) {
       Alert.alert(
         '정산 확정',
-        '정산 확정 시 소셜 모임이 마무리 처리됩니다.\n\n정산을 확정하시겠습니까?',
+        '정산 확정 버튼 누르면, 소셜 모임이 마무리 처리됩니다. 정산을 확정하시겠습니까?',
         [
           { text: '아니오', style: 'cancel' },
           { text: '예', onPress: () => runConfirmSettlement() },
@@ -558,7 +576,7 @@ export default function MeetingDetailScreen() {
         { text: '확인', onPress: () => runConfirmSettlement() },
       ]
     );
-  }, [runConfirmSettlement, isRoundingMeeting]);
+  }, [runConfirmSettlement, isRoundingMeeting, meeting?.settlement_enabled]);
 
   const handleSyncMeetingToSettlement = useCallback(
     async (payload) => {
@@ -963,7 +981,9 @@ export default function MeetingDetailScreen() {
 
   useEffect(() => {
     if (!meeting?.id || !isRoundingMeeting || !myParticipant) return;
-    const completed = meeting?.rounding_completed_at || meeting?.settlement_confirmed;
+    const completed =
+      meeting?.rounding_completed_at ||
+      (meeting?.settlement_enabled !== false && meeting?.settlement_confirmed);
     if (!completed) return;
 
     let mounted = true;
@@ -980,7 +1000,14 @@ export default function MeetingDetailScreen() {
       }
     })();
     return () => { mounted = false; };
-  }, [meeting?.id, meeting?.rounding_completed_at, meeting?.settlement_confirmed, isRoundingMeeting, myParticipant]);
+  }, [
+    meeting?.id,
+    meeting?.rounding_completed_at,
+    meeting?.settlement_confirmed,
+    meeting?.settlement_enabled,
+    isRoundingMeeting,
+    myParticipant,
+  ]);
 
   const isJoined = useMemo(
     () => getIsJoined({ participants, user }),
@@ -1024,6 +1051,11 @@ export default function MeetingDetailScreen() {
     [hasManagerPermission]
   );
 
+  const settlementFeatureEnabled = useMemo(
+    () => meeting?.settlement_enabled !== false,
+    [meeting?.settlement_enabled]
+  );
+
   const meetingStatusMeta = useMemo(
     () => getMeetingStatusMeta(meeting),
     [meeting]
@@ -1061,6 +1093,7 @@ export default function MeetingDetailScreen() {
 
   const canSettleMeeting = useMemo(() => {
     if (!meeting) return false;
+    if (meeting.settlement_enabled === false) return false;
     if (normalizedStatus === 'CANCELED') return false;
     if (isMinParticipantsNotMet) return false;
 
@@ -1079,6 +1112,7 @@ export default function MeetingDetailScreen() {
     isApplicationClosed,
     isMeetingTimePassed,
     teams.length,
+    meeting?.settlement_enabled,
   ]);
 
   const settlementBlockedMessage = useMemo(() => {
@@ -1102,9 +1136,10 @@ export default function MeetingDetailScreen() {
     () =>
       meetingDetailTabs.filter((tab) => {
         if (!isRoundingMeeting && tab.key === 'teams') return false;
+        if (tab.key === 'settlement' && meeting?.settlement_enabled === false) return false;
         return true;
       }),
-    [isRoundingMeeting]
+    [isRoundingMeeting, meeting?.settlement_enabled]
   );
 
   const canAccessTeamTab = useMemo(
@@ -1255,26 +1290,21 @@ export default function MeetingDetailScreen() {
     if (!meeting) return [];
 
     // 정산이 있으면 정산 관리와 동일한 금액으로 표시 (정산 정보와 맞춤)
-    const totalCost = settlement?.total_cost ?? meeting.total_cost;
     const greenFee = settlement?.green_fee ?? meeting.green_fee;
     const caddyFee = settlement?.caddy_fee ?? meeting.caddy_fee;
     const cartFee = settlement?.cart_fee ?? meeting.cart_fee;
     const otherFee = settlement?.other_fee ?? meeting.other_fee;
-    const socialCost = settlement?.total_cost ?? meeting.social_cost;
 
     if (isRoundingMeeting) {
       const items = [];
-      if (totalCost !== null && totalCost !== undefined) {
-        items.push({ key: 'total_cost', label: '총 비용', value: formatCurrency(totalCost) });
-      }
       if (greenFee !== null && greenFee !== undefined) {
-        items.push({ key: 'green_fee', label: '그린피', value: formatCurrency(greenFee) });
+        items.push({ key: 'green_fee', label: '그린피(인당)', value: formatCurrency(greenFee) });
       }
       if (caddyFee !== null && caddyFee !== undefined) {
-        items.push({ key: 'caddy_fee', label: '캐디피', value: formatCurrency(caddyFee) });
+        items.push({ key: 'caddy_fee', label: '캐디비(팀당)', value: formatCurrency(caddyFee) });
       }
       if (cartFee !== null && cartFee !== undefined) {
-        items.push({ key: 'cart_fee', label: '카트비', value: formatCurrency(cartFee) });
+        items.push({ key: 'cart_fee', label: '카트비(팀당)', value: formatCurrency(cartFee) });
       }
       if (otherFee != null && otherFee !== 0) {
         items.push({ key: 'other_fee', label: '기타 비용', value: formatCurrency(otherFee) });
@@ -1459,7 +1489,7 @@ export default function MeetingDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, styles.safeAreaRelative]}>
       <ScreenHeader title="모임 상세" />
       <ScrollView contentContainerStyle={styles.container}>
 
@@ -1615,12 +1645,13 @@ export default function MeetingDetailScreen() {
             teams={teams}
             isManager={isManager}
             applicationStatus={applicationStatus}
+            settlementEnabled={settlementFeatureEnabled}
             onCloseApplicationEarly={handleOpenCloseApplicationModal}
             onAutoFormTeams={openTeamFormation}
             onConfirmTeamFormation={handleConfirmTeams}
             onStartRounding={handleStartRounding}
             onCompleteRounding={handleCompleteRounding}
-            onCompleteMeeting={handleConfirmSettlement}
+            onCompleteMeeting={settlementFeatureEnabled ? handleConfirmSettlement : undefined}
           />
         )}
 
@@ -1628,7 +1659,9 @@ export default function MeetingDetailScreen() {
           <Card style={styles.card}>
             <Text style={styles.sectionHeading}>모임 관리</Text>
             <Text style={styles.socialManageHint}>
-              모임이 완료되면 정산 정보를 입력할 수 있습니다.
+              {settlementFeatureEnabled
+                ? '모임이 완료되면 정산 정보를 입력할 수 있습니다.'
+                : '모임 완료 처리로 마무리할 수 있습니다. (이 클럽은 정산 기능이 꺼져 있습니다.)'}
             </Text>
             <View style={styles.actionRow}>
               <Pressable
@@ -1870,7 +1903,7 @@ export default function MeetingDetailScreen() {
                     await fetchMeeting();
                     await fetchSettlement();
                   }}
-                  onConfirmSettlement={handleConfirmSettlement}
+                  onConfirmSettlement={settlementFeatureEnabled ? handleConfirmSettlement : undefined}
                   onSyncMeetingToSettlement={handleSyncMeetingToSettlement}
                   meeting={meeting}
                 />
@@ -2110,12 +2143,15 @@ export default function MeetingDetailScreen() {
         currentHandicap={currentHandicap}
         onSuccess={handleScoreSuccess}
       />
+
+      <AppToast toast={settlementToast} onClose={() => setSettlementToast(null)} />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: base.safeAreaNeutral,
+  safeAreaRelative: { position: 'relative' },
   container: base.containerLg,
   topActionRow: {
     flexDirection: 'row',
