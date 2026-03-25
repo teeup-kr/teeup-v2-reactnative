@@ -986,6 +986,16 @@ export function createScoreValidationHandler({ grossScore, setErrors }) {
     };
 }
 
+function isSimpleScoreAlreadyExistsError(error) {
+    const status = error?.response?.status;
+    const detail = error?.response?.data?.detail;
+    const msg = typeof detail === 'string' ? detail : '';
+    return (
+        status === 409 ||
+        (msg.includes('이미 점수가 입력') && msg.includes('수정'))
+    );
+}
+
 export function createScoreSubmitHandler({
     validate,
     shouldCompleteRounding,
@@ -993,6 +1003,7 @@ export function createScoreSubmitHandler({
     participantId,
     grossScore,
     submitSimpleScore,
+    updateSimpleScore,
     completeRounding,
     onSuccess,
     onClose,
@@ -1003,6 +1014,8 @@ export function createScoreSubmitHandler({
     return async function () {
         if (!validate()) return;
 
+        const payload = { gross_score: parseInt(grossScore, 10) };
+
         try {
             setIsSubmitting(true);
 
@@ -1010,9 +1023,15 @@ export function createScoreSubmitHandler({
                 await completeRounding(meetingId);
             }
 
-            await submitSimpleScore(meetingId, participantId, {
-                gross_score: parseInt(grossScore, 10),
-            });
+            try {
+                await submitSimpleScore(meetingId, participantId, payload);
+            } catch (firstError) {
+                if (updateSimpleScore && isSimpleScoreAlreadyExistsError(firstError)) {
+                    await updateSimpleScore(meetingId, participantId, payload);
+                } else {
+                    throw firstError;
+                }
+            }
 
             onSuccess?.(shouldCompleteRounding);
             onClose?.();

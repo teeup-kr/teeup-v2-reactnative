@@ -756,6 +756,10 @@ async function getClubMembers(clubId, params = {}) {
   return apiClient.get(`/clubs/${clubId}/members`, { params });
 }
 
+async function getClubMemberRecordSummary(clubId, userId) {
+  return apiClient.get(`/clubs/${clubId}/members/${userId}/record-summary`);
+}
+
 async function approveClubMembership(clubId, userId) {
   return apiClient.post(`/clubs/${clubId}/members/${userId}/approve`);
 }
@@ -902,6 +906,7 @@ export const clubsApi = {
   joinClub,
   leaveClub,
   getClubMembers,
+  getClubMemberRecordSummary,
   approveClubMembership,
   rejectClubMembership,
   searchClubMembersByName,
@@ -1170,6 +1175,7 @@ export const mypageApi = {
   checkNicknameAvailability,
   completeRounding,
   submitSimpleScore,
+  updateSimpleScore,
 };
 
 export const clubApi = {

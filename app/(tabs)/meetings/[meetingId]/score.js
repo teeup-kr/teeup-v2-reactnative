@@ -19,6 +19,10 @@ import Modal from '@/components/ui/Modal';
 import ScreenHeader from '@/components/ui/ScreenHeader';
 import { roundsApi } from '@/lib/api/api';
 import { backOrHome } from '@/lib/navigation/cappedHistory';
+import {
+  clampStrokeDigitsToDoublePar,
+  clampStrokesNumberToDoublePar,
+} from '@/lib/util/holeScoreLimits';
 import { ensureProfileCompleted } from '@/lib/util/mypageUtils';
 import { extractData, extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
@@ -129,10 +133,12 @@ export default function ScoreInputScreen() {
 
   const openEditModal = useCallback((score) => {
     setEditingScore(score);
+    const parStr = String(score?.par ?? '4');
+    const scoreDigits = String(score?.strokes ?? score?.score ?? '').replace(/[^0-9]/g, '');
     setForm({
       hole_number: String(score?.hole_number ?? '1'),
-      score: String(score?.strokes ?? score?.score ?? ''),
-      par: String(score?.par ?? '4'),
+      score: scoreDigits ? clampStrokeDigitsToDoublePar(scoreDigits, parStr) : '',
+      par: parStr,
     });
     setModalVisible(true);
   }, []);
@@ -147,7 +153,7 @@ export default function ScoreInputScreen() {
     if (!resolvedId) return;
 
     const holeNumber = Number(form.hole_number);
-    const score = Number(form.score);
+    let score = Number(form.score);
     const par = Number(form.par);
 
     if (!Number.isInteger(holeNumber) || holeNumber < 1 || holeNumber > 18) {
@@ -162,6 +168,8 @@ export default function ScoreInputScreen() {
       Alert.alert('확인', '파 수를 올바르게 입력해주세요.');
       return;
     }
+
+    score = clampStrokesNumberToDoublePar(score, par);
 
     const payload = { hole_number: holeNumber, strokes: score, par };
 
@@ -366,7 +374,12 @@ export default function ScoreInputScreen() {
           <Text style={styles.label}>타수</Text>
           <TextInput
             value={form.score}
-            onChangeText={(value) => setForm((prev) => ({ ...prev, score: value.replace(/[^0-9]/g, '') }))}
+            onChangeText={(value) =>
+              setForm((prev) => ({
+                ...prev,
+                score: clampStrokeDigitsToDoublePar(value.replace(/[^0-9]/g, ''), prev.par),
+              }))
+            }
             keyboardType="numeric"
             style={styles.input}
             placeholder="0"
@@ -378,7 +391,16 @@ export default function ScoreInputScreen() {
           <Text style={styles.label}>PAR</Text>
           <TextInput
             value={form.par}
-            onChangeText={(value) => setForm((prev) => ({ ...prev, par: value.replace(/[^0-9]/g, '') }))}
+            onChangeText={(value) =>
+              setForm((prev) => {
+                const parDigits = value.replace(/[^0-9]/g, '');
+                return {
+                  ...prev,
+                  par: parDigits,
+                  score: clampStrokeDigitsToDoublePar(prev.score, parDigits),
+                };
+              })
+            }
             keyboardType="numeric"
             style={styles.input}
             placeholder="4"

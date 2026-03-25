@@ -9,7 +9,6 @@ import { colors } from '@/styles/colors';
 export default function RecordMeetingCard({
   meeting,
   isCompleted = false,
-  currentHandicap,
   onOpenDetail,
   onOpenScore,
   onOpenHoleScore,
@@ -33,6 +32,12 @@ export default function RecordMeetingCard({
     ? styles.softPrimaryBtnText
     : styles.outlineBtnText;
   const detailButtonText = hasHoleScores ? '상세 수정' : '상세입력';
+
+  const handicapDisplayText = useMemo(() => {
+    const v = meeting.handicap_after_round ?? meeting.handicap_used;
+    if (v == null || v === '') return '—';
+    return asNumber(v, 0).toFixed(1);
+  }, [meeting.handicap_after_round, meeting.handicap_used]);
 
   return (
     <View
@@ -61,14 +66,10 @@ export default function RecordMeetingCard({
             <Text style={styles.scoreLabel}>라운딩 스코어</Text>
             <Text style={styles.scoreValue}>{meeting.gross_score}</Text>
           </View>
-          {(meeting.handicap_used != null || (currentHandicap !== null && currentHandicap !== undefined)) && (
-            <View style={{ flex: 1 }}>
-              <Text style={styles.scoreLabel}>업데이트된 핸디캡</Text>
-              <Text style={styles.handicapGreen}>
-                {asNumber(meeting.handicap_used ?? currentHandicap, 0).toFixed(1)}
-              </Text>
-            </View>
-          )}
+          <View style={{ flex: 1 }}>
+            <Text style={styles.scoreLabel}>경기 핸디캡</Text>
+            <Text style={styles.handicapGreen}>{handicapDisplayText}</Text>
+          </View>
         </View>
       )}
 

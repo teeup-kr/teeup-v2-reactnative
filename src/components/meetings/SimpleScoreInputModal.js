@@ -26,6 +26,7 @@ export function BaseSimpleScoreInputModal({
   onSuccess,
   shouldCompleteRounding = false,
   submitSimpleScore,
+  updateSimpleScore,
   completeRounding,
   validateParticipantOnSubmit = true,
   resetOnVisible = true,
@@ -33,6 +34,8 @@ export function BaseSimpleScoreInputModal({
   submitButtonText = '저장하기',
   previewHint = '라운딩 스코어 - 72로 계산됩니다.',
   formatCurrentHandicap = (value) => Number(value).toFixed(1),
+  /** 기록 수정 시 기존 그로스 (미전달 시 초기화 동작은 유지) */
+  initialGrossScore,
 }) {
   const [grossScore, setGrossScore] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,6 +59,7 @@ export function BaseSimpleScoreInputModal({
         participantId,
         grossScore,
         submitSimpleScore,
+        updateSimpleScore,
         completeRounding,
         onSuccess,
         onClose,
@@ -79,6 +83,7 @@ export function BaseSimpleScoreInputModal({
       participantId,
       grossScore,
       submitSimpleScore,
+      updateSimpleScore,
       completeRounding,
       onSuccess,
       onClose,
@@ -101,6 +106,17 @@ export function BaseSimpleScoreInputModal({
     if (!resetOnVisible || !visible) return;
     resetLocal();
   }, [visible, resetLocal, resetOnVisible]);
+
+  useEffect(() => {
+    if (!visible) return;
+    const raw = initialGrossScore;
+    if (raw != null && String(raw).trim() !== '') {
+      setGrossScore(String(raw));
+      return;
+    }
+    if (raw === undefined) return;
+    setGrossScore('');
+  }, [visible, initialGrossScore]);
 
   return (
     <Modal
@@ -168,6 +184,7 @@ export default function SimpleScoreInputModal(props) {
     <BaseSimpleScoreInputModal
       {...props}
       submitSimpleScore={roundsApi.submitSimpleScore}
+      updateSimpleScore={roundsApi.updateSimpleScore}
       completeRounding={roundsApi.completeRounding}
     />
   );

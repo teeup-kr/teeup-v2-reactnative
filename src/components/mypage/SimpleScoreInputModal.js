@@ -11,6 +11,7 @@ export default function SimpleScoreInputModal({
   currentHandicap,
   onSuccess,
   shouldCompleteRounding = false,
+  initialGrossScore,
 }) {
   return (
     <BaseSimpleScoreInputModal
@@ -22,7 +23,9 @@ export default function SimpleScoreInputModal({
       onSuccess={onSuccess}
       shouldCompleteRounding={shouldCompleteRounding}
       submitSimpleScore={mypageApi.submitSimpleScore}
+      updateSimpleScore={mypageApi.updateSimpleScore}
       completeRounding={mypageApi.completeRounding}
+      initialGrossScore={initialGrossScore}
       validateParticipantOnSubmit={false}
       resetOnVisible={false}
       disableSubmitWhenEmpty
