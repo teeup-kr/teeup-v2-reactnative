@@ -42,11 +42,17 @@ export default function MeetingWorkflowStatus({
   onStartRounding,
   onCompleteRounding,
   onCompleteMeeting,
+  settlementEnabled = true,
 }) {
+  const steps = useMemo(() => {
+    if (settlementEnabled !== false) return STEP_CONFIG;
+    return STEP_CONFIG.filter((s) => s.key !== 'SETTLEMENT_CONFIRMED');
+  }, [settlementEnabled]);
+
   const workflowState = useMemo(() => {
     if (!meeting) return 'CREATED';
     if (meeting.status === 'CANCELED') return 'CANCELED';
-    if (meeting.settlement_confirmed) return 'SETTLEMENT_CONFIRMED';
+    if (meeting.settlement_confirmed && settlementEnabled !== false) return 'SETTLEMENT_CONFIRMED';
     if (meeting.rounding_completed_at) return 'ROUNDING_COMPLETED';
     if (meeting.rounding_started_at || meeting.is_completed) return 'COMPLETED';
     if (teams.length > 0) return 'TEAM_FORMED';
@@ -66,27 +72,37 @@ export default function MeetingWorkflowStatus({
     teams.length,
     isApplicationClosedEarly,
     isApplicationDeadlinePassed,
+    settlementEnabled,
   ]);
 
   const workflowIndex = useMemo(() => {
+    let idx;
     switch (workflowState) {
       case 'CREATED':
-        return 0;
+        idx = 0;
+        break;
       case 'PARTICIPANTS_JOINED':
-        return 1;
+        idx = 1;
+        break;
       case 'TEAM_FORMATION_READY':
       case 'TEAM_FORMED':
-        return 2;
+        idx = 2;
+        break;
       case 'COMPLETED':
-        return 3;
+        idx = 3;
+        break;
       case 'ROUNDING_COMPLETED':
-        return 4;
+        idx = 4;
+        break;
       case 'SETTLEMENT_CONFIRMED':
-        return 5;
+        idx = 5;
+        break;
       default:
-        return 0;
+        idx = 0;
     }
-  }, [workflowState]);
+    if (settlementEnabled === false && idx >= 5) return 4;
+    return idx;
+  }, [workflowState, settlementEnabled]);
 
   const isApplicationClosed = useMemo(() => {
     if (!meeting) return false;
@@ -151,9 +167,13 @@ export default function MeetingWorkflowStatus({
   return (
     <View style={styles.container}>
       <Text style={styles.title}>모임 진행 상황</Text>
-      <Text style={styles.subtitle}>모임 마감에서 정산 확정까지 모임 진행 현황을 확인하세요.</Text>
+      <Text style={styles.subtitle}>
+        {settlementEnabled !== false
+          ? '모임 마감에서 정산 확정까지 모임 진행 현황을 확인하세요.'
+          : '모임 마감부터 라운딩 종료까지 진행 현황을 확인하세요. (정산 기능은 클럽 설정에서 꺼져 있습니다.)'}
+      </Text>
       <View style={styles.stepList}>
-        {STEP_CONFIG.map((step, index) => {
+        {steps.map((step, index) => {
           const isCompleted = index < workflowIndex;
           const isActive = index === workflowIndex;
           const color = isCompleted
@@ -238,7 +258,7 @@ export default function MeetingWorkflowStatus({
             라운딩 종료
           </Button>
         ) : null}
-        {onCompleteMeeting ? (
+        {settlementEnabled !== false && onCompleteMeeting ? (
           <Button
             style={[
               styles.actionButtonBase,

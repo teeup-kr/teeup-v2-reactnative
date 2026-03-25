@@ -355,7 +355,6 @@ export default function RecordsTab() {
                 <RecordMeetingCard
                   key={meeting.meeting_id}
                   meeting={meeting}
-                  currentHandicap={currentHandicap}
                   onOpenDetail={handleGoToDetail}
                   onOpenScore={handleOpenScoreModal}
                   onOpenHoleScore={handleOpenHoleScoreModal}
@@ -385,7 +384,6 @@ export default function RecordsTab() {
                   key={meeting.meeting_id}
                   meeting={meeting}
                   isCompleted
-                  currentHandicap={currentHandicap}
                   onOpenDetail={handleGoToDetail}
                   onOpenScore={handleOpenScoreModal}
                   onOpenHoleScore={handleOpenHoleScoreModal}
@@ -443,6 +441,11 @@ export default function RecordsTab() {
         currentHandicap={currentHandicap}
         onSuccess={handleScoreSuccess}
         shouldCompleteRounding={false}
+        initialGrossScore={
+          selectedMeeting?.has_score && selectedMeeting?.gross_score != null
+            ? selectedMeeting.gross_score
+            : null
+        }
       />
 
       <HoleScoreTableModal
@@ -451,6 +454,11 @@ export default function RecordsTab() {
         meetingId={selectedMeeting?.meeting_id}
         participantId={selectedParticipantId}
         holeCount={selectedMeeting?.hole_count}
+        simpleGrossScore={
+          selectedMeeting?.has_score && selectedMeeting?.gross_score != null
+            ? selectedMeeting.gross_score
+            : null
+        }
         onSuccess={handleHoleScoreSuccess}
       />
     </SafeAreaView>

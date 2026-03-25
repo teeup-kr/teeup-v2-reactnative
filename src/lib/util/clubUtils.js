@@ -192,6 +192,23 @@ export function normalizeClubMembers(members) {
         member?.name ||
         member?.nickname ||
         '-',
+      phoneNumber:
+        member?.user?.phone_number ||
+        member?.user?.phoneNumber ||
+        member?.phone_number ||
+        member?.phoneNumber ||
+        member?.user_phone_number ||
+        null,
+      gender:
+        member?.user?.gender ||
+        member?.gender ||
+        member?.user_gender ||
+        null,
+      birthdate:
+        member?.user?.birthdate ||
+        member?.birthdate ||
+        member?.user_birthdate ||
+        null,
       role,
       roleLabel: roleConfig?.text || role || '-',
       status,

@@ -14,6 +14,10 @@ import { Picker } from '@react-native-picker/picker';
 
 import Modal from '@/components/ui/Modal';
 import { roundsApi } from '@/lib/api/api';
+import {
+  clampStrokeDigitsToDoublePar,
+  clampStrokesNumberToDoublePar,
+} from '@/lib/util/holeScoreLimits';
 import { extractData, extractList } from '@/lib/util/responseUtils';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
@@ -23,19 +27,6 @@ const DEFAULT_PAR = '4';
 
 /** PAR 드롭다운 옵션 */
 const PAR_OPTIONS = [3, 4, 5];
-
-/** +/- 계산값에 해당하는 이름 (있으면 "이름 (±n)" 형태로 표기) */
-const DIFF_LABELS = {
-  [-4]: '콘도르 (-4)',
-  [-3]: '알바트로스 (-3)',
-  [-2]: '이글 (-2)',
-  [-1]: '버디 (-1)',
-  0: '파 (0)',
-  1: '보기 (+1)',
-  2: '더블보기 (+2)',
-  3: '트리플보기 (+3)',
-  4: '쿼드러플 보기 (+4)',
-};
 
 function toDigits(value) {
   return String(value ?? '').replace(/[^0-9]/g, '');
@@ -62,14 +53,14 @@ function normalizeScoreItem(item) {
   };
 }
 
-/** +/- 표기: 이름 있으면 "알바트로스 (-3)" 형태, 없으면 "+5" / "-4" 등 숫자만 */
+/** +/- 표기: "+2", "-1", "0" 등 숫자만 */
 function getDiffDisplayText(strokes, par) {
   const strokeNum = Number(strokes);
   const parNum = Number(par);
   if (!Number.isFinite(strokeNum) || !Number.isFinite(parNum)) return '-';
   const diff = strokeNum - parNum;
-  if (DIFF_LABELS[diff] != null) return DIFF_LABELS[diff];
-  return diff > 0 ? `+${diff}` : `${diff}`;
+  if (diff > 0) return `+${diff}`;
+  return `${diff}`;
 }
 
 function getDiffColor(strokes, par) {
@@ -88,6 +79,8 @@ export default function HoleScoreTableModal({
   meetingId,
   participantId,
   holeCount = DEFAULT_HOLE_COUNT,
+  /** 간편 점수(라운딩 스코어)가 있으면 홀별 합계와 일치할 때만 저장 허용 */
+  simpleGrossScore = null,
   onSuccess,
 }) {
   const normalizedHoleCount = useMemo(() => {
@@ -101,7 +94,8 @@ export default function HoleScoreTableModal({
   const [scoreStats, setScoreStats] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [saveMismatchMessage, setSaveMismatchMessage] = useState('');
 
   const closeModal = useCallback(() => {
     if (isSaving) return;
@@ -113,13 +107,15 @@ export default function HoleScoreTableModal({
       setRows(createInitialRows(normalizedHoleCount));
       setExistingScoresByHole({});
       setScoreStats(null);
-      setError('');
+      setLoadError('');
+      setSaveMismatchMessage('');
       return;
     }
 
     try {
       setIsLoading(true);
-      setError('');
+      setLoadError('');
+      setSaveMismatchMessage('');
 
       const [scoreResponse, statsResponse] = await Promise.all([
         roundsApi.getParticipantScores(meetingId, participantId),
@@ -143,11 +139,16 @@ export default function HoleScoreTableModal({
       const nextRows = createInitialRows(maxHole).map((row) => {
         const existing = byHole[row.hole_number];
         if (!existing) return row;
+        const parStr = String(existing.par ?? DEFAULT_PAR);
+        const rawStrokes =
+          existing.strokes != null && existing.strokes !== undefined
+            ? String(existing.strokes)
+            : '';
         return {
           hole_number: row.hole_number,
-          par: String(existing.par ?? DEFAULT_PAR),
-          strokes: existing.strokes != null && existing.strokes !== undefined
-            ? String(existing.strokes)
+          par: parStr,
+          strokes: rawStrokes
+            ? clampStrokeDigitsToDoublePar(toDigits(rawStrokes), parStr)
             : '',
         };
       });
@@ -155,9 +156,9 @@ export default function HoleScoreTableModal({
       setRows(nextRows);
       setExistingScoresByHole(byHole);
       setScoreStats(extractData(statsResponse));
-    } catch (fetchError) {
-      console.error('홀별 점수 조회 실패:', fetchError);
-      setError(fetchError?.message || '홀별 점수를 불러오지 못했습니다.');
+    } catch (err) {
+      console.error('홀별 점수 조회 실패:', err);
+      setLoadError(err?.message || '홀별 점수를 불러오지 못했습니다.');
       setRows(createInitialRows(normalizedHoleCount));
       setExistingScoresByHole({});
       setScoreStats(null);
@@ -173,26 +174,35 @@ export default function HoleScoreTableModal({
       setScoreStats(null);
       setIsLoading(false);
       setIsSaving(false);
-      setError('');
+      setLoadError('');
+      setSaveMismatchMessage('');
       return;
     }
     loadScores();
   }, [visible, normalizedHoleCount, loadScores]);
 
   const handleParChange = useCallback((holeNumber, value) => {
+    setSaveMismatchMessage('');
     const normalized = value != null ? String(value) : DEFAULT_PAR;
     setRows((prev) =>
-      prev.map((row) =>
-        row.hole_number === holeNumber ? { ...row, par: normalized } : row
-      )
+      prev.map((row) => {
+        if (row.hole_number !== holeNumber) return row;
+        return {
+          ...row,
+          par: normalized,
+          strokes: clampStrokeDigitsToDoublePar(row.strokes, normalized),
+        };
+      })
     );
   }, []);
 
   const handleStrokeChange = useCallback((holeNumber, value) => {
+    setSaveMismatchMessage('');
+    const digits = toDigits(value);
     setRows((prev) =>
       prev.map((row) =>
         row.hole_number === holeNumber
-          ? { ...row, strokes: toDigits(value) }
+          ? { ...row, strokes: clampStrokeDigitsToDoublePar(digits, row.par) }
           : row
       )
     );
@@ -205,6 +215,39 @@ export default function HoleScoreTableModal({
 
   const handleSave = useCallback(async () => {
     if (!meetingId || !participantId) return;
+
+    setSaveMismatchMessage('');
+
+    const expectedGross = Number(simpleGrossScore);
+    if (Number.isFinite(expectedGross) && expectedGross > 0) {
+      const filledCount = rows.filter((r) => r.strokes.trim() !== '').length;
+      if (filledCount !== normalizedHoleCount) {
+        setSaveMismatchMessage(
+          `간편 입력 라운딩 스코어는 ${expectedGross}타입니다. 홀별로 ${normalizedHoleCount}홀을 모두 입력해야 저장할 수 있습니다. (현재 ${filledCount}홀)`
+        );
+        return;
+      }
+      let holeSum = 0;
+      for (const row of rows) {
+        const parsedPar = Number(row.par || DEFAULT_PAR);
+        let parsedStrokes = Number(row.strokes);
+        if (!Number.isInteger(parsedStrokes) || parsedStrokes <= 0) {
+          Alert.alert('입력 확인', `${row.hole_number}번 홀 타수를 올바르게 입력해주세요.`);
+          return;
+        }
+        if (!Number.isInteger(parsedPar) || parsedPar <= 0) {
+          Alert.alert('입력 확인', `${row.hole_number}번 홀 PAR를 올바르게 입력해주세요.`);
+          return;
+        }
+        holeSum += clampStrokesNumberToDoublePar(parsedStrokes, parsedPar);
+      }
+      if (holeSum !== expectedGross) {
+        setSaveMismatchMessage(
+          `홀별 타수 합계는 ${holeSum}타입니다. 간편 입력 스코어(${expectedGross}타)와 같아야 저장할 수 있습니다. 타수를 맞추거나 간편 점수를 먼저 수정해 주세요.`
+        );
+        return;
+      }
+    }
 
     const requests = [];
 
@@ -221,8 +264,8 @@ export default function HoleScoreTableModal({
         continue;
       }
 
-      const parsedStrokes = Number(row.strokes);
       const parsedPar = Number(row.par || DEFAULT_PAR);
+      let parsedStrokes = Number(row.strokes);
 
       if (!Number.isInteger(parsedStrokes) || parsedStrokes <= 0) {
         Alert.alert('입력 확인', `${row.hole_number}번 홀 타수를 올바르게 입력해주세요.`);
@@ -233,6 +276,8 @@ export default function HoleScoreTableModal({
         Alert.alert('입력 확인', `${row.hole_number}번 홀 PAR를 올바르게 입력해주세요.`);
         return;
       }
+
+      parsedStrokes = clampStrokesNumberToDoublePar(parsedStrokes, parsedPar);
 
       const payload = {
         hole_number: row.hole_number,
@@ -270,13 +315,23 @@ export default function HoleScoreTableModal({
       } else {
         await loadScores();
       }
-    } catch (saveError) {
-      console.error('홀별 점수 저장 실패:', saveError);
-      Alert.alert('오류', saveError?.message || '홀별 점수 저장에 실패했습니다.');
+    } catch (err) {
+      console.error('홀별 점수 저장 실패:', err);
+      Alert.alert('오류', err?.message || '홀별 점수 저장에 실패했습니다.');
     } finally {
       setIsSaving(false);
     }
-  }, [closeModal, existingScoresByHole, loadScores, meetingId, onSuccess, participantId, rows]);
+  }, [
+    closeModal,
+    existingScoresByHole,
+    loadScores,
+    meetingId,
+    normalizedHoleCount,
+    onSuccess,
+    participantId,
+    rows,
+    simpleGrossScore,
+  ]);
 
   const averageValue = scoreStats?.average_strokes ?? scoreStats?.average_score ?? '-';
   const totalValue = scoreStats?.total_strokes ?? scoreStats?.total_score ?? '-';
@@ -336,12 +391,15 @@ export default function HoleScoreTableModal({
           <ActivityIndicator size="small" color={colors.primary[600]} />
           <Text style={styles.stateText}>홀별 점수를 불러오는 중...</Text>
         </View>
-      ) : error ? (
+      ) : loadError ? (
         <View style={styles.stateWrap}>
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorText}>{loadError}</Text>
         </View>
       ) : (
         <>
+          {saveMismatchMessage ? (
+            <Text style={styles.saveMismatchText}>{saveMismatchMessage}</Text>
+          ) : null}
           <View style={styles.summaryRow}>
             <View style={styles.summaryItem}>
               <Text style={styles.summaryLabel}>입력 홀</Text>
@@ -449,6 +507,12 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing.sm2,
     fontSize: tokens.font.xs,
     color: colors.neutral[500],
+  },
+  saveMismatchText: {
+    marginBottom: tokens.spacing.sm,
+    fontSize: tokens.font.sm,
+    color: colors.error[700],
+    lineHeight: 20,
   },
   stateWrap: {
     paddingVertical: tokens.padding.lg2,

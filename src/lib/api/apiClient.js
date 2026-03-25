@@ -402,31 +402,36 @@ async function apiRequest(path, options = {}) {
         return nextQueryString ? `${path}?${nextQueryString}` : path;
       })();
       const message =
-        typeof payload?.detail?.message === "string"
-          ? payload.detail.message
-          : "프로필을 먼저 완성해주세요.";
+        isClubJoinRequest
+          ? "클럽 가입을 위해서는 실명이 필요합니다. 프로필을 먼저 완성해주세요."
+          : (
+            typeof payload?.detail?.message === "string"
+              ? payload.detail.message
+              : "프로필을 먼저 완성해주세요."
+          );
 
       console.info("[Auth] Profile not completed → redirect", redirect);
 
-      const alertButtons = isClubJoinRequest
-        ? [
-          {
-            text: "다음에 하기",
-            style: 'cancel',
-          },
-          {
-            text: "확인",
-            onPress: () => router.replace(redirect),
-          },
-        ]
-        : [
-          {
-            text: "확인",
-            onPress: () => router.replace(redirect),
-          },
-        ];
+      // 클럽 가입 신청은 호출 화면에서 모달 UX를 띄울 수 있게 throw
+      if (isClubJoinRequest) {
+        const error = new Error(message);
+        error.status = response.status;
+        error.payload = payload;
+        error.code = "PROFILE_NOT_COMPLETED";
+        error.redirect = redirect;
+        throw error;
+      }
 
-      Alert.alert("안내", message, alertButtons);
+      // 그 외 케이스는 기존처럼 안내 후 프로필 편집으로 유도
+      const nextMessage = message;
+      if (isWeb && typeof window !== 'undefined') {
+        window.alert(nextMessage);
+        router.replace(redirect);
+        return;
+      }
+      Alert.alert("안내", nextMessage, [
+        { text: "확인", onPress: () => router.replace(redirect) },
+      ]);
       return; // throw 하지 않음
     }
 

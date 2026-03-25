@@ -295,6 +295,14 @@ export function RoundingForm({ mode = 'create' }) {
     [isEditMode, clubs.length]
   );
 
+  const selectedClubSettlementEnabled = useMemo(() => {
+    const id = form.club_id;
+    if (!id || !clubs.length) return true;
+    const c = clubs.find((club) => String(club.id) === String(id));
+    if (!c) return true;
+    return c.settlement_enabled !== false;
+  }, [form.club_id, clubs]);
+
   const fetchClubs = useMemo(
     () =>
       createFetchClubsHandler({
@@ -1309,11 +1317,19 @@ export function RoundingForm({ mode = 'create' }) {
             </Card>
 
             <Card style={styles.card}>
-              <Text style={styles.sectionTitle}>정산 정보</Text>
-              <Text style={styles.sectionSubtitle}>비용 정보를 입력해주세요.</Text>
-              <Text style={styles.settlementNotice}>
-                참가자에게 안내를 위해 입력하는 부분이며, 실제는 조금 다를 수 있습니다.
+              <Text style={styles.sectionTitle}>
+                {selectedClubSettlementEnabled ? '정산 정보' : '비용 정보'}
               </Text>
+              <Text style={styles.sectionSubtitle}>비용 정보를 입력해주세요.</Text>
+              {selectedClubSettlementEnabled ? (
+                <Text style={styles.settlementNotice}>
+                  참가자에게 안내를 위해 입력하는 부분이며, 실제는 조금 다를 수 있습니다.
+                </Text>
+              ) : (
+                <Text style={styles.settlementNotice}>
+                  이 클럽은 정산 기능이 꺼져 있습니다. 비용은 안내용으로만 저장됩니다.
+                </Text>
+              )}
 
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>그린피</Text>
@@ -1361,20 +1377,22 @@ export function RoundingForm({ mode = 'create' }) {
                 </View>
               </View>
 
-              <View style={styles.fieldGroup}>
-                <Text style={styles.label}>정산 방식</Text>
-                <View style={styles.chipRow}>
-                  {roundingSettlementMethods.map((method) => (
-                    <SelectableChip
-                      key={method.id}
-                      label={method.label}
-                      selected={form.settlement_method === method.id}
-                      onPress={handleSettlementSelect(method.id)}
-                      styles={styles}
-                    />
-                  ))}
+              {selectedClubSettlementEnabled ? (
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.label}>정산 방식</Text>
+                  <View style={styles.chipRow}>
+                    {roundingSettlementMethods.map((method) => (
+                      <SelectableChip
+                        key={method.id}
+                        label={method.label}
+                        selected={form.settlement_method === method.id}
+                        onPress={handleSettlementSelect(method.id)}
+                        styles={styles}
+                      />
+                    ))}
+                  </View>
                 </View>
-              </View>
+              ) : null}
 
               <View style={styles.totalCostCard}>
                 <Text style={styles.totalCostLabel}>예상 총 비용</Text>

@@ -57,16 +57,16 @@ function sumSocialExpenseAll(items) {
   return (items || []).reduce((s, i) => s + firstFiniteNumber(i?.amount), 0);
 }
 
-/** 저장된 소셜 expense_items 기준 참가자 분담 합(회비 처리 제외) */
-function sumSettlementSocialExpenseSplit(items) {
-  return (items || []).reduce((s, i) => {
-    if (i?.covered_by_fee) return s;
-    return s + firstFiniteNumber(i?.amount);
-  }, 0);
-}
-
 function onlyDigits(value) {
   return String(value ?? '').replace(/[^0-9]/g, '');
+}
+
+/** 소셜 비용 금액: 숫자만 + 앞자리 0 제거 (빈 값·단일 0은 유지) */
+function normalizeSocialAmountDigits(value) {
+  const digits = onlyDigits(value);
+  if (digits === '') return '';
+  const trimmed = digits.replace(/^0+/, '');
+  return trimmed === '' ? '0' : trimmed;
 }
 
 /** 정산 금액을 100원 단위로 내림 (각자에서 떼어 낸 나머지는 개설자 부담) */
@@ -136,10 +136,7 @@ function makeSettlementForm(settlement, meeting) {
     caddy_fee: onlyDigits(firstFiniteNumber(settlement?.caddy_fee, meeting?.caddy_fee)),
     cart_fee: onlyDigits(firstFiniteNumber(settlement?.cart_fee, meeting?.cart_fee)),
     other_fee: onlyDigits(firstFiniteNumber(settlement?.other_fee, meeting?.other_fee)),
-    // ROUND 새 정산 구조: 단가(인당/팀당), 회비 지출, 메모
-    green_fee_unit: '',
-    caddy_fee_unit: '',
-    cart_fee_unit: '',
+    // ROUND: 그린·캐디·카트 총액, 회비 지출, 메모
     membership_expense: onlyDigits(firstFiniteNumber(settlement?.membership_expense)),
     settlement_memo: String(settlement?.settlement_memo ?? settlement?.memo ?? '').trim(),
   };
@@ -274,14 +271,20 @@ export default function SettlementManager({
             settlement.expense_items.map((item, idx) => ({
               id: String(item.id ?? idx + 1),
               title: item.title != null && String(item.title).trim() !== '' ? String(item.title) : '',
-              amount: String(item.amount ?? ''),
+              amount: normalizeSocialAmountDigits(String(item.amount ?? '')),
               memo: String(item.memo ?? '').trim(),
               covered_by_fee: Boolean(item.covered_by_fee),
             }))
           );
         } else if (settlement?.other_fee != null && Number(settlement.other_fee) > 0) {
           setSocialExpenseItems([
-            { id: '1', title: '기타 비용', amount: String(settlement.other_fee), memo: '', covered_by_fee: false },
+            {
+              id: '1',
+              title: '기타 비용',
+              amount: normalizeSocialAmountDigits(String(settlement.other_fee)),
+              memo: '',
+              covered_by_fee: false,
+            },
           ]);
         }
       }
@@ -338,23 +341,14 @@ export default function SettlementManager({
             { id: '1', title: '기타 비용', amount: String(settlement.other_fee), memo: '' },
           ]);
         }
-        // 단가 복원: 총액/인원(또는 팀수) — 팀편성 확정 팀 수 반영
-        const participantCount = participants.length || 1;
-        const teamCountForRestore = Math.max(1, teams?.length ?? meeting?.teams?.length ?? 1);
-        const gf = firstFiniteNumber(settlement?.green_fee);
-        const cf = firstFiniteNumber(settlement?.caddy_fee);
-        const kf = firstFiniteNumber(settlement?.cart_fee);
         setSettlementForm((prev) => ({
           ...prev,
-          green_fee_unit: participantCount > 0 && gf > 0 ? onlyDigits(Math.round(gf / participantCount)) : prev.green_fee_unit,
-          caddy_fee_unit: teamCountForRestore > 0 && cf > 0 ? onlyDigits(Math.round(cf / teamCountForRestore)) : prev.caddy_fee_unit,
-          cart_fee_unit: teamCountForRestore > 0 && kf > 0 ? onlyDigits(Math.round(kf / teamCountForRestore)) : prev.cart_fee_unit,
           membership_expense: onlyDigits(firstFiniteNumber(settlement?.membership_expense)),
           settlement_memo: String(settlement?.settlement_memo ?? settlement?.memo ?? '').trim(),
         }));
       }
     }
-  }, [settlement, meeting, meetingType, participants, teams]);
+  }, [settlement, meeting, meetingType, participants]);
 
   /** ROUND: 정산 대상자 = 항상 전체 인원, 나머지 부담 = 개설자 */
   const organizerParticipantId = useMemo(() => {
@@ -365,53 +359,6 @@ export default function SettlementManager({
     );
     return p?.id ?? participants[0]?.id ?? null;
   }, [meeting?.created_by, meeting?.creator_id, participants]);
-
-  /** ROUND: 참가자별 소속 팀 인원 수 (캐디/카트 팀당 1/n 시 팀 인원수로 나눔). 팀 없으면 전체 인원으로 나눔.
-   * 1인 팀이 있으면(예: API가 1+7로 내려주는 경우) 팀 구분 없이 전체 인원 균등 분배(53,700×7 + 54,100)로 계산. */
-  const participantToTeamSize = useMemo(() => {
-    const map = new Map();
-    const n = participants.length || 1;
-    if (!Array.isArray(teams) || teams.length === 0) {
-      participants.forEach((p) => {
-        const pid = p?.id ?? null;
-        if (pid != null) map.set(pid, n);
-      });
-      return map;
-    }
-
-    function isMemberMatch(m, p) {
-      const pid = p?.id ?? null;
-      if (pid == null) return false;
-      if (Number(m?.id) === Number(pid)) return true;
-      if (Number(m?.participant_id) === Number(pid)) return true;
-      if (m?.meeting_participant_id != null && Number(m.meeting_participant_id) === Number(pid)) return true;
-      if (m?.round_participant_id != null && Number(m.round_participant_id) === Number(pid)) return true;
-      if (m?.user_id != null && Number(m.user_id) === Number(p?.user_id)) return true;
-      if (m?.guest_id != null && Number(m.guest_id) === Number(p?.guest_id)) return true;
-      return false;
-    }
-
-    participants.forEach((p) => {
-      const pid = p?.id ?? null;
-      if (pid == null) return;
-      let maxTeamSize = 0;
-      for (const team of teams) {
-        const members = team?.members ?? team?.team_members ?? [];
-        const inTeam = members.some((m) => isMemberMatch(m, p));
-        if (inTeam) {
-          const teamSize = members.length || 1;
-          if (teamSize > maxTeamSize) maxTeamSize = teamSize;
-        }
-      }
-      map.set(pid, maxTeamSize > 0 ? maxTeamSize : n);
-    });
-
-    const minTeamSize = Math.min(...map.values(), n);
-    if (minTeamSize === 1) {
-      map.forEach((_, pid) => map.set(pid, n));
-    }
-    return map;
-  }, [teams, participants]);
 
   useEffect(() => {
     if (meetingType !== 'ROUND') return;
@@ -529,26 +476,8 @@ export default function SettlementManager({
     }
   }, [payTarget, settlement?.id, meetingId, fetchSettlement]);
 
-  const totalCost = useMemo(() => {
-    const fromApi = firstFiniteNumber(
-      settlement?.total_cost,
-      settlement?.total_amount,
-      settlement?.amount
-    );
-    if (meetingType !== 'SOCIAL' || !Array.isArray(settlement?.expense_items) || settlement.expense_items.length === 0) {
-      return fromApi;
-    }
-    if (method === 'CLUB_FUND') return fromApi;
-    const splitFromItems = sumSettlementSocialExpenseSplit(settlement.expense_items);
-    if (method === 'EQUAL_SPLIT' || method === 'INDIVIDUAL') {
-      return splitFromItems;
-    }
-    return fromApi;
-  }, [meetingType, settlement, method]);
-
-  /** ROUND: 참가자 수, 팀 수 (팀편성 확정 시 부모에서 전달한 teams 기준, 없으면 meeting.teams 또는 1) */
+  /** ROUND: 참가자 수 (안내 문구용) */
   const participantCount = participants.length || 0;
-  const teamCount = Math.max(1, teams?.length ?? meeting?.teams?.length ?? 1);
 
   /** 정산 생성/수정 폼: SOCIAL은 항목 전체 합계(표시용), ROUND는 소계(그린+캐디+카트+기타리스트) */
   const calculatedTotalCost = useMemo(() => {
@@ -568,48 +497,27 @@ export default function SettlementManager({
     [meetingType, socialExpenseItems]
   );
 
-  /** 읽기 전용: 소셜에서 회비 처리 항목이 하나라도 있으면 상단 총액 라벨 구분 */
-  const socialReadonlyHasCoveredFee = useMemo(
-    () =>
-      meetingType === 'SOCIAL' &&
-      method !== 'CLUB_FUND' &&
-      Array.isArray(settlement?.expense_items) &&
-      settlement.expense_items.some((i) => i.covered_by_fee),
-    [meetingType, method, settlement?.expense_items]
-  );
-
   /** ROUND 전용: 소계(비용 합), 회비 지출, 총계(소계 - 회비 지출) */
   const roundingSubtotal = calculatedTotalCost;
   const roundingMembershipExpense = firstFiniteNumber(settlementForm.membership_expense);
   const roundingTotal = Math.max(0, roundingSubtotal - roundingMembershipExpense);
 
-  /** ROUND N분의1: 팀별 인원이 다를 때(443, 442 등) 인당 부담금. 그린/기타=전체N, 캐디/카트=팀 인원수로 나눔, 나머지는 개설자 */
+  /** ROUND N분의1: 총 분배액(roundingTotal)을 참가자 수로 균등 분배, 100원 단위 내림 후 나머지는 개설자 */
   const roundParticipantAmounts = useMemo(() => {
     if (meetingType !== 'ROUND' || method !== 'EQUAL_SPLIT') return [];
     const n = participants.length || 1;
     if (n === 0) return [];
-    const greenTotal = firstFiniteNumber(settlementForm.green_fee);
-    const caddyTotal = firstFiniteNumber(settlementForm.caddy_fee);
-    const cartTotal = firstFiniteNumber(settlementForm.cart_fee);
-    const caddyUnit = firstFiniteNumber(settlementForm.caddy_fee_unit) || (teamCount > 0 ? Math.round(caddyTotal / teamCount) : 0);
-    const cartUnit = firstFiniteNumber(settlementForm.cart_fee_unit) || (teamCount > 0 ? Math.round(cartTotal / teamCount) : 0);
-    const otherTotal = sumRoundingOtherItems(roundingOtherItems);
     const totalForSplit = roundingTotal;
-    const greenPer = n > 0 ? Math.floor(greenTotal / n) : 0;
-    const otherPer = n > 0 ? Math.floor(otherTotal / n) : 0;
+    const perRaw = n > 0 ? Math.floor(totalForSplit / n) : 0;
+    const share = floorToSettlementUnit(perRaw);
     const amounts = [];
     participants.forEach((p) => {
       const pid = p?.id ?? null;
       if (pid == null) return;
-      const teamSize = participantToTeamSize.get(pid) ?? n;
-      const caddyPer = teamSize > 0 ? Math.floor(caddyUnit / teamSize) : 0;
-      const cartPer = teamSize > 0 ? Math.floor(cartUnit / teamSize) : 0;
-      const baseAmt = greenPer + caddyPer + cartPer + otherPer;
       amounts.push({
         participantId: pid,
-        amount: floorToSettlementUnit(baseAmt),
+        amount: share,
         name: getParticipantDisplayName(p),
-        teamSize,
       });
     });
     const sumFloored = amounts.reduce((s, a) => s + a.amount, 0);
@@ -619,21 +527,7 @@ export default function SettlementManager({
       if (organ) organ.amount += remainder;
     }
     return amounts;
-  }, [
-    meetingType,
-    method,
-    participants,
-    settlementForm.green_fee,
-    settlementForm.caddy_fee,
-    settlementForm.caddy_fee_unit,
-    settlementForm.cart_fee,
-    settlementForm.cart_fee_unit,
-    roundingOtherItems,
-    roundingTotal,
-    teamCount,
-    participantToTeamSize,
-    organizerParticipantId,
-  ]);
+  }, [meetingType, method, participants, roundingTotal, organizerParticipantId]);
 
   const targetCount = useMemo(() => {
     const fromField = firstFiniteNumber(
@@ -644,70 +538,6 @@ export default function SettlementManager({
     if (Array.isArray(settlement?.settlement_targets)) return settlement.settlement_targets.length;
     return participants.length;
   }, [participants.length, settlement?.participant_count, settlement?.settlement_targets, settlement?.total_participants]);
-
-  const amountPerPerson = useMemo(() => {
-    const fromField = firstFiniteNumber(settlement?.amount_per_person);
-    if (fromField > 0) return fromField;
-    if (targetCount <= 0) return 0;
-    if (meetingType === 'ROUND') return Math.floor(totalCost / targetCount);
-    return Math.round(totalCost / targetCount);
-  }, [meetingType, settlement?.amount_per_person, targetCount, totalCost]);
-
-  /** 정산 저장된 참가자별 인당 부담금 (비용 정보 하단 표시용, 100원 단위 + 나머지는 개설자 부담) */
-  const settlementParticipantAmounts = useMemo(() => {
-    if (!settlement || !participants?.length) return [];
-    const pa = settlement.participant_amounts;
-    if (Array.isArray(pa) && pa.length > 0) {
-      return pa.map(({ participant_id, amount }) => {
-        const p = participants.find((q) => Number(q?.id) === Number(participant_id));
-        return {
-          name: p ? getParticipantDisplayName(p) : `#${participant_id}`,
-          amount: floorToSettlementUnit(firstFiniteNumber(amount)),
-        };
-      });
-    }
-    // API에 participant_amounts가 없을 때: ROUND는 정산 생성 시와 동일하게 100원 내림 + 나머지 개설자 부담으로 계산
-    if (meetingType === 'ROUND' && method === 'EQUAL_SPLIT') {
-      const n = participants.length || 1;
-      const greenTotal = firstFiniteNumber(settlement.green_fee);
-      const caddyTotal = firstFiniteNumber(settlement.caddy_fee);
-      const cartTotal = firstFiniteNumber(settlement.cart_fee);
-      const otherTotal = Array.isArray(settlement.other_expense_items)
-        ? (settlement.other_expense_items || []).reduce((s, i) => s + firstFiniteNumber(i?.amount), 0)
-        : firstFiniteNumber(settlement.other_fee);
-      const subtotal = greenTotal + caddyTotal + cartTotal + otherTotal;
-      const totalForSplit = Math.max(0, subtotal - firstFiniteNumber(settlement.membership_expense));
-      const caddyUnit = teamCount > 0 ? Math.round(caddyTotal / teamCount) : 0;
-      const cartUnit = teamCount > 0 ? Math.round(cartTotal / teamCount) : 0;
-      const greenPer = n > 0 ? Math.floor(greenTotal / n) : 0;
-      const otherPer = n > 0 ? Math.floor(otherTotal / n) : 0;
-      const amounts = [];
-      participants.forEach((p) => {
-        const pid = p?.id ?? null;
-        if (pid == null) return;
-        const teamSize = participantToTeamSize.get(pid) ?? n;
-        const caddyPer = teamSize > 0 ? Math.floor(caddyUnit / teamSize) : 0;
-        const cartPer = teamSize > 0 ? Math.floor(cartUnit / teamSize) : 0;
-        const baseAmt = greenPer + caddyPer + cartPer + otherPer;
-        amounts.push({
-          name: getParticipantDisplayName(p),
-          amount: floorToSettlementUnit(baseAmt),
-        });
-      });
-      const sumFloored = amounts.reduce((s, a) => s + a.amount, 0);
-      const remainder = totalForSplit - sumFloored;
-      if (remainder !== 0 && organizerParticipantId != null) {
-        const organ = amounts.find((_, i) => participants[i]?.id === organizerParticipantId);
-        if (organ) organ.amount += remainder;
-      }
-      return amounts;
-    }
-    const perPerson = floorToSettlementUnit(amountPerPerson);
-    return participants.map((p) => ({
-      name: getParticipantDisplayName(p),
-      amount: perPerson,
-    }));
-  }, [settlement, settlement?.participant_amounts, settlement?.green_fee, settlement?.caddy_fee, settlement?.cart_fee, settlement?.other_fee, settlement?.other_expense_items, settlement?.membership_expense, participants, amountPerPerson, meetingType, method, teamCount, participantToTeamSize, organizerParticipantId]);
 
   /** 개별 정산일 때 비용별·인당 부담액 (정산 정보 카드용) */
   const individualBreakdown = useMemo(() => {
@@ -770,51 +600,48 @@ export default function SettlementManager({
   }, [method, meetingType, settlement, participants]);
 
   const costFields = useMemo(() => {
-    const all = [
-      { key: 'total_cost', label: '전체 비용 (원)', value: formatInputNumber(totalCost) },
-      { key: 'green_fee', label: '그린피 (원)', value: formatInputNumber(settlement?.green_fee) },
-      { key: 'caddy_fee', label: '캐디피 (원)', value: formatInputNumber(settlement?.caddy_fee) },
-      { key: 'cart_fee', label: '카트비 (원)', value: formatInputNumber(settlement?.cart_fee) },
-      { key: 'other_fee', label: '기타 비용 (원)', value: formatInputNumber(settlement?.other_fee) },
+    const otherFeeField = {
+      key: 'other_fee',
+      label: '기타 비용 (원)',
+      value: formatInputNumber(settlement?.other_fee),
+    };
+    const roundingFeeFields = [
+      { key: 'green_fee', label: '그린피(인당)', value: formatInputNumber(settlement?.green_fee) },
+      { key: 'caddy_fee', label: '캐디비(팀당)', value: formatInputNumber(settlement?.caddy_fee) },
+      { key: 'cart_fee', label: '카트비(팀당)', value: formatInputNumber(settlement?.cart_fee) },
+      otherFeeField,
     ];
     if (meetingType === 'SOCIAL') {
       if (settlement?.expense_items?.length > 0) {
-        const hasCovered = settlement.expense_items.some((i) => i.covered_by_fee);
-        const totalLabel =
-          hasCovered && (method === 'EQUAL_SPLIT' || method === 'INDIVIDUAL')
-            ? '총 비용 (참가자 분담)'
-            : '총 비용 (원)';
-        const items = settlement.expense_items.map((item) => {
+        const indexed = settlement.expense_items.map((item, idx) => ({ item, idx }));
+        indexed.sort((a, b) => {
+          const ac = Boolean(a.item.covered_by_fee);
+          const bc = Boolean(b.item.covered_by_fee);
+          if (ac !== bc) return ac ? -1 : 1;
+          return a.idx - b.idx;
+        });
+        const items = indexed.map(({ item }) => {
           const raw = firstFiniteNumber(item.amount);
           const covered = Boolean(item.covered_by_fee);
-          const splitStyleDetail = covered && method !== 'CLUB_FUND';
+          const memoOnly = item.memo && String(item.memo).trim();
           return {
             key: `item_${item.id}`,
             label: item.title || '항목',
-            value: formatInputNumber(splitStyleDetail ? 0 : raw),
-            memo:
-              [
-                item.memo && String(item.memo).trim(),
-                covered && splitStyleDetail
-                  ? `회비에서 처리 (항목 ${formatCurrency(raw)})`
-                  : covered
-                    ? '회비에서 처리'
-                    : null,
-              ]
-                .filter(Boolean)
-                .join(' · ') || null,
+            value: formatInputNumber(raw),
+            memo: memoOnly || null,
+            coveredByFee: covered,
           };
         });
-        return [{ key: 'total_cost', label: totalLabel, value: formatInputNumber(totalCost) }, ...items];
+        return items;
       }
-      return all.filter((f) => ['total_cost', 'other_fee'].includes(f.key));
+      return [otherFeeField];
     }
     // ROUND: 기타비용은 other_expense_items로 따로 상세 표기하므로 목록에서 제외
     if (meetingType === 'ROUND' && Array.isArray(settlement?.other_expense_items) && settlement.other_expense_items.length > 0) {
-      return all.filter((f) => f.key !== 'other_fee');
+      return roundingFeeFields.filter((f) => f.key !== 'other_fee');
     }
-    return all;
-  }, [meetingType, method, settlement?.caddy_fee, settlement?.cart_fee, settlement?.expense_items, settlement?.green_fee, settlement?.other_fee, settlement?.other_expense_items, totalCost]);
+    return roundingFeeFields;
+  }, [meetingType, method, settlement?.caddy_fee, settlement?.cart_fee, settlement?.expense_items, settlement?.green_fee, settlement?.other_fee, settlement?.other_expense_items]);
 
   const canCreateSettlement = useMemo(
     () => Boolean(!settlement && canManageSettlement && canSettle),
@@ -868,7 +695,7 @@ export default function SettlementManager({
               ...item,
               [field]:
                 field === 'amount'
-                  ? onlyDigits(value)
+                  ? normalizeSocialAmountDigits(value)
                   : field === 'covered_by_fee'
                     ? Boolean(value)
                     : value,
@@ -898,19 +725,6 @@ export default function SettlementManager({
     );
   }, []);
 
-  /** ROUND: 단가 입력 시 총액 자동 반영 (그린=인원, 캐디/카트=팀수) */
-  const updateRoundFeeUnit = useCallback((key, value) => {
-    const digits = onlyDigits(value);
-    setSettlementForm((prev) => {
-      const next = { ...prev, [`${key}_unit`]: digits };
-      const unit = firstFiniteNumber(digits);
-      const count = key === 'green_fee' ? participantCount : teamCount;
-      const total = count > 0 && Number.isFinite(unit) ? unit * count : 0;
-      next[key] = total > 0 ? String(total) : prev[key];
-      return next;
-    });
-  }, [participantCount, teamCount]);
-
   const handleSaveSettlement = useCallback(async () => {
     if (!meetingId) return;
 
@@ -927,7 +741,7 @@ export default function SettlementManager({
     if (!Number.isFinite(numericTotalCost) || numericTotalCost <= 0) {
       setError(
         meetingType === 'ROUND'
-          ? '소계에서 회비 지출을 뺀 총계가 0보다 커야 합니다.'
+          ? '비용 합계에서 회비 지출을 뺀 금액이 0보다 커야 합니다.'
           : meetingType === 'SOCIAL' && method === 'EQUAL_SPLIT' && socialAll > 0
             ? '참가자가 분담할 금액이 없습니다. 항목을 해제하거나 「전체 회비에서 처리」를 선택하세요.'
             : '비용 항목을 입력해주세요. (총합이 0보다 커야 합니다)'
@@ -1154,10 +968,6 @@ export default function SettlementManager({
             <View style={styles.summaryHeaderRow}>
               <Text style={styles.summaryHeaderText}>정산 정보</Text>
             </View>
-            <Text style={styles.summaryLine}>
-              {socialReadonlyHasCoveredFee ? '참가자 분담 합계' : '총 비용'}:{' '}
-              {formatCurrency(totalCost)}
-            </Text>
             {method === 'INDIVIDUAL' && individualBreakdown.length > 0 ? (
               individualBreakdown.map((row, idx) => (
                 <View key={`breakdown-${row.label}-${idx}`} style={styles.summaryBreakdownBlock}>
@@ -1179,8 +989,19 @@ export default function SettlementManager({
           <View style={styles.costSection}>
             <Text style={styles.costTitle}>비용 정보</Text>
             {costFields.map((field) => (
-              <View key={field.key} style={styles.fieldBlock}>
-                <Text style={styles.fieldLabel}>{field.label}</Text>
+              <View
+                key={field.key}
+                style={[styles.fieldBlock, field.coveredByFee && styles.fieldBlockFeeCovered]}
+              >
+                <View style={styles.costFieldLabelRow}>
+                  <Text style={styles.fieldLabel}>{field.label}</Text>
+                  {field.coveredByFee ? (
+                    <View style={styles.feeCoveredBadge}>
+                      <FontAwesome5 name="wallet" size={11} color={colors.primary[800]} style={styles.feeCoveredBadgeIcon} />
+                      <Text style={styles.feeCoveredBadgeText}>회비 처리</Text>
+                    </View>
+                  ) : null}
+                </View>
                 <View style={styles.readonlyInput}>
                   <Text style={styles.readonlyValue}>{field.value}</Text>
                 </View>
@@ -1215,21 +1036,6 @@ export default function SettlementManager({
                 </View>
               </View>
             ) : null}
-            <View style={styles.participantAmountsBlock}>
-              <Text style={styles.fieldLabel}>인당 부담금 (참가자별)</Text>
-              {settlementParticipantAmounts.length > 0 ? (
-                settlementParticipantAmounts.map((item, idx) => (
-                  <View key={idx} style={styles.participantAmountRow}>
-                    <Text style={styles.participantAmountName}>{item.name}</Text>
-                    <Text style={styles.participantAmountValue}>{formatCurrency(item.amount)}</Text>
-                  </View>
-                ))
-              ) : (
-                <View style={styles.readonlyInput}>
-                  <Text style={styles.readonlyValue}>{formatCurrency(amountPerPerson)}</Text>
-                </View>
-              )}
-            </View>
           </View>
 
         </View>
@@ -1242,32 +1048,10 @@ export default function SettlementManager({
           <Text style={styles.formTitle}>{settlement ? '정산 수정' : '정산 생성'}</Text>
           {meetingType === 'SOCIAL' ? (
             <>
-          <View style={styles.fieldBlock}>
-            <Text style={styles.fieldLabel}>
-              {method === 'EQUAL_SPLIT' || method === 'INDIVIDUAL'
-                ? '참가자 분담 합계'
-                : '전체 비용 (총합)'}
-            </Text>
-            <View style={styles.readonlyInput}>
-              <Text style={styles.readonlyValue}>
-                {formatCurrency(
-                  method === 'CLUB_FUND' ? calculatedTotalCost : socialExpenseSplitTotal
-                )}
-              </Text>
-            </View>
-            {method !== 'CLUB_FUND' &&
-            socialExpenseSplitTotal !== calculatedTotalCost &&
-            calculatedTotalCost > 0 ? (
-              <Text style={styles.socialSplitHint}>
-                실제 지출 합계: {formatCurrency(calculatedTotalCost)} (회비 처리{' '}
-                {formatCurrency(calculatedTotalCost - socialExpenseSplitTotal)})
-              </Text>
-            ) : null}
-          </View>
             <View style={styles.socialExpenseItemsBlock}>
               <Text style={styles.fieldLabel}>비용 항목 (항목명, 금액, 메모)</Text>
               <Text style={styles.socialExpenseItemsHint}>
-                N분의 1일 때 항목마다 「회비에서 처리」를 켜면 해당 금액은 참가자 분담 합계에서 빠집니다.
+                N분의 1일 때 항목마다 아래 ✓를 켜면 해당 금액은 참가자 분담 합계에서 빠집니다.
               </Text>
               {socialExpenseItems.map((item, idx) => (
                 <View key={`expense-${item.id}-${idx}`} style={styles.socialExpenseItemBlock}>
@@ -1294,114 +1078,80 @@ export default function SettlementManager({
                       placeholder="메모"
                       placeholderTextColor={colors.neutral[400]}
                     />
-                    <View style={styles.socialExpenseItemActions}>
-                      <Pressable
-                        style={styles.socialExpenseItemRemove}
-                        onPress={() => removeSocialExpenseItem(item.id)}
-                      >
-                        <FontAwesome5 name="times-circle" size={20} color={colors.error[500]} />
-                      </Pressable>
-                      <Pressable
-                        style={[
-                          styles.coveredByFeeToggle,
-                          styles.coveredByFeeToggleInline,
-                          item.covered_by_fee && styles.coveredByFeeToggleActive,
-                        ]}
-                        onPress={() =>
-                          updateSocialExpenseItem(item.id, 'covered_by_fee', !item.covered_by_fee)
-                        }
-                      >
-                        <Text
-                          style={[
-                            styles.coveredByFeeToggleText,
-                            item.covered_by_fee && styles.coveredByFeeToggleTextActive,
-                          ]}
-                          numberOfLines={1}
+                    <View style={styles.socialExpenseItemRightCol}>
+                      <Text style={styles.socialFeeCoveredHint}>
+                        회비에서 처리 — 아래 ✓ 버튼으로 선택
+                      </Text>
+                      <View style={styles.socialExpenseItemActions}>
+                        <Pressable
+                          style={styles.socialExpenseItemRemove}
+                          onPress={() => removeSocialExpenseItem(item.id)}
                         >
-                          회비에서 처리
-                        </Text>
-                      </Pressable>
+                          <FontAwesome5 name="times-circle" size={20} color={colors.error[500]} />
+                        </Pressable>
+                        <Pressable
+                          style={[
+                            styles.socialFeeCoveredCheckBtn,
+                            item.covered_by_fee && styles.socialFeeCoveredCheckBtnActive,
+                          ]}
+                          onPress={() =>
+                            updateSocialExpenseItem(item.id, 'covered_by_fee', !item.covered_by_fee)
+                          }
+                          accessibilityLabel="회비에서 처리"
+                          accessibilityState={{ checked: Boolean(item.covered_by_fee) }}
+                        >
+                          <FontAwesome5
+                            name="check"
+                            size={16}
+                            color={item.covered_by_fee ? colors.white : colors.neutral[400]}
+                          />
+                        </Pressable>
+                      </View>
                     </View>
                   </View>
                 </View>
               ))}
-              <Button variant="outline" style={styles.addExpenseItemBtn} onPress={addSocialExpenseItem}>
-                <FontAwesome5 name="plus-circle" size={16} color={colors.primary[600]} />
-                <Text style={styles.addExpenseItemBtnText}>항목 추가</Text>
+              <Button variant="primary" style={styles.addSocialExpenseItemBtn} onPress={addSocialExpenseItem}>
+                <FontAwesome5 name="plus-circle" size={16} color={colors.white} />
+                <Text style={styles.addSocialExpenseItemBtnText}>항목 추가</Text>
               </Button>
             </View>
             </>
           ) : (
             <>
-            {/* ROUND: 그린피(인당) · 캐디/카트(팀당) · 기타비용 리스트 · 소계 · 회비 지출 · 총계 · 메모 */}
+            {/* ROUND: 그린·캐디·카트 총액 · 기타비용 리스트 · 회비 지출 · 메모 */}
             <View style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>그린피 (인당 단가 × 인원 = 총액)</Text>
-              <View style={styles.roundFeeRow}>
-                <TextInput
-                  value={settlementForm.green_fee_unit}
-                  onChangeText={(v) => updateRoundFeeUnit('green_fee', v)}
-                  placeholder="단가"
-                  keyboardType="number-pad"
-                  style={[styles.editInput, styles.roundFeeUnitInput]}
-                  placeholderTextColor={colors.neutral[400]}
-                />
-                <Text style={styles.roundFeeFormula}> × {participantCount}명 = </Text>
-                <TextInput
-                  value={settlementForm.green_fee}
-                  onChangeText={(v) => updateNumericField('green_fee', v)}
-                  placeholder="총액"
-                  keyboardType="number-pad"
-                  style={[styles.editInput, styles.roundFeeTotalInput]}
-                  placeholderTextColor={colors.neutral[400]}
-                />
-                <Text style={styles.roundFeeUnit}>원</Text>
-              </View>
+              <Text style={styles.fieldLabel}>그린피 (원)</Text>
+              <TextInput
+                value={settlementForm.green_fee}
+                onChangeText={(v) => updateNumericField('green_fee', v)}
+                placeholder="0"
+                keyboardType="number-pad"
+                style={styles.editInput}
+                placeholderTextColor={colors.neutral[400]}
+              />
             </View>
             <View style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>캐디비 (팀당 단가 × 팀 수 = 총액)</Text>
-              <View style={styles.roundFeeRow}>
-                <TextInput
-                  value={settlementForm.caddy_fee_unit}
-                  onChangeText={(v) => updateRoundFeeUnit('caddy_fee', v)}
-                  placeholder="단가"
-                  keyboardType="number-pad"
-                  style={[styles.editInput, styles.roundFeeUnitInput]}
-                  placeholderTextColor={colors.neutral[400]}
-                />
-                <Text style={styles.roundFeeFormula}> × {teamCount}팀 = </Text>
-                <TextInput
-                  value={settlementForm.caddy_fee}
-                  onChangeText={(v) => updateNumericField('caddy_fee', v)}
-                  placeholder="총액"
-                  keyboardType="number-pad"
-                  style={[styles.editInput, styles.roundFeeTotalInput]}
-                  placeholderTextColor={colors.neutral[400]}
-                />
-                <Text style={styles.roundFeeUnit}>원</Text>
-              </View>
+              <Text style={styles.fieldLabel}>캐디비 (원)</Text>
+              <TextInput
+                value={settlementForm.caddy_fee}
+                onChangeText={(v) => updateNumericField('caddy_fee', v)}
+                placeholder="0"
+                keyboardType="number-pad"
+                style={styles.editInput}
+                placeholderTextColor={colors.neutral[400]}
+              />
             </View>
             <View style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>카트비 (팀당 단가 × 팀 수 = 총액)</Text>
-              <View style={styles.roundFeeRow}>
-                <TextInput
-                  value={settlementForm.cart_fee_unit}
-                  onChangeText={(v) => updateRoundFeeUnit('cart_fee', v)}
-                  placeholder="단가"
-                  keyboardType="number-pad"
-                  style={[styles.editInput, styles.roundFeeUnitInput]}
-                  placeholderTextColor={colors.neutral[400]}
-                />
-                <Text style={styles.roundFeeFormula}> × {teamCount}팀 = </Text>
-                <TextInput
-                  value={settlementForm.cart_fee}
-                  onChangeText={(v) => updateNumericField('cart_fee', v)}
-                  placeholder="총액"
-                  keyboardType="number-pad"
-                  style={[styles.editInput, styles.roundFeeTotalInput]}
-                  placeholderTextColor={colors.neutral[400]}
-                />
-                <Text style={styles.roundFeeUnit}>원</Text>
-              </View>
+              <Text style={styles.fieldLabel}>카트비 (원)</Text>
+              <TextInput
+                value={settlementForm.cart_fee}
+                onChangeText={(v) => updateNumericField('cart_fee', v)}
+                placeholder="0"
+                keyboardType="number-pad"
+                style={styles.editInput}
+                placeholderTextColor={colors.neutral[400]}
+              />
             </View>
             <View style={styles.fieldBlock}>
               <Text style={styles.fieldLabel}>기타 비용 (항목명, 금액, 메모)</Text>
@@ -1437,16 +1187,10 @@ export default function SettlementManager({
                   </Pressable>
                 </View>
               ))}
-              <Button variant="outline" style={styles.addExpenseItemBtn} onPress={addRoundingOtherItem}>
-                <FontAwesome5 name="plus-circle" size={16} color={colors.primary[600]} />
-                <Text style={styles.addExpenseItemBtnText}>기타비용 항목 추가</Text>
+              <Button variant="primary" style={styles.addSocialExpenseItemBtn} onPress={addRoundingOtherItem}>
+                <FontAwesome5 name="plus-circle" size={16} color={colors.white} />
+                <Text style={styles.addSocialExpenseItemBtnText}>기타비용 항목 추가</Text>
               </Button>
-            </View>
-            <View style={styles.fieldBlock}>
-              <Text style={styles.fieldLabel}>소계</Text>
-              <View style={styles.readonlyInput}>
-                <Text style={styles.readonlyValue}>{formatCurrency(roundingSubtotal)}</Text>
-              </View>
             </View>
             <View style={styles.fieldBlock}>
               <Text style={styles.fieldLabel}>회비 지출 금액 (원)</Text>
@@ -1460,12 +1204,6 @@ export default function SettlementManager({
                 style={styles.editInput}
                 placeholderTextColor={colors.neutral[400]}
               />
-            </View>
-            <View style={styles.fieldBlock}>
-              <Text style={[styles.fieldLabel, styles.totalLabel]}>총계 (소계 − 회비 지출)</Text>
-              <View style={styles.readonlyInput}>
-                <Text style={styles.readonlyValue}>{formatCurrency(roundingTotal)}</Text>
-              </View>
             </View>
             <View style={styles.fieldBlock}>
               <Text style={styles.fieldLabel}>메모 (특이사항, 선택)</Text>
@@ -1527,24 +1265,8 @@ export default function SettlementManager({
             <View style={styles.participantSection}>
               <Text style={styles.participantSectionTitle}>정산 대상</Text>
               <Text style={styles.participantSectionHint}>
-                전체 참가자 {participantCount}명으로 분배합니다. 그린피·기타비용은 인원수로 균등, 캐디비·카트비는 팀별 인원수로 나눕니다(443·442 등 팀 인원이 다르면 인당 부담금이 달라집니다). 나머지는 개설자가 부담합니다.
+                비용 합계에서 회비 지출을 뺀 금액을 참가자 {participantCount}명에게 균등 분배합니다. 100원 단위로 내림된 나머지는 개설자가 부담합니다.
               </Text>
-              {roundParticipantAmounts.length > 0 ? (
-                <View style={styles.roundAmountsBlock}>
-                  <Text style={styles.roundAmountsTitle}>
-                    인당 부담금 {new Set(roundParticipantAmounts.map((a) => a.amount)).size > 1 ? '(팀 인원에 따라 상이)' : ''}
-                  </Text>
-                  {roundParticipantAmounts.map((a) => (
-                    <View key={a.participantId} style={styles.roundAmountRow}>
-                      <Text style={styles.roundAmountName}>{a.name}</Text>
-                      <Text style={styles.roundAmountValue}>{formatCurrency(Number.isFinite(Number(a.amount)) ? a.amount : 0)}</Text>
-                      {a.teamSize != null && a.teamSize !== participantCount ? (
-                        <Text style={styles.roundAmountMeta}>팀 {a.teamSize}명</Text>
-                      ) : null}
-                    </View>
-                  ))}
-                </View>
-              ) : null}
             </View>
           ) : null}
         </View>
@@ -1762,30 +1484,43 @@ const styles = StyleSheet.create({
     borderTopColor: colors.neutral[200],
     gap: tokens.spacing.xs,
   },
-  participantAmountsBlock: {
-    marginTop: tokens.spacing.sm,
-    paddingTop: tokens.spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.neutral[200],
-    gap: tokens.spacing.sm,
-  },
-  participantAmountRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: tokens.spacing.xs,
-  },
-  participantAmountName: {
-    fontSize: tokens.font.base,
-    color: colors.neutral[800],
-  },
-  participantAmountValue: {
-    fontSize: tokens.font.base,
-    fontWeight: tokens.fontWeight.semibold,
-    color: colors.neutral[700],
-  },
   fieldBlock: {
     gap: tokens.spacing.xs,
+  },
+  fieldBlockFeeCovered: {
+    borderLeftWidth: 4,
+    borderLeftColor: colors.primary[500],
+    paddingLeft: tokens.padding.sm,
+    marginLeft: -2,
+    paddingVertical: tokens.padding.xs2,
+    backgroundColor: colors.primary[50],
+    borderRadius: tokens.radius.md,
+  },
+  costFieldLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: tokens.spacing.xs2,
+  },
+  feeCoveredBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: tokens.padding.sm,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: colors.primary[100],
+    borderWidth: 1.5,
+    borderColor: colors.primary[500],
+  },
+  feeCoveredBadgeIcon: {
+    marginRight: 0,
+  },
+  feeCoveredBadgeText: {
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.bold,
+    color: colors.primary[800],
+    letterSpacing: -0.2,
   },
   fieldLabel: {
     fontSize: tokens.font.lg,
@@ -1857,41 +1592,6 @@ const styles = StyleSheet.create({
   roundSettlementMethodNote: {
     fontSize: tokens.font.sm,
     color: colors.neutral[600],
-  },
-  roundAmountsBlock: {
-    marginTop: tokens.spacing.sm,
-    paddingTop: tokens.spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.neutral[200],
-  },
-  roundAmountsTitle: {
-    fontSize: tokens.font.xs,
-    fontWeight: tokens.fontWeight.semibold,
-    color: colors.neutral[700],
-    marginBottom: tokens.spacing.xs2,
-  },
-  roundAmountRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: tokens.spacing.xs2,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral[100],
-  },
-  roundAmountName: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[800],
-    flex: 1,
-  },
-  roundAmountValue: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.semibold,
-    color: colors.neutral[800],
-    marginRight: tokens.spacing.xs,
-  },
-  roundAmountMeta: {
-    fontSize: tokens.font.xs,
-    color: colors.neutral[500],
   },
   fullButton: {
     marginTop: tokens.spacing.sm2,
@@ -2022,12 +1722,6 @@ const styles = StyleSheet.create({
     color: colors.neutral[500],
     marginBottom: tokens.spacing.xs2,
   },
-  socialSplitHint: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-    marginTop: tokens.spacing.xs2,
-    lineHeight: 20,
-  },
   socialExpenseItemBlock: {
     marginBottom: tokens.spacing.sm,
     paddingBottom: tokens.spacing.sm,
@@ -2052,48 +1746,52 @@ const styles = StyleSheet.create({
     minWidth: 80,
     flex: 1,
   },
+  socialExpenseItemRightCol: {
+    alignItems: 'flex-end',
+    gap: 4,
+    minWidth: 118,
+  },
+  socialFeeCoveredHint: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+    textAlign: 'right',
+    lineHeight: 16,
+  },
   socialExpenseItemActions: {
     flexDirection: 'row',
     alignItems: 'center',
     flexShrink: 0,
     gap: tokens.spacing.xs2,
   },
+  socialFeeCoveredCheckBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+    backgroundColor: colors.neutral[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialFeeCoveredCheckBtnActive: {
+    borderColor: colors.primary[600],
+    backgroundColor: colors.primary[600],
+  },
   socialExpenseItemRemove: {
     padding: tokens.padding.xs2,
   },
-  addExpenseItemBtn: {
+  addSocialExpenseItemBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingVertical: tokens.padding.xs2,
     marginTop: tokens.spacing.xs2,
+    backgroundColor: colors.accent[600],
   },
-  addExpenseItemBtnText: {
+  addSocialExpenseItemBtnText: {
     fontSize: tokens.font.sm,
-    color: colors.primary[600],
+    color: colors.white,
     fontWeight: tokens.fontWeight.semibold,
-  },
-  roundFeeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: tokens.spacing.xs2,
-  },
-  roundFeeUnitInput: {
-    minWidth: 80,
-    width: 90,
-  },
-  roundFeeFormula: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
-  },
-  roundFeeTotalInput: {
-    flex: 1,
-    minWidth: 80,
-  },
-  roundFeeUnit: {
-    fontSize: tokens.font.sm,
-    color: colors.neutral[600],
   },
   roundingOtherItemRow: {
     flexDirection: 'row',
@@ -2101,34 +1799,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: tokens.spacing.xs2,
     marginBottom: tokens.spacing.xs2,
-  },
-  coveredByFeeToggle: {
-    alignSelf: 'flex-start',
-    paddingVertical: tokens.padding.xs2,
-    paddingHorizontal: tokens.padding.sm,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    backgroundColor: colors.neutral[50],
-  },
-  /** 소셜 비용 행: X 버튼 오른쪽에 붙이기 */
-  coveredByFeeToggleInline: {
-    alignSelf: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: tokens.padding.xs2,
-  },
-  coveredByFeeToggleActive: {
-    borderColor: colors.primary[500],
-    backgroundColor: colors.primary[50],
-  },
-  coveredByFeeToggleText: {
-    fontSize: tokens.font.sm,
-    fontWeight: tokens.fontWeight.medium,
-    color: colors.neutral[600],
-  },
-  coveredByFeeToggleTextActive: {
-    color: colors.primary[700],
-    fontWeight: tokens.fontWeight.semibold,
   },
   roundingOtherTitle: {
     minWidth: 70,
@@ -2143,9 +1813,6 @@ const styles = StyleSheet.create({
   },
   roundingOtherRemove: {
     padding: tokens.padding.xs2,
-  },
-  totalLabel: {
-    fontWeight: tokens.fontWeight.semibold,
   },
   memoInput: {
     minHeight: 60,
