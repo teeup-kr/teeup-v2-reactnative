@@ -20,6 +20,7 @@ import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
 import { backOrHome, getHistorySnapshot, handleWebPopstateBack, navigateWithCap, syncRouteHistory } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
+import { tokens } from '@/styles/style';
 
 /** Google Tag Manager 컨테이너 ID (웹 전용) */
 const GTM_CONTAINER_ID = 'GTM-NG89M36G';
@@ -313,7 +314,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral[50],
   },
   rootWeb: {
-    maxWidth: 430,
+    maxWidth: tokens.layout.maxWidth,
     alignSelf: 'center',
   },
   shell: {

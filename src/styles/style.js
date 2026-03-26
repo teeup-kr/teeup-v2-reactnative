@@ -55,6 +55,9 @@ export const tokens = {
         xl: 32,
         xxl: 48,
     },
+    layout: {
+        maxWidth: 430,
+    },
     font: {
         xxs: 10,
         xs: 11,

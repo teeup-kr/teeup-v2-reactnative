@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   },
   footerWrap: {
     width: '100%',
-    maxWidth: 430,
+    maxWidth: tokens.layout.maxWidth,
     position: 'absolute',
     bottom: 0,
     alignSelf: 'center',
