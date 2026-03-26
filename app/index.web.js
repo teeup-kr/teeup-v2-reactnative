@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import AppFooter from '@/components/layout/AppFooter';
 import { useAuth } from '@/context/AuthContext';
 import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { signInWithGoogle } from '@/lib/util/authUtils';
@@ -93,6 +94,9 @@ export default function LandingScreen() {
           {googleLoginError ? <Text style={styles.errorText}>{googleLoginError}</Text> : null}
         </View>
       </LinearGradient>
+      <View style={styles.footerWrap}>
+        <AppFooter />
+      </View>
     </SafeAreaView>
   );
 }
@@ -210,5 +214,12 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: tokens.font.sm,
     textAlign: 'center',
+  },
+  footerWrap: {
+    width: '100%',
+    maxWidth: 430,
+    position: 'absolute',
+    bottom: 0,
+    alignSelf: 'center',
   },
 });

@@ -15,7 +15,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import AppFooter from '@/components/layout/AppFooter';
 import Card from '@/components/ui/Card';
 import { useAuth } from '@/context/AuthContext';
 import { mypageApi } from '@/lib/api/api';
@@ -115,7 +114,6 @@ export default function OverviewScreen() {
             <ActivityIndicator size="large" color={colors.primary[600]} />
             <Text style={styles.stateText}>로딩 중...</Text>
           </View>
-          <AppFooter />
         </ScrollView>
       </SafeAreaView>
     );
@@ -129,7 +127,6 @@ export default function OverviewScreen() {
             <FontAwesome5 name="info-circle" size={32} color={colors.error[500]} />
             <Text style={styles.errorText}>{error}</Text>
           </View>
-          <AppFooter />
         </ScrollView>
       </SafeAreaView>
     );
@@ -253,7 +250,6 @@ export default function OverviewScreen() {
           <Text style={styles.logoutBtnText}>로그아웃</Text>
         </Pressable>
 
-        <AppFooter />
       </ScrollView >
     </SafeAreaView>
   );
