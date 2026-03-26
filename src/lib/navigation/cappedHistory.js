@@ -399,17 +399,16 @@ export function navigateWithCap(router, href) {
 
   if (isWebRuntime()) {
     if (isTabRootRoute(next)) {
-      pendingWebNavigationRoute = normalizeTrailingSlash(next);
       logNavigationTransition(
         {
           type: 'navigateWithCap',
           route: next,
-          method: 'router.navigate',
+          method: 'router.push',
         },
         currentState,
         getNavigationStateSnapshot(next)
       );
-      router.navigate(next);
+      router.push(next);
       return;
     }
 
@@ -481,6 +480,8 @@ export function handleWebPopstateBack(router, home = '/app') {
   if (!isWebRuntime()) return false;
   const currentState = getNavigationStateSnapshot();
   const currentWebRoute = getCurrentWebRoute();
+  const normalizedCurrentWebRoute = normalizeTrailingSlash(currentWebRoute);
+  const currentRoute = normalizeTrailingSlash(currentState.route);
 
   if (pendingWebNavigationRoute) {
     const expectedRoute = pendingWebNavigationRoute;
@@ -499,6 +500,48 @@ export function handleWebPopstateBack(router, home = '/app') {
       );
       return true;
     }
+  }
+
+  if (normalizedCurrentWebRoute && normalizedCurrentWebRoute !== currentRoute) {
+    isHistoryTraversalPending = false;
+
+    let existingIndex = -1;
+    for (let index = history.length - 1; index >= 0; index -= 1) {
+      if (normalizeTrailingSlash(history[index]) === normalizedCurrentWebRoute) {
+        existingIndex = index;
+        break;
+      }
+    }
+
+    if (existingIndex >= 0) {
+      history.splice(existingIndex + 1);
+      ensureWebBackGuard(normalizedCurrentWebRoute);
+      logNavigationTransition(
+        {
+          type: 'handleWebPopstateBack',
+          method: 'browser-history',
+          route: normalizedCurrentWebRoute,
+          reason: 'existing-route',
+        },
+        currentState,
+        getNavigationStateSnapshot(normalizedCurrentWebRoute)
+      );
+      return true;
+    }
+
+    recordRoute(normalizedCurrentWebRoute);
+    ensureWebBackGuard(normalizedCurrentWebRoute);
+    logNavigationTransition(
+      {
+        type: 'handleWebPopstateBack',
+        method: 'browser-history',
+        route: normalizedCurrentWebRoute,
+        reason: 'recorded-current-web-route',
+      },
+      currentState,
+      getNavigationStateSnapshot(normalizedCurrentWebRoute)
+    );
+    return true;
   }
 
   const { fallbackRoute, targetIndex, targetRoute, useFallback } = getBackNavigationState(home);
