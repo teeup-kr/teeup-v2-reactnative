@@ -180,11 +180,13 @@ async function requestTokenRefresh() {
   }
 }
 
-async function handleAuthExpired({ _payload, _status = 401, _redirectOnAuthExpired = true } = {}) {
+async function handleAuthExpired({ redirectOnAuthExpired = true } = {}) {
   console.info('[Auth] Session expired → logout');
   await tokenStorage.clearTokens();
   await tokenStorage.clearUser();
-  replaceWithPolicy(router, '/login');
+  if (redirectOnAuthExpired) {
+    replaceWithPolicy(router, '/login');
+  }
 }
 
 async function apiRequest(path, options = {}) {

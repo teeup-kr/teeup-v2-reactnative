@@ -80,9 +80,9 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     await authApi.logout();
     setUser(null);
-    if (isWeb) {
-      window.location.replace('/');
-    }
+    // if (isWeb) {
+    //   window.location.replace('/');
+    // }
   }, []);
 
   useEffect(() => {
