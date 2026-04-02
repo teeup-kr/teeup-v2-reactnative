@@ -1,13 +1,11 @@
 import Constants from 'expo-constants';
 import { router } from "expo-router";
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 import { URLSearchParams } from 'react-native-url-polyfill';
 
 import { replaceWithPolicy } from '../navigation/cappedHistory';
-import { replaceWithPolicy } from '../navigation/cappedHistory';
 import { tokenStorage } from '../tokenStorage';
 
-const extra =
 const extra =
   Constants.expoConfig?.extra ??
   Constants.manifest?.extra;
@@ -152,7 +150,6 @@ async function requestTokenRefresh() {
 
     const refreshPayload = await parseJsonPayload(refreshResponse);
     debugLog('[Auth Refresh Response]', {
-    debugLog('[Auth Refresh Response]', {
       url: refreshUrl,
       status: refreshResponse.status,
       payload: sanitizePayload(refreshPayload),
@@ -237,7 +234,6 @@ async function apiRequest(path, options = {}) {
   }
 
   debugLog('[API Request]', {
-  debugLog('[API Request]', {
     method,
     url,
     params,
@@ -268,7 +264,6 @@ async function apiRequest(path, options = {}) {
 
   let { response, payload } = await requestOnce(requestHeaders);
 
-  debugLog(
   debugLog(
     '[API Response]\n' +
     JSON.stringify({
@@ -310,7 +305,6 @@ async function apiRequest(path, options = {}) {
         response = retryResult.response;
         payload = retryResult.payload;
 
-        debugLog(
         debugLog(
           '[API Retry Response]\n' +
           JSON.stringify({
@@ -525,7 +519,6 @@ export const oauthRequest = async (path, authData) => {
   const isJson = response.headers.get('content-type')?.includes('application/json');
   const payload = isJson ? await response.json() : null;
 
-  debugLog('[OAuth Response]', {
   debugLog('[OAuth Response]', {
     method: 'POST',
     url,

@@ -3,7 +3,6 @@ import * as NavigationBar from 'expo-navigation-bar';
 import {
   Slot,
   useGlobalSearchParams,
-  useGlobalSearchParams,
   usePathname,
   useRouter
 } from 'expo-router';
@@ -68,28 +67,6 @@ async function ensureNotificationPermission(Notifications) {
   if (permission.granted) return true;
   const requested = await Notifications.requestPermissionsAsync();
   return Boolean(requested.granted);
-}
-
-function buildRouteWithSearch(pathname, params) {
-  const entries = Object.entries(params || {}).filter(([, value]) => value !== undefined);
-  if (!entries.length) return pathname;
-
-  const searchParams = new URLSearchParams();
-  entries
-    .sort(([left], [right]) => left.localeCompare(right))
-    .forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        value.forEach((item) => {
-          searchParams.append(key, String(item));
-        });
-        return;
-      }
-
-      searchParams.append(key, String(value));
-    });
-
-  const query = searchParams.toString();
-  return query ? `${pathname}?${query}` : pathname;
 }
 
 function buildRouteWithSearch(pathname, params) {

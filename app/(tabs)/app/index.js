@@ -1,6 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useFocusEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   ImageBackground,
@@ -230,7 +230,6 @@ export default function HomeScreen() {
     (route) => () => {
       navigateWithCap(router, route);
     },
-    [router]
     [router]
   );
 
@@ -468,11 +467,7 @@ const styles = StyleSheet.create({
   carouselViewport: {
     width: '100%',
   },
-  carouselViewport: {
-    width: '100%',
-  },
   heroSlide: {
-    width: '100%',
     width: '100%',
   },
   heroImage: {

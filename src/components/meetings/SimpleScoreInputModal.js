@@ -121,14 +121,12 @@ export function BaseSimpleScoreInputModal({
       visible={visible}
       title="점수 입력"
       onClose={closeAndReset}
-      onClose={closeAndReset}
       footer={(
         <View style={styles.footerRow}>
           <Button
             variant="outline"
             size="sm"
             style={styles.footerButton}
-            onPress={closeAndReset}
             onPress={closeAndReset}
             disabled={isSubmitting}
           >
@@ -158,7 +156,6 @@ export function BaseSimpleScoreInputModal({
       <Input
         label="라운딩 스코어"
         value={grossScore}
-        onChangeText={handleGrossScoreChange}
         onChangeText={handleGrossScoreChange}
         placeholder="55~144 사이의 숫자 입력"
         keyboardType="number-pad"

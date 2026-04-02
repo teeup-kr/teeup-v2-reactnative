@@ -1,9 +1,7 @@
 import { FontAwesome } from '@expo/vector-icons';
-import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -14,7 +12,7 @@ import { signInWithGoogle } from '@/lib/util/authUtils';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
-const logoImage = require('../../public/icons/icon-512-transparent.png');
+const logoImage = require('../public/icons/icon-512-transparent.png');
 
 export default function LandingScreen() {
   const router = useRouter();
@@ -145,20 +143,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  logoWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: tokens.radius.xxl,
-    backgroundColor: 'rgb(255, 255, 255)',
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: tokens.spacing.sm2,
-  },
-  logo: {
-    width: '100%',
-    height: '100%',
-  },
   brand: {
     color: colors.white,
     fontSize: tokens.font.display,
@@ -199,20 +183,6 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  buttonInteractive: {
-    transitionProperty: 'transform, box-shadow, opacity',
-    transitionDuration: '100ms',
-    transitionTimingFunction: 'ease',
-  },
-  buttonHovered: {
-    transform: [{ translateY: -1 }],
-    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.18)',
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.18,
-    shadowRadius: 2,
-    elevation: 2,
-  },
   primaryButton: {
     backgroundColor: colors.white,
     borderRadius: tokens.radius.md,
@@ -221,13 +191,6 @@ const styles = StyleSheet.create({
   },
   primaryButtonPressed: {
     opacity: 0.9,
-  },
-  primaryButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  primaryButtonIcon: {
-    marginRight: tokens.spacing.xs2,
   },
   primaryButtonContent: {
     flexDirection: 'row',
