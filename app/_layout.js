@@ -56,7 +56,6 @@ function routeByNotification(router, notification) {
 }
 
 async function setupNotificationChannel(Notifications) {
-async function setupNotificationChannel(Notifications) {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync('default', {
     name: '기본',
@@ -64,7 +63,6 @@ async function setupNotificationChannel(Notifications) {
   });
 }
 
-async function ensureNotificationPermission(Notifications) {
 async function ensureNotificationPermission(Notifications) {
   const permission = await Notifications.getPermissionsAsync();
   if (permission.granted) return true;
@@ -119,7 +117,6 @@ function buildRouteWithSearch(pathname, params) {
 function AppShell() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
-  const globalSearchParams = useGlobalSearchParams();
   const globalSearchParams = useGlobalSearchParams();
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
@@ -184,8 +181,6 @@ function AppShell() {
     let isUnmounted = false;
     let receivedSubscription = null;
     let responseSubscription = null;
-    let receivedSubscription = null;
-    let responseSubscription = null;
 
     const handleRouteOnce = (notification) => {
       const identifier = notification?.request?.identifier;
@@ -201,20 +196,6 @@ function AppShell() {
 
     const setup = async () => {
       try {
-        const Notifications = await import('expo-notifications');
-        if (isUnmounted) return;
-
-        receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
-          const data = notification?.request?.content?.data;
-          console.log('[Push Received]', data);
-        });
-
-        responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
-          handleRouteOnce(response?.notification);
-        });
-
-        await setupNotificationChannel(Notifications);
-        const granted = await ensureNotificationPermission(Notifications);
         const Notifications = await import('expo-notifications');
         if (isUnmounted) return;
 

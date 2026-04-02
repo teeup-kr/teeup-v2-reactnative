@@ -121,8 +121,6 @@ export default function HomeScreen() {
 
   const bannerSlides = HOME_BANNER_SLIDES;
   const carouselHeight = carouselWidth;
-  const bannerSlides = HOME_BANNER_SLIDES;
-  const carouselHeight = carouselWidth;
   const visibleUpcomingMeetings = useMemo(
     () => upcomingMeetings.filter((meeting) => getMeetingId(meeting)).slice(0, 2),
     [upcomingMeetings]
@@ -203,9 +201,6 @@ export default function HomeScreen() {
   }, [width]);
 
   const handleCarouselLayout = useCallback((event) => {
-    const measuredWidth = event.nativeEvent.layout.width;
-    if (!Number.isFinite(measuredWidth) || measuredWidth <= 1) return;
-    const nextWidth = Math.round(measuredWidth);
     const measuredWidth = event.nativeEvent.layout.width;
     if (!Number.isFinite(measuredWidth) || measuredWidth <= 1) return;
     const nextWidth = Math.round(measuredWidth);
@@ -327,9 +322,7 @@ export default function HomeScreen() {
 
           <View style={styles.dotRow}>
             {bannerSlides.map((slide, index) => (
-            {bannerSlides.map((slide, index) => (
               <Pressable
-                key={slide.id}
                 key={slide.id}
                 onPress={() => handleDotPress(index)}
                 style={[styles.dot, activeSlide === index && styles.activeDot]}
@@ -365,7 +358,6 @@ export default function HomeScreen() {
           <Pressable
             style={styles.summaryCard}
             onPress={() => navigateWithCap(router, '/mypage?tab=meetings')}
-            onPress={() => navigateWithCap(router, '/mypage?tab=meetings')}
           >
             <Text style={styles.summaryTitle}>라운드 기록하기</Text>
             <Text style={styles.summarySubText}>스코어 등록</Text>
@@ -375,7 +367,6 @@ export default function HomeScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.summaryTitle}>다음 라운딩</Text>
-          <Pressable onPress={() => navigateWithCap(router, isAuthenticated ? '/meetings/my' : '/meetings')}>
           <Pressable onPress={() => navigateWithCap(router, isAuthenticated ? '/meetings/my' : '/meetings')}>
             <Text style={styles.sectionMore}>더보기</Text>
           </Pressable>

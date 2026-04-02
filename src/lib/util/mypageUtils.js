@@ -81,7 +81,6 @@ export function formatDateYYYYMMDD(value) {
 }
 
 function parseBirthdate(value) {
-function parseBirthdate(value) {
   if (!value) return null;
   if (value instanceof Date) return value;
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {

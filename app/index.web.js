@@ -75,12 +75,6 @@ export default function LandingScreen() {
               hovered && styles.buttonHovered,
               pressed && styles.primaryButtonPressed,
             ]}
-            style={({ pressed, hovered }) => [
-              styles.primaryButton,
-              styles.buttonInteractive,
-              hovered && styles.buttonHovered,
-              pressed && styles.primaryButtonPressed,
-            ]}
             onPress={handleGoogleSignIn}
             disabled={isGoogleRedirecting}
           >
@@ -98,12 +92,6 @@ export default function LandingScreen() {
             </View>
           </Pressable>
           <Pressable
-            style={({ pressed, hovered }) => [
-              styles.secondaryButton,
-              styles.buttonInteractive,
-              hovered && styles.buttonHovered,
-              pressed && styles.secondaryButtonPressed,
-            ]}
             style={({ pressed, hovered }) => [
               styles.secondaryButton,
               styles.buttonInteractive,
