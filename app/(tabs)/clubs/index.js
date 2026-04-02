@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useFocusEffect, useCallback, useMemo, useState } from 'react';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { useEffect, useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
