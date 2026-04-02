@@ -57,9 +57,6 @@ export default function LandingScreen() {
         <View style={styles.logoWrap}>
           <Image source={logoImage} style={styles.logo} resizeMode="cover" />
         </View>
-        <View style={styles.logoWrap}>
-          <Image source={logoImage} style={styles.logo} resizeMode="cover" />
-        </View>
         <Text style={styles.brand}>티업링크</Text>
         <Text style={styles.headline}>골프 모임 관리의{'\n'}새로운 경험</Text>
         <Text style={styles.subcopy}>
@@ -76,12 +73,6 @@ export default function LandingScreen() {
             onPress={handleGoogleSignIn}
             disabled={isGoogleRedirecting}
           >
-            <View style={styles.primaryButtonContent}>
-              <FontAwesome name="google" size={16} color={colors.emerald[700]} style={styles.primaryButtonIcon} />
-              <Text style={styles.primaryButtonText}>
-                {isGoogleRedirecting ? 'Google 로그인으로 이동 중...' : 'Google로 로그인'}
-              </Text>
-            </View>
             <View style={styles.primaryButtonContent}>
               <FontAwesome name="google" size={16} color={colors.emerald[700]} style={styles.primaryButtonIcon} />
               <Text style={styles.primaryButtonText}>

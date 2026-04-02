@@ -164,8 +164,6 @@ export function BaseSimpleScoreInputModal({
 
       {!!errors.grossScore && <Text style={styles.errorText}>{errors.grossScore}</Text>}
 
-      {!!errors.grossScore && <Text style={styles.errorText}>{errors.grossScore}</Text>}
-
       {newHandicap !== null && (
         <View style={styles.previewCard}>
           <Text style={styles.previewLabel}>이번 라운딩 핸디캡 (예상)</Text>
@@ -174,7 +172,6 @@ export function BaseSimpleScoreInputModal({
         </View>
       )}
 
-      {!!errors.submit && <Text style={styles.errorText}>{errors.submit}</Text>}
       {!!errors.submit && <Text style={styles.errorText}>{errors.submit}</Text>}
     </Modal>
   );

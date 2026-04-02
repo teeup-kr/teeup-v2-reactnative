@@ -68,11 +68,7 @@ function buildUrl(path) {
   if (!API_BASE_URL) {
     throw new Error('API_BASE_URL이 설정되지 않았습니다.');
   }
-  if (!API_BASE_URL) {
-    throw new Error('API_BASE_URL이 설정되지 않았습니다.');
-  }
   const urlPath = path.startsWith('/') ? path : `/${path}`;
-  return `${API_BASE_URL}${urlPath}`;
   return `${API_BASE_URL}${urlPath}`;
 };
 

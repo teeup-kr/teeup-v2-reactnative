@@ -95,11 +95,6 @@ export function SocialForm({ mode = 'create' }) {
         () => {
           handleFieldChange('type')(value);
         },
-    () =>
-      (value) =>
-        () => {
-          handleFieldChange('type')(value);
-        },
     [handleFieldChange]
   );
   const handleClubSelect = useMemo(
@@ -108,19 +103,9 @@ export function SocialForm({ mode = 'create' }) {
         () => {
           handleFieldChange('club_id')(value);
         },
-    () =>
-      (value) =>
-        () => {
-          handleFieldChange('club_id')(value);
-        },
     [handleFieldChange]
   );
   const handleSettlementSelect = useMemo(
-    () =>
-      (value) =>
-        () => {
-          handleFieldChange('settlement_method')(value);
-        },
     () =>
       (value) =>
         () => {

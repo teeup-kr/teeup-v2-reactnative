@@ -243,19 +243,9 @@ export function RoundingForm({ mode = 'create' }) {
         () => {
           handleFieldChange('club_id')(value);
         },
-    () =>
-      (value) =>
-        () => {
-          handleFieldChange('club_id')(value);
-        },
     [handleFieldChange]
   );
   const handleTeamModeSelect = useMemo(
-    () =>
-      (value) =>
-        () => {
-          handleFieldChange('team_formation_mode')(value);
-        },
     () =>
       (value) =>
         () => {
@@ -269,19 +259,9 @@ export function RoundingForm({ mode = 'create' }) {
         () => {
           handleFieldChange('meeting_subtype')(value);
         },
-    () =>
-      (value) =>
-        () => {
-          handleFieldChange('meeting_subtype')(value);
-        },
     [handleFieldChange]
   );
   const handleSettlementSelect = useMemo(
-    () =>
-      (value) =>
-        () => {
-          handleFieldChange('settlement_method')(value);
-        },
     () =>
       (value) =>
         () => {

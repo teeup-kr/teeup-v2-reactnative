@@ -205,8 +205,6 @@ function AppShell() {
       isUnmounted = true;
       receivedSubscription?.remove();
       responseSubscription?.remove();
-      receivedSubscription?.remove();
-      responseSubscription?.remove();
     };
   }, [isAuthenticated, isLoading, router]);
 
@@ -281,7 +279,6 @@ export default function RootLayout() {
         <link rel="manifest" href="/manifest.json" />
 
         {/* iOS PWA */}
-        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="TeeUp" />

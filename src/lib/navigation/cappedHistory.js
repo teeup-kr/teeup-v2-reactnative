@@ -145,7 +145,6 @@ export function navigateWithCap(router, href) {
     return;
   }
   replaceWithPolicy(router, next);
-  replaceWithPolicy(router, next);
 }
 
 export function backOrHome(router, home = '/app') {
