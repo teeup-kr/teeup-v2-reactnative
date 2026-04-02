@@ -293,19 +293,23 @@ export default function ClubDetailScreen() {
               <Card style={styles.sectionCard}>
                 <Text style={styles.sectionTitle}>클럽 메뉴</Text>
                 <Text style={styles.sectionText}>공지/규정/회비 정보를 확인하세요.</Text>
-                <View style={styles.memberMenuRow}>
-                  <Button variant="outline" size="sm" onPress={handleOpenMemberListPress} style={styles.memberMenuButton}>
-                    회원목록
-                  </Button>
-                  <Button variant="outline" size="sm" onPress={handleOpenNotices} style={styles.memberMenuButton}>
-                    클럽 공지사항
-                  </Button>
-                  <Button variant="outline" size="sm" onPress={handleOpenRegulations} style={styles.memberMenuButton}>
-                    클럽 규정
-                  </Button>
-                  <Button variant="outline" size="sm" onPress={handleOpenFees} style={styles.memberMenuButton}>
-                    클럽 회비
-                  </Button>
+                <View style={styles.memberMenuGrid}>
+                  <View style={styles.memberMenuRowHalf}>
+                    <Button variant="outline" size="sm" onPress={handleOpenMemberListPress} style={styles.memberMenuButton}>
+                      회원목록
+                    </Button>
+                    <Button variant="outline" size="sm" onPress={handleOpenNotices} style={styles.memberMenuButton}>
+                      클럽 공지사항
+                    </Button>
+                  </View>
+                  <View style={styles.memberMenuRowHalf}>
+                    <Button variant="outline" size="sm" onPress={handleOpenRegulations} style={styles.memberMenuButton}>
+                      클럽 규정
+                    </Button>
+                    <Button variant="outline" size="sm" onPress={handleOpenFees} style={styles.memberMenuButton}>
+                      클럽 회비
+                    </Button>
+                  </View>
                 </View>
               </Card>
             ) : null}
@@ -469,14 +473,16 @@ const styles = StyleSheet.create({
   actionGap: {
     marginTop: tokens.spacing.sm2,
   },
-  memberMenuRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+  memberMenuGrid: {
     marginTop: tokens.spacing.sm2,
+    gap: tokens.spacing.sm2,
+  },
+  memberMenuRowHalf: {
+    flexDirection: 'row',
+    gap: 8,
   },
   memberMenuButton: {
-    flexGrow: 1,
+    flex: 1,
   },
   errorText: base.textSmError,
 });
