@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import { router } from "expo-router";
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { URLSearchParams } from 'react-native-url-polyfill';
 
 import { replaceWithPolicy } from '../navigation/cappedHistory';
@@ -11,6 +11,9 @@ const extra =
   Constants.manifest?.extra;
 
 const API_BASE_URL = extra?.apiBaseUrl;
+
+const isWeb = Platform.OS === 'web';
+const CLIENT_TYPE = isWeb ? 'web' : Platform.OS;
 
 const sensitiveKeys = ['password', 'token', 'authorization', 'refresh', 'access'];
 const REFRESH_PATH = '/auth/refresh';
@@ -177,14 +180,7 @@ async function requestTokenRefresh() {
   }
 }
 
-function createAuthExpiredError(payload, status = 401) {
-  const error = new Error(getErrorMessage(payload));
-  error.status = status;
-  error.payload = payload;
-  return error;
-}
-
-async function handleAuthExpired({ payload, status = 401, redirectOnAuthExpired = true } = {}) {
+async function handleAuthExpired({ _payload, _status = 401, _redirectOnAuthExpired = true } = {}) {
   console.info('[Auth] Session expired → logout');
   await tokenStorage.clearTokens();
   await tokenStorage.clearUser();
