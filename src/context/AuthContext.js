@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 
 import { authApi } from '@/lib/api/api';
 import { tokenStorage } from '@/lib/tokenStorage';
+import { signOutFromGoogle } from '@/lib/util/authUtils';
 
 
 
@@ -78,8 +79,16 @@ export function AuthProvider({ children }) {
   }, [setAuthError]);
 
   const logout = useCallback(async () => {
-    await authApi.logout();
-    setUser(null);
+    try {
+      await authApi.logout();
+    } finally {
+      try {
+        await signOutFromGoogle();
+      } catch (error) {
+        console.warn('Google 로그아웃 실패:', error?.message || error);
+      }
+      setUser(null);
+    }
     // if (isWeb) {
     //   window.location.replace('/');
     // }

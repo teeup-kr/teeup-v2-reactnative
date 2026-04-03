@@ -111,6 +111,14 @@ export async function signInWithGoogle({
   }
 }
 
+export async function signOutFromGoogle() {
+  if (Platform.OS === 'web' || !GoogleSignin) {
+    return;
+  }
+
+  await GoogleSignin.signOut();
+}
+
 export function buildGoogleAuthorizeUrl({
   state,
   codeChallenge,
@@ -123,6 +131,7 @@ export function buildGoogleAuthorizeUrl({
     response_type: 'code',
     scope: 'openid profile email',
     state,
+    prompt: 'select_account',
     code_challenge: codeChallenge,
     code_challenge_method: codeChallengeMethod,
   });
