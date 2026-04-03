@@ -8,7 +8,7 @@ import {
 } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { BackHandler, Platform, StyleSheet, ToastAndroid, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,12 +18,12 @@ import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
-import { backOrHome, getHistorySnapshot, handleWebPopstateBack, navigateWithCap, syncRouteHistory } from '@/lib/navigation/cappedHistory';
+import { backOrHome, getHistorySnapshot, markHistoryTraversal, navigateWithCap, syncRouteHistory } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
+import { tokens } from '@/styles/style';
 
 /** Google Tag Manager 컨테이너 ID (웹 전용) */
 const GTM_CONTAINER_ID = 'GTM-NG89M36G';
-const GOOGLE_CALLBACK_PATH = '/auth/google/callback';
 
 function getNotificationRoute(data = {}) {
   const category = data?.category || data?.type || data?.notification_type;
@@ -99,24 +99,16 @@ function AppShell() {
   const { isAuthenticated, isLoading } = useAuth();
   const handledNotificationIdsRef = useRef(new Set());
   const lastBackPressedAtRef = useRef(0);
-  const [isClientReady, setIsClientReady] = useState(false);
   const isRootEntry = pathname === '/';
-  const isGoogleCallbackRoute = pathname === GOOGLE_CALLBACK_PATH;
-  const showAppChrome = !isRootEntry && !isGoogleCallbackRoute;
   const currentRoute = buildRouteWithSearch(pathname, globalSearchParams);
 
   useEffect(() => {
-    setIsClientReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (isGoogleCallbackRoute) return;
-    if (isRootEntry && Platform.OS !== 'web') return;
+    if (isRootEntry) return;
     syncRouteHistory(currentRoute);
-  }, [currentRoute, isGoogleCallbackRoute, isRootEntry]);
+  }, [currentRoute, isRootEntry]);
 
   useEffect(() => {
-    if (isRootEntry || isGoogleCallbackRoute) return undefined;
+    if (isRootEntry) return undefined;
 
     if (Platform.OS === 'android') {
       const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -141,10 +133,12 @@ function AppShell() {
 
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const handlePopstate = () => {
-        const handled = handleWebPopstateBack(router);
-        if (handled) {
+        if (getHistorySnapshot().length <= 1) {
+          backOrHome(router);
           return;
         }
+
+        markHistoryTraversal();
       };
 
       window.addEventListener('popstate', handlePopstate);
@@ -155,7 +149,7 @@ function AppShell() {
     }
 
     return undefined;
-  }, [isGoogleCallbackRoute, isRootEntry, pathname, router]);
+  }, [isRootEntry, pathname, router]);
 
   useEffect(() => {
     if (Platform.OS === 'web') return undefined;
@@ -216,7 +210,7 @@ function AppShell() {
 
   // 웹 전용: Google Tag Manager (/에서는 로드하지 않음)
   useEffect(() => {
-    if (Platform.OS !== 'web' || typeof document === 'undefined' || isRootEntry || isGoogleCallbackRoute) return;
+    if (Platform.OS !== 'web' || typeof document === 'undefined' || isRootEntry) return;
 
     const script = document.createElement('script');
     script.innerHTML = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -235,24 +229,19 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     iframe.style.visibility = 'hidden';
     noscript.appendChild(iframe);
     document.body.insertBefore(noscript, document.body.firstChild);
-
-    return () => {
-      script.remove();
-      noscript.remove();
-    };
-  }, [isGoogleCallbackRoute, isRootEntry]);
+  }, [isRootEntry]);
 
   return (
     <View style={[styles.root, Platform.OS === 'web' && !isRootEntry && styles.rootWeb]}>
-      <View style={[styles.shell, { paddingBottom: showAppChrome ? bottomNavHeight(insets) : 0 }]}>
+      <View style={[styles.shell, { paddingBottom: isRootEntry ? 0 : bottomNavHeight(insets) }]}>
         <View style={styles.main}>
           <Slot />
         </View>
       </View>
-      {showAppChrome ? <BottomNavigationBar /> : null}
-      {showAppChrome ? <FullMenu /> : null}
+      {!isRootEntry ? <BottomNavigationBar /> : null}
+      {!isRootEntry ? <FullMenu /> : null}
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 TODO 출시시 삭제 !!!!!!!!!!!!!!!!!!!!!! */}
-      {isClientReady && !isGoogleCallbackRoute ? <DebugConsoleOverlay /> : null}
+      {<DebugConsoleOverlay /> }
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 !!!!!!!!!!!!!!!!!!!!!! */}
     </View>
   );
@@ -313,7 +302,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral[50],
   },
   rootWeb: {
-    maxWidth: 430,
+    maxWidth: tokens.layout.maxWidth,
     alignSelf: 'center',
   },
   shell: {

@@ -85,9 +85,6 @@ export default function TeamFormationModal({
         onClose={onClose}
         footer={(
           <View style={styles.footerRow}>
-            <Button variant="outline" size="sm" style={styles.footerButton} onPress={onClose}>
-              닫기
-            </Button>
             {onOpenBatch ? (
               <Button size="sm" variant="outline" style={styles.footerButton} onPress={onOpenBatch}>
                 일괄 비교

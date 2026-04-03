@@ -9,8 +9,6 @@ export function extractList(payload) {
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload.data)) return payload.data;
   if (payload.data && Array.isArray(payload.data.data)) return payload.data.data;
-  if (Array.isArray(payload.teams)) return payload.teams;
-  if (payload.data && Array.isArray(payload.data.teams)) return payload.data.teams;
   if (Array.isArray(payload.scores)) return payload.scores;
   if (payload.data && Array.isArray(payload.data.scores)) return payload.data.scores;
   if (Array.isArray(payload.items)) return payload.items;

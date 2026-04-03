@@ -17,10 +17,10 @@ import SelectableChip from '@/components/ui/SelectableChip';
 import { socialSettlementMethods, socialTypeOptions } from '@/constants/meetingConstants';
 import { meetingsApi } from '@/lib/api/api';
 import {
-  createFetchClubsHandler,
-  createFetchMeetingHandler,
-  createParticipantTypeHandler,
-  createSubmitHandler,
+    createFetchClubsHandler,
+    createFetchMeetingHandler,
+    createParticipantTypeHandler,
+    createSubmitHandler,
 } from '@/lib/handler/meetings';
 import { backOrHome } from '@/lib/navigation/cappedHistory';
 import { confirmDiscardDraft } from '@/lib/util/confirmDiscard';
@@ -85,25 +85,9 @@ export function SocialForm({ mode = 'create' }) {
     () =>
       (field) =>
         (value) => {
-          if (field === 'max_participants') {
-            const nextValue = String(value ?? '');
-            const digitsOnly = nextValue.replace(/\D/g, '');
-
-            setForm((prev) => ({ ...prev, [field]: digitsOnly }));
-            setFieldErrors((prev) => {
-              if (nextValue !== digitsOnly) {
-                return { ...prev, max_participants: '숫자만 입력해주세요.' };
-              }
-              if (!prev.max_participants) return prev;
-              const nextErrors = { ...prev };
-              delete nextErrors.max_participants;
-              return nextErrors;
-            });
-            return;
-          }
           setForm((prev) => ({ ...prev, [field]: value }));
         },
-    [setForm, setFieldErrors]
+    [setForm]
   );
   const handleTypeSelect = useMemo(
     () =>

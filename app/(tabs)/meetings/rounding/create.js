@@ -214,25 +214,9 @@ export function RoundingForm({ mode = 'create' }) {
     () =>
       (field) =>
         (value) => {
-          if (field === 'max_participants') {
-            const nextValue = String(value ?? '');
-            const digitsOnly = nextValue.replace(/\D/g, '');
-
-            setForm((prev) => ({ ...prev, [field]: digitsOnly }));
-            setFieldErrors((prev) => {
-              if (nextValue !== digitsOnly) {
-                return { ...prev, max_participants: '숫자만 입력해주세요.' };
-              }
-              if (!prev.max_participants) return prev;
-              const nextErrors = { ...prev };
-              delete nextErrors.max_participants;
-              return nextErrors;
-            });
-            return;
-          }
           setForm((prev) => ({ ...prev, [field]: value }));
         },
-    [setForm, setFieldErrors]
+    [setForm]
   );
 
   const addTeeTime = useCallback(() => {

@@ -76,15 +76,18 @@ self.addEventListener('fetch', (event) => {
 
     event.respondWith(
         (async () => {
-            const cachedResponse = await caches.match(event.request);
-            if (cachedResponse) {
-                return cachedResponse;
+            try {
+                const networkResponse = await fetch(event.request);
+                const cache = await caches.open(CACHE_NAME);
+                await cache.put(event.request, networkResponse.clone());
+                return networkResponse;
+            } catch (error) {
+                const cachedResponse = await caches.match(event.request);
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+                throw error;
             }
-
-            const networkResponse = await fetch(event.request);
-            const cache = await caches.open(CACHE_NAME);
-            await cache.put(event.request, networkResponse.clone());
-            return networkResponse;
         })()
     );
 });

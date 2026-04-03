@@ -11,21 +11,13 @@ const extra =
   Constants.manifest?.extra;
 
 const API_BASE_URL = extra?.apiBaseUrl;
+
 const isWeb = Platform.OS === 'web';
 const CLIENT_TYPE = isWeb ? 'web' : Platform.OS;
 
 const sensitiveKeys = ['password', 'token', 'authorization', 'refresh', 'access'];
 const REFRESH_PATH = '/auth/refresh';
 let refreshPromise = null;
-
-/** 백엔드 인증/oauth에서 요구하는 클라이언트 타입 (web | android | ios) */
-function getClientType() {
-  const os = Platform.OS;
-  if (os === 'web') return 'web';
-  if (os === 'android') return 'android';
-  if (os === 'ios') return 'ios';
-  return 'web';
-}
 
 function debugLog(...args) {
   console.log(...args);
@@ -188,24 +180,13 @@ async function requestTokenRefresh() {
   }
 }
 
-function createAuthExpiredError(payload, status = 401) {
-  const error = new Error(getErrorMessage(payload));
-  error.status = status;
-  error.payload = payload;
-  return error;
-}
-
-async function handleAuthExpired({ payload, status = 401, redirectOnAuthExpired = true } = {}) {
+async function handleAuthExpired({ redirectOnAuthExpired = true } = {}) {
   console.info('[Auth] Session expired → logout');
   await tokenStorage.clearTokens();
   await tokenStorage.clearUser();
-
   if (redirectOnAuthExpired) {
     replaceWithPolicy(router, '/login');
-    return;
   }
-
-  throw createAuthExpiredError(payload, status);
 }
 
 async function apiRequest(path, options = {}) {

@@ -65,10 +65,7 @@ export function validateSocialForm({ form, participantType }) {
   return errors;
 };
 
-function resolveSocialSettlementMethod(method, settlementMethods) {
-  const normalized = method === 'TREASURER_PREPAID' ? 'CLUB_FUND' : method;
-  return settlementMethods.some((item) => item.id === normalized) ? normalized : 'EQUAL_SPLIT';
-}
+function resolveSocialSettlementMethod(method, settlementMethods) { return settlementMethods.some((item) => item.id === method) ? method : 'EQUAL_SPLIT'; }
 
 export function buildSocialPayload({ form, participantType, settlementMethods }) {
   return ({
@@ -96,3 +93,4 @@ export function buildSocialPayload({ form, participantType, settlementMethods })
 //   validateSocialForm,
 //   buildSocialPayload,
 // };
+
