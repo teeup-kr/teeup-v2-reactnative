@@ -118,6 +118,7 @@ export default () => {
     googleAuth: {
       clientId: googleClientId,
       redirectUri: googleRedirectUri,
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB,
     },
   };
 

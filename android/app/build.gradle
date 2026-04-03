@@ -101,10 +101,6 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
-        manifestPlaceholders = [
-            appAuthRedirectScheme: "com.googleusercontent.apps.791884628850-gkqbgna2cn1ari12jielsttrsqvjrkm8"
-        ]
-
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
     splits {

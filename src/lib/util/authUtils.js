@@ -1,22 +1,19 @@
 import { Platform } from 'react-native';
-import { authorize } from 'react-native-app-auth';
 
-import { googleAuthConfig } from '../../constants/authConstants';
+import { googleAuthConfig, googleNativeConfig } from '../../constants/authConstants';
 import { authApi } from '../api/api';
 import { tokenStorage } from '../tokenStorage';
 
-export function buildGoogleAuthConfig(state) {
-  return {
-    ...googleAuthConfig,
-    skipCodeExchange: true,
-    usePKCE: true, // 명시적으로 통일
-    additionalParameters: {
-      ...(googleAuthConfig.additionalParameters || {}),
-      ...(state ? { state } : {}),
-    },
-  };
+let GoogleSignin;
+if (Platform.OS !== 'web') {
+  console.log('GoogleSignin.configure webClientId:', googleNativeConfig.webClientId);
+  GoogleSignin = require('@react-native-google-signin/google-signin').GoogleSignin;
+  GoogleSignin.configure({
+    webClientId: googleNativeConfig.webClientId,
+    offlineAccess: true,
+    scopes: ['openid', 'profile', 'email'],
+  });
 }
-
 
 export function buildGoogleAuthPayload(authState, oauthState) {
   const payload = {
@@ -50,19 +47,17 @@ export async function signInWithGoogle({
   setErrorMessage('');
   setLoading(true);
 
-  if (!googleAuthConfig.clientId || !googleAuthConfig.redirectUrl) {
-    setErrorMessage('Google 로그인 설정(clientId/redirectUrl)이 누락되었습니다.');
-    setLoading(false);
-    return;
-  }
-
-  const shouldClearState = Platform.OS !== 'web';
-
   try {
     const oauthState = generateOauthState();
     await tokenStorage.setOauthState(oauthState);
 
     if (Platform.OS === 'web') {
+      if (!googleAuthConfig.clientId || !googleAuthConfig.redirectUrl) {
+        setErrorMessage('Google 로그인 설정(clientId/redirectUrl)이 누락되었습니다.');
+        setLoading(false);
+        return;
+      }
+
       const codeVerifier = generateCodeVerifier();
       const codeChallenge = await generateCodeChallenge(codeVerifier);
 
@@ -78,8 +73,22 @@ export async function signInWithGoogle({
       return;
     }
 
-    const authState = await authorize(buildGoogleAuthConfig(oauthState));
-    const payload = buildGoogleAuthPayload(authState, oauthState);
+    // 네이티브: Google Sign-In SDK 사용
+    await GoogleSignin.hasPlayServices();
+    const response = await GoogleSignin.signIn();
+    const serverAuthCode = response?.data?.serverAuthCode;
+
+    if (!serverAuthCode) {
+      throw new Error('Google 로그인에서 serverAuthCode를 받지 못했습니다.');
+    }
+
+    const payload = {
+      provider: 'google',
+      authorizationCode: serverAuthCode,
+      state: oauthState,
+      redirectUri: '',
+    };
+
     await authApi.googleLogin(payload);
 
     if (refreshAuth) {
@@ -90,100 +99,17 @@ export async function signInWithGoogle({
       router.replace('/app');
     }
   } catch (error) {
+    console.error('Google sign-in failed:', {
+      code: error?.code,
+      message: error?.message,
+    });
     const message = error?.message || 'Google 로그인에 실패했습니다.';
     setErrorMessage(message);
   } finally {
-    if (shouldClearState) {
-      await tokenStorage.clearOauthState();
-    }
+    await tokenStorage.clearOauthState();
     setLoading(false);
   }
 }
-
-// export const authUtils = {
-//   buildGoogleAuthConfig,
-//   generateOauthState,
-// };
-
-// // 웹 플랫폼 Google OAuth 처리
-// export default function useGoogleWebAuthEffect({
-//   refreshAuth,
-//   router,
-//   setErrors,
-//   setIsGoogleSigningIn,
-// }) {
-//   console.log("!!!!!!!!useGoogleWebAuthEffect!!!!!!")
-//   useEffect(() => {
-
-//     const params = new URLSearchParams(window.location.search);
-//     const authorizationCode = params.get('code');
-//     const authError = params.get('error');
-//     const returnedState = params.get('state');
-
-//     if (!authorizationCode && !authError) {
-//       return;
-//     }
-
-//     const resetUrl = () => {
-//       window.history.replaceState(null, '', window.location.pathname);
-//     };
-
-//     const handleWebCallback = async () => {
-//       setIsGoogleSigningIn(true);
-
-//       if (authError) {
-//         setErrors((prev) => ({
-//           ...prev,
-//           general: `Google 로그인에 실패했습니다: ${authError}`,
-//         }));
-//         await tokenStorage.clearOauthState();
-//         setIsGoogleSigningIn(false);
-//         resetUrl();
-//         return;
-//       }
-
-//       try {
-//         if (authorizationCode) {
-//           const storedState = await tokenStorage.getOauthState();
-//           if (returnedState && storedState && returnedState !== storedState) {
-//             setErrors((prev) => ({
-//               ...prev,
-//               general: 'Google 인증 상태가 일치하지 않습니다.',
-//             }));
-//             await tokenStorage.clearOauthState();
-//             setIsGoogleSigningIn(false);
-//             resetUrl();
-//             return;
-//           }
-//           const codeVerifier = await tokenStorage.getCodeVerifier();
-
-//           if (!codeVerifier) {
-//             throw new Error('PKCE code_verifier가 존재하지 않습니다.');
-//           }
-//           const payload = buildGoogleAuthPayload(
-//             {
-//               authorizationCode,
-//               codeVerifier,
-//             },
-//             returnedState || storedState,
-//           );
-//           await authApi.googleLogin(payload);
-//         }
-//         await refreshAuth();
-//         router.replace('/');
-//       } catch (error) {
-//         const message = error?.message || 'Google 로그인에 실패했습니다.';
-//         setErrors((prev) => ({ ...prev, general: message }));
-//       } finally {
-//         await tokenStorage.clearOauthState();
-//         setIsGoogleSigningIn(false);
-//         resetUrl();
-//       }
-//     };
-
-//     void handleWebCallback();
-//   }, [refreshAuth, router, setErrors, setIsGoogleSigningIn]);
-// }
 
 export function buildGoogleAuthorizeUrl({
   state,
