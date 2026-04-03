@@ -26,7 +26,7 @@ export function BaseSimpleScoreInputModal({
   onSuccess,
   shouldCompleteRounding = false,
   submitSimpleScore,
-  updateSimpleScore,
+  _updateSimpleScore,
   completeRounding,
   validateParticipantOnSubmit = true,
   resetOnVisible = true,

@@ -90,38 +90,6 @@ function getParticipantDisplayName(p) {
   return p?.user_name ?? p?.name ?? p?.guest_name ?? p?.realname ?? '이름 없음';
 }
 
-/** 리스트 렌더 시 고유 key */
-function getParticipantKey(p, index) {
-  const sk = getParticipantStorageKey(p);
-  return sk ?? `idx-${index}`;
-}
-
-/** 개별 정산용 참가자 칩 - 클릭 시 participant를 props에서 읽어 전달 (클로저/off-by-one 방지) */
-function ParticipantChip({ feeKey, participant, isSelected, onToggle, chipStyles }) {
-  const handlePress = useCallback(() => {
-    const sk = getParticipantStorageKey(participant);
-    if (sk) onToggle(feeKey, sk);
-  }, [participant, feeKey, onToggle]);
-  const storageKey = getParticipantStorageKey(participant);
-  if (!storageKey) return null;
-  return (
-    <Pressable
-      style={[chipStyles.feeParticipantChip, isSelected && chipStyles.feeParticipantChipActive]}
-      onPress={handlePress}
-    >
-      <FontAwesome5
-        name={isSelected ? 'check-circle' : 'circle'}
-        size={14}
-        color={isSelected ? colors.primary[600] : colors.neutral[400]}
-        style={chipStyles.feeParticipantIcon}
-      />
-      <Text style={[chipStyles.feeParticipantChipText, isSelected && chipStyles.feeParticipantChipTextActive]}>
-        {getParticipantDisplayName(participant)}
-      </Text>
-    </Pressable>
-  );
-}
-
 function makeSettlementForm(settlement, meeting) {
   return {
     total_cost: onlyDigits(
@@ -186,7 +154,7 @@ export default function SettlementManager({
   meetingId,
   meetingType,
   meeting,
-  teams = [],
+  _teams = [],
   canSettle,
   canManageSettlement,
   participants = [],
@@ -384,7 +352,7 @@ export default function SettlementManager({
     [participants]
   );
 
-  const toggleFeeParticipant = useCallback((feeKey, storageKey) => {
+  const _toggleFeeParticipant = useCallback((feeKey, storageKey) => {
     setFeeParticipants((prev) => {
       const current = prev[feeKey] || [];
       const next = current.includes(storageKey)
@@ -394,11 +362,11 @@ export default function SettlementManager({
     });
   }, []);
 
-  const selectAllForFee = useCallback((feeKey) => {
+  const _selectAllForFee = useCallback((feeKey) => {
     setFeeParticipants((prev) => ({ ...prev, [feeKey]: [...participantStorageKeys] }));
   }, [participantStorageKeys]);
 
-  const clearAllForFee = useCallback((feeKey) => {
+  const _clearAllForFee = useCallback((feeKey) => {
     setFeeParticipants((prev) => ({ ...prev, [feeKey]: [] }));
   }, []);
 
@@ -427,7 +395,7 @@ export default function SettlementManager({
 
   const methods = meetingType === 'SOCIAL' ? SOCIAL_METHODS : ROUND_METHODS;
 
-  const handleOpenPayModal = useCallback((p) => {
+  const _handleOpenPayModal = useCallback((p) => {
     setPayTarget(p);
     setPayAmount(p?.amount_paid != null && p.amount_paid > 0 ? String(p.amount_paid) : '');
     setPayModalOpen(true);
@@ -492,7 +460,7 @@ export default function SettlementManager({
   }, [meetingType, socialExpenseItems, settlementForm.green_fee, settlementForm.caddy_fee, settlementForm.cart_fee, roundingOtherItems]);
 
   /** 소셜 N분의1: 참가자가 나눌 금액(회비 처리 항목 제외) */
-  const socialExpenseSplitTotal = useMemo(
+  const _socialExpenseSplitTotal = useMemo(
     () => (meetingType === 'SOCIAL' ? sumSocialExpenseForSplit(socialExpenseItems) : 0),
     [meetingType, socialExpenseItems]
   );
@@ -641,7 +609,7 @@ export default function SettlementManager({
       return roundingFeeFields.filter((f) => f.key !== 'other_fee');
     }
     return roundingFeeFields;
-  }, [meetingType, method, settlement?.caddy_fee, settlement?.cart_fee, settlement?.expense_items, settlement?.green_fee, settlement?.other_fee, settlement?.other_expense_items]);
+  }, [meetingType, settlement?.caddy_fee, settlement?.cart_fee, settlement?.expense_items, settlement?.green_fee, settlement?.other_fee, settlement?.other_expense_items]);
 
   const canCreateSettlement = useMemo(
     () => Boolean(!settlement && canManageSettlement && canSettle),

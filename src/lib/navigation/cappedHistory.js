@@ -16,7 +16,7 @@ function stripQueryAndHash(route) {
   return String(route || '').split('?')[0].split('#')[0];
 }
 
-function normalizeTrailingSlash(route) {
+function _normalizeTrailingSlash(route) {
   const value = normalizeRoute(route);
   if (!value || value === '/') return value;
 

@@ -1009,7 +1009,7 @@ export default function MeetingDetailScreen() {
     myParticipant,
   ]);
 
-  const isJoined = useMemo(
+  const _isJoined = useMemo(
     () => getIsJoined({ participants, user }),
     [participants, user]
   );
@@ -1112,7 +1112,6 @@ export default function MeetingDetailScreen() {
     isApplicationClosed,
     isMeetingTimePassed,
     teams.length,
-    meeting?.settlement_enabled,
   ]);
 
   const settlementBlockedMessage = useMemo(() => {
