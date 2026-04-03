@@ -164,6 +164,13 @@ export default function MeetingWorkflowStatus({
     };
   }, [applicationStatus, participantCount, meeting?.max_participants, isApplicationClosed]);
 
+  const hasActionButtons = Boolean(
+    onCloseApplicationEarly ||
+    onAutoFormTeams ||
+    onCompleteRounding ||
+    (settlementEnabled !== false && onCompleteMeeting)
+  );
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>모임 진행 상황</Text>
@@ -197,80 +204,82 @@ export default function MeetingWorkflowStatus({
         })}
       </View>
 
-      <View style={styles.actionRow}>
-        {onCloseApplicationEarly ? (
-          <Button
-            style={[
-              styles.actionButtonBase,
-              styles.actionButtonAmberOutline,
-            ]}
-            onPress={onCloseApplicationEarly}
-            textStyle={[styles.actionButtonText, styles.actionButtonTextAmber]}
-          >
-            신청 마감하기
-          </Button>
-        ) : null}
-        {onAutoFormTeams ? (
-          <Button
-            style={[
-              styles.actionButtonBase,
-              styles.actionButtonBlue,
-            ]}
-            onPress={onAutoFormTeams}
-            textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
-          >
-            팀 편성 시작
-          </Button>
-        ) : null}
-        {/* {onConfirmTeamFormation ? (
-          <Button
-            style={[
-              styles.actionButtonBase,
-              styles.actionButtonGreen,
-            ]}
-            onPress={onConfirmTeamFormation}
-            textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
-          >
-            팀 편성 확정
-          </Button>
-        ) : null} */}
-        {/* {onStartRounding ? (
-          <Button
-            style={[
-              styles.actionButtonBase,
-              styles.actionButtonBlue,
-            ]}
-            onPress={onStartRounding}
-            textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
-          >
-            모임 진행 시작
-          </Button>
-        ) : null} */}
-        {onCompleteRounding ? (
-          <Button
-            style={[
-              styles.actionButtonBase,
-              styles.actionButtonOrange,
-            ]}
-            onPress={onCompleteRounding}
-            textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
-          >
-            라운딩 종료
-          </Button>
-        ) : null}
-        {settlementEnabled !== false && onCompleteMeeting ? (
-          <Button
-            style={[
-              styles.actionButtonBase,
-              styles.actionButtonPurple,
-            ]}
-            onPress={onCompleteMeeting}
-            textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
-          >
-            정산 완료 처리
-          </Button>
-        ) : null}
-      </View>
+      {hasActionButtons ? (
+        <View style={styles.actionRow}>
+          {onCloseApplicationEarly ? (
+            <Button
+              style={[
+                styles.actionButtonBase,
+                styles.actionButtonAmberOutline,
+              ]}
+              onPress={onCloseApplicationEarly}
+              textStyle={[styles.actionButtonText, styles.actionButtonTextAmber]}
+            >
+              신청 마감하기
+            </Button>
+          ) : null}
+          {onAutoFormTeams ? (
+            <Button
+              style={[
+                styles.actionButtonBase,
+                styles.actionButtonBlue,
+              ]}
+              onPress={onAutoFormTeams}
+              textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
+            >
+              팀 편성 시작
+            </Button>
+          ) : null}
+          {/* {onConfirmTeamFormation ? (
+            <Button
+              style={[
+                styles.actionButtonBase,
+                styles.actionButtonGreen,
+              ]}
+              onPress={onConfirmTeamFormation}
+              textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
+            >
+              팀 편성 확정
+            </Button>
+          ) : null} */}
+          {/* {onStartRounding ? (
+            <Button
+              style={[
+                styles.actionButtonBase,
+                styles.actionButtonBlue,
+              ]}
+              onPress={onStartRounding}
+              textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
+            >
+              모임 진행 시작
+            </Button>
+          ) : null} */}
+          {onCompleteRounding ? (
+            <Button
+              style={[
+                styles.actionButtonBase,
+                styles.actionButtonOrange,
+              ]}
+              onPress={onCompleteRounding}
+              textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
+            >
+              라운딩 종료
+            </Button>
+          ) : null}
+          {settlementEnabled !== false && onCompleteMeeting ? (
+            <Button
+              style={[
+                styles.actionButtonBase,
+                styles.actionButtonPurple,
+              ]}
+              onPress={onCompleteMeeting}
+              textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
+            >
+              정산 완료 처리
+            </Button>
+          ) : null}
+        </View>
+      ) : null}
 
       <View style={styles.summaryCard}>
         {summaryRows.map((row) => (

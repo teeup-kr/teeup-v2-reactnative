@@ -159,11 +159,20 @@ function formatTeeTimes(teeTimes) {
   return formatted.join(', ');
 }
 
-function isPastDateTime(value) {
+function isPastDateTime(value, referenceTime = Date.now()) {
   if (!value) return false;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return false;
-  return date.getTime() <= Date.now();
+  return date.getTime() <= referenceTime;
+}
+
+function getNextDayMidnight(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const nextMidnight = new Date(date);
+  nextMidnight.setHours(24, 0, 0, 0);
+  return nextMidnight;
 }
 
 function getMeetingStatusMeta(meeting) {
@@ -242,6 +251,17 @@ export default function MeetingDetailScreen() {
   });
   const [showRecordIncompleteModal, setShowRecordIncompleteModal] = useState(false);
   const [settlementToast, setSettlementToast] = useState(null);
+  const [nowTimestamp, setNowTimestamp] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = globalThis.setInterval(() => {
+      setNowTimestamp(Date.now());
+    }, 60 * 1000);
+
+    return () => {
+      globalThis.clearInterval(timer);
+    };
+  }, []);
 
   const myParticipantId = useMemo(
     () => getMyParticipantId({ user, participants }),
@@ -500,7 +520,7 @@ export default function MeetingDetailScreen() {
     ]
   );
 
-  const handleStartRounding = useMemo(
+  const _handleStartRounding = useMemo(
     () =>
       createStartRoundingHandler({
         meetingIdValue,
@@ -1074,12 +1094,50 @@ export default function MeetingDetailScreen() {
 
   const isApplicationClosed = useMemo(() => {
     if (!meeting) return false;
-    return Boolean(meeting.application_closed_early) || isPastDateTime(meeting.application_deadline);
-  }, [meeting]);
+    return Boolean(meeting.application_closed_early) || isPastDateTime(meeting.application_deadline, nowTimestamp);
+  }, [meeting, nowTimestamp]);
 
   const isMeetingTimePassed = useMemo(
-    () => isPastDateTime(meeting?.meeting_time),
+    () => isPastDateTime(meeting?.meeting_time, nowTimestamp),
+    [meeting?.meeting_time, nowTimestamp]
+  );
+
+  const roundingAutoCompleteDeadline = useMemo(
+    () => getNextDayMidnight(meeting?.meeting_time),
     [meeting?.meeting_time]
+  );
+
+  const isRoundingCompletedForUi = useMemo(
+    () =>
+      Boolean(
+        meeting?.rounding_completed_at ||
+        (
+          isRoundingMeeting &&
+          roundingAutoCompleteDeadline &&
+          isPastDateTime(roundingAutoCompleteDeadline, nowTimestamp)
+        )
+      ),
+    [meeting?.rounding_completed_at, isRoundingMeeting, roundingAutoCompleteDeadline, nowTimestamp]
+  );
+
+  const isTeamFormationConfirmed = useMemo(
+    () => Boolean(meeting?.team_formation_confirmed_at),
+    [meeting?.team_formation_confirmed_at]
+  );
+
+  const isMeetingInProgress = useMemo(
+    () => normalizedStatus === 'IN_PROGRESS',
+    [normalizedStatus]
+  );
+
+  const isMeetingCanceled = useMemo(
+    () => normalizedStatus === 'CANCELED',
+    [normalizedStatus]
+  );
+
+  const isMeetingCompletedForUi = useMemo(
+    () => Boolean(meeting?.is_completed || normalizedStatus === 'COMPLETED' || isRoundingCompletedForUi),
+    [meeting?.is_completed, normalizedStatus, isRoundingCompletedForUi]
   );
 
   const isMinParticipantsNotMet = useMemo(() => {
@@ -1131,6 +1189,135 @@ export default function MeetingDetailScreen() {
     [participantsLoaded, userInfoLoading]
   );
 
+  const canShowCloseApplicationButton = useMemo(
+    () =>
+      Boolean(
+        canRenderTopActions &&
+        isRoundingMeeting &&
+        isManager &&
+        !isApplicationClosed &&
+        !isMeetingInProgress &&
+        !isMeetingCanceled &&
+        !isMeetingCompletedForUi &&
+        !meeting?.settlement_confirmed
+      ),
+    [
+      canRenderTopActions,
+      isRoundingMeeting,
+      isManager,
+      isApplicationClosed,
+      isMeetingInProgress,
+      isMeetingCanceled,
+      isMeetingCompletedForUi,
+      meeting?.settlement_confirmed,
+    ]
+  );
+
+  const canShowJoinButton = useMemo(
+    () =>
+      Boolean(
+        canRenderTopActions &&
+        !_isJoined &&
+        !isApplicationClosed &&
+        !isMeetingInProgress &&
+        !isMeetingCanceled &&
+        !isMeetingCompletedForUi &&
+        !canShowCloseApplicationButton
+      ),
+    [
+      canRenderTopActions,
+      _isJoined,
+      isApplicationClosed,
+      isMeetingInProgress,
+      isMeetingCanceled,
+      isMeetingCompletedForUi,
+      canShowCloseApplicationButton,
+    ]
+  );
+
+  const canShowLeaveButton = useMemo(
+    () =>
+      Boolean(
+        canRenderTopActions &&
+        _isJoined &&
+        !isMeetingInProgress &&
+        !isMeetingCanceled &&
+        !isMeetingCompletedForUi
+      ),
+    [canRenderTopActions, _isJoined, isMeetingInProgress, isMeetingCanceled, isMeetingCompletedForUi]
+  );
+
+  const canShowEditButton = useMemo(
+    () =>
+      Boolean(
+        canRenderTopActions &&
+        isManager &&
+        !isMeetingCanceled &&
+        !isMeetingCompletedForUi
+      ),
+    [canRenderTopActions, isManager, isMeetingCanceled, isMeetingCompletedForUi]
+  );
+
+  const canShowCancelMeetingButton = useMemo(
+    () =>
+      Boolean(
+        canRenderTopActions &&
+        isManager &&
+        !isMeetingCanceled &&
+        !isMeetingInProgress &&
+        !isMeetingCompletedForUi
+      ),
+    [canRenderTopActions, isManager, isMeetingCanceled, isMeetingInProgress, isMeetingCompletedForUi]
+  );
+
+  const canShowCompleteRoundingButton = useMemo(
+    () =>
+      Boolean(
+        canRenderTopActions &&
+        isRoundingMeeting &&
+        isManager &&
+        !isMeetingCanceled &&
+        !meeting?.settlement_confirmed &&
+        isMeetingTimePassed &&
+        !isRoundingCompletedForUi
+      ),
+    [
+      canRenderTopActions,
+      isRoundingMeeting,
+      isManager,
+      isMeetingCanceled,
+      meeting?.settlement_confirmed,
+      isMeetingTimePassed,
+      isRoundingCompletedForUi,
+    ]
+  );
+
+  const canShowConfirmSettlementButton = useMemo(
+    () =>
+      Boolean(
+        canRenderTopActions &&
+        isRoundingMeeting &&
+        isManager &&
+        settlementFeatureEnabled &&
+        canSettleMeeting &&
+        !settlementBlockedMessage &&
+        !isMeetingCanceled &&
+        !meeting?.settlement_confirmed &&
+        isRoundingCompletedForUi
+      ),
+    [
+      canRenderTopActions,
+      isRoundingMeeting,
+      isManager,
+      settlementFeatureEnabled,
+      canSettleMeeting,
+      settlementBlockedMessage,
+      isMeetingCanceled,
+      meeting?.settlement_confirmed,
+      isRoundingCompletedForUi,
+    ]
+  );
+
   const visibleTabs = useMemo(
     () =>
       meetingDetailTabs.filter((tab) => {
@@ -1146,9 +1333,67 @@ export default function MeetingDetailScreen() {
     [isRoundingMeeting, participantCount, isApplicationClosed]
   );
 
-  const hasConfirmedTeams = useMemo(
-    () => teams.some((team) => String(team?.status || '').toUpperCase() === 'CONFIRMED'),
-    [teams]
+  const canShowParticipantManageActions = useMemo(
+    () =>
+      Boolean(
+        isRoundingMeeting &&
+        isManager &&
+        !isMeetingTimePassed &&
+        !isMeetingCanceled &&
+        !meeting?.settlement_confirmed
+      ),
+    [
+      isRoundingMeeting,
+      isManager,
+      isMeetingTimePassed,
+      isMeetingCanceled,
+      meeting?.settlement_confirmed,
+    ]
+  );
+
+  const canShowTeamConfirmButton = useMemo(
+    () => Boolean(canShowParticipantManageActions && canAccessTeamTab),
+    [canShowParticipantManageActions, canAccessTeamTab]
+  );
+
+  const isTeamConfirmDisabled = useMemo(
+    () => Boolean(processingAction || teams.length === 0 || isTeamFormationConfirmed),
+    [processingAction, teams.length, isTeamFormationConfirmed]
+  );
+
+  const canShowGuestAddButton = useMemo(
+    () => Boolean(canShowParticipantManageActions),
+    [canShowParticipantManageActions]
+  );
+
+  const canManageTeamsInTab = useMemo(
+    () =>
+      Boolean(
+        isRoundingMeeting &&
+        canAccessTeamTab &&
+        isManager &&
+        !isMeetingTimePassed &&
+        !isMeetingCanceled &&
+        !meeting?.settlement_confirmed
+      ),
+    [
+      isRoundingMeeting,
+      canAccessTeamTab,
+      isManager,
+      isMeetingTimePassed,
+      isMeetingCanceled,
+      meeting?.settlement_confirmed,
+    ]
+  );
+
+  const teamManagePrimaryLabel = useMemo(
+    () => (isTeamFormationConfirmed ? '팀 편성 수정' : '팀 편성 시작'),
+    [isTeamFormationConfirmed]
+  );
+
+  const handleTeamManagePrimary = useMemo(
+    () => (isTeamFormationConfirmed ? openTeamEditor : openTeamFormation),
+    [isTeamFormationConfirmed, openTeamEditor, openTeamFormation]
   );
 
   useEffect(() => {
@@ -1525,40 +1770,46 @@ export default function MeetingDetailScreen() {
           <View style={styles.topButtonsSection}>
             {canRenderTopActions ? (
               <View style={styles.topButtonsWrap}>
-                <Button
-                  style={[
-                    styles.topButtonBase,
-                    styles.topButtonJoin,
-                  ]}
-                  onPress={openJoinModal}
-                >
-                  <FontAwesome5 name="users" size={12} color={colors.white} />
-                  <Text style={styles.topButtonText}>참가 신청</Text>
-                </Button>
+                {canShowJoinButton ? (
+                  <Button
+                    style={[
+                      styles.topButtonBase,
+                      styles.topButtonJoin,
+                    ]}
+                    onPress={openJoinModal}
+                  >
+                    <FontAwesome5 name="users" size={12} color={colors.white} />
+                    <Text style={styles.topButtonText}>참가 신청</Text>
+                  </Button>
+                ) : null}
 
-                <Button
-                  style={[
-                    styles.topButtonBase,
-                    styles.topButtonDanger,
-                  ]}
-                  onPress={handleLeave}
-                >
-                  <FontAwesome5 name="users" size={12} color={colors.white} />
-                  <Text style={styles.topButtonText}>참가신청 취소</Text>
-                </Button>
+                {canShowLeaveButton ? (
+                  <Button
+                    style={[
+                      styles.topButtonBase,
+                      styles.topButtonDanger,
+                    ]}
+                    onPress={handleLeave}
+                  >
+                    <FontAwesome5 name="users" size={12} color={colors.white} />
+                    <Text style={styles.topButtonText}>참가신청 취소</Text>
+                  </Button>
+                ) : null}
 
-                <Button
-                  style={[
-                    styles.topButtonBase,
-                    styles.topButtonEdit,
-                  ]}
-                  onPress={handleEditMeeting}
-                >
-                  <FontAwesome5 name="edit" size={12} color={colors.white} />
-                  <Text style={styles.topButtonText}>수정</Text>
-                </Button>
+                {canShowEditButton ? (
+                  <Button
+                    style={[
+                      styles.topButtonBase,
+                      styles.topButtonEdit,
+                    ]}
+                    onPress={handleEditMeeting}
+                  >
+                    <FontAwesome5 name="edit" size={12} color={colors.white} />
+                    <Text style={styles.topButtonText}>수정</Text>
+                  </Button>
+                ) : null}
 
-                {isRoundingMeeting ? (
+                {canShowCloseApplicationButton ? (
                   <Button
                     style={[
                       styles.topButtonBase,
@@ -1572,18 +1823,48 @@ export default function MeetingDetailScreen() {
                   </Button>
                 ) : null}
 
-                <Button
-                  style={[
-                    styles.topButtonBase,
-                    styles.topButtonDanger,
-                    processingAction && styles.topButtonDisabled,
-                  ]}
-                  onPress={handleCancelMeeting}
-                  disabled={processingAction}
-                >
-                  <FontAwesome5 name="times" size={12} color={colors.white} />
-                  <Text style={styles.topButtonText}>모임 취소</Text>
-                </Button>
+                {canShowCompleteRoundingButton ? (
+                  <Button
+                    style={[
+                      styles.topButtonBase,
+                      styles.topButtonOrange,
+                      processingAction && styles.topButtonDisabled,
+                    ]}
+                    onPress={handleCompleteRounding}
+                    disabled={processingAction}
+                  >
+                    <Text style={styles.topButtonText}>라운딩 종료</Text>
+                  </Button>
+                ) : null}
+
+                {canShowConfirmSettlementButton ? (
+                  <Button
+                    style={[
+                      styles.topButtonBase,
+                      styles.topButtonPurple,
+                      processingAction && styles.topButtonDisabled,
+                    ]}
+                    onPress={handleConfirmSettlement}
+                    disabled={processingAction}
+                  >
+                    <Text style={styles.topButtonText}>정산 완료 처리</Text>
+                  </Button>
+                ) : null}
+
+                {canShowCancelMeetingButton ? (
+                  <Button
+                    style={[
+                      styles.topButtonBase,
+                      styles.topButtonDanger,
+                      processingAction && styles.topButtonDisabled,
+                    ]}
+                    onPress={handleCancelMeeting}
+                    disabled={processingAction}
+                  >
+                    <FontAwesome5 name="times" size={12} color={colors.white} />
+                    <Text style={styles.topButtonText}>모임 취소</Text>
+                  </Button>
+                ) : null}
               </View>
             ) : null}
           </View>
@@ -1645,12 +1926,6 @@ export default function MeetingDetailScreen() {
             isManager={isManager}
             applicationStatus={applicationStatus}
             settlementEnabled={settlementFeatureEnabled}
-            onCloseApplicationEarly={handleOpenCloseApplicationModal}
-            onAutoFormTeams={openTeamFormation}
-            onConfirmTeamFormation={handleConfirmTeams}
-            onStartRounding={handleStartRounding}
-            onCompleteRounding={handleCompleteRounding}
-            onCompleteMeeting={settlementFeatureEnabled ? handleConfirmSettlement : undefined}
           />
         )}
 
@@ -1685,9 +1960,7 @@ export default function MeetingDetailScreen() {
         <Card style={styles.tabsContainerCard}>
           <View style={styles.tabRow}>
             {visibleTabs.map((tab) => {
-              const disabled =
-                tab.key === 'teams' &&
-                (!canAccessTeamTab || (teams.length === 0 && !hasConfirmedTeams));
+              const disabled = tab.key === 'teams' && !canAccessTeamTab;
 
               return (
                 <Pressable
@@ -1747,66 +2020,40 @@ export default function MeetingDetailScreen() {
                       ) : null}
                     </View>
 
-                    {isRoundingMeeting ? (
+                    {canShowParticipantManageActions ? (
                       <View style={styles.participantManageActions}>
-                        <Pressable
-                          style={({ pressed }) => [
-                            styles.manageActionButtonBase,
-                            styles.manageActionButtonRed,
-                            processingAction && styles.manageActionButtonDisabled,
-                            pressed && !processingAction && styles.manageActionButtonPressed,
-                          ]}
-                          onPress={handleConfirmTeams}
-                          disabled={processingAction}
-                        >
-                          <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
-                            팀 편성 확정
-                          </Text>
-                        </Pressable>
-                        <Pressable
-                          style={({ pressed }) => [
-                            styles.manageActionButtonBase,
-                            styles.manageActionButtonGreen,
-                            processingAction && styles.manageActionButtonDisabled,
-                            pressed && !processingAction && styles.manageActionButtonPressed,
-                          ]}
-                          onPress={handleOpenGuestModal}
-                          disabled={processingAction}
-                        >
-                          <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
-                            게스트 추가
-                          </Text>
-                        </Pressable>
-                        <Pressable
-                          style={({ pressed }) => [
-                            styles.manageActionButtonBase,
-                            styles.manageActionButtonBlue,
-                            processingAction && styles.manageActionButtonDisabled,
-                            pressed && !processingAction && styles.manageActionButtonPressed,
-                          ]}
-                          onPress={openTeamFormation}
-                          disabled={processingAction}
-                        >
-                          <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
-                            팀 편성 시작
-                          </Text>
-                        </Pressable>
-                        
-                        <Pressable
-                          style={({ pressed }) => [
-                            styles.manageActionButtonBase,
-                            styles.manageActionButtonIndigo,
-                            processingAction && styles.manageActionButtonDisabled,
-                            pressed && !processingAction && styles.manageActionButtonPressed,
-                          ]}
-                          onPress={openHistory}
-                          disabled={processingAction}
-                        >
-                          <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
-                            편성 히스토리
-                          </Text>
-                        </Pressable>
-                    
+                        {canShowTeamConfirmButton ? (
+                          <Pressable
+                            style={({ pressed }) => [
+                              styles.manageActionButtonBase,
+                              styles.manageActionButtonRed,
+                              isTeamConfirmDisabled && styles.manageActionButtonDisabled,
+                              pressed && !isTeamConfirmDisabled && styles.manageActionButtonPressed,
+                            ]}
+                            onPress={handleConfirmTeams}
+                            disabled={isTeamConfirmDisabled}
+                          >
+                            <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
+                              팀 편성 확정
+                            </Text>
+                          </Pressable>
+                        ) : null}
+                        {canShowGuestAddButton ? (
+                          <Pressable
+                            style={({ pressed }) => [
+                              styles.manageActionButtonBase,
+                              styles.manageActionButtonGreen,
+                              processingAction && styles.manageActionButtonDisabled,
+                              pressed && !processingAction && styles.manageActionButtonPressed,
+                            ]}
+                            onPress={handleOpenGuestModal}
+                            disabled={processingAction}
+                          >
+                            <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
+                              게스트 추가
+                            </Text>
+                          </Pressable>
+                        ) : null}
                       </View>
                     ) : null}
 
@@ -1854,22 +2101,40 @@ export default function MeetingDetailScreen() {
                     </Text>
                   </View>
                 ) : null}
-                <View style={styles.teamEditRow}>
-                  <Pressable
-                    style={({ pressed }) => [
-                      styles.manageActionButtonBase,
-                      styles.manageActionButtonBlue,
-                      processingAction && styles.manageActionButtonDisabled,
-                      pressed && !processingAction && styles.manageActionButtonPressed,
-                    ]}
-                    onPress={openTeamEditor}
-                    disabled={processingAction}
-                  >
-                    <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
-                      팀 편성 수정
-                    </Text>
-                  </Pressable>
-                </View>
+                {canManageTeamsInTab ? (
+                  <View style={styles.teamEditRow}>
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.manageActionButtonBase,
+                        styles.manageActionButtonBlue,
+                        processingAction && styles.manageActionButtonDisabled,
+                        pressed && !processingAction && styles.manageActionButtonPressed,
+                      ]}
+                      onPress={handleTeamManagePrimary}
+                      disabled={processingAction}
+                    >
+                      <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
+                        {teamManagePrimaryLabel}
+                      </Text>
+                    </Pressable>
+                    {formationHistory.length > 0 ? (
+                      <Pressable
+                        style={({ pressed }) => [
+                          styles.manageActionButtonBase,
+                          styles.manageActionButtonIndigo,
+                          processingAction && styles.manageActionButtonDisabled,
+                          pressed && !processingAction && styles.manageActionButtonPressed,
+                        ]}
+                        onPress={openHistory}
+                        disabled={processingAction}
+                      >
+                        <Text style={[styles.manageActionTextBase, styles.manageActionTextWhite]}>
+                          편성 히스토리
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                  </View>
+                ) : null}
                 {teams.length === 0 ? (
                   <View style={styles.teamEmptyState}>
                     <Text style={styles.emptyText}>생성된 팀이 없습니다.</Text>
@@ -1902,7 +2167,11 @@ export default function MeetingDetailScreen() {
                     await fetchMeeting();
                     await fetchSettlement();
                   }}
-                  onConfirmSettlement={settlementFeatureEnabled ? handleConfirmSettlement : undefined}
+                  onConfirmSettlement={
+                    isRoundingMeeting
+                      ? (canShowConfirmSettlementButton ? handleConfirmSettlement : undefined)
+                      : (settlementFeatureEnabled ? handleConfirmSettlement : undefined)
+                  }
                   onSyncMeetingToSettlement={handleSyncMeetingToSettlement}
                   meeting={meeting}
                 />
@@ -2242,6 +2511,15 @@ const styles = StyleSheet.create({
   },
   topButtonWarning: {
     backgroundColor: colors.warning[600],
+  },
+  topButtonBlue: {
+    backgroundColor: colors.blue[600],
+  },
+  topButtonOrange: {
+    backgroundColor: colors.warning[700],
+  },
+  topButtonPurple: {
+    backgroundColor: colors.violet[600],
   },
   topButtonDanger: {
     backgroundColor: colors.error[600],
@@ -2618,7 +2896,10 @@ const styles = StyleSheet.create({
     fontWeight: tokens.fontWeight.semibold,
   },
   teamEditRow: {
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+    gap: 8,
     marginBottom: tokens.spacing.xs2,
   },
   teamEmptyState: {
