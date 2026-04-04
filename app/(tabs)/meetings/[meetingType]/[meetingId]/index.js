@@ -799,12 +799,16 @@ export default function MeetingDetailScreen() {
     () => async () => {
       const guestName = guestForm.name.trim();
       if (!guestName) {
-        Alert.alert('확인', '게스트 이름을 입력해주세요.');
+        setTimeout(() => {
+          Alert.alert('확인', '게스트 이름을 입력해주세요.');
+        }, 0);
         return;
       }
       const averageScoreError = getAverageScoreInitError(guestForm.average_score);
       if (averageScoreError) {
-        Alert.alert('확인', averageScoreError);
+        setTimeout(() => {
+          Alert.alert('확인', averageScoreError);
+        }, 0);
         return;
       }
       const calculatedHandicap = calcHandicapFromAvg(guestForm.average_score);
