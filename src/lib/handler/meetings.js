@@ -1021,7 +1021,9 @@ export function createSubmitHandler({
         const errors = validateForm({ form, participantType });
         setFieldErrors(errors);
         if (Object.keys(errors).length > 0) {
-            alert('확인 필요', '입력 항목을 확인해주세요.');
+            setTimeout(() => {
+                alert('확인 필요', '입력 항목을 확인해주세요.');
+            }, 0);
             return;
         }
 
