@@ -222,10 +222,12 @@ async function deleteTeam(roundId, teamId) {
   return apiClient.delete(`/rounds/${roundId}/teams/${teamId}`);
 }
 
-async function addTeamMember(roundId, teamId, userId) {
-  return apiClient.post(`/rounds/${roundId}/teams/${teamId}/members`, {
-    user_id: userId,
-  });
+async function updateRoundTeamsBulk(roundId, data) {
+  return apiClient.put(`/rounds/${roundId}/teams`, data);
+}
+
+async function addTeamMember(roundId, teamId, memberData) {
+  return apiClient.post(`/rounds/${roundId}/teams/${teamId}/members`, memberData);
 }
 
 async function removeTeamMember(roundId, teamId, memberId) {
@@ -419,6 +421,7 @@ export const roundsApi = {
   getRoundTeams,
   createTeam,
   deleteTeam,
+  updateRoundTeamsBulk,
   addTeamMember,
   removeTeamMember,
   autoFormTeams,

@@ -144,7 +144,9 @@ export function createFetchTeamsHandler({ meetingIdValue, isRoundingMeeting, fet
 
         try {
             const response = await fetchRoundTeams(meetingIdValue);
-            setTeams(extractList(response));
+            const list = extractList(response);
+            setTeams(list);
+            return list;
         } catch (error) {
             console.error('팀 조회 실패:', error);
         }
