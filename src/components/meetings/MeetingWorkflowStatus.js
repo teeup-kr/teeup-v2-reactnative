@@ -170,6 +170,7 @@ export default function MeetingWorkflowStatus({
     onCompleteRounding ||
     (settlementEnabled !== false && onCompleteMeeting)
   );
+  const hasExistingTeams = teams.length > 0;
 
   return (
     <View style={styles.container}>
@@ -222,12 +223,12 @@ export default function MeetingWorkflowStatus({
             <Button
               style={[
                 styles.actionButtonBase,
-                styles.actionButtonBlue,
+                hasExistingTeams ? styles.actionButtonGreen : styles.actionButtonBlue,
               ]}
               onPress={onAutoFormTeams}
               textStyle={[styles.actionButtonText, styles.actionButtonTextWhite]}
             >
-              팀 편성 시작
+              {hasExistingTeams ? '다시 편성하기' : '팀 편성 시작'}
             </Button>
           ) : null}
           {/* {onConfirmTeamFormation ? (

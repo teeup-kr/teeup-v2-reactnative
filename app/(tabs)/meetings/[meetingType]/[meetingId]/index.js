@@ -1338,6 +1338,7 @@ export default function MeetingDetailScreen() {
       Boolean(
         isRoundingMeeting &&
         isManager &&
+        !isMeetingInProgress &&
         !isMeetingTimePassed &&
         !isMeetingCanceled &&
         !meeting?.settlement_confirmed
@@ -1345,6 +1346,7 @@ export default function MeetingDetailScreen() {
     [
       isRoundingMeeting,
       isManager,
+      isMeetingInProgress,
       isMeetingTimePassed,
       isMeetingCanceled,
       meeting?.settlement_confirmed,
@@ -1372,6 +1374,7 @@ export default function MeetingDetailScreen() {
         isRoundingMeeting &&
         canAccessTeamTab &&
         isManager &&
+        !isMeetingInProgress &&
         !isMeetingTimePassed &&
         !isMeetingCanceled &&
         !meeting?.settlement_confirmed
@@ -1380,6 +1383,7 @@ export default function MeetingDetailScreen() {
       isRoundingMeeting,
       canAccessTeamTab,
       isManager,
+      isMeetingInProgress,
       isMeetingTimePassed,
       isMeetingCanceled,
       meeting?.settlement_confirmed,
@@ -1387,8 +1391,8 @@ export default function MeetingDetailScreen() {
   );
 
   const teamManagePrimaryLabel = useMemo(
-    () => (isTeamFormationConfirmed ? '팀 편성 수정' : '팀 편성 시작'),
-    [isTeamFormationConfirmed]
+    () => (teams.length > 0 ? '다시 편성하기' : '팀 편성 시작'),
+    [teams.length]
   );
 
   const handleTeamManagePrimary = useMemo(
@@ -2106,7 +2110,7 @@ export default function MeetingDetailScreen() {
                     <Pressable
                       style={({ pressed }) => [
                         styles.manageActionButtonBase,
-                        styles.manageActionButtonBlue,
+                        teams.length > 0 ? styles.manageActionButtonGreen : styles.manageActionButtonBlue,
                         processingAction && styles.manageActionButtonDisabled,
                         pressed && !processingAction && styles.manageActionButtonPressed,
                       ]}
