@@ -1311,7 +1311,7 @@ export function RoundingForm({ mode = 'create' }) {
                 </Text>
               ) : (
                 <Text style={styles.settlementNotice}>
-                  이 클럽은 정산 기능이 꺼져 있습니다. 비용은 안내용으로만 저장됩니다.
+                  클럽은 정산 기능이 꺼져 있습니다. 비용은 안내용으로만 저장됩니다.
                 </Text>
               )}
 

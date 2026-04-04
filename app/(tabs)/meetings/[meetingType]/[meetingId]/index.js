@@ -1935,7 +1935,7 @@ export default function MeetingDetailScreen() {
             <Text style={styles.socialManageHint}>
               {settlementFeatureEnabled
                 ? '모임이 완료되면 정산 정보를 입력할 수 있습니다.'
-                : '모임 완료 처리로 마무리할 수 있습니다. (이 클럽은 정산 기능이 꺼져 있습니다.)'}
+                : '모임 완료 처리로 마무리할 수 있습니다. (클럽은 정산 기능이 꺼져 있습니다.)'}
             </Text>
             <View style={styles.actionRow}>
               <Pressable
