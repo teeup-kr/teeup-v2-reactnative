@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -46,6 +47,19 @@ function formatGenderLabel(gender) {
   if (value === 'MALE' || value === 'M') return '남';
   if (value === 'FEMALE' || value === 'F') return '여';
   return null;
+}
+
+function formatRecordDateTime(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 export default function ClubMemberManageScreen() {
@@ -404,6 +418,77 @@ export default function ClubMemberManageScreen() {
             <Text style={styles.recordRowText}>
               최근 라운드: {recordSummary?.recent_rounds_count ?? recordSummary?.recentRoundsCount ?? '-'}
             </Text>
+            <Text style={styles.recordHistoryHeading}>클럽 라운딩 기록 내역</Text>
+            {Array.isArray(recordSummary?.rounding_history) && recordSummary.rounding_history.length > 0 ? (
+              <View>
+                {recordSummary.rounding_history.map((row, historyIndex) => {
+                  const when =
+                    formatRecordDateTime(row?.played_at) ||
+                    formatRecordDateTime(row?.meeting_time) ||
+                    '-';
+                  const grossNum = row?.gross_score;
+                  const grossLabel = grossNum != null ? String(grossNum) : '—';
+                  const net =
+                    row?.net_score != null && row.net_score !== undefined
+                      ? Number(row.net_score).toFixed(1)
+                      : null;
+                  const usedHc =
+                    row?.handicap_used != null && row.handicap_used !== undefined
+                      ? Number(row.handicap_used).toFixed(1)
+                      : null;
+                  const place = row?.course_name?.trim?.() ? row.course_name.trim() : null;
+
+                  return (
+                    <View key={`rounding-history-${historyIndex}`} style={styles.recordHistoryCard}>
+                      <View style={styles.recordHistoryAccent} />
+                      <View style={styles.recordHistoryCardInner}>
+                        <View style={styles.recordHistoryHeaderRow}>
+                          <View style={styles.recordHistoryTitleCol}>
+                            <Text style={styles.recordHistoryTitle} numberOfLines={2}>
+                              {row?.meeting_name || '라운딩'}
+                            </Text>
+                            <View style={styles.recordHistoryDateRow}>
+                              <FontAwesome5 name="calendar-alt" size={11} color={colors.neutral[500]} />
+                              <Text style={styles.recordHistoryMeta}>{when}</Text>
+                            </View>
+                          </View>
+                          <View style={styles.recordHistoryGrossBlock}>
+                            <Text style={styles.recordHistoryGrossNum}>{grossLabel}</Text>
+                            <Text style={styles.recordHistoryGrossUnit}>타</Text>
+                          </View>
+                        </View>
+                        {(net != null || usedHc != null) ? (
+                          <View style={styles.recordHistoryChipRow}>
+                            {net != null ? (
+                              <View style={[styles.recordHistoryChip, styles.recordHistoryChipNet]}>
+                                <Text style={styles.recordHistoryChipLabel}>넷</Text>
+                                <Text style={styles.recordHistoryChipValue}>{net}</Text>
+                              </View>
+                            ) : null}
+                            {usedHc != null ? (
+                              <View style={[styles.recordHistoryChip, styles.recordHistoryChipHc]}>
+                                <Text style={styles.recordHistoryChipLabel}>사용핸디</Text>
+                                <Text style={styles.recordHistoryChipValue}>{usedHc}</Text>
+                              </View>
+                            ) : null}
+                          </View>
+                        ) : null}
+                        {place ? (
+                          <View style={styles.recordHistoryPlaceRow}>
+                            <FontAwesome5 name="map-marker-alt" size={11} color={colors.primary[600]} />
+                            <Text style={styles.recordHistoryPlace} numberOfLines={2}>
+                              {place}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <Text style={styles.recordHistoryEmpty}>클럽 공개 라운딩 기록이 없습니다.</Text>
+            )}
           </View>
         ) : (
           <Text style={styles.stateText}>표시할 기록이 없습니다.</Text>
@@ -520,5 +605,145 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.base,
     color: colors.neutral[800],
     marginBottom: tokens.spacing.xs2,
+  },
+  recordHistoryHeading: {
+    fontSize: tokens.font.sm,
+    fontWeight: tokens.fontWeight.semibold,
+    color: colors.neutral[900],
+    marginBottom: tokens.spacing.sm,
+    marginTop: tokens.spacing.xs,
+  },
+  recordHistoryCard: {
+    flexDirection: 'row',
+    marginBottom: tokens.spacing.sm,
+    borderRadius: tokens.radius.lg,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.neutral[900],
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06,
+        shadowRadius: 4,
+      },
+      android: { elevation: 2 },
+      default: {},
+    }),
+  },
+  recordHistoryAccent: {
+    width: 4,
+    backgroundColor: colors.primary[600],
+  },
+  recordHistoryCardInner: {
+    flex: 1,
+    paddingVertical: tokens.padding.sm,
+    paddingHorizontal: tokens.padding.sm,
+    paddingLeft: tokens.padding.md,
+  },
+  recordHistoryHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  recordHistoryTitleCol: {
+    flex: 1,
+    minWidth: 0,
+    marginRight: tokens.spacing.sm,
+  },
+  recordHistoryTitle: {
+    fontSize: tokens.font.base,
+    fontWeight: tokens.fontWeight.semibold,
+    color: colors.neutral[900],
+    lineHeight: 22,
+  },
+  recordHistoryDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: tokens.spacing.xs2,
+  },
+  recordHistoryMeta: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
+    marginLeft: 6,
+  },
+  recordHistoryGrossBlock: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 52,
+    paddingVertical: tokens.spacing.xs2,
+    paddingHorizontal: tokens.spacing.sm,
+    borderRadius: tokens.radius.base,
+    backgroundColor: colors.primary[50],
+    borderWidth: 1,
+    borderColor: colors.primary[200],
+  },
+  recordHistoryGrossNum: {
+    fontSize: tokens.font.display,
+    fontWeight: tokens.fontWeight.bold,
+    color: colors.primary[800],
+    lineHeight: 24,
+  },
+  recordHistoryGrossUnit: {
+    fontSize: tokens.font.xxs,
+    fontWeight: tokens.fontWeight.semibold,
+    color: colors.primary[700],
+    marginTop: -2,
+  },
+  recordHistoryChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: tokens.spacing.sm,
+    marginHorizontal: -4,
+  },
+  recordHistoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 4,
+    marginBottom: 4,
+    paddingVertical: 4,
+    paddingHorizontal: tokens.padding.sm,
+    borderRadius: tokens.radius.base,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  recordHistoryChipNet: {
+    backgroundColor: colors.neutral[50],
+    borderColor: colors.neutral[200],
+  },
+  recordHistoryChipHc: {
+    backgroundColor: colors.accent[50],
+    borderColor: colors.accent[200],
+  },
+  recordHistoryChipLabel: {
+    fontSize: tokens.font.xxs,
+    fontWeight: tokens.fontWeight.semibold,
+    color: colors.neutral[600],
+  },
+  recordHistoryChipValue: {
+    fontSize: tokens.font.xs,
+    fontWeight: tokens.fontWeight.semibold,
+    color: colors.neutral[800],
+    marginLeft: 6,
+  },
+  recordHistoryPlaceRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: tokens.spacing.sm,
+    paddingTop: tokens.spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.neutral[100],
+  },
+  recordHistoryPlace: {
+    flex: 1,
+    fontSize: tokens.font.xs,
+    color: colors.neutral[600],
+    lineHeight: 18,
+    marginLeft: 6,
+  },
+  recordHistoryEmpty: {
+    fontSize: tokens.font.sm,
+    color: colors.neutral[500],
+    paddingVertical: tokens.spacing.sm,
   },
 });

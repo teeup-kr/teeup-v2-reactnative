@@ -356,7 +356,7 @@ export default function HomeScreen() {
 
           <Pressable
             style={styles.summaryCard}
-            onPress={() => navigateWithCap(router, '/mypage?tab=meetings')}
+            onPress={() => navigateWithCap(router, '/mypage?tab=records')}
           >
             <Text style={styles.summaryTitle}>라운드 기록하기</Text>
             <Text style={styles.summarySubText}>스코어 등록</Text>
