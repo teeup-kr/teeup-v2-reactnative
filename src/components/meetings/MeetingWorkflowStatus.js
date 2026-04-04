@@ -33,6 +33,7 @@ export default function MeetingWorkflowStatus({
   meeting,
   participants = [],
   teams = [],
+  isManager = false,
   applicationStatus,
   isApplicationDeadlinePassed,
   isApplicationClosedEarly,
@@ -110,6 +111,31 @@ export default function MeetingWorkflowStatus({
     if (!meeting.application_deadline) return false;
     return isPastDateTime(meeting.application_deadline);
   }, [meeting, isApplicationClosedEarly]);
+
+  const isMeetingTimePassed = useMemo(() => {
+    if (!meeting?.meeting_time) return false;
+    return isPastDateTime(meeting.meeting_time);
+  }, [meeting?.meeting_time]);
+
+  const canShowAutoFormTeams = useMemo(
+    () =>
+      Boolean(
+        onAutoFormTeams &&
+        isManager &&
+        isApplicationClosed &&
+        !isMeetingTimePassed &&
+        meeting?.status !== 'CANCELED' &&
+        !meeting?.settlement_confirmed
+      ),
+    [
+      onAutoFormTeams,
+      isManager,
+      isApplicationClosed,
+      isMeetingTimePassed,
+      meeting?.status,
+      meeting?.settlement_confirmed,
+    ],
+  );
 
   const participantCount = useMemo(() => {
     const count = applicationStatus?.participant_count;
@@ -219,7 +245,7 @@ export default function MeetingWorkflowStatus({
               신청 마감하기
             </Button>
           ) : null}
-          {onAutoFormTeams ? (
+          {canShowAutoFormTeams ? (
             <Button
               style={[
                 styles.actionButtonBase,

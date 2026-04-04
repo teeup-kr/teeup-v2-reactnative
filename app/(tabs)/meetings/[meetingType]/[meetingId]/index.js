@@ -876,97 +876,32 @@ export default function MeetingDetailScreen() {
 
         try {
           setProcessingAction(true);
-          const previousTeams = Array.isArray(teams) ? teams : [];
           const nextTeams = Array.isArray(updatedTeams) ? updatedTeams : [];
-
-          const previousById = new Map(
-            previousTeams
-              .filter((team) => team?.id)
-              .map((team) => [team.id, team])
-          );
-          const nextIds = new Set(
-            nextTeams
-              .filter((team) => team?.id)
-              .map((team) => team.id)
-          );
-
-          // 삭제된 팀 처리
-          const removedTeamIds = [...previousById.keys()].filter((teamId) => !nextIds.has(teamId));
-          for (const teamId of removedTeamIds) {
-            await roundsApi.deleteTeamByMeeting(teamId);
-          }
-
-          // 기존 팀 수정 및 멤버 동기화
-          for (const team of nextTeams.filter((item) => item?.id)) {
-            const teamId = team.id;
-            const previousTeam = previousById.get(teamId) || {};
-            const nextName = team?.name || '';
-            const previousName = previousTeam?.name || previousTeam?.team_name || '';
-
-            if (nextName && nextName !== previousName) {
-              await roundsApi.updateTeam(teamId, { name: nextName });
-            }
-
-            const previousMembers = previousTeam?.members || previousTeam?.team_members || [];
-            const nextMembers = team?.members || team?.team_members || [];
-
-            const previousMemberByUserId = new Map(
-              previousMembers
-                .map((member) => [member?.user_id, member])
-                .filter(([userId]) => Boolean(userId))
-            );
-            const nextUserIds = new Set(
-              nextMembers
-                .map((member) => member?.user_id)
-                .filter(Boolean)
-            );
-
-            for (const [userId, member] of previousMemberByUserId.entries()) {
-              if (!nextUserIds.has(userId)) {
-                const teamMemberId = member?.id || member?.team_member_id;
-                if (teamMemberId) {
-                  await roundsApi.removeTeamMember(meetingIdValue, teamId, teamMemberId);
-                }
-              }
-            }
-
-            const previousUserIds = new Set(previousMemberByUserId.keys());
-            for (const member of nextMembers) {
-              const userId = member?.user_id;
-              if (userId && !previousUserIds.has(userId)) {
-                await roundsApi.addTeamMember(meetingIdValue, teamId, userId);
-              }
-            }
-          }
-
-          // 신규 팀 생성
-          for (const [index, team] of nextTeams.filter((item) => !item?.id).entries()) {
-            const response = await roundsApi.createTeamByMeeting(meetingIdValue, {
+          const buildMemberPayload = (member) => {
+            if (member?.guest_id) return { guest_id: member.guest_id };
+            if (member?.user_id) return { user_id: member.user_id };
+            return null;
+          };
+          const response = await roundsApi.updateRoundTeamsBulk(meetingIdValue, {
+            teams: nextTeams.map((team, index) => ({
               name: team?.name || `팀 ${index + 1}`,
-            });
-            const createdTeam = extractData(response);
-            const createdTeamId = createdTeam?.id || createdTeam?.team_id;
-            if (!createdTeamId) continue;
-
-            const members = team?.members || team?.team_members || [];
-            for (const member of members) {
-              const userId = member?.user_id;
-              if (userId) {
-                await roundsApi.addTeamMember(meetingIdValue, createdTeamId, userId);
-              }
-            }
-          }
-
-          await fetchTeams();
+              members: (team?.members || team?.team_members || [])
+                .map((member) => buildMemberPayload(member))
+                .filter(Boolean),
+            })),
+          });
+          const refreshedTeams = extractList(response);
+          setTeams(refreshedTeams);
           fetchMeeting();
-          setTeamEditorOpen(false);
+          Alert.alert('완료', '팀 편성을 저장했습니다.');
+          return refreshedTeams;
         } catch (teamSaveError) {
           Alert.alert('오류', teamSaveError?.message || '팀 편집 저장에 실패했습니다.');
         } finally {
           setProcessingAction(false);
         }
       },
-    [isRoundingMeeting, meetingIdValue, teams, fetchTeams, fetchMeeting, ensureMeetingProfile]
+    [isRoundingMeeting, meetingIdValue, fetchMeeting, ensureMeetingProfile, setTeams]
   );
 
   const handleBatchViewDetail = useMemo(
@@ -1378,7 +1313,6 @@ export default function MeetingDetailScreen() {
         isRoundingMeeting &&
         canAccessTeamTab &&
         isManager &&
-        !isMeetingInProgress &&
         !isMeetingTimePassed &&
         !isMeetingCanceled &&
         !meeting?.settlement_confirmed
@@ -1387,7 +1321,6 @@ export default function MeetingDetailScreen() {
       isRoundingMeeting,
       canAccessTeamTab,
       isManager,
-      isMeetingInProgress,
       isMeetingTimePassed,
       isMeetingCanceled,
       meeting?.settlement_confirmed,
@@ -1400,8 +1333,8 @@ export default function MeetingDetailScreen() {
   );
 
   const handleTeamManagePrimary = useMemo(
-    () => (isTeamFormationConfirmed ? openTeamEditor : openTeamFormation),
-    [isTeamFormationConfirmed, openTeamEditor, openTeamFormation]
+    () => (teams.length > 0 ? openTeamEditor : openTeamFormation),
+    [teams.length, openTeamEditor, openTeamFormation]
   );
 
   useEffect(() => {
