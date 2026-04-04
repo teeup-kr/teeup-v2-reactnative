@@ -852,7 +852,13 @@ export default function MeetingDetailScreen() {
   const openTeamFormation = useMemo(() => () => setTeamFormationOpen(true), []);
   const closeTeamFormation = useMemo(() => () => setTeamFormationOpen(false), []);
   const openTeamEditor = useMemo(() => () => setTeamEditorOpen(true), []);
-  const closeTeamEditor = useMemo(() => () => setTeamEditorOpen(false), []);
+  const closeTeamEditor = useMemo(
+    () => () => {
+      setTeamEditorOpen(false);
+      fetchTeams();
+    },
+    [fetchTeams]
+  );
   const openHistory = useMemo(() => () => setHistoryOpen(true), []);
   const closeHistory = useMemo(() => () => setHistoryOpen(false), []);
   const openBatchFormation = useMemo(() => () => setBatchFormationOpen(true), []);
