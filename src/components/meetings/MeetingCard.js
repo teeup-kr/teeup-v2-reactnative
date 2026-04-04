@@ -139,17 +139,6 @@ export default function MeetingCard({ meeting, onPress, styles, currentUserId })
           </View>
         )}
 
-        {meetingType === 'SOCIAL' && meeting?.social_cost ? (
-          <View style={styles.extraList}>
-            <View style={styles.metaItem}>
-              <FontAwesome5 name="dollar-sign" size={12} color={colors.neutral[500]} />
-              <Text style={styles.metaText}>
-                참가 비용(원): {formatCost(meeting.social_cost)}
-              </Text>
-            </View>
-          </View>
-        ) : null}
-
         <View style={styles.cardFooter}>
           <Text style={styles.cardDate}>
             {meeting?.created_at
