@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 import { getErrorMessage } from '@/lib/api/apiClient';
 import { getMeetingTypeValue } from '@/lib/util/meetingUtils';
 import { ensureProfileCompleted } from '@/lib/util/mypageUtils';
@@ -1021,6 +1023,10 @@ export function createSubmitHandler({
         const errors = validateForm({ form, participantType });
         setFieldErrors(errors);
         if (Object.keys(errors).length > 0) {
+            if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                window.alert('입력 항목을 확인해주세요.');
+                return;
+            }
             setTimeout(() => {
                 alert('확인 필요', '입력 항목을 확인해주세요.');
             }, 0);
