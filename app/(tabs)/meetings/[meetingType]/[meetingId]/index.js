@@ -870,9 +870,9 @@ export default function MeetingDetailScreen() {
   const handleTeamsSave = useMemo(
     () =>
       async (updatedTeams) => {
-        if (!isRoundingMeeting || !meetingIdValue) return;
+        if (!isRoundingMeeting || !meetingIdValue) return false;
         const isCompleted = await ensureMeetingProfile();
-        if (!isCompleted) return;
+        if (!isCompleted) return false;
 
         try {
           setProcessingAction(true);
@@ -882,7 +882,7 @@ export default function MeetingDetailScreen() {
             if (member?.user_id) return { user_id: member.user_id };
             return null;
           };
-          const response = await roundsApi.updateRoundTeamsBulk(meetingIdValue, {
+          await roundsApi.updateRoundTeamsBulk(meetingIdValue, {
             teams: nextTeams.map((team, index) => ({
               name: team?.name || `팀 ${index + 1}`,
               members: (team?.members || team?.team_members || [])
@@ -890,18 +890,16 @@ export default function MeetingDetailScreen() {
                 .filter(Boolean),
             })),
           });
-          const refreshedTeams = extractList(response);
-          setTeams(refreshedTeams);
-          fetchMeeting();
           Alert.alert('완료', '팀 편성을 저장했습니다.');
-          return refreshedTeams;
+          return true;
         } catch (teamSaveError) {
           Alert.alert('오류', teamSaveError?.message || '팀 편집 저장에 실패했습니다.');
+          return false;
         } finally {
           setProcessingAction(false);
         }
       },
-    [isRoundingMeeting, meetingIdValue, fetchMeeting, ensureMeetingProfile, setTeams]
+    [isRoundingMeeting, meetingIdValue, ensureMeetingProfile]
   );
 
   const handleBatchViewDetail = useMemo(

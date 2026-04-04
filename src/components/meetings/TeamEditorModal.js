@@ -531,16 +531,19 @@ export default function TeamEditorModal({
 
   const handleSave = async () => {
     if (!onSave || !canSave) return;
-    const refreshedTeams = await onSave(draftTeams);
-    if (Array.isArray(refreshedTeams)) {
-      const builtTeams = buildTeams(refreshedTeams);
-      setDraftTeams(builtTeams);
-      setBaselineTeams(builtTeams);
-      nextTeamIndexRef.current = builtTeams.length + 1;
-      setMovingMember(null);
-      setEditingTeamKey(null);
-      setTeamNameInput('');
-    }
+    const saved = await onSave(draftTeams);
+    if (!saved) return;
+
+    const committedTeams = draftTeams.map((team) => ({
+      ...team,
+      members: [...(team.members || [])],
+    }));
+    setDraftTeams(committedTeams);
+    setBaselineTeams(committedTeams);
+    nextTeamIndexRef.current = committedTeams.length + 1;
+    setMovingMember(null);
+    setEditingTeamKey(null);
+    setTeamNameInput('');
   };
 
   return (
