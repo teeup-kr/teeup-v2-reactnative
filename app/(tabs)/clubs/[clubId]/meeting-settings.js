@@ -73,7 +73,7 @@ export default function ClubMeetingSettingsScreen() {
 
   const subtitle = useMemo(
     () =>
-      '끄면 이 클럽 모임에서 정산 탭·플로우가 숨겨지고, 정산 저장·확정을 할 수 없습니다. 기존 정산 데이터는 삭제되지 않습니다.',
+      '끄면 클럽 모임에서 정산 탭·플로우가 숨겨지고, 정산 저장·확정을 할 수 없습니다. 기존 정산 데이터는 삭제되지 않습니다.',
     []
   );
 
