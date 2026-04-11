@@ -1,5 +1,5 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -384,7 +384,7 @@ export default function HomeScreen() {
 
           <View pointerEvents="none" style={styles.heroTextWrap}>
             <Text style={[styles.heroCaption, { fontSize: fontTitle('xl', metrics.fontScaleWeak) }]}>
-              편리한 골프 동호회 운영 관리 플랫폼
+              골프 동호회 운영 관리 앱
             </Text>
             <Text
               style={[
