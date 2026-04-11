@@ -1,7 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-apply plugin: "com.google.gms.google-services"
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
@@ -81,12 +80,6 @@ def enableMinifyInReleaseBuilds = (findProperty('android.enableMinifyInReleaseBu
  * this variant is about 6MiB larger per architecture than default.
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
-def reactNativeArchitectures = (findProperty('reactNativeArchitectures') ?: "armeabi-v7a,arm64-v8a,x86,x86_64")
-        .split(",")
-        .collect { it.trim() }
-        .findAll { it }
-def enableAbiSplits = (findProperty('android.enableAbiSplits') ?: "false").toBoolean()
-def enableUniversalApk = (findProperty('android.enableUniversalApk') ?: "false").toBoolean()
 
 android {
     ndkVersion rootProject.ext.ndkVersion
@@ -100,16 +93,9 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0.0"
+        versionName "1.0.1"
+
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
-    }
-    splits {
-        abi {
-            enable enableAbiSplits
-            reset()
-            include(*reactNativeArchitectures)
-            universalApk enableUniversalApk
-        }
     }
     signingConfigs {
         debug {
@@ -194,3 +180,5 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+apply plugin: 'com.google.gms.google-services'
