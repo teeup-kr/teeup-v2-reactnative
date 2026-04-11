@@ -8,7 +8,7 @@ import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
 const splashLogo = require('../public/icons/icon-512-transparent.png');
-const SPLASH_REDIRECT_DELAY_MS = 20000;
+const SPLASH_REDIRECT_DELAY_MS = 2000;
 
 export default function NativeEntryScreen() {
   const router = useRouter();
