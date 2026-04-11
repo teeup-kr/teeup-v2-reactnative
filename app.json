@@ -5,7 +5,6 @@
     "slug": "teeup",
     "scheme": "teeup",
     "version": "1.0.1",
-    "orientation": "portrait",
     "icon": "./public/icons/icon-1024.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#ffffff",
