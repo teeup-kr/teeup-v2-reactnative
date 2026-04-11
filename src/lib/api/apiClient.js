@@ -227,13 +227,13 @@ async function apiRequest(path, options = {}) {
     logHeaders.Authorization = `Bearer ${maskValue(logHeaders.Authorization.replace('Bearer ', ''))}`;
   }
 
-  debugLog('[API Request]', {
-    method,
-    url,
-    params,
-    headers: logHeaders,
-    body: isForm ? '[FormData]' : sanitizePayload(body),
-  });
+  // debugLog('[API Request]', {
+  //   method,
+  //   url,
+  //   params,
+  //   headers: logHeaders,
+  //   body: isForm ? '[FormData]' : sanitizePayload(body),
+  // });
 
   const requestOnce = async (headersToUse) => {
     const result = {};

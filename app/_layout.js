@@ -102,15 +102,17 @@ function AppShell() {
   const handledNotificationIdsRef = useRef(new Set());
   const lastBackPressedAtRef = useRef(0);
   const isRootEntry = pathname === '/';
+  const isGoogleCallbackRoute = pathname === '/auth/google/callback';
+  const useMinimalShell = isRootEntry || isGoogleCallbackRoute;
   const currentRoute = buildRouteWithSearch(pathname, globalSearchParams);
 
   useEffect(() => {
-    if (isRootEntry) return;
+    if (useMinimalShell) return;
     syncRouteHistory(currentRoute);
-  }, [currentRoute, isRootEntry]);
+  }, [currentRoute, useMinimalShell]);
 
   useEffect(() => {
-    if (isRootEntry) return undefined;
+    if (useMinimalShell) return undefined;
 
     if (Platform.OS === 'android') {
       const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -151,7 +153,7 @@ function AppShell() {
     }
 
     return undefined;
-  }, [isRootEntry, pathname, router]);
+  }, [pathname, router, useMinimalShell]);
 
   useEffect(() => {
     if (Platform.OS === 'web') return undefined;
@@ -212,7 +214,7 @@ function AppShell() {
 
   // 웹 전용: Google Tag Manager (/에서는 로드하지 않음)
   useEffect(() => {
-    if (Platform.OS !== 'web' || typeof document === 'undefined' || isRootEntry) return;
+    if (Platform.OS !== 'web' || typeof document === 'undefined' || useMinimalShell) return;
 
     const script = document.createElement('script');
     script.innerHTML = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -231,15 +233,15 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     iframe.style.visibility = 'hidden';
     noscript.appendChild(iframe);
     document.body.insertBefore(noscript, document.body.firstChild);
-  }, [isRootEntry]);
+  }, [useMinimalShell]);
 
   return (
     <View
       style={[
         styles.root,
-        { minHeight: metrics.vh(100) },
+        !isGoogleCallbackRoute && { minHeight: metrics.vh(100) },
         Platform.OS === 'web' &&
-          !isRootEntry &&
+          !useMinimalShell &&
           shellMaxWidth != null && {
             maxWidth: shellMaxWidth,
             width: '100%',
@@ -247,13 +249,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           },
       ]}
     >
-      <View style={[styles.shell, { paddingBottom: isRootEntry ? 0 : bottomNavHeight(insets) }]}>
+      <View style={[styles.shell, { paddingBottom: useMinimalShell ? 0 : bottomNavHeight(insets) }]}>
         <View style={styles.main}>
           <Slot />
         </View>
       </View>
-      {!isRootEntry ? <BottomNavigationBar /> : null}
-      {!isRootEntry ? <FullMenu /> : null}
+      {!useMinimalShell ? <BottomNavigationBar /> : null}
+      {!useMinimalShell ? <FullMenu /> : null}
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 TODO 출시시 삭제 !!!!!!!!!!!!!!!!!!!!!! */}
       {/*<DebugConsoleOverlay />*/}
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 !!!!!!!!!!!!!!!!!!!!!! */}
