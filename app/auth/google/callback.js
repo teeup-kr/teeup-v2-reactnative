@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 
 import { googleAuthConfig } from '@/constants/authConstants';
 import { useAuth } from '@/context/AuthContext';
@@ -10,8 +9,6 @@ import { replaceWithPolicy } from '@/lib/navigation/cappedHistory';
 import { tokenStorage } from '@/lib/tokenStorage';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
-
-import LoginScreen from '../../login';
 
 export default function GoogleOAuthCallback() {
   const router = useRouter();
@@ -125,21 +122,10 @@ export default function GoogleOAuthCallback() {
 
   // 로딩 또는 에러 화면 표시
   if (Platform.OS === 'web') {
-    if (!isLoading && error) {
-      return <LoginScreen />;
-    }
-
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          {isLoading ? (
-            <>
-              <ActivityIndicator size="large" color={colors.primary[600]} />
-              <Text style={styles.loadingText}>로그인 처리 중...</Text>
-            </>
-          ) : null}
-        </View>
-      </SafeAreaView>
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>{error || '로그인 처리 중...'}</Text>
+      </View>
     );
   }
 
@@ -147,12 +133,9 @@ export default function GoogleOAuthCallback() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
   container: {
     flex: 1,
+    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     padding: tokens.padding.xl,
@@ -161,23 +144,5 @@ const styles = StyleSheet.create({
     ...base.textBase,
     marginTop: tokens.spacing.md,
     color: colors.neutral[600],
-  },
-  errorTitle: {
-    ...base.textXl,
-    fontWeight: tokens.fontWeight.bold,
-    color: colors.error[600],
-    marginBottom: tokens.spacing.md,
-  },
-  errorText: {
-    ...base.textBase,
-    color: colors.error[600],
-    textAlign: 'center',
-    marginBottom: tokens.spacing.sm,
-  },
-  infoText: {
-    ...base.textSm,
-    color: colors.neutral[500],
-    textAlign: 'center',
-    marginTop: tokens.spacing.md,
   },
 });
