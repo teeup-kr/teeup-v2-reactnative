@@ -386,6 +386,7 @@ export default function ClubMemberManageScreen() {
       </ScrollView>
 
       <Modal
+        maxContentWidth={tokens.layout.wideContentMaxPreferred}
         visible={recordModalOpen}
         title={selectedMember?.name ? `${selectedMember.name} 기록` : '기록'}
         onClose={handleCloseRecordModal}
@@ -589,7 +590,6 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     width: '100%',
-    maxWidth: 462,
     alignSelf: 'center',
   },
   modalBackdrop: {

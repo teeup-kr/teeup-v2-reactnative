@@ -1,17 +1,6 @@
-
-import {
-  useLocalSearchParams
-} from 'expo-router';
-import {
-  useEffect,
-  useMemo,
-  useState
-} from 'react';
-import {
-  Pressable,
-  ScrollView, StyleSheet, Text,
-  View
-} from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@/components/ui/Card';
@@ -22,6 +11,21 @@ import { termsApi } from '@/lib/api/api';
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
+
+function readTabFromHash() {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
+  const raw = (window.location.hash || '').replace(/^#/, '').trim();
+  if (!raw) return null;
+  return termsTabs.some((t) => t.id === raw) ? raw : null;
+}
+
+function syncUrlHash(tabId) {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+  const { pathname, search } = window.location;
+  const next = `${pathname}${search}#${tabId}`;
+  if (`${pathname}${search}${window.location.hash}` === next) return;
+  window.history.replaceState(null, '', next);
+}
 
 const TabButton = ({ label, selected, onPress }) => (
   <Pressable
@@ -38,15 +42,49 @@ const TabButton = ({ label, selected, onPress }) => (
 
 export default function TermsScreen() {
   const params = useLocalSearchParams();
-  const initialTab = useMemo(() => {
-    const tab = typeof params.tab === 'string' ? params.tab : 'terms';
-    return termsTabs.some((item) => item.id === tab) ? tab : 'terms';
+
+  const tabFromParams = useMemo(() => {
+    const tab = typeof params.tab === 'string' ? params.tab : '';
+    return termsTabs.some((item) => item.id === tab) ? tab : null;
   }, [params.tab]);
 
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [activeTab, setActiveTab] = useState(() => {
+    const fromHash = readTabFromHash();
+    if (fromHash) return fromHash;
+    if (tabFromParams) return tabFromParams;
+    return 'terms';
+  });
+
   const [termsData, setTermsData] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+
+  /** 쿼리 ?tab= 만 바뀐 진입 (해시 없음) */
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    if (readTabFromHash()) return;
+    if (tabFromParams && tabFromParams !== activeTab) {
+      setActiveTab(tabFromParams);
+    }
+  }, [tabFromParams, activeTab]);
+
+  /** 브라우저 뒤로/앞으로·주소창 해시 변경 */
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return undefined;
+    const onHashChange = () => {
+      const next = readTabFromHash();
+      if (next) setActiveTab(next);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  /** 첫 방문 시 해시 없으면 현재 탭을 URL에 맞춤 */
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    if (window.location.hash) return;
+    syncUrlHash(activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     const loadTerms = async () => {
@@ -77,6 +115,11 @@ export default function TermsScreen() {
 
   const activeContent = termsData[activeTab] ?? '';
 
+  const handleSelectTab = useCallback((tabId) => {
+    setActiveTab(tabId);
+    syncUrlHash(tabId);
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScreenHeader title="약관 및 정책" />
@@ -87,7 +130,7 @@ export default function TermsScreen() {
               key={tab.id}
               label={tab.label}
               selected={activeTab === tab.id}
-              onPress={() => setActiveTab(tab.id)}
+              onPress={() => handleSelectTab(tab.id)}
             />
           ))}
         </View>

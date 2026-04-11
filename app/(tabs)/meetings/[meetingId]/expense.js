@@ -362,6 +362,8 @@ export default function ExpenseScreen() {
       </ScrollView>
 
       <Modal
+        maxContentWidth={tokens.layout.scoreSheetModalMaxPreferred}
+        maxContentHeightVh={86}
         visible={modalVisible}
         title={editingExpense ? '지출 수정' : '지출 추가'}
         onClose={closeModal}
@@ -622,9 +624,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   modalCard: {
-    maxHeight: '86%',
     width: '100%',
-    maxWidth: 466,
     alignSelf: 'center',
   },
   fieldGroup: {

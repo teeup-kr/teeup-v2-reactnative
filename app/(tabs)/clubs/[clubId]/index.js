@@ -341,6 +341,7 @@ export default function ClubDetailScreen() {
       </ScrollView>
 
       <Modal
+        maxContentWidth={tokens.layout.wideContentMaxPreferred}
         visible={profileRequiredModalOpen}
         title="프로필 미완성"
         onClose={closeProfileRequiredModal}
@@ -373,7 +374,6 @@ const styles = StyleSheet.create({
   container: base.containerLg,
   modalCard: {
     width: '100%',
-    maxWidth: 462,
     alignSelf: 'center',
   },
   modalBackdrop: {

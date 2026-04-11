@@ -9,18 +9,17 @@ import {
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
-import { BackHandler, Platform, StyleSheet, ToastAndroid, View } from 'react-native';
+import { BackHandler, Platform, StyleSheet, ToastAndroid, useWindowDimensions, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import DebugConsoleOverlay from '@/components/debug/DebugConsoleOverlay';
 import BottomNavigationBar, { bottomNavHeight } from '@/components/layout/BottomNavigationBar';
 import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { authApi } from '@/lib/api/api';
+import { ResponsiveMetricsProvider, useResponsiveMetrics } from '@/lib/layout/responsiveMetrics';
 import { backOrHome, getHistorySnapshot, markHistoryTraversal, navigateWithCap, syncRouteHistory } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
-import { tokens } from '@/styles/style';
 
 /** Google Tag Manager 컨테이너 ID (웹 전용) */
 const GTM_CONTAINER_ID = 'GTM-NG89M36G';
@@ -92,6 +91,9 @@ function buildRouteWithSearch(pathname, params) {
 }
 
 function AppShell() {
+  const metrics = useResponsiveMetrics();
+  const { width: windowWidth } = useWindowDimensions();
+  const shellMaxWidth = Platform.OS === 'web' ? metrics.shellMaxWidth : undefined;
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const globalSearchParams = useGlobalSearchParams();
@@ -232,7 +234,19 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   }, [isRootEntry]);
 
   return (
-    <View style={[styles.root, Platform.OS === 'web' && !isRootEntry && styles.rootWeb]}>
+    <View
+      style={[
+        styles.root,
+        { minHeight: metrics.vh(100) },
+        Platform.OS === 'web' &&
+          !isRootEntry &&
+          shellMaxWidth != null && {
+            maxWidth: shellMaxWidth,
+            width: '100%',
+            alignSelf: 'center',
+          },
+      ]}
+    >
       <View style={[styles.shell, { paddingBottom: isRootEntry ? 0 : bottomNavHeight(insets) }]}>
         <View style={styles.main}>
           <Slot />
@@ -241,7 +255,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       {!isRootEntry ? <BottomNavigationBar /> : null}
       {!isRootEntry ? <FullMenu /> : null}
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 TODO 출시시 삭제 !!!!!!!!!!!!!!!!!!!!!! */}
-      {<DebugConsoleOverlay /> }
+      {/*<DebugConsoleOverlay />*/}
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 !!!!!!!!!!!!!!!!!!!!!! */}
     </View>
   );
@@ -273,6 +287,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      <ResponsiveMetricsProvider>
       {/* 2. 웹 PWA를 위한 Head 설정 추가 */}
       <Head>
         <title>티업링크</title>
@@ -291,6 +306,7 @@ export default function RootLayout() {
           <AppShell />
         </AppLayoutProvider>
       </AuthProvider>
+      </ResponsiveMetricsProvider>
     </SafeAreaProvider>
   );
 }
@@ -300,10 +316,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     backgroundColor: colors.neutral[50],
-  },
-  rootWeb: {
-    maxWidth: tokens.layout.maxWidth,
-    alignSelf: 'center',
   },
   shell: {
     flex: 1,

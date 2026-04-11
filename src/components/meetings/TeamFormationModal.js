@@ -80,6 +80,7 @@ export default function TeamFormationModal({
   return (
     <>
       <Modal
+        maxContentWidth={tokens.layout.formationModalMaxPreferred}
         visible={isVisible}
         title="팀 편성"
         onClose={onClose}
@@ -125,6 +126,7 @@ export default function TeamFormationModal({
       </Modal>
 
       <Modal
+        maxContentWidth={tokens.layout.formationModalMaxPreferred}
         visible={guideModalOpen}
         title="편성이 완료되었습니다."
         onClose={handleCloseGuideModal}
@@ -188,7 +190,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   guideModalCard: {
-    maxWidth: 320,
     alignSelf: 'center',
   },
   guideText: {

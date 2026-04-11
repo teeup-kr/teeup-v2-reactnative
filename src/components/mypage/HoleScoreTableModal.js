@@ -14,6 +14,7 @@ import {
 
 import Modal from '@/components/ui/Modal';
 import { roundsApi } from '@/lib/api/api';
+import { useResponsiveMetrics } from '@/lib/layout/responsiveMetrics';
 import {
   clampStrokeDigitsToDoublePar,
   clampStrokesNumberToDoublePar,
@@ -96,6 +97,11 @@ export default function HoleScoreTableModal({
   const [isSaving, setIsSaving] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [saveMismatchMessage, setSaveMismatchMessage] = useState('');
+  const metrics = useResponsiveMetrics();
+  const tableBodyMaxHeight = useMemo(
+    () => Math.min(360, Math.max(200, metrics.contentVh(45))),
+    [metrics],
+  );
 
   const closeModal = useCallback(() => {
     if (isSaving) return;
@@ -340,6 +346,8 @@ export default function HoleScoreTableModal({
 
   return (
     <Modal
+      maxContentWidth={tokens.layout.holeScoreModalMaxPreferred}
+      maxContentHeightVh={92}
       visible={visible}
       title="홀별 점수 입력"
       onClose={isSaving ? undefined : closeModal}
@@ -426,7 +434,10 @@ export default function HoleScoreTableModal({
             <Text style={[styles.headerCell, styles.diffCol]}>+/-</Text>
           </View>
 
-          <ScrollView style={styles.tableBody} contentContainerStyle={styles.tableBodyContent}>
+          <ScrollView
+            style={[styles.tableBody, { maxHeight: tableBodyMaxHeight }]}
+            contentContainerStyle={styles.tableBodyContent}
+          >
             {rows.map((row, index) => (
               <View
                 key={`hole-${row.hole_number}`}
@@ -492,12 +503,10 @@ const styles = StyleSheet.create({
     padding: tokens.padding.baseLg,
   },
   modalSheet: {
-    maxHeight: '92%',
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: colors.neutral[200],
     width: '100%',
-    maxWidth: 458,
     alignSelf: 'center',
   },
   modalBody: {
@@ -572,7 +581,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tableBody: {
-    maxHeight: 360,
+    flexGrow: 0,
   },
   tableBodyContent: {
     paddingHorizontal: tokens.padding.sm,

@@ -341,6 +341,7 @@ export default function ScoreInputScreen() {
       </ScrollView>
 
       <Modal
+        maxContentWidth={tokens.layout.scoreSheetModalMaxPreferred}
         visible={modalVisible}
         title={editingScore ? '점수 수정' : '점수 추가'}
         onClose={closeModal}
@@ -570,7 +571,6 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     width: '100%',
-    maxWidth: 466,
     alignSelf: 'center',
   },
   fieldGroup: {

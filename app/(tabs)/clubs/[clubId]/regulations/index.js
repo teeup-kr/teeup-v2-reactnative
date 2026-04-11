@@ -296,6 +296,7 @@ export default function ClubRegulationsScreen() {
       </ScrollView>
 
       <Modal
+        maxContentWidth={tokens.layout.regulationsModalMaxPreferred}
         visible={categoryModalVisible}
         title={editingCategory ? '카테고리 수정' : '카테고리 추가'}
         onClose={closeCategoryModal}
@@ -410,7 +411,6 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '100%',
-    maxWidth: 360,
   },
   label: base.labelSm,
   modalInput: {

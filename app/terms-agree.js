@@ -288,9 +288,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalBox: {
-    maxHeight: '80%',
     width: '100%',
-    maxWidth: 470,
     alignSelf: 'center',
   },
   modalFooter: {

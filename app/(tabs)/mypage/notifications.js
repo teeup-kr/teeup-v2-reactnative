@@ -342,6 +342,7 @@ export default function NotificationsTab() {
         </ScrollView>
 
         <Modal
+          maxContentWidth={tokens.layout.notificationsModalMaxPreferred}
           visible={!!deleteTarget}
           title="알림 삭제"
           onClose={clearDeleteTarget}
@@ -426,7 +427,6 @@ const styles = StyleSheet.create({
   },
   modalBox: {
     width: '100%',
-    maxWidth: 430,
   },
   modalMessage: { marginBottom: tokens.spacing.md },
   modalButtonRow: { flexDirection: 'row', gap: 12 },

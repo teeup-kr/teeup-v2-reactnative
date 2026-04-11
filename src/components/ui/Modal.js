@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   Pressable,
   Modal as RNModal,
@@ -7,8 +8,12 @@ import {
   View,
 } from 'react-native';
 
+import { getContentMaxWidth } from '@/lib/layout/responsiveLayout';
+import { useResponsiveMetrics } from '@/lib/layout/responsiveMetrics';
+import { fontTitle } from '@/lib/layout/responsiveTokenHelpers';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
+
 export default function Modal({
   visible,
   title,
@@ -21,11 +26,38 @@ export default function Modal({
   bodyStyle,
   scroll = true,
   closeOnBackdropPress = false,
+  /** 모달 카드 가로 최대값(선호). 화면 폭에 맞춰 더 좁아질 수 있습니다. */
+  maxContentWidth,
+  /** safe-area 반영 콘텐츠 높이 기준 vh% → px (기본 80). */
+  maxContentHeightVh = 80,
 }) {
+  const metrics = useResponsiveMetrics();
+  const preferred = maxContentWidth ?? tokens.layout.contentMaxPreferred;
+  const effectivePreferred = useMemo(() => {
+    if (metrics.isTablet) return Math.min(preferred, metrics.maxContentWidth);
+    return preferred;
+  }, [metrics.isTablet, metrics.maxContentWidth, preferred]);
+
+  const resolvedMaxWidth = useMemo(
+    () => getContentMaxWidth(metrics.width, effectivePreferred, 32),
+    [metrics.width, effectivePreferred],
+  );
+
+  const maxModalHeight = useMemo(
+    () => metrics.contentVh(maxContentHeightVh),
+    [maxContentHeightVh, metrics],
+  );
+
   const content = (
-    <View style={[styles.container, containerStyle]}>
+    <View
+      style={[
+        styles.container,
+        containerStyle,
+        { maxWidth: resolvedMaxWidth, maxHeight: maxModalHeight },
+      ]}
+    >
       <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title, { fontSize: fontTitle('title', metrics.fontScaleWeak) }]}>{title}</Text>
         {onClose ? (
           <Pressable onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeText}>x</Text>
@@ -74,9 +106,8 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
     borderRadius: tokens.radius.lg,
-    maxHeight: '80%',
     width: '100%',
-    maxWidth: 470,
+    alignSelf: 'center',
     overflow: 'hidden',
   },
   header: {

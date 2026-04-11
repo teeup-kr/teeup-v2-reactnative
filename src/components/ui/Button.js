@@ -1,19 +1,33 @@
+import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useOptionalResponsiveMetrics } from '@/lib/layout/responsiveMetrics';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
-const getSizeStyle = (size) => {
+function getScaledSizeStyle(size, uiScale, minTouch) {
+  const u = uiScale > 0 ? uiScale : 1;
+  const pad = (v) => Math.max(1, Math.round(v * u));
+  let paddingVertical;
+  let paddingHorizontal;
   switch (size) {
     case 'sm':
-      return styles.sizeSmall;
+      paddingVertical = pad(tokens.padding.xs);
+      paddingHorizontal = pad(tokens.padding.md);
+      break;
     case 'md':
-      return styles.sizeMedium;
+      paddingVertical = pad(tokens.padding.base);
+      paddingHorizontal = pad(tokens.padding.lg2);
+      break;
     case 'lg':
     default:
-      return styles.sizeLarge;
+      paddingVertical = pad(tokens.padding.baseLg);
+      paddingHorizontal = pad(tokens.padding.lg);
+      break;
   }
-};
+  const minHeight = Math.max(minTouch, paddingVertical * 2 + Math.round(18 * u));
+  return { paddingVertical, paddingHorizontal, minHeight };
+}
 
 export default function Button({
   children,
@@ -25,14 +39,21 @@ export default function Button({
   style,
   textStyle,
 }) {
+  const metrics = useOptionalResponsiveMetrics();
+  const uiScale = metrics?.uiScale ?? 1;
+  const minTouch = metrics?.minTouchTarget ?? 44;
+  const sizeStyle = useMemo(
+    () => getScaledSizeStyle(size, uiScale, minTouch),
+    [size, uiScale, minTouch],
+  );
   const isDisabled = disabled || loading;
-  const sizeStyle = getSizeStyle(size);
   const variantStyle = getVariantStyle(variant);
 
   return (
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
+      hitSlop={size === 'sm' ? { top: 6, bottom: 6, left: 6, right: 6 } : undefined}
       style={(state) => [
         styles.buttonBase,
         sizeStyle,
@@ -82,18 +103,6 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  sizeSmall: {
-    paddingVertical: tokens.padding.xs,
-    paddingHorizontal: tokens.padding.md,
-  },
-  sizeMedium: {
-    paddingVertical: tokens.padding.base,
-    paddingHorizontal: tokens.padding.lg2,
-  },
-  sizeLarge: {
-    paddingVertical: tokens.padding.baseLg,
-    paddingHorizontal: tokens.padding.lg,
   },
   primary: {
     backgroundColor: colors.primary[600],

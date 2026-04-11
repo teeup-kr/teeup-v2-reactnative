@@ -1,9 +1,11 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useOptionalResponsiveMetrics } from '@/lib/layout/responsiveMetrics';
+import { iconSize } from '@/lib/layout/responsiveTokenHelpers';
 import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
@@ -22,6 +24,8 @@ export default function BottomNavigationBar() {
   const insets = useSafeAreaInsets();
   const { toggleMenu } = useAppLayout();
   const [mounted, setMounted] = useState(false);
+  const metrics = useOptionalResponsiveMetrics();
+  const iconSz = useMemo(() => iconSize(18, metrics?.uiScale ?? 1, 16, 22), [metrics?.uiScale]);
 
   useEffect(() => {
     setMounted(true);
@@ -36,15 +40,15 @@ export default function BottomNavigationBar() {
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <View style={styles.row}>
-        <Pressable onPress={toggleMenu} style={styles.item}>
-          {mounted ? <FontAwesome5 name="th-large" size={18} color={colors.neutral[500]} /> : null}
+        <Pressable onPress={toggleMenu} style={styles.item} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}>
+          {mounted ? <FontAwesome5 name="th-large" size={iconSz} color={colors.neutral[500]} /> : null}
           <Text style={styles.label}>전체</Text>
         </Pressable>
-        <Pressable onPress={() => handleNavigate('/app')} style={styles.item}>
+        <Pressable onPress={() => handleNavigate('/app')} style={styles.item} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}>
           {mounted ? (
             <FontAwesome5
               name="home"
-              size={18}
+              size={iconSz}
               color={isPathActive(pathname, '/app') ? colors.primary[600] : colors.neutral[500]}
             />
           ) : null}
@@ -57,11 +61,11 @@ export default function BottomNavigationBar() {
             홈
           </Text>
         </Pressable>
-        <Pressable onPress={() => handleNavigate('/clubs')} style={styles.item}>
+        <Pressable onPress={() => handleNavigate('/clubs')} style={styles.item} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}>
           {mounted ? (
             <FontAwesome5
               name="users"
-              size={18}
+              size={iconSz}
               color={isPathActive(pathname, '/clubs') ? colors.primary[600] : colors.neutral[500]}
             />
           ) : null}
@@ -74,11 +78,11 @@ export default function BottomNavigationBar() {
             클럽
           </Text>
         </Pressable>
-        <Pressable onPress={() => handleNavigate('/meetings')} style={styles.item}>
+        <Pressable onPress={() => handleNavigate('/meetings')} style={styles.item} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}>
           {mounted ? (
             <FontAwesome5
               name="calendar-alt"
-              size={18}
+              size={iconSz}
               color={isPathActive(pathname, '/meetings') ? colors.primary[600] : colors.neutral[500]}
             />
           ) : null}
@@ -91,11 +95,11 @@ export default function BottomNavigationBar() {
             모임
           </Text>
         </Pressable>
-        <Pressable onPress={() => handleNavigate('/mypage')} style={styles.item}>
+        <Pressable onPress={() => handleNavigate('/mypage')} style={styles.item} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}>
           {mounted ? (
             <FontAwesome5
               name="user"
-              size={18}
+              size={iconSz}
               color={isMyActive ? colors.primary[600] : colors.neutral[500]}
             />
           ) : null}

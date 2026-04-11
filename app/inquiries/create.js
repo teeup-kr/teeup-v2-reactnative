@@ -1,5 +1,5 @@
-import { Redirect, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -31,14 +31,42 @@ const INQUIRY_TYPES = [
   { id: 'PAYMENT', name: '결제 문의' },
 ];
 
+const INQUIRY_TYPE_IDS = new Set(INQUIRY_TYPES.map((t) => t.id));
+
 export default function InquiryCreateScreen() {
   const router = useRouter();
+  const searchParams = useLocalSearchParams();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [title, setTitle] = useState('');
+
+  const initialType = useMemo(() => {
+    const raw = Array.isArray(searchParams.type) ? searchParams.type[0] : searchParams.type;
+    if (raw && INQUIRY_TYPE_IDS.has(String(raw))) return String(raw);
+    return 'GENERAL';
+  }, [searchParams.type]);
+
+  const initialTitle = useMemo(() => {
+    const raw = Array.isArray(searchParams.title) ? searchParams.title[0] : searchParams.title;
+    if (!raw || typeof raw !== 'string') return '';
+    try {
+      return decodeURIComponent(raw).slice(0, 200);
+    } catch {
+      return String(raw).slice(0, 200);
+    }
+  }, [searchParams.title]);
+
+  const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState('');
-  const [type, setType] = useState('GENERAL');
+  const [type, setType] = useState(initialType);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    setType(initialType);
+  }, [initialType]);
+
+  useEffect(() => {
+    setTitle(initialTitle);
+  }, [initialTitle]);
 
   const validate = () => {
     const next = {};

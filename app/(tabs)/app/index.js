@@ -9,7 +9,6 @@ import {
   StyleSheet,
   Text,
   View,
-  useWindowDimensions,
 } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +18,9 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { HOME_BANNER_SLIDES } from '@/constants/homeBannerSlides';
 import { useAuth } from '@/context/AuthContext';
 import { mypageApi } from '@/lib/api/api';
+import { useResponsiveMetrics } from '@/lib/layout/responsiveMetrics';
+import { fontTitle, iconSize, radius, space } from '@/lib/layout/responsiveTokenHelpers';
+import { clampNumber } from '@/lib/layout/viewportUnits';
 import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { getMeetingStatusBadgeConfigs, getMeetingTypeBadgeConfig } from '@/lib/util/meetingUtils';
 import { extractList } from '@/lib/util/responseUtils';
@@ -65,6 +67,16 @@ const QUICK_ACTIONS = [
 ];
 
 const CAROUSEL_SCROLL_ANIMATION_DURATION = 420;
+/** `onLayout` / 창 너비 힌트 간 스킵으로 불필요한 리렌더 완화 */
+const CAROUSEL_WIDTH_EPS_PX = 2;
+/** 초광폭에서 홈 본문만 살짝 캡 (가독성) */
+const HOME_ULTRA_WIDE_BREAKPOINT_PX = 1200;
+const HOME_SOFT_MAX_CONTENT_PX = 1120;
+/**
+ * 전역 `isTablet`(너비 ≥ breakpoint)만으로는 가로 모드 폰이 태블릿으로 분류됨.
+ * 홈 2열(퀵액션·모임 카드)은 짧은 변이 충분히 큰 경우에만 켠다.
+ */
+const HOME_TWO_COLUMN_SHORTEST_SIDE_MIN_PX = 600;
 
 function getMeetingId(meeting) {
   return meeting?.id || meeting?.meeting_id;
@@ -104,14 +116,19 @@ function formatMeetingDate(value) {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const metrics = useResponsiveMetrics();
+  const viewportWidthHint = metrics.width;
   const { toast: toastParam } = useLocalSearchParams();
   const { isAuthenticated } = useAuth();
 
   const carouselRef = useRef(null);
+  /** 마지막 `onLayout` 폭 — 창 너비가 셸 슬롯보다 클 때 힌트가 슬롯을 덮지 않게 함 */
+  const carouselLayoutWidthRef = useRef(null);
   const [toastKey, setToastKey] = useState(null);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [carouselWidth, setCarouselWidth] = useState(320);
+  const [carouselWidth, setCarouselWidth] = useState(() =>
+    Math.max(280, Number(viewportWidthHint) > 0 ? Math.round(viewportWidthHint) : 320),
+  );
   const [activeSlide, setActiveSlide] = useState(0);
   const [failedSlideMap, setFailedSlideMap] = useState({});
   const [upcomingMeetings, setUpcomingMeetings] = useState([]);
@@ -120,7 +137,13 @@ export default function HomeScreen() {
   const [meetingError, setMeetingError] = useState('');
 
   const bannerSlides = HOME_BANNER_SLIDES;
-  const carouselHeight = carouselWidth;
+  const carouselHeight = useMemo(() => {
+    const w = carouselWidth;
+    const ch = metrics.contentHeight > 0 ? metrics.contentHeight : metrics.height;
+    const widthBased = Math.round(w * 0.58);
+    const vhCap = Math.round((ch * 50) / 100);
+    return Math.max(200, Math.min(widthBased, vhCap || widthBased));
+  }, [carouselWidth, metrics.contentHeight, metrics.height]);
   const visibleUpcomingMeetings = useMemo(
     () => upcomingMeetings.filter((meeting) => getMeetingId(meeting)).slice(0, 2),
     [upcomingMeetings]
@@ -186,25 +209,29 @@ export default function HomeScreen() {
     setIsHydrated(true);
   }, []);
 
+  /** 회전·리사이즈 시 창 너비 힌트; 슬롯이 이미 더 좁게 잡혀 있으면(웹 셸 등) 덮어쓰지 않음 */
   useEffect(() => {
-    loadHomeMeetings();
-  }, [loadHomeMeetings]);
-
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (!Number.isFinite(width) || width <= 1) return;
-    const nextWidth = Math.round(width);
-    setCarouselWidth((prevWidth) => (prevWidth === nextWidth ? prevWidth : nextWidth));
-  }, [width]);
+    const hint = Math.round(viewportWidthHint);
+    if (!Number.isFinite(hint) || hint < 280) return;
+    setCarouselWidth((prev) => {
+      const slot = carouselLayoutWidthRef.current;
+      if (slot != null && hint > slot + CAROUSEL_WIDTH_EPS_PX) {
+        return prev;
+      }
+      if (Math.abs(prev - hint) <= CAROUSEL_WIDTH_EPS_PX) return prev;
+      return hint;
+    });
+  }, [viewportWidthHint]);
 
   const handleCarouselLayout = useCallback((event) => {
     const measuredWidth = event.nativeEvent.layout.width;
     if (!Number.isFinite(measuredWidth) || measuredWidth <= 1) return;
     const nextWidth = Math.round(measuredWidth);
-    setCarouselWidth((prevWidth) => (prevWidth === nextWidth ? prevWidth : nextWidth));
+    carouselLayoutWidthRef.current = nextWidth;
+    setCarouselWidth((prevWidth) => {
+      if (Math.abs(prevWidth - nextWidth) <= CAROUSEL_WIDTH_EPS_PX) return prevWidth;
+      return nextWidth;
+    });
   }, []);
 
   const handleSnapToItem = useCallback((index) => {
@@ -242,9 +269,50 @@ export default function HomeScreen() {
     [router]
   );
 
+  const quickGap = space('sm', metrics.spacingScale);
+  const quickSectionPadH = space('xl', metrics.spacingScale);
+  const placeholderIconSz = iconSize(24, metrics.uiScale, 20, 28);
+  const summaryEditIconSz = iconSize(20, metrics.uiScale, 18, 24);
+
+  const quickActionBoxSide = useMemo(
+    () => clampNumber(48, Math.round(56 * metrics.uiScale), 72),
+    [metrics.uiScale],
+  );
+  const quickActionIconPx = useMemo(
+    () => clampNumber(17, Math.round(quickActionBoxSide * 0.34), 26),
+    [quickActionBoxSide],
+  );
+  const quickLabelFontSize = useMemo(
+    () => fontTitle('base', metrics.fontScaleWeak),
+    [metrics.fontScaleWeak],
+  );
+
+  const meetingIconWrapSide = useMemo(() => iconSize(32, metrics.uiScale, 28, 40), [metrics.uiScale]);
+  const meetingGolfIconSz = useMemo(() => iconSize(14, metrics.uiScale, 12, 17), [metrics.uiScale]);
+  const meetingMetaIconSz = useMemo(() => iconSize(11, metrics.uiScale, 10, 14), [metrics.uiScale]);
+
+  const contentColumnStyle = useMemo(
+    () => [
+      styles.contentColumn,
+      metrics.width > HOME_ULTRA_WIDE_BREAKPOINT_PX && {
+        maxWidth: HOME_SOFT_MAX_CONTENT_PX,
+        width: '100%',
+        alignSelf: 'center',
+      },
+    ],
+    [metrics.width],
+  );
+
+  const homeSupportsTwoColumn = useMemo(
+    () =>
+      Boolean(metrics.isTablet && metrics.shortestSide >= HOME_TWO_COLUMN_SHORTEST_SIDE_MIN_PX),
+    [metrics.isTablet, metrics.shortestSide],
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
+        <View style={contentColumnStyle}>
         <View style={styles.carouselSection} onLayout={handleCarouselLayout}>
           <View style={[styles.carouselViewport, { height: carouselHeight }]}>
             {isHydrated ? (
@@ -274,7 +342,7 @@ export default function HomeScreen() {
                       <View style={styles.heroOverlay}>
                         {failedSlideMap[index] ? (
                           <View style={styles.placeholderWrap}>
-                            {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
+                            {isHydrated ? <FontAwesome5 name="camera" size={placeholderIconSz} color={colors.neutral[300]} /> : null}
                             <Text style={styles.placeholderText}>Placeholder</Text>
                           </View>
                         ) : null}
@@ -296,7 +364,7 @@ export default function HomeScreen() {
                     <View style={styles.heroOverlay}>
                       {failedSlideMap[0] ? (
                         <View style={styles.placeholderWrap}>
-                          {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
+                          {isHydrated ? <FontAwesome5 name="camera" size={placeholderIconSz} color={colors.neutral[300]} /> : null}
                           <Text style={styles.placeholderText}>Placeholder</Text>
                         </View>
                       ) : null}
@@ -305,7 +373,7 @@ export default function HomeScreen() {
                 ) : (
                   <View style={[styles.heroImage, styles.heroOverlay]}>
                     <View style={styles.placeholderWrap}>
-                      {isHydrated ? <FontAwesome5 name="camera" size={24} color={colors.neutral[300]} /> : null}
+                      {isHydrated ? <FontAwesome5 name="camera" size={placeholderIconSz} color={colors.neutral[300]} /> : null}
                       <Text style={styles.placeholderText}>Placeholder</Text>
                     </View>
                   </View>
@@ -315,8 +383,20 @@ export default function HomeScreen() {
           </View>
 
           <View pointerEvents="none" style={styles.heroTextWrap}>
-            <Text style={styles.heroCaption}>편리한 골프 동호회 운영 관리 플랫폼</Text>
-            <Text style={styles.heroTitle}>티업링크</Text>
+            <Text style={[styles.heroCaption, { fontSize: fontTitle('xl', metrics.fontScaleWeak) }]}>
+              편리한 골프 동호회 운영 관리 플랫폼
+            </Text>
+            <Text
+              style={[
+                styles.heroTitle,
+                {
+                  fontSize: fontTitle('mega', metrics.fontScaleWeak),
+                  lineHeight: Math.round(fontTitle('mega', metrics.fontScaleWeak) * 1.08),
+                },
+              ]}
+            >
+              티업링크
+            </Text>
           </View>
 
           <View style={styles.dotRow}>
@@ -330,17 +410,44 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <View style={styles.quickSection}>
+        <View
+          style={[
+            styles.quickSection,
+            homeSupportsTwoColumn && {
+              flexWrap: 'wrap',
+              rowGap: quickGap,
+              columnGap: quickGap,
+              justifyContent: 'flex-start',
+              paddingHorizontal: quickSectionPadH,
+            },
+          ]}
+        >
           {QUICK_ACTIONS.map((action) => (
             <Pressable
               key={action.id}
-              style={styles.quickItem}
+              style={[styles.quickItem, homeSupportsTwoColumn && styles.quickItemTablet]}
               onPress={handleQuickActionPress(action.route)}
             >
-              <View style={[styles.quickIconWrap, { backgroundColor: action.bg }]}>
-                {isHydrated ? <FontAwesome5 name={action.icon} size={18} color={action.fg} /> : null}
+              <View
+                style={[
+                  styles.quickIconWrap,
+                  {
+                    width: quickActionBoxSide,
+                    height: quickActionBoxSide,
+                    borderRadius: radius('md', metrics.uiScale),
+                    backgroundColor: action.bg,
+                  },
+                ]}
+              >
+                {isHydrated ? (
+                  <FontAwesome5 name={action.icon} size={quickActionIconPx} color={action.fg} />
+                ) : null}
               </View>
-              <Text style={[styles.quickLabel, { color: action.fontColor }]}>{action.label}</Text>
+              <Text
+                style={[styles.quickLabel, { color: action.fontColor, fontSize: quickLabelFontSize }]}
+              >
+                {action.label}
+              </Text>
             </Pressable>
           ))}
         </View>
@@ -360,7 +467,7 @@ export default function HomeScreen() {
           >
             <Text style={styles.summaryTitle}>라운드 기록하기</Text>
             <Text style={styles.summarySubText}>스코어 등록</Text>
-            {isHydrated ? <FontAwesome5 name="edit" size={20} color={colors.neutral[600]} /> : null}
+            {isHydrated ? <FontAwesome5 name="edit" size={summaryEditIconSz} color={colors.neutral[600]} /> : null}
           </Pressable>
         </View>
 
@@ -389,7 +496,7 @@ export default function HomeScreen() {
             <Text style={styles.stateText}>예정된 라운딩이 없습니다.</Text>
           </View>
         ) : (
-          <View style={styles.meetingList}>
+          <View style={[styles.meetingList, homeSupportsTwoColumn && styles.meetingListTablet]}>
             {visibleUpcomingMeetings.map((meeting) => {
               const meetingId = getMeetingId(meeting);
               const participantCount = meeting?.participant_count ?? 0;
@@ -400,9 +507,24 @@ export default function HomeScreen() {
               const statusBadges = getMeetingStatusBadgeConfigs(meeting);
 
               return (
-                <Pressable key={String(meetingId)} style={styles.meetingCard} onPress={handleOpenMeeting(meeting)}>
-                  <View style={styles.meetingIconWrap}>
-                    {isHydrated ? <FontAwesome5 name="golf-ball" size={13} color={colors.primary[600]} /> : null}
+                <Pressable
+                  key={String(meetingId)}
+                  style={[styles.meetingCard, homeSupportsTwoColumn && styles.meetingCardTablet]}
+                  onPress={handleOpenMeeting(meeting)}
+                >
+                  <View
+                    style={[
+                      styles.meetingIconWrap,
+                      {
+                        width: meetingIconWrapSide,
+                        height: meetingIconWrapSide,
+                        borderRadius: radius('lg', metrics.uiScale),
+                      },
+                    ]}
+                  >
+                    {isHydrated ? (
+                      <FontAwesome5 name="golf-ball" size={meetingGolfIconSz} color={colors.primary[600]} />
+                    ) : null}
                   </View>
 
                   <View style={styles.meetingInfo}>
@@ -410,14 +532,21 @@ export default function HomeScreen() {
                     <Text style={styles.meetingDate}>{formatMeetingDate(meeting?.meeting_time)}</Text>
                     {(meeting?.location || meeting?.venue_name) ? (
                       <View style={styles.meetingMetaRow}>
-                        {isHydrated ? <FontAwesome5 name="map-marker-alt" size={11} color={colors.neutral[500]} /> : null}
-                        <Text style={styles.meetingMetaText} numberOfLines={1}>
+                        {isHydrated ? (
+                          <FontAwesome5 name="map-marker-alt" size={meetingMetaIconSz} color={colors.neutral[500]} />
+                        ) : null}
+                        <Text
+                          style={[styles.meetingMetaText, homeSupportsTwoColumn && styles.meetingMetaTextTablet]}
+                          numberOfLines={1}
+                        >
                           {meeting?.location || meeting?.venue_name}
                         </Text>
                       </View>
                     ) : null}
                     <View style={styles.meetingMetaRow}>
-                      {isHydrated ? <FontAwesome5 name="users" size={11} color={colors.neutral[500]} /> : null}
+                      {isHydrated ? (
+                        <FontAwesome5 name="users" size={meetingMetaIconSz} color={colors.neutral[500]} />
+                      ) : null}
                       <Text style={styles.meetingMetaText}>총원 {participantCount}{maxParticipants}명</Text>
                     </View>
                     <View style={styles.meetingBadgeRow}>
@@ -448,6 +577,7 @@ export default function HomeScreen() {
             })}
           </View>
         )}
+        </View>
       </ScrollView>
 
       <AppToast toastKey={toastKey} onClose={() => setToastKey(null)} />
@@ -457,9 +587,16 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   safeArea: base.safeAreaWhite,
+  scrollView: {
+    flex: 1,
+  },
   container: {
+    flexGrow: 1,
     backgroundColor: colors.neutral[100],
     paddingBottom: tokens.padding.xl,
+  },
+  contentColumn: {
+    width: '100%',
   },
   carouselSection: {
     backgroundColor: colors.neutral[800],
@@ -537,33 +674,36 @@ const styles = StyleSheet.create({
     paddingBottom: tokens.padding.lg,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'stretch',
   },
   quickItem: {
-    width: 72,
+    flex: 1,
+    minWidth: 0,
     alignItems: 'center',
   },
+  quickItemTablet: {
+    flexBasis: '48%',
+    flexGrow: 1,
+  },
   quickIconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: tokens.radius.md,
-    backgroundColor: colors.neutral[200],
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: tokens.spacing.xs,
   },
   quickLabel: {
     color: colors.neutral[900],
-    fontSize: tokens.font.base,
     fontWeight: tokens.fontWeight.semibold,
+    textAlign: 'center',
   },
   summaryRow: {
     paddingHorizontal: tokens.padding.md,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: tokens.spacing.sm,
     marginBottom: tokens.spacing.md,
   },
   summaryCard: {
-    width: '48.5%',
+    flex: 1,
+    minWidth: 0,
     borderRadius: tokens.radius.md,
     borderWidth: 1,
     borderColor: colors.neutral[300],
@@ -637,6 +777,13 @@ const styles = StyleSheet.create({
   meetingList: {
     paddingHorizontal: tokens.padding.md,
   },
+  meetingListTablet: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    columnGap: tokens.spacing.sm,
+    rowGap: tokens.spacing.sm,
+  },
   meetingCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -648,10 +795,12 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.padding.md,
     marginBottom: tokens.spacing.sm2,
   },
+  meetingCardTablet: {
+    flexBasis: '48%',
+    flexGrow: 1,
+    minWidth: 0,
+  },
   meetingIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: tokens.radius.lg,
     backgroundColor: colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
@@ -680,6 +829,9 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.xs,
     color: colors.neutral[500],
     maxWidth: 190,
+  },
+  meetingMetaTextTablet: {
+    maxWidth: '100%',
   },
   meetingBadgeRow: {
     flexDirection: 'row',
