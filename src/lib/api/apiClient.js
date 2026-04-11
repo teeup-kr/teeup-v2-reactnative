@@ -258,15 +258,15 @@ async function apiRequest(path, options = {}) {
 
   let { response, payload } = await requestOnce(requestHeaders);
 
-  debugLog(
-    '[API Response]\n' +
-    JSON.stringify({
-      method,
-      url,
-      status: response.status,
-      payload: sanitizePayload(payload),
-    }, null, 2)
-  );
+  // debugLog(
+  //   '[API Response]\n' +
+  //   JSON.stringify({
+  //     method,
+  //     url,
+  //     status: response.status,
+  //     payload: sanitizePayload(payload),
+  //   }, null, 2)
+  // );
 
   if (!response.ok) {
     const hasAuthHeader = Boolean(requestHeaders.Authorization);
@@ -513,12 +513,12 @@ export const oauthRequest = async (path, authData) => {
   const isJson = response.headers.get('content-type')?.includes('application/json');
   const payload = isJson ? await response.json() : null;
 
-  debugLog('[OAuth Response]', {
-    method: 'POST',
-    url,
-    status: response.status,
-    payload: sanitizePayload(payload),
-  });
+  // debugLog('[OAuth Response]', {
+  //   method: 'POST',
+  //   url,
+  //   status: response.status,
+  //   payload: sanitizePayload(payload),
+  // });
 
   if (!response.ok) {
     const error = new Error(payload?.detail || payload?.message || 'OAuth 요청에 실패했습니다.');
