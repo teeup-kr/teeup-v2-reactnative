@@ -56,7 +56,43 @@ export const tokens = {
         xxl: 48,
     },
     layout: {
-        maxWidth: 430,
+        /** 반응형 기준 설계 폭 (스케일 계산) */
+        referenceDesignWidth: 390,
+        breakpointSmallPhone: 0,
+        breakpointPhone: 360,
+        breakpointLargePhone: 480,
+        breakpointTablet: 768,
+        /** 태블릿 본문 컬럼 최대 폭 */
+        tabletContentMaxWidth: 840,
+        tabletContentGutter: 32,
+        uiScaleMin: 0.92,
+        uiScaleMax: 1.18,
+        spacingScaleMin: 0.96,
+        spacingScaleMax: 1.1,
+        shortScaleMin: 0.92,
+        shortScaleMax: 1.15,
+        /** 터치 타깃 최소 (pt/dp) */
+        minTouchTarget: 44,
+        /** 웹 셸·가운데 컬럼 상한 (`getShellMaxWidth`). 태블릿·가로 넓은 뷰에서도 거의 전체 폭 사용 */
+        shellMaxCap: 1536,
+        /** 모달·폼 카드 등 기본 선호 최대 너비 */
+        contentMaxPreferred: 470,
+        /** 모임·클럽 등 넓은 모달 선호 최대 너비 */
+        wideContentMaxPreferred: 462,
+        /** 스코어·정산 시트 모달 */
+        scoreSheetModalMaxPreferred: 466,
+        /** 홀 스코어 테이블 모달 */
+        holeScoreModalMaxPreferred: 458,
+        /** 팀 편성(간단) 모달 */
+        formationModalMaxPreferred: 320,
+        /** 클럽 규정 모달 */
+        regulationsModalMaxPreferred: 360,
+        /** 알림 삭제 등 작은 확인 모달 */
+        notificationsModalMaxPreferred: 430,
+        /** 팀 편성 에디터(넓은 표) */
+        teamEditorModalMaxPreferred: 760,
+        /** 랜딩 CTA 영역 최대 너비 */
+        landingCtaMaxPreferred: 340,
     },
     font: {
         xxs: 10,

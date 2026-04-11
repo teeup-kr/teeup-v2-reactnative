@@ -246,7 +246,7 @@ export default function TeamEditorModal({
 
   const clearAutoScroll = () => {
     if (autoScrollTimerRef.current) {
-      clearInterval(autoScrollTimerRef.current);
+      globalThis.clearInterval(autoScrollTimerRef.current);
       autoScrollTimerRef.current = null;
     }
     autoScrollDirectionRef.current = 0;
@@ -268,7 +268,7 @@ export default function TeamEditorModal({
     if (autoScrollDirectionRef.current === direction && autoScrollTimerRef.current) return;
     clearAutoScroll();
     autoScrollDirectionRef.current = direction;
-    autoScrollTimerRef.current = setInterval(() => {
+    autoScrollTimerRef.current = globalThis.setInterval(() => {
       const maxOffset = Math.max(contentHeightRef.current - containerHeightRef.current, 0);
       const nextOffset = Math.max(
         0,
@@ -549,11 +549,12 @@ export default function TeamEditorModal({
   return (
     <>
       <Modal
+        maxContentWidth={tokens.layout.teamEditorModalMaxPreferred}
+        maxContentHeightVh={90}
         visible={isVisible}
         title="팀 편성 수정"
         onClose={handleRequestClose}
         scroll={false}
-        containerStyle={styles.modalContainer}
         bodyStyle={styles.modalBody}
         footer={(
           <View style={styles.footerRow}>
@@ -881,10 +882,6 @@ export default function TeamEditorModal({
 }
 
 const styles = StyleSheet.create({
-  modalContainer: {
-    maxWidth: 760,
-    maxHeight: '90%',
-  },
   modalBody: {
     paddingHorizontal: 0,
     paddingVertical: 0,

@@ -2128,6 +2128,7 @@ export default function MeetingDetailScreen() {
       </ScrollView>
 
       <Modal
+        maxContentWidth={tokens.layout.wideContentMaxPreferred}
         visible={showRecordIncompleteModal}
         title="안내"
         onClose={() => setShowRecordIncompleteModal(false)}
@@ -2178,6 +2179,7 @@ export default function MeetingDetailScreen() {
       />
 
       <Modal
+        maxContentWidth={tokens.layout.wideContentMaxPreferred}
         visible={closeApplicationModalOpen}
         title="신청 마감"
         onClose={handleDismissCloseApplicationModal}
@@ -2201,6 +2203,7 @@ export default function MeetingDetailScreen() {
       </Modal>
 
       <Modal
+        maxContentWidth={tokens.layout.wideContentMaxPreferred}
         visible={guestModalOpen}
         title="게스트 추가"
         onClose={handleCloseGuestModal}
@@ -2916,7 +2919,6 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     width: '100%',
-    maxWidth: 462,
     alignSelf: 'center',
   },
   modalMessage: {

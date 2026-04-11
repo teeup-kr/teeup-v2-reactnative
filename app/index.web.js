@@ -1,12 +1,13 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppFooter from '@/components/layout/AppFooter';
 import { useAuth } from '@/context/AuthContext';
+import { getContentMaxWidth, getShellMaxWidth } from '@/lib/layout/responsiveLayout';
 import { navigateWithCap } from '@/lib/navigation/cappedHistory';
 import { signInWithGoogle } from '@/lib/util/authUtils';
 import { colors } from '@/styles/colors';
@@ -15,6 +16,12 @@ import { base, tokens } from '@/styles/style';
 const logoImage = require('../public/icons/icon-512-transparent.png');
 
 export default function LandingScreen() {
+  const { width: windowWidth } = useWindowDimensions();
+  const shellMaxWidth = useMemo(() => getShellMaxWidth(windowWidth), [windowWidth]);
+  const ctaMaxWidth = useMemo(
+    () => getContentMaxWidth(windowWidth, tokens.layout.landingCtaMaxPreferred, 40),
+    [windowWidth],
+  );
   const router = useRouter();
   const { isAuthenticated, isLoading, refreshAuth } = useAuth();
   const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
@@ -62,7 +69,7 @@ export default function LandingScreen() {
         <Text style={styles.subcopy}>
           자동 조편성, 정산, 공지까지{'\n'}한 번에 관리하세요.
         </Text>
-        <View style={styles.ctaRow}>
+        <View style={[styles.ctaRow, { maxWidth: ctaMaxWidth }]}>
           <Pressable
             style={({ pressed, hovered }) => [
               styles.primaryButton,
@@ -94,7 +101,7 @@ export default function LandingScreen() {
           {googleLoginError ? <Text style={styles.errorText}>{googleLoginError}</Text> : null}
         </View>
       </LinearGradient>
-      <View style={styles.footerWrap}>
+      <View style={[styles.footerWrap, { maxWidth: shellMaxWidth }]}>
         <AppFooter />
       </View>
     </SafeAreaView>
@@ -157,7 +164,6 @@ const styles = StyleSheet.create({
   },
   ctaRow: {
     width: '100%',
-    maxWidth: 340,
     gap: tokens.spacing.sm2,
   },
   buttonInteractive: {
@@ -217,7 +223,6 @@ const styles = StyleSheet.create({
   },
   footerWrap: {
     width: '100%',
-    maxWidth: tokens.layout.maxWidth,
     position: 'absolute',
     bottom: 0,
     alignSelf: 'center',

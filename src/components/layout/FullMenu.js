@@ -95,6 +95,7 @@ export default function FullMenu() {
           ? [{ icon: 'envelope', label: '1:1 문의', onPress: () => navigate('/inquiries', true) }]
           : []),
         { icon: 'file-alt', label: '이용약관', onPress: () => navigate('/terms') },
+        { icon: 'user-times', label: '계정 및 데이터 삭제 요청 안내', onPress: () => navigate('/delete-account') },
         ...(isAuthenticated ? [{ icon: 'sign-out-alt', label: '로그아웃', onPress: handleLogout }] : []),
       ],
     },

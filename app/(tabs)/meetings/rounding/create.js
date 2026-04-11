@@ -1410,6 +1410,7 @@ export function RoundingForm({ mode = 'create' }) {
       </ScrollView>
 
       <Modal
+        maxContentWidth={tokens.layout.wideContentMaxPreferred}
         visible={participantModalVisible}
         title="참가자 편집"
         onClose={handleCloseParticipantModal}
@@ -1771,7 +1772,6 @@ const styles = StyleSheet.create({
   },
   participantModalCard: {
     width: '100%',
-    maxWidth: 462,
     height: '90%',
     alignSelf: 'center',
   },
