@@ -1,14 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { usePathname, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@/styles/colors';
 import { base, tokens } from '@/styles/style';
 
 const splashLogo = require('../public/icons/icon-512-transparent.png');
-const SPLASH_REDIRECT_DELAY_MS = 180;
+const SPLASH_REDIRECT_DELAY_MS = 20000;
 
 export default function NativeEntryScreen() {
   const router = useRouter();
@@ -41,10 +41,6 @@ export default function NativeEntryScreen() {
             <Image source={splashLogo} style={styles.logo} resizeMode="contain" />
           </View>
           <Text style={styles.brand}>티업링크</Text>
-          <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color={colors.white} />
-            <Text style={styles.loadingText}>앱을 준비 중입니다...</Text>
-          </View>
         </View>
       </LinearGradient>
     </SafeAreaView>
@@ -63,21 +59,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.padding.xl,
   },
   logoWrap: {
-    width: 88,
-    height: 88,
+    width: 120,
+    height: 120,
     borderRadius: tokens.radius.xxl,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(255,255,255)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: tokens.spacing.sm2,
   },
   logo: {
-    width: 56,
-    height: 56,
+    width: 120,
+    height: 120,
   },
   brand: {
     color: colors.white,
-    fontSize: tokens.font.display,
+    fontSize: tokens.font.xxxl,
     fontWeight: tokens.fontWeight.bold,
     marginBottom: tokens.spacing.md,
   },

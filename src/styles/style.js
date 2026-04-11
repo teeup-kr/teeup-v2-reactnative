@@ -105,6 +105,7 @@ export const tokens = {
         title: 16,
         display: 20,
         xxl: 22,
+        xxxl: 24,
         mega: 36,
     },
     fontWeight: {
