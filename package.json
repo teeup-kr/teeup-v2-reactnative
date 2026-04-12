@@ -6,6 +6,7 @@
     "start": "expo start",
     "android": "EAS_BUILD_PLATFORM=android expo prebuild --platform android && cd android && EAS_BUILD_PLATFORM=android ./gradlew :app:assembleRelease && cd .. && adb install android/app/build/outputs/apk/release/app-release.apk",
     "android:clean": "EAS_BUILD_PLATFORM=android expo prebuild --platform android --clean && cd android && EAS_BUILD_PLATFORM=android ./gradlew :app:assembleRelease && cd .. && adb install android/app/build/outputs/apk/release/app-release.apk",
+    "android:release:aab": "bash scripts/android-release-aab.sh",
     "android:dev": "EAS_BUILD_PLATFORM=android expo run:android",
     "web:dev": "EAS_BUILD_PLATFORM=web NODE_OPTIONS=--inspect-brk expo start -c --web --port 8081",
     "web:static": "EAS_BUILD_PLATFORM=web npx expo export -p web",
