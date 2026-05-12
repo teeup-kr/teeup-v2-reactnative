@@ -4,7 +4,7 @@
     "shortName": "TeeUp",
     "slug": "teeup",
     "scheme": "teeup",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "icon": "./public/icons/icon-1024.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#ffffff",
@@ -21,7 +21,8 @@
       },
       "googleServicesFile": "./google-services.json",
       "edgeToEdgeEnabled": false,
-      "package": "com.pixencrew.teeup"
+      "package": "com.pixencrew.teeup",
+      "versionCode": 2
     },
     "web": {
       "bundler": "metro",

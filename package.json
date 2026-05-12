@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-    "android": "EAS_BUILD_PLATFORM=android expo prebuild --platform android && cd android && EAS_BUILD_PLATFORM=android ./gradlew :app:assembleRelease && cd .. && adb install android/app/build/outputs/apk/release/app-release.apk",
+    "android": "bash scripts/android-release-apk.sh",
     "android:clean": "EAS_BUILD_PLATFORM=android expo prebuild --platform android --clean && cd android && EAS_BUILD_PLATFORM=android ./gradlew :app:assembleRelease && cd .. && adb install android/app/build/outputs/apk/release/app-release.apk",
     "android:release:aab": "bash scripts/android-release-aab.sh",
     "android:dev": "EAS_BUILD_PLATFORM=android expo run:android",
