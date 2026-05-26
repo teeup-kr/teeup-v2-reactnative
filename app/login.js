@@ -8,8 +8,11 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  ScrollView, StyleSheet, Text,
-  View
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -29,6 +32,7 @@ const logoImage = require('../public/icons/icon-512-transparent.png');
 export default function LoginScreen() {
   const router = useRouter();
   const { refreshAuth } = useAuth();
+  const [reviewerTapCount, setReviewerTapCount] = useState(0);
   const [errors, setErrors] = useState({
     general: '',
   });
@@ -47,6 +51,17 @@ export default function LoginScreen() {
     });
   };
 
+  const handleReviewerEasterEgg = () => {
+    setReviewerTapCount((prev) => {
+      const next = prev + 1;
+      if (next >= 7) {
+        router.push('/reviewer-login');
+        return 0;
+      }
+      return next;
+    });
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient colors={[colors.primary[50], colors.primary[100]]} style={styles.gradient}>
@@ -60,9 +75,9 @@ export default function LoginScreen() {
           >
             <Card style={styles.card}>
               <View style={styles.brandSection}>
-                <View style={styles.logoWrap}>
+                <Pressable onPress={handleReviewerEasterEgg} style={styles.logoWrap}>
                   <Image source={logoImage} style={styles.logo} resizeMode="contain" />
-                </View>
+                </Pressable>
                 <Text style={styles.brandTitle}>티업링크</Text>
                 <Text style={styles.brandSubtitle}>골프 모임을 더 쉽고 즐겁게</Text>
               </View>

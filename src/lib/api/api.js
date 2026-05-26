@@ -126,6 +126,17 @@ async function googleLogin(oauthData) {
   return { ...response, user: response?.user ?? normalized?.user };
 }
 
+async function passwordLogin({ email, password }) {
+  const response = await apiClient.post(
+    `${AUTH_PREFIX}/login`,
+    { email, password },
+    { auth: false },
+  );
+  await saveAuthData(response);
+  const normalized = response?.data ?? response;
+  return { ...response, user: response?.user ?? normalized?.user };
+}
+
 async function logout() {
   const refreshToken = isWeb ? null : await tokenStorage.getRefreshToken();
 
@@ -157,6 +168,7 @@ export const authApi = {
   getCurrentUser,
   checkNickname,
   googleLogin,
+  passwordLogin,
   syncPushToken,
   logout,
   deleteAccount,
