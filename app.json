@@ -30,12 +30,35 @@
       "favicon": "./public/icons/icon-600-transparent-full.png"
     },
     "ios": {
-      "bundleIdentifier": "com.pixencrew.teeup"
+      "bundleIdentifier": "com.pixencrew.teeup",
+      "buildNumber": "1",
+      "supportsTablet": false,
+      "usesAppleSignIn": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "plugins": [
       "expo-router",
       "expo-notifications",
-      "@react-native-google-signin/google-signin"
+      "expo-apple-authentication",
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.791884628850-2qfg8ak77aatafamacav929ol9jvph9f"
+        }
+      ]
     ],
     "extra": {}
   }
