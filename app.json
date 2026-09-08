@@ -40,7 +40,12 @@
       }
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "origin": "https://www.teeup.kr"
+        }
+      ],
       "expo-notifications",
       "expo-apple-authentication",
       [
