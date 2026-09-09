@@ -1,12 +1,12 @@
 # iOS App Store 등록 진행 상황
 
-- **최종 업데이트**: 2026-08-15
+- **최종 업데이트**: 2026-09-09
+- **현재 상태**: ✅ **심사 제출 완료** (버전 1.0, 빌드 1)
 - **작업 환경**: macOS (Darwin 25.5.0), Xcode 26.6, CocoaPods 1.17.0
-- **빌드 방식**: 로컬 Xcode 아카이브 (EAS Build 미사용, `eas.json` 없음)
-- **현재 상태**: ⛔ **Archive 단계에서 중단** — Apple 계정에 등록된 기기가 0대
+- **빌드 방식**: 로컬 Xcode 아카이브 (EAS Build 미사용)
 
-> 같은 폴더의 `ios-app-store-guide.md`는 개발 머신이 Linux이던 시절에 작성된
-> EAS Build 기준 문서라 현재 상황과 맞지 않는다. 이 문서를 기준으로 진행할 것.
+> 같은 폴더의 `ios-app-store-guide.md`는 개발 머신이 Linux이던 시절의 EAS Build 기준
+> 문서라 현재와 맞지 않는다. App Store Connect 입력값은 `appstore-metadata.md` 참조.
 
 ---
 
@@ -16,109 +16,46 @@
 | --- | --- |
 | 번들 ID | `com.pixencrew.teeup` |
 | 앱 이름 | 티업링크 |
-| 버전 (`version`) | `1.0.2` |
-| 빌드 번호 (`ios.buildNumber`) | `1` |
-| 최소 iOS 버전 | 15.1 (`IPHONEOS_DEPLOYMENT_TARGET`) |
-| Apple Team ID | `2ZJV4Y7FV5` |
-| 서명 인증서 | `Apple Development: EUIJOON JUNG` (배포용은 미발급) |
+| Apple ID (앱) | `6801782217` |
+| SKU | `teeup-ios` |
+| 버전 / 빌드 번호 | `1.0` / `1` |
+| 최소 iOS 버전 | 15.1 |
+| Apple Team ID | `2ZJV4Y7FV5` (INDIVIDUAL) |
+| 연령 등급 | 4+ |
+| 카테고리 | 스포츠 / 소셜 네트워킹 |
 | Firebase 프로젝트 번호 | `668486530275` |
 | Google OAuth 프로젝트 번호 | `791884628850` (Firebase와 다름 — 의도된 구성) |
 
 ---
 
-## 2. 완료된 작업
+## 2. 최종 성공 경로 (기기 없이 업로드)
 
-| # | 항목 | 결과 |
-| --- | --- | --- |
-| 1 | `npm ci` 의존성 설치 | ✅ 1436 패키지 |
-| 2 | `npm run ios:prebuild` (prebuild + pod install) | ✅ |
-| 3 | Firebase SPM ↔ static framework 충돌 수정 | ✅ `app.json` 수정 |
-| 4 | Info.plist / entitlements 검증 | ✅ |
-| 5 | Xcode 첫 실행 컴포넌트 설치 | ✅ `sudo xcodebuild -runFirstLaunch` |
-| 6 | iOS 26.5 플랫폼 SDK 설치 (8.52GB) | ✅ `xcodebuild -downloadPlatform iOS` |
-| 7 | Release 컴파일 검증 | ✅ `BUILD SUCCEEDED`, 에러 0 |
-| 8 | Xcode에 Apple ID 연결 + 자동 서명 설정 | ✅ Team `2ZJV4Y7FV5` |
-| 9 | App Store Connect 앱 레코드 생성 | ✅ (기존 완료) |
-| 10 | APNs 인증키(.p8) → Firebase 업로드 | ✅ (기존 완료) |
+**핵심**: iPhone 실기기가 한 대도 없는 상태에서 App Store 업로드에 성공했다.
 
-### 2-1. 반드시 커밋해야 할 변경
+### 왜 처음에 막혔나
 
-`app.json`의 Firebase 플러그인 설정 — **iOS 빌드 필수**, Android 영향 없음:
-
-```json
-[
-  "@react-native-firebase/app",
-  { "ios": { "disableSPM": true } }
-]
-```
-
-이 설정이 없으면 `pod install`이 다음 에러로 실패한다:
-
-```
-[react-native-firebase] SPM + static linkage is not supported (target(s): Pods-app).
-```
-
-react-native-firebase v26이 기본으로 SPM을 쓰는데, `expo-build-properties`의
-`useFrameworks: "static"`과 중복 심볼 충돌을 일으키기 때문이다.
-`useFrameworks: static`은 Firebase / Google Sign-In에 필요하므로 유지하고 SPM만 끈다.
-
-### 2-2. 검증된 네이티브 설정
-
-- entitlements: `aps-environment: development`, `com.apple.developer.applesignin: Default`
-- URL Scheme: `teeup`, `com.pixencrew.teeup`, `com.googleusercontent.apps.791884628850-...`
-- `GoogleService-Info.plist` → `ios/app/` 로 정상 복사됨
-- `ITSAppUsesNonExemptEncryption: false` 설정됨 (수출 규정 질문 자동 통과)
-- FCM 백그라운드 핸들러 미사용 → `UIBackgroundModes: remote-notification` 불필요
-
----
-
-## 3. 막힌 지점
-
-`xcodebuild archive` 실행 시:
-
-```
-error: Communication with Apple failed: Your team has no devices from which to
-generate a provisioning profile.
-error: No profiles for 'com.pixencrew.teeup' were found
-```
-
-### 3-1. 왜 막혔는가 (원인 사슬)
-
-세 가지 조건이 겹쳐서 발생했다. 하나씩 보면 각각은 정상이다.
-
-**① Expo prebuild가 Release 설정에 개발용 서명 ID를 하드코딩한다**
-
-`ios/app.xcodeproj/project.pbxproj`의 Debug/Release 양쪽 모두에 다음이 들어간다:
+Expo prebuild가 `ios/app.xcodeproj/project.pbxproj`의 **Release 설정에도**
+개발용 서명 ID를 하드코딩한다:
 
 ```
 "CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 ```
 
-Release 빌드인데도 배포용(`Apple Distribution`)이 아니라 개발용을 쓰라고 지정되어 있다.
-Expo가 생성하는 기본값이며, prebuild 할 때마다 다시 이렇게 만들어진다.
-
-**② 그래서 아카이브가 "개발용 프로파일"을 요구한다**
-
-서명 ID가 `iPhone Developer`이므로 Xcode는 그에 맞는
-**iOS App Development** 프로비저닝 프로파일을 찾는다. 없으면 자동 생성을 시도한다.
-
-**③ 개발용 프로파일은 등록된 기기가 최소 1대 있어야 발급된다**
-
-Apple의 규칙이다. 개발용 프로파일은 "이 기기들에서만 실행 가능"을 명시하는 문서라
-기기 목록이 비면 만들 자체가 없다. 현재 계정에 등록된 기기가 0대라 여기서 실패한다.
+그래서 아카이브가 **iOS App Development** 프로파일을 요구했고, 개발용 프로파일은
+Apple 계정에 기기가 최소 1대 등록되어야 발급된다. 기기가 0대라 여기서 실패했다.
 
 ```
-Your team has no devices from which to generate a provisioning profile.
+error: Communication with Apple failed: Your team has no devices from which to
+generate a provisioning profile.
 ```
 
-**핵심**: App Store 업로드 자체는 기기가 전혀 필요 없다.
-배포용(App Store Connect) 프로파일은 기기 목록과 무관하기 때문이다.
-그런데 ①때문에 배포용이 아닌 개발용 경로로 들어가버려서, 불필요한 기기 요구에 걸린 것이다.
+**중요**: App Store 업로드 자체는 기기가 필요 없다. 배포용(App Store Connect)
+프로파일은 기기 목록과 무관하기 때문이다. 개발용 경로로 새어버린 것이 문제였다.
 
-### 3-2. 시도했다가 실패한 우회
+### 실패한 우회
 
-`CODE_SIGN_IDENTITY="Apple Distribution"` 을 명령행 인자로 덮어써서
-①을 우회하려 했으나 거부됨:
+`CODE_SIGN_IDENTITY="Apple Distribution"` 을 명령행으로 덮어쓰기 →
+자동 서명 모드에서는 수동 지정이 불가해 거부됨.
 
 ```
 error: app has conflicting provisioning settings. app is automatically signed for
@@ -126,106 +63,171 @@ development, but a conflicting code signing identity Apple Distribution has been
 manually specified.
 ```
 
-**이유**: 현재 `CODE_SIGN_STYLE`이 자동(Automatic)이다.
-자동 서명은 Xcode가 인증서·프로파일을 전적으로 관리하는 모드라,
-사용자가 서명 ID를 직접 지정하는 것과 양립할 수 없다.
-즉 **자동 서명을 유지하면서 서명 ID만 배포용으로 바꾸는 것은 불가능**하다.
+### 성공한 방법
 
-여기서 갈 수 있는 길이 두 갈래로 나뉜다 (→ 4장 1단계의 경로 A / B):
-
-- **경로 A** — 자동 서명 유지 + 기기 1대 등록해서 ③을 충족시킨다.
-  아카이브는 개발용으로 서명되지만, 이후 export 단계에서 배포용으로 재서명되므로 문제없다.
-- **경로 B** — 수동 서명으로 전환하고 배포용 프로파일을 직접 지정한다.
-  ①②③을 통째로 우회하므로 기기가 필요 없다.
-
-**주의**: `project.pbxproj`를 직접 수정해서 ①을 고치는 방법은 권하지 않는다.
-`ios/`는 gitignore 대상이고 prebuild 할 때마다 재생성되므로 수정이 사라진다.
-영구적으로 바꾸려면 Expo config plugin으로 처리해야 한다.
-
----
-
-## 4. 남은 단계
-
-### 0단계 — 기기 없이 지금 가능
-
-- [ ] `app.json` Firebase `disableSPM` 설정 커밋 (2-1 참조)
-- [ ] App Store Connect 메타데이터 입력
-  - [ ] 앱 설명 / 키워드 / 카테고리 / 연령 등급
-  - [ ] 스크린샷 (6.9", 6.5" 필수)
-  - [ ] 개인정보처리방침 URL
-  - [ ] App Privacy 설문 — Google/Apple 로그인, 푸시 토큰 수집 있으므로 해당
-  - [ ] **심사용 테스트 계정** — 로그인 필수 앱이라 없으면 즉시 리젝
-
-### 1단계 — 서명 해결 (택 1)
-
-**경로 A: 기기 등록** (기기 입수 후 / 권장)
-
-1. iPhone 또는 iPad를 Mac에 USB 연결 → Xcode가 자동 등록
-   - 수동: developer.apple.com → Devices → UDID 등록
-   - 기종 무관, iOS 15.1 이상이면 앱 실행 가능
-   - TestFlight 테스트까지 고려하면 iPhone SE(2세대) / iPhone 8 이상 권장
-2. 등록 확인 후 2단계로
-
-**경로 B: 배포용 프로파일 수동 서명** (기기 불필요)
-
-1. developer.apple.com → Certificates → **Apple Distribution** 인증서 생성
-2. Profiles → **App Store Connect** 프로파일 생성 (`com.pixencrew.teeup`)
-3. 다운로드 후 더블클릭 설치
-4. 수동 서명 인자를 붙여 아카이브
-
-### 2단계 — Archive → 업로드
+**서명 없이 아카이브를 만들고, export 단계에서 배포용으로 서명**한다.
 
 ```bash
 cd /Users/jungeuilab/golf/teeup-v2-reactnative/ios
 
-# 경로 A (자동 서명, 기기 등록 후)
-xcodebuild -workspace app.xcworkspace -scheme app \
-  -configuration Release -destination 'generic/platform=iOS' \
+# 1) 서명 없이 아카이브
+EAS_BUILD_PLATFORM=ios xcodebuild \
+  -workspace app.xcworkspace -scheme app -configuration Release \
+  -destination 'generic/platform=iOS' \
   -archivePath ~/Desktop/teeup.xcarchive \
-  -allowProvisioningUpdates archive
+  CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+  archive
+
+# 2) 배포용 서명으로 export (인증서·프로파일 자동 발급)
+xcodebuild -exportArchive \
+  -archivePath ~/Desktop/teeup.xcarchive \
+  -exportPath ~/Desktop/teeup-export \
+  -exportOptionsPlist /tmp/ExportOptions.plist \
+  -allowProvisioningUpdates
+
+# 3) 검증 → 업로드
+xcrun altool --validate-app -f ~/Desktop/teeup-export/티업링크.ipa -t ios \
+  -u "ejto100@gmail.com" -p "@keychain:AC_PASSWORD"
+xcrun altool --upload-app -f ~/Desktop/teeup-export/티업링크.ipa -t ios \
+  -u "ejto100@gmail.com" -p "@keychain:AC_PASSWORD"
 ```
 
-- [ ] 아카이브 생성
-- [ ] `xcodebuild -exportArchive` 로 App Store용 IPA 추출
-  - **확인 필요**: entitlements의 `aps-environment` 가 `development` → `production` 으로
-    교체되는지. 안 되면 TestFlight/실서비스 푸시가 동작하지 않는다.
-- [ ] 업로드 (Xcode Organizer 또는 CLI)
-  - CLI 사용 시 App Store Connect API 키 또는 앱 암호(app-specific password) 필요
+`ExportOptions.plist`:
 
-### 3단계 — TestFlight 검증 (실기기 필수)
+```xml
+<dict>
+  <key>method</key><string>app-store-connect</string>
+  <key>teamID</key><string>2ZJV4Y7FV5</string>
+  <key>signingStyle</key><string>automatic</string>
+  <key>destination</key><string>export</string>
+  <key>uploadSymbols</key><true/>
+</dict>
+```
 
-- [ ] **Sign in with Apple** 동작 — 심사 필수 확인 항목
-- [ ] **푸시 알림** 수신 — APNs production 환경 검증
-- [ ] **Google 로그인** — Firebase와 OAuth 프로젝트가 분리되어 있어
-      `GoogleService-Info.plist`에 `CLIENT_ID`가 없다.
-      `src/lib/util/authUtils.js`에서 `iosClientId`를 env로 직접 주입하는 구조라
-      iOS 실기기 확인이 특히 중요.
+`-allowProvisioningUpdates` 가 `Apple Distribution: EUIJOON JUNG` 인증서와
+App Store 프로파일을 자동 발급한다. **기기 등록 불필요.**
 
-### 4단계 — 심사 제출
+### 업로드 인증
 
-- [ ] 빌드 선택 → 제출
-- [ ] 재업로드 시 `app.json`의 `ios.buildNumber` 를 매번 증가시킬 것 (현재 `1`).
-      동일 번호는 App Store Connect가 거부한다.
+앱 암호(app-specific password)를 키체인에 저장해두면 altool이 사용한다.
+
+```bash
+security add-generic-password -a "ejto100@gmail.com" -w "<앱암호>" -s "AC_PASSWORD" -U
+xcrun altool --list-providers -u "ejto100@gmail.com" -p "@keychain:AC_PASSWORD"
+```
+
+앱 암호는 account.apple.com → 로그인 및 보안 → 앱 암호 에서 발급한다.
 
 ---
 
-## 5. 다음 세션 재개 시 체크리스트
+## 3. 도중에 해결한 환경 문제
+
+| 문제 | 증상 | 해결 |
+| --- | --- | --- |
+| Firebase SPM 충돌 | `pod install` 실패 (duplicate symbol) | `app.json`에 `disableSPM: true` |
+| Xcode 첫 실행 컴포넌트 없음 | `xcodebuild` 실행 자체가 안 됨 | `sudo xcodebuild -runFirstLaunch` |
+| iOS 플랫폼 SDK 없음 | `iOS 26.5 is not installed` | `xcodebuild -downloadPlatform iOS` (8.5GB) |
+| 시뮬레이터 키체인 오류 | Google 로그인 `keychain error` | `CODE_SIGNING_ALLOWED=NO` 를 빼고 빌드 (entitlements 필요) |
+
+---
+
+## 4. 시뮬레이터 검증으로 찾아 고친 앱 버그
+
+실기기 없이 iPhone 17 Pro Max 시뮬레이터로 Release 빌드를 돌려 발견했다.
+
+| 커밋 | 문제 | 내용 |
+| --- | --- | --- |
+| `1707ff1` | Expo Head 경고 팝업 | `expo-router` 플러그인에 `origin` 미설정이라 실행 시마다 영문 Alert 노출. 심사 리젝 위험(Guideline 2.1) |
+| `1698f44` | 앱 이름이 `'app'` 으로 표시 | `CFBundleName`이 `$(PRODUCT_NAME)`이라 Google 로그인 다이얼로그에 개발용 타깃명 노출 |
+| `3f49aef` | 결제 문의 유형 노출 | 인앱 결제가 없는데 `결제/청구 문의`·`결제 문의` 항목이 있어 IAP 심사 빌미가 됨 |
+| `deada24` | 버전 불일치 | ASC는 1.0인데 빌드는 1.0.2 → 빌드가 버전에 연결되지 않음 |
+
+---
+
+## 5. 미해결 과제
+
+| 항목 | 내용 |
+| --- | --- |
+| 알림 메시지 이모지 깨짐 | 알림 본문의 이모지가 `?` 로 표시됨. 백엔드 수정 + 배포 필요 |
+| 계정삭제 안내 문구 | `app/delete-account.js`에 "Google Play 콘솔" 언급 — iOS에서 어색 |
+| 리뷰어 로그인 미배포 | 아래 6장 참조 |
+| 신고·차단 기능 없음 | 사용자 생성 콘텐츠가 있는데 신고 기능이 없다. Guideline 1.2로 지적받을 여지 |
+| 개인정보처리방침 URL | `https://www.teeup.kr/terms` 가 이용약관 탭으로 먼저 열림 |
+| 무료 앱 계약 | `altool` 조회 시 `Agreements: []`, `Is Signup Complete: NO`. **계약 미완료면 승인돼도 출시 불가** |
+
+---
+
+## 6. 리뷰어 로그인 (구글플레이용)
+
+App Store는 Sign in with Apple로 대응했으므로 iOS에는 불필요하지만,
+구글플레이 심사에는 필요하다.
+
+- 앱 화면: `app/reviewer-login.js` (로그인 화면에서 **로고 7번 탭**으로 진입)
+- 계정: `reviewer@teeup.run` / `reviewer1234!` (DB에 존재 확인됨)
+- 백엔드: `POST /api/v1/auth/login` — **`origin/dev`에 구현되어 있으나 운영 미배포**
+  (커밋 `f2b1769`, PR #43)
+
+운영 서버는 `origin/dev` 보다 정확히 1커밋 뒤에 있다. 확인 방법:
+
+```bash
+# 있으면 배포된 것
+curl -s -o /dev/null -w "%{http_code}\n" -X POST \
+  https://www.teeup.kr/api/v1/auth/login \
+  -H "Content-Type: application/json" -d '{"email":"a@b.c","password":"x"}'
+# 404 → 미배포 / 401·422 → 배포됨
+```
+
+배포 절차:
+
+```bash
+ssh ejsv                                        # ejsv.jungeui.net:9997
+cd /home/ejsv/projects/golf/teeup-v2-backend
+git pull origin dev
+sudo systemctl restart teeup-v2
+```
+
+⚠️ `git pull` 이 "already up to date" 인데도 반영이 안 되면,
+**systemd가 보는 경로가 pull 한 경로와 다른 것**이다. 확인:
+
+```bash
+systemctl show teeup-v2 -p WorkingDirectory -p ExecStart -p ActiveEnterTimestamp
+```
+
+`docs/teeup-v2.service.example` 의 경로(`/home/cubic/Projects/...`)는 실제와 다르므로
+신뢰하지 말 것.
+
+---
+
+## 7. 승인 후 할 일
+
+「수동으로 버전 출시」를 선택했으므로 승인되어도 자동 공개되지 않는다.
+출시 전 **TestFlight 실기기 검증**을 권한다. 아직 실기기에서 확인하지 못한 항목:
+
+- [ ] 푸시 알림 수신 (APNs production 환경)
+- [ ] Sign in with Apple 실제 동작
+- [ ] Google 로그인 (Firebase와 OAuth 프로젝트가 분리되어 있어 특히 확인 필요)
+
+---
+
+## 8. 재개 시 체크리스트
 
 ```bash
 cd /Users/jungeuilab/golf/teeup-v2-reactnative
 
-# ios/ 폴더는 .gitignore 대상 (41행) — 없으면 재생성
+# ios/ 는 .gitignore 대상 — 없으면 재생성
 ls ios || npm run ios:prebuild
 
-# 등록된 기기 확인 (막힌 지점)
-xcrun devicectl list devices
-
-# 서명 인증서 확인 (배포용 있는지)
+# 서명 인증서 확인 (Apple Distribution 이 있어야 함)
 security find-identity -v -p codesigning
+
+# 업로드 인증 확인
+xcrun altool --list-providers -u "ejto100@gmail.com" -p "@keychain:AC_PASSWORD"
 ```
 
-- `ios/` 는 git에 포함되지 않으므로 언제든 `npm run ios:prebuild` 로 재생성 가능
-- 단, prebuild는 Xcode에서 설정한 Team 정보를 초기화하므로 재설정 필요
-- prebuild 시 `EAS_BUILD_PLATFORM=ios` 환경변수 필수 (`app.config.js`가 이걸로 iOS용
-  Google Client ID를 선택) — `npm run ios:prebuild` 스크립트에 이미 포함됨
+- `ios/` 는 git에 포함되지 않으므로 `npm run ios:prebuild` 로 재생성 가능
+- **prebuild 하면 Xcode Team 설정과 직접 패치한 Info.plist 값이 초기화된다**
+  (`CFBundleName`, `CFBundleShortVersionString` 은 `app.json` 에 있으므로 자동 반영됨)
+- prebuild 시 `EAS_BUILD_PLATFORM=ios` 필수 — `app.config.js` 가 이 값으로
+  iOS용 Google Client ID를 선택한다 (`npm run ios:prebuild` 에 포함되어 있음)
 - Xcode로 열 때는 반드시 `ios/app.xcworkspace` (`.xcodeproj` 아님)
+- **재업로드 시 `app.json` 의 `ios.buildNumber` 를 반드시 증가**시킬 것 (현재 `1`)
