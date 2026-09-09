@@ -4,7 +4,7 @@
     "shortName": "TeeUp",
     "slug": "teeup",
     "scheme": "teeup",
-    "version": "1.0.2",
+    "version": "1.0",
     "icon": "./public/icons/icon-1024.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#ffffff",
