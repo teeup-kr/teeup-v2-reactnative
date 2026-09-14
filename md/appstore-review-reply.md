@@ -14,13 +14,12 @@
 | 순서 | 항목 | 상태 |
 | --- | --- | --- |
 | 1 | 리뷰어 로그인 백엔드 배포 (`origin/dev` pull + restart) | ☐ |
-| 2 | 신고·차단 기능 구현 → 빌드 2 업로드 | ☐ |
-| 3 | iPhone 확보 (최신 iOS) → TestFlight 설치 | ☐ |
-| 4 | 화면 녹화 촬영 | ☐ |
-| 5 | 아래 답변 + 녹화 영상 회신, 메모 필드에도 기재 | ☐ |
+| 2 | iPhone 확보 (최신 iOS) → TestFlight 설치 | ☐ |
+| 3 | 화면 녹화 촬영 | ☐ |
+| 4 | 아래 답변 + 녹화 영상 회신, 메모 필드에도 기재 | ☐ |
 
-**1·2번 없이 회신하면 다시 반려될 가능성이 높다.** 특히 2번은 Apple이 녹화에
-"required content reporting and blocking mechanisms" 를 포함하라고 명시했다.
+**전략**: 신고·차단 기능은 구현하지 않고 기존 빌드 1 그대로 회신한다.
+폐쇄형 클럽 구조를 설명하고, Guideline 1.2로 반려되면 그때 구현한다 (4장 참조).
 
 ---
 
@@ -41,8 +40,8 @@
 5. **라운딩 모임 만들기** → 모임 생성 → 모임 상세 → 참가 신청
 6. 소셜 모임 둘러보기
 7. **라운드 기록하기** → 스코어 입력 → 마이페이지 기록 확인
-8. 클럽 공지/모임 설명 등 **사용자 생성 콘텐츠** 화면에서
-   → **신고하기** 동작 → **사용자 차단** 동작 시연 (빌드 2 기능)
+8. 클럽 공지/모임 설명 등 **사용자 생성 콘텐츠** 화면 보여주기
+   (클럽 멤버에게만 보이는 구조임을 자연스럽게 드러낼 것)
 9. 전체메뉴 → 1:1 문의 화면
 10. **마이페이지 → 회원정보 수정 → 회원 탈퇴** → 실제로 탈퇴 완료까지
 11. 로그아웃된 로그인 화면에서 종료
@@ -67,7 +66,8 @@ It begins with launching the app and demonstrates:
   • Account registration via Sign in with Apple
   • Creating a golf club and a rounding (golf outing) event
   • Recording a golf score
-  • User-generated content with the report and block functions
+  • User-generated content (club and event details, visible to club members only)
+  • Contacting support via 1:1 Inquiry
   • Account deletion (My Page → Edit Profile → Delete Account)
 
 ────────────────────────────────────────
@@ -117,8 +117,6 @@ Main features and where to find them:
   • Create a social event: Meetings tab → Create Social
   • Record a score       : Home → Record Round
   • Expense settlement   : Meeting detail → Settlement
-  • Report content       : Club / meeting detail → "Report" (신고)
-  • Block a user         : Member list → "Block" (차단)
   • Delete account       : My tab → Edit Profile → Delete Account
   • Contact support      : Full Menu → 1:1 Inquiry
 
@@ -154,8 +152,12 @@ by our team or by users within their own clubs.
 ADDITIONAL NOTES
 ────────────────────────────────────────
   • User-generated content (club descriptions, notices, event details) is
-    visible only to members of the same club — there is no public feed.
-  • Report and block functions are available on all user-generated content.
+    visible only to members of the same club. There is no public feed,
+    no search across clubs, and no direct messaging between users.
+    Club leaders approve each membership request, and any member can
+    leave a club at any time. Objectionable content can be reported to us
+    through the in-app 1:1 Inquiry or by email, and we act on reports
+    within 24 hours.
   • Account deletion is available in-app and takes effect immediately.
   • The "settlement" feature only records and splits real-world expenses
     among club members; no money is transferred or paid within the app.
@@ -179,8 +181,7 @@ Demo account: on the login screen, tap the app logo 7 times to open
 Create club: Clubs tab → Create Club
 Create outing: Meetings tab → Create Rounding
 Record score: Home → Record Round
-Report content: club/meeting detail → Report
-Block user: member list → Block
+Report content: Full Menu → 1:1 Inquiry (or pixencrew@gmail.com)
 Delete account: My → Edit Profile → Delete Account
 
 [SERVICES]
@@ -188,8 +189,10 @@ Sign in with Apple, Google Sign-In, Firebase Cloud Messaging (push only),
 own backend at https://www.teeup.kr. No IAP, no ads, no payment processing.
 
 [UGC]
-Content is visible only within the user's own club. Report and block are
-available on all user-generated content.
+Content is visible only within the user's own club (no public feed, no
+cross-club search, no direct messaging). Club leaders approve membership.
+Objectionable content can be reported via 1:1 Inquiry or email; we act
+within 24 hours.
 
 [REGION]
 Functions identically in all regions. Korean-language service.
@@ -199,7 +202,9 @@ Contact: pixencrew@gmail.com
 
 ---
 
-## 4. 신고·차단 기능 — 최소 구현 범위
+## 4. (반려 시 대비) 신고·차단 기능 — 최소 구현 범위
+
+이번 회신에는 포함하지 않는다. Guideline 1.2 로 반려될 경우에만 구현한다.
 
 Apple Guideline 1.2 (User-Generated Content) 요구사항:
 
