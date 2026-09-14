@@ -688,15 +688,26 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
           {/* 저장 */}
           <View style={styles.footer}>
             {!isProfileRequiredFlow && (
-              <Pressable
-                onPress={handleMoveToWithdraw}
-                style={({ pressed }) => [
-                  styles.withdrawMoveBtn,
-                  pressed && styles.btnPressed,
-                ]}
-              >
-                <Text style={styles.withdrawMoveBtnText}>회원탈퇴</Text>
-              </Pressable>
+              <View style={styles.footerLeftGroup}>
+                <Pressable
+                  onPress={() => navigateWithCap(router, '/mypage/blocked')}
+                  style={({ pressed }) => [
+                    styles.blockedMoveBtn,
+                    pressed && styles.btnPressed,
+                  ]}
+                >
+                  <Text style={styles.blockedMoveBtnText}>차단 관리</Text>
+                </Pressable>
+                <Pressable
+                  onPress={handleMoveToWithdraw}
+                  style={({ pressed }) => [
+                    styles.withdrawMoveBtn,
+                    pressed && styles.btnPressed,
+                  ]}
+                >
+                  <Text style={styles.withdrawMoveBtnText}>회원탈퇴</Text>
+                </Pressable>
+              </View>
             )}
             <Pressable
               onPress={handleSave}
@@ -877,6 +888,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: tokens.spacing.xs2,
+  },
+  footerLeftGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.xs2,
+  },
+  blockedMoveBtn: {
+    paddingHorizontal: tokens.padding.md,
+    paddingVertical: tokens.padding.sm,
+    borderRadius: tokens.radius.md,
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+    backgroundColor: colors.white,
+  },
+  blockedMoveBtnText: {
+    color: colors.neutral[700],
+    fontWeight: tokens.fontWeight.bold,
+    fontSize: tokens.font.sm,
   },
   withdrawMoveBtn: {
     flexDirection: 'row',

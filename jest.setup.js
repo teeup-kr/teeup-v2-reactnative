@@ -54,6 +54,20 @@ jest.mock('@/context/AuthContext', () => ({
   }),
 }));
 
+jest.mock('@/context/BlockContext', () => ({
+  BlockProvider: ({ children }) => children,
+  useBlockedUsers: () => ({
+    blockedIds: new Set(),
+    blockedUsers: [],
+    isLoaded: true,
+    isBlocked: () => false,
+    block: jest.fn(),
+    unblock: jest.fn(),
+    refresh: jest.fn(),
+  }),
+  useOptionalBlockedUsers: () => null,
+}));
+
 jest.mock('@/context/AppLayoutContext', () => ({
   useAppLayout: () => ({
     isMenuOpen: false,

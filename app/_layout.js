@@ -16,6 +16,7 @@ import BottomNavigationBar, { bottomNavHeight } from '@/components/layout/Bottom
 import FullMenu from '@/components/layout/FullMenu';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { BlockProvider } from '@/context/BlockContext';
 import { authApi } from '@/lib/api/api';
 import { ResponsiveMetricsProvider, useResponsiveMetrics } from '@/lib/layout/responsiveMetrics';
 import { backOrHome, getHistorySnapshot, markHistoryTraversal, navigateWithCap, syncRouteHistory } from '@/lib/navigation/cappedHistory';
@@ -302,9 +303,11 @@ export default function RootLayout() {
 
       <StatusBar style="dark" backgroundColor={colors.white} />
       <AuthProvider>
-        <AppLayoutProvider>
-          <AppShell />
-        </AppLayoutProvider>
+        <BlockProvider>
+          <AppLayoutProvider>
+            <AppShell />
+          </AppLayoutProvider>
+        </BlockProvider>
       </AuthProvider>
       </ResponsiveMetricsProvider>
     </SafeAreaProvider>

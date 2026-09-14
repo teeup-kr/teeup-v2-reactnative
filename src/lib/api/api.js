@@ -699,6 +699,37 @@ export const inquiriesApi = {
   getInquiryTypes,
 };
 
+// ── 신고 / 차단 (App Store Guideline 1.2) ──────────────────────────────
+// target_type: CLUB | MEETING | CLUB_NOTICE | REGULATION | USER
+// reason:      SPAM | ABUSE | INAPPROPRIATE | FRAUD | PRIVACY | OTHER
+async function reportContent({ targetType, targetId, reason, description }) {
+  return apiClient.post('/moderation/reports', {
+    target_type: targetType,
+    target_id: targetId,
+    reason,
+    description: description || null,
+  });
+}
+
+async function getBlockedUsers() {
+  return apiClient.get('/moderation/blocks');
+}
+
+async function blockUser(userId) {
+  return apiClient.post(`/moderation/blocks/${userId}`);
+}
+
+async function unblockUser(userId) {
+  return apiClient.delete(`/moderation/blocks/${userId}`);
+}
+
+export const moderationApi = {
+  reportContent,
+  getBlockedUsers,
+  blockUser,
+  unblockUser,
+};
+
 async function getSidoList() {
   return apiClient.get('/sido-list', { auth: false });
 }
