@@ -31,7 +31,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.pixencrew.teeup",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "supportsTablet": false,
       "usesAppleSignIn": true,
       "googleServicesFile": "./GoogleService-Info.plist",

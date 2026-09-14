@@ -82,7 +82,7 @@ EAS_BUILD_PLATFORM=ios xcodebuild \
 xcodebuild -exportArchive \
   -archivePath ~/Desktop/teeup.xcarchive \
   -exportPath ~/Desktop/teeup-export \
-  -exportOptionsPlist /tmp/ExportOptions.plist \
+  -exportOptionsPlist /private/tmp/claude-501/-Users-jungeuilab-golf/6594d849-a0bd-4867-9276-2ef331d97de7/scratchpad/ExportOptions.plist \
   -allowProvisioningUpdates
 
 # 3) 검증 → 업로드
