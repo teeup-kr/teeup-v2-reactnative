@@ -1,7 +1,7 @@
-# App Review 답변 초안 — Guideline 2.1 Information Needed
+# App Review 답변 — Guideline 2.1 Information Needed
 
-- 작성일: 2026-09-14
-- 대상: 버전 1.0 (빌드 1) 첫 제출에 대한 Apple의 추가 정보 요청
+- 작성일: 2026-09-14 (신고·차단·필터 구현 반영으로 전면 개정)
+- 대상: 버전 1.0 — Apple의 추가 정보 요청에 대한 회신. **빌드 2로 재제출**한다.
 - 회신 위치: App Store Connect → 앱 → 심사 메시지 회신 **+ 앱 심사 정보의 「메모」 필드에도 동일 내용 기재**
 
 > Apple이 "Reply in App Store Connect ... and also add this information to the Notes field"
@@ -11,15 +11,26 @@
 
 ## 0. 회신 전 준비 체크리스트
 
-| 순서 | 항목 | 상태 |
-| --- | --- | --- |
-| 1 | 리뷰어 로그인 백엔드 배포 (`origin/dev` pull + restart) | ☐ |
-| 2 | iPhone 확보 (최신 iOS) → TestFlight 설치 | ☐ |
-| 3 | 화면 녹화 촬영 | ☐ |
-| 4 | 아래 답변 + 녹화 영상 회신, 메모 필드에도 기재 | ☐ |
+| 순서 | 항목 | 담당 | 상태 |
+| --- | --- | --- | --- |
+| 1 | 백엔드 `dev` 푸시 → 서버 `git pull` + `systemctl restart teeup-v2` | 사용자 | ☐ |
+| 2 | 서버에서 `scripts/update_terms_ugc_clause.py` (약관 조항) + `seed_demo.py` (데모 데이터) 실행 | 사용자 | ☐ |
+| 3 | `/api/v1/moderation/*`, `/api/v1/auth/login` 응답 확인 (404 아님) | Claude | ☐ |
+| 4 | 시뮬레이터에서 신고·차단·금칙어 E2E 확인, 스크린샷 재촬영 | Claude (로그인은 사용자) | ☐ |
+| 5 | `ios.buildNumber` → `2`, 아카이브 → 업로드 → ASC에서 빌드 2 선택 | Claude | ☐ |
+| 6 | iPhone (최신 iOS) 에 TestFlight 빌드 2 설치 → 화면 녹화 | 사용자 | ☐ |
+| 7 | 아래 답변 + 녹화 영상 회신, 메모 필드에도 기재, 심사 제출 | 사용자 | ☐ |
 
-**전략**: 신고·차단 기능은 구현하지 않고 기존 빌드 1 그대로 회신한다.
-폐쇄형 클럽 구조를 설명하고, Guideline 1.2로 반려되면 그때 구현한다 (4장 참조).
+### Guideline 1.2 (UGC) 충족 현황
+
+| Apple 요구 | 구현 |
+| --- | --- |
+| 부적절 콘텐츠 사전 필터링 | 백엔드 금칙어 필터 (`utils/content_filter.py`) — 클럽·모임·공지·규정·닉네임 생성/수정 시 400 거부 |
+| 신고 메커니즘 | 클럽·모임·공지·규정 상세의 ⋯ 메뉴 → 「신고하기」, 멤버·참가자 행 ⋯ → 사용자 신고. `content_reports` 저장 + 1:1 문의함 자동 생성 |
+| 사용자 차단 | ⋯ 메뉴 → 「사용자 차단」. 차단한 사용자의 클럽·모임·공지·참가자 표시 숨김. 마이 → 회원정보 수정 → 「차단 관리」에서 해제 |
+| 24시간 내 대응 | 신고 완료 안내 및 약관 제7조의2에 명시. 백오피스 문의 목록에서 처리 |
+| 연락처 공개 | 1:1 문의, pixencrew@gmail.com |
+| 약관에 무관용 명시 | 서비스 이용약관 제7조 제2항 · 제7조의2 (`scripts/update_terms_ugc_clause.py`로 운영 DB 적용) |
 
 ---
 
@@ -28,27 +39,31 @@
 ### 준비
 
 - iPhone (최신 iOS — 현재 iOS 26.x)
-- TestFlight 앱 설치 → 티업링크 빌드 설치
+- TestFlight 앱 설치 → 티업링크 **빌드 2** 설치
 - 설정 → 제어 센터 → 「화면 기록」 추가
+- 데모 계정으로 진행하면 시드 데이터(클럽·모임·공지)가 이미 있어 흐름이 짧아진다
 
 ### 녹화 흐름 (한 번에 이어서, 5~8분)
 
 1. **홈 화면에서 앱 아이콘 탭** → 앱 실행 (반드시 여기서 시작)
-2. 로그인 화면 → **Apple로 로그인** → 가입 → 프로필 완성
+2. 로그인 화면 → 로고 7번 탭 → 리뷰어 로그인 `reviewer@teeup.run / reviewer1234!`
+   (또는 Apple로 로그인 → 가입 → 약관 동의 → 프로필 완성)
 3. 홈 둘러보기
-4. **클럽 만들기** → 클럽 생성 → 클럽 상세
-5. **라운딩 모임 만들기** → 모임 생성 → 모임 상세 → 참가 신청
-6. 소셜 모임 둘러보기
-7. **라운드 기록하기** → 스코어 입력 → 마이페이지 기록 확인
-8. 클럽 공지/모임 설명 등 **사용자 생성 콘텐츠** 화면 보여주기
-   (클럽 멤버에게만 보이는 구조임을 자연스럽게 드러낼 것)
-9. 전체메뉴 → 1:1 문의 화면
-10. **마이페이지 → 회원정보 수정 → 회원 탈퇴** → 실제로 탈퇴 완료까지
-11. 로그아웃된 로그인 화면에서 종료
+4. 클럽 탭 → 「티업 골프 동호회」 상세 → 공지 · 멤버 · 규정 둘러보기
+5. 모임 탭 → 「10월 정기 라운딩」 상세 → 참가 신청
+6. **신고**: 모임 상세 우상단 ⋯ → 신고하기 → 사유 선택 → 신고하기 → "접수되었습니다" 확인
+7. **차단**: 클럽 멤버 목록에서 임의 멤버 행 ⋯ → 사용자 차단 → 확인 → 목록에서 사라짐
+8. **차단 해제**: 마이 → 회원정보 수정 → 차단 관리 → 차단 해제
+9. **필터**: 클럽 만들기에서 이름에 욕설 입력 → 등록 시 "부적절한 표현" 오류 확인 (선택)
+10. 홈 → 라운드 기록하기 → 스코어 입력 → 마이페이지 기록 확인
+11. 전체메뉴 → 1:1 문의 화면
+12. **마이페이지 → 회원정보 수정 → 회원 탈퇴** → 탈퇴 완료까지
+    (데모 계정을 탈퇴시키면 리뷰어가 못 쓰므로, **Apple 로그인으로 만든 계정**으로 탈퇴 장면만 따로 찍거나, 탈퇴 후 `seed_demo.py`를 다시 돌려 복구할 것)
+13. 로그아웃된 로그인 화면에서 종료
 
 ### 주의
 
-- 실명·전화번호 등 실제 개인정보가 화면에 나오지 않도록 **테스트용 값**으로 가입할 것
+- 실명·전화번호 등 실제 개인정보가 화면에 나오지 않도록 **테스트용 값**으로 진행할 것
 - 녹화 파일은 ASC 회신에 첨부 (용량 크면 iCloud/Drive 링크로)
 
 ---
@@ -57,18 +72,22 @@
 
 ```
 Thank you for reviewing TeeUp Link. Please find the requested information below.
+We have also uploaded a new build (1.0, build 2) that adds content reporting,
+user blocking and objectionable-content filtering, as described in section 7.
 
 ────────────────────────────────────────
 1. SCREEN RECORDING
 ────────────────────────────────────────
 Attached is a screen recording captured on an iPhone running iOS 26.x.
-It begins with launching the app and demonstrates:
-  • Account registration via Sign in with Apple
-  • Creating a golf club and a rounding (golf outing) event
+It begins with launching the app from the Home Screen and demonstrates:
+  • Signing in (demo account, see section 3)
+  • Browsing a club, its notices, members and regulations
+  • Viewing a golf outing and applying to join
+  • Reporting content (⋯ menu → Report)
+  • Blocking a user and unblocking from My → Edit Profile → Blocked Users
   • Recording a golf score
-  • User-generated content (club and event details, visible to club members only)
   • Contacting support via 1:1 Inquiry
-  • Account deletion (My Page → Edit Profile → Delete Account)
+  • Account deletion (My → Edit Profile → Delete Account)
 
 ────────────────────────────────────────
 2. APP PURPOSE AND TARGET AUDIENCE
@@ -96,27 +115,32 @@ The app is free. It contains no in-app purchases, subscriptions, or ads.
 ────────────────────────────────────────
 3. SETUP AND ACCESS INSTRUCTIONS
 ────────────────────────────────────────
-Login options:
-  (a) Sign in with Apple — recommended. Any Apple ID works; the account is
-      created on first sign-in.
-  (b) Google Sign-In.
-  (c) Demo account for review (email/password):
+Demo account (recommended — it is already a member of a sample club with
+outings, notices and score history):
 
-      On the login screen, tap the app logo 7 times to open the
-      "Reviewer Login" screen, then enter:
-        Email:    reviewer@teeup.run
-        Password: reviewer1234!
+  On the login screen, tap the app logo 7 times to open the
+  "Reviewer Login" screen, then enter:
+    Email:    reviewer@teeup.run
+    Password: reviewer1234!
 
-      (This hidden entry exists only to provide reviewers with a
-      password-based account, since regular users sign in with
-      Apple or Google.)
+  (This hidden entry exists only to give reviewers a password-based
+  account, since regular users sign in with Apple or Google.)
+
+Alternatively, Sign in with Apple or Google Sign-In work with any account;
+the account is created on first sign-in.
 
 Main features and where to find them:
+  • Sample club          : Clubs tab → "티업 골프 동호회"
   • Create a club        : Clubs tab → Create Club
   • Create an outing     : Meetings tab → Create Rounding
   • Create a social event: Meetings tab → Create Social
   • Record a score       : Home → Record Round
   • Expense settlement   : Meeting detail → Settlement
+  • Report content       : ⋯ button on club / outing / notice / regulation
+                           detail, or on a member row → Report
+  • Block a user         : ⋯ button on a member / participant row, or on
+                           content written by that user → Block User
+  • Manage blocked users : My tab → Edit Profile → Blocked Users
   • Delete account       : My tab → Edit Profile → Delete Account
   • Contact support      : Full Menu → 1:1 Inquiry
 
@@ -149,16 +173,38 @@ not include protected third-party material. All content is either created
 by our team or by users within their own clubs.
 
 ────────────────────────────────────────
+7. USER-GENERATED CONTENT (Guideline 1.2)
+────────────────────────────────────────
+User-generated content (club descriptions, notices, regulations, event
+details) is visible only to members of the same club. There is no public
+feed, no cross-club search, and no direct messaging between users. Club
+leaders approve each membership request.
+
+Build 2 includes the following moderation features:
+  • Filtering  : Text submitted for clubs, outings, notices, regulations
+                 and profile nicknames is checked against a
+                 prohibited-word list on our server and rejected before
+                 it is stored.
+  • Reporting  : Every piece of user content and every user can be
+                 reported from the ⋯ menu (reasons: spam, abuse,
+                 inappropriate, fraud, privacy, other). Reports are
+                 stored and also appear in our support queue.
+  • Blocking   : Users can block another user; the blocked user's
+                 clubs, outings, notices and participation are hidden.
+                 Blocks can be managed under My → Edit Profile →
+                 Blocked Users.
+  • Response   : We review every report within 24 hours and remove
+                 content or suspend accounts as needed.
+  • Terms      : Our Terms of Service (accepted at sign-up) state that
+                 objectionable content and abusive users are not
+                 tolerated and describe the reporting, blocking and
+                 suspension process (Article 7 and 7-2).
+
+────────────────────────────────────────
 ADDITIONAL NOTES
 ────────────────────────────────────────
-  • User-generated content (club descriptions, notices, event details) is
-    visible only to members of the same club. There is no public feed,
-    no search across clubs, and no direct messaging between users.
-    Club leaders approve each membership request, and any member can
-    leave a club at any time. Objectionable content can be reported to us
-    through the in-app 1:1 Inquiry or by email, and we act on reports
-    within 24 hours.
-  • Account deletion is available in-app and takes effect immediately.
+  • Account deletion is available in-app (My → Edit Profile → Delete
+    Account) and takes effect immediately.
   • The "settlement" feature only records and splits real-world expenses
     among club members; no money is transferred or paid within the app.
 
@@ -169,53 +215,41 @@ Contact: pixencrew@gmail.com
 
 ## 3. 「메모」 필드용 축약본
 
-앱 심사 정보 → 메모 (4,000자)에 넣을 버전. 위 본문 3·4번 + 추가 노트만 요약.
+앱 심사 정보 → 메모 (4,000자)에 넣을 버전.
 
 ```
 [LOGIN]
-Sign in with Apple or Google works with any account.
-Demo account: on the login screen, tap the app logo 7 times to open
-"Reviewer Login", then use  reviewer@teeup.run / reviewer1234!
+Demo account (already a member of a sample club with outings and notices):
+On the login screen, tap the app logo 7 times to open "Reviewer Login",
+then use  reviewer@teeup.run / reviewer1234!
+Sign in with Apple / Google also work with any account.
 
 [KEY PATHS]
+Sample club: Clubs tab → "티업 골프 동호회"
 Create club: Clubs tab → Create Club
 Create outing: Meetings tab → Create Rounding
 Record score: Home → Record Round
-Report content: Full Menu → 1:1 Inquiry (or pixencrew@gmail.com)
+Report content: ⋯ button on club / outing / notice / regulation detail
+                or on a member row → Report
+Block user: ⋯ button on a member / participant row → Block User
+Blocked users: My → Edit Profile → Blocked Users
 Delete account: My → Edit Profile → Delete Account
+Support: Full Menu → 1:1 Inquiry, or pixencrew@gmail.com
+
+[UGC / Guideline 1.2]
+Content is visible only within the user's own club (no public feed, no
+cross-club search, no direct messaging). Club leaders approve membership.
+Server-side prohibited-word filter rejects objectionable text before it
+is stored. Any content or user can be reported; users can block other
+users. We act on reports within 24 hours. Terms of Service (Article 7,
+7-2) state zero tolerance for objectionable content and abusive users.
 
 [SERVICES]
 Sign in with Apple, Google Sign-In, Firebase Cloud Messaging (push only),
 own backend at https://www.teeup.kr. No IAP, no ads, no payment processing.
-
-[UGC]
-Content is visible only within the user's own club (no public feed, no
-cross-club search, no direct messaging). Club leaders approve membership.
-Objectionable content can be reported via 1:1 Inquiry or email; we act
-within 24 hours.
 
 [REGION]
 Functions identically in all regions. Korean-language service.
 
 Contact: pixencrew@gmail.com
 ```
-
----
-
-## 4. (반려 시 대비) 신고·차단 기능 — 최소 구현 범위
-
-이번 회신에는 포함하지 않는다. Guideline 1.2 로 반려될 경우에만 구현한다.
-
-Apple Guideline 1.2 (User-Generated Content) 요구사항:
-
-| 요구 | 최소 구현 |
-| --- | --- |
-| 콘텐츠 **신고** 메커니즘 | 클럽 상세·모임 상세·공지에 「신고」 버튼 → 1:1 문의를 신고 유형으로 자동 생성 |
-| 사용자 **차단** | 멤버 목록에 「차단」 → 차단한 사용자의 콘텐츠 숨김 |
-| 운영자가 24시간 내 조치 | 백오피스에서 신고 문의 확인 → 조치 (운영 절차) |
-| 연락처 공개 | 이미 있음 (`pixencrew@gmail.com`, 1:1 문의) |
-
-신고는 기존 문의 시스템을 재활용하면 프론트 위주로 구현 가능하다.
-차단은 백엔드에 차단 목록 저장 + 조회 시 필터링이 필요하다.
-
-구현 후 `ios.buildNumber` 를 `2` 로 올려 재업로드하고, 녹화도 빌드 2로 찍을 것.
