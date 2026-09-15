@@ -17,9 +17,22 @@
 | 2 | 서버에서 `scripts/update_terms_ugc_clause.py` (약관 조항) + `seed_demo.py` (데모 데이터) 실행 | 사용자 | ☐ |
 | 3 | `/api/v1/moderation/*`, `/api/v1/auth/login` 응답 확인 (404 아님) | Claude | ☐ |
 | 4 | 시뮬레이터에서 신고·차단·금칙어 E2E 확인, 스크린샷 재촬영 | Claude (로그인은 사용자) | ☐ |
-| 5 | `ios.buildNumber` → `2`, 아카이브 → 업로드 → ASC에서 빌드 2 선택 | Claude | ☐ |
-| 6 | iPhone (최신 iOS) 에 TestFlight 빌드 2 설치 → 화면 녹화 | 사용자 | ☐ |
-| 7 | 아래 답변 + 녹화 영상 회신, 메모 필드에도 기재, 심사 제출 | 사용자 | ☐ |
+| 5 | `ios.buildNumber` → `2`, 아카이브 → 업로드 (2026-09-14 완료, Delivery `f7d5801e`) | Claude | ☑ |
+| 6 | iPhone 12 mini (iOS 18.1.1) 에 USB로 빌드 2 직접 설치 → QuickTime 으로 화면 녹화 (2026-09-15 완료) | 사용자+Claude | ☑ |
+| 7 | ASC 1.0 버전의 빌드를 1 → 2 로 교체 | 사용자 | ☐ |
+| 8 | 아래 답변 + 녹화 영상 회신, 메모 필드에도 기재, 심사 제출 | 사용자 | ☐ |
+
+### 녹화 결과물 (`~/Desktop/teeup-review-video/`)
+
+| 파일 | 길이 | 내용 |
+| --- | --- | --- |
+| `teeup-review-1.mov` (153MB, 888×1920) | 4:32 | 홈 화면 앱 실행 → 리뷰어 로그인 → 홈/클럽/공지/멤버/규정/회비 → 모임 상세 → **신고** → 멤버 **차단** → 차단 관리 **해제** → 라운드 기록 → 1:1 문의 → 로그아웃 |
+| `teeup-review-1-720p.mov` (104MB) | 4:32 | 위와 동일, 첨부 용량 제한 걸릴 때 사용 |
+| `teeup-review-2-delete-account.mov` (42MB) | 1:49 | 리뷰어 로그인 (demo12) → 마이 → 회원정보 수정 → **회원 탈퇴** → 로그아웃 화면 |
+
+> TestFlight 는 내부 그룹에 빌드를 붙여도 아이폰에 "사용 가능한 빌드 없음"만 떠서 포기.
+> 대신 개발자 모드 켜고 `xcodebuild -destination id=<UDID> -allowProvisioningDeviceRegistration` 로 빌드 →
+> `xcrun devicectl device install app` 으로 설치. 녹화는 QuickTime → 동영상 녹화 → 카메라: iPhone.
 
 ### Guideline 1.2 (UGC) 충족 현황
 
@@ -78,16 +91,23 @@ user blocking and objectionable-content filtering, as described in section 7.
 ────────────────────────────────────────
 1. SCREEN RECORDING
 ────────────────────────────────────────
-Attached is a screen recording captured on an iPhone running iOS 26.x.
-It begins with launching the app from the Home Screen and demonstrates:
-  • Signing in (demo account, see section 3)
-  • Browsing a club, its notices, members and regulations
-  • Viewing a golf outing and applying to join
-  • Reporting content (⋯ menu → Report)
-  • Blocking a user and unblocking from My → Edit Profile → Blocked Users
+Attached are two screen recordings captured on a physical iPhone 12 mini
+(iOS 18.1.1) running build 1.0 (2).
+
+Recording 1 (4:32) begins with launching the app from the Home Screen and
+demonstrates:
+  • Signing in with the demo account (see section 3)
+  • Browsing a club, its notices, members, regulations and fees
+  • Viewing a golf outing
+  • Reporting content (outing detail → ⋯ → Report)
+  • Blocking a user from the member list, then unblocking from
+    My → Edit Profile → Blocked Users
   • Recording a golf score
   • Contacting support via 1:1 Inquiry
-  • Account deletion (My → Edit Profile → Delete Account)
+  • Signing out
+
+Recording 2 (1:49) demonstrates account deletion end-to-end
+(My → Edit Profile → Delete Account) with a separate test account.
 
 ────────────────────────────────────────
 2. APP PURPOSE AND TARGET AUDIENCE
