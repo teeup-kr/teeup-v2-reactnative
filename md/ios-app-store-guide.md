@@ -1,273 +1,278 @@
 # iOS App Store 업로드 가이드
 
-이 문서는 현재 저장소(`teeup-v2-reactnative`, Expo SDK 54 / RN 0.81.5) 기준으로
-App Store Connect 업로드까지의 절차를 정리한다.
+대상: `teeup-v2-reactnative` (Expo SDK 54 / RN 0.81.5)
+최종 갱신: 2026-08-30
 
-## 0. 현재 저장소 상태 진단
+---
+
+## 0. 현재 상태 (2026-08-30 기준)
+
+### 이미 끝난 것
 
 | 항목 | 상태 |
 | --- | --- |
-| 개발 머신 OS | Linux (Xcode 사용 불가) |
-| `ios/` 네이티브 폴더 | 없음 (CNG / prebuild 방식) |
-| `eas.json` | **없음** — 생성 필요 |
-| `app.json`의 `ios` | `bundleIdentifier: com.pixencrew.teeup` 만 존재 |
-| `GoogleService-Info.plist` | **없음** — Firebase iOS 앱 등록 필요 |
-| `.env` | `.gitignore`에 포함 (35행) — EAS 클라우드에 안 올라감 |
-| `google-services.json` | `.gitignore`에 포함 (56행) — 동일 문제 |
-| npm scripts | Android용만 존재 (`android:release:aab` 등) |
+| Apple Developer Program | ✅ 가입·승인 완료 (`ejto100@gmail.com`) |
+| `GoogleService-Info.plist` | ✅ 루트에 존재, **git 커밋 완료** |
+| `app.json` → `ios` 블록 | ✅ bundleId / buildNumber / googleServicesFile / `ITSAppUsesNonExemptEncryption` / `usesAppleSignIn` |
+| google-signin 플러그인 `iosUrlScheme` | ✅ 설정됨 |
+| Sign in with Apple (Guideline 4.8) | ✅ 구현 완료 — `src/lib/util/authUtils.js:141`, `app/login.js:118` |
+| 계정 삭제 (Guideline 5.1.1(v)) | ✅ `app/(tabs)/mypage/withdraw.js` |
+| 심사용 리뷰어 계정 (Guideline 2.1) | ✅ `app/reviewer-login.js` — 로그인 화면 로고 **7번 탭**으로 진입 |
+| `eas.json` | ✅ 생성됨 (Apple 식별자 3개는 placeholder — 3단계 참고) |
 
-**핵심 결론: 개발 머신이 Linux이므로 로컬 iOS 빌드는 불가능하다.**
-선택지는 두 가지다.
+### 아직 남은 것
 
-- **(권장) EAS Build 클라우드 빌드** — macOS 없이 Linux에서 전 과정 수행 가능
-- macOS + Xcode 장비 확보 후 `npx expo prebuild -p ios` → Xcode Archive
+| 항목 | 상태 |
+| --- | --- |
+| `eas-cli` 설치 / `eas login` / `eas init` | ❌ |
+| `extra.eas.projectId` (app.json) | ❌ `eas init`이 주입 |
+| EAS 환경변수 등록 | ❌ **필수** — 4단계 참고 |
+| Apple Identifier capability (Push, Sign in with Apple) | ❓ 확인 필요 |
+| App Store Connect 앱 레코드 / `ascAppId` | ❓ 확인 필요 |
+| 백엔드 `APPLE_BUNDLE_ID` + `provider` enum 마이그레이션 | ❓ 확인 필요 — 7단계 |
 
-이 문서는 EAS Build 기준으로 작성한다.
+### 전제 조건
+
+**개발 머신이 Linux라 Xcode를 쓸 수 없다. iOS는 EAS 클라우드 빌드가 유일한 경로다.**
+(대안은 macOS 장비 확보 후 `npx expo prebuild -p ios` → Xcode Archive.)
+
+`ios/` 네이티브 폴더는 없다. CNG(Continuous Native Generation) 방식이라 정상이며,
+EAS가 빌드 시점에 `expo prebuild`를 자동 수행한다.
 
 ---
 
-## 1. 사전 준비 (계정 / 결제)
+## 1. Apple Developer 포털 점검
 
-1. **Apple Developer Program 가입** — 연 $99(약 13만원), 승인까지 최대 24~48시간.
-   개인이 아니라 법인 명의로 낼 경우 D-U-N-S 번호가 필요하고 수 주가 걸릴 수 있으니 먼저 시작할 것.
-2. **App Store Connect에 앱 레코드 생성**
-   - 번들 ID: `com.pixencrew.teeup` (Certificates, Identifiers & Profiles에서 먼저 등록)
-   - Push Notifications capability를 Identifier에 체크 (앱이 `expo-notifications` 사용)
-   - 앱 이름: `티업링크` (App Store 내 중복 불가 — 선점되어 있으면 변경 필요)
-3. **Expo 계정** — https://expo.dev 무료 가입.
+Certificates, Identifiers & Profiles → Identifiers → `com.pixencrew.teeup`
+
+두 capability가 **반드시** 켜져 있어야 한다.
+
+- **Push Notifications** — `expo-notifications` + `@react-native-firebase/messaging` 사용
+- **Sign in with Apple** — 빠지면 Apple 로그인이 런타임에 실패한다
+
+Team ID는 Membership 페이지 우측 상단의 10자리 문자열이다. (`eas.json`에 필요)
 
 ---
 
-## 2. EAS CLI 설치 및 프로젝트 연결
+## 2. App Store Connect 앱 레코드
 
-`eas-cli`는 현재 설치되어 있지 않다.
+이미 만들어 두었다면 건너뛴다.
+
+- 플랫폼: iOS
+- 번들 ID: `com.pixencrew.teeup`
+- 앱 이름: `티업링크` (App Store 전역에서 중복 불가 — 선점되어 있으면 변경 필요)
+- SKU: 임의 문자열 (예: `teeup-ios`)
+
+생성 후 App Information 페이지에서 **Apple ID(숫자 10자리)** 를 확인한다.
+이 값이 `eas.json`의 `ascAppId`다.
+
+---
+
+## 3. EAS CLI 설치 및 프로젝트 연결
 
 ```bash
 cd teeup-v2-reactnative
-npm i -g eas-cli          # 또는 npx eas-cli@latest 로 매번 실행
-eas login
-eas init                  # expo.dev 프로젝트 생성 + app.json에 extra.eas.projectId 주입
+npm i -g eas-cli
+eas login                 # ejto100@gmail.com 이 아니라 expo.dev 계정
+eas init                  # app.json에 extra.eas.projectId 주입
 ```
 
----
-
-## 3. 누락된 iOS 설정 채우기
-
-### 3-1. Firebase iOS 앱 등록
-
-Google 로그인(`@react-native-google-signin/google-signin`)이 iOS에서 동작하려면
-`GoogleService-Info.plist`가 필요하다.
-
-1. Firebase 콘솔 → 기존 프로젝트 → iOS 앱 추가 → 번들 ID `com.pixencrew.teeup`
-2. `GoogleService-Info.plist` 다운로드 → 프로젝트 루트에 배치
-3. `.gitignore`에 추가 (google-services.json과 동일하게 비밀 취급)
-
-### 3-2. `app.json`의 `ios` 블록 보강
+그리고 `eas.json`의 placeholder 2개를 채운다.
 
 ```jsonc
-"ios": {
-  "bundleIdentifier": "com.pixencrew.teeup",
-  "buildNumber": "1",
-  "googleServicesFile": "./GoogleService-Info.plist",
-  "supportsTablet": false,
-  "infoPlist": {
-    "ITSAppUsesNonExemptEncryption": false
-  }
-},
-```
-
-- `buildNumber`는 업로드마다 반드시 증가해야 한다. eas.json에서 `autoIncrement`로 자동화 권장(3-4 참고).
-- `ITSAppUsesNonExemptEncryption: false`를 넣지 않으면 업로드할 때마다 수출 규정 질문에 수동 응답해야 한다.
-
-### 3-3. Google Sign-In 플러그인에 `iosUrlScheme` 지정
-
-현재 `plugins`에 문자열로만 들어가 있어 iOS 빌드 시 URL scheme이 설정되지 않는다.
-
-```jsonc
-"plugins": [
-  "expo-router",
-  "expo-notifications",
-  [
-    "@react-native-google-signin/google-signin",
-    {
-      "iosUrlScheme": "com.googleusercontent.apps.<IOS_CLIENT_ID의 역순 문자열>"
-    }
-  ]
-],
-```
-
-값은 `GoogleService-Info.plist`의 `REVERSED_CLIENT_ID` 키를 그대로 쓰면 된다.
-
-### 3-4. `eas.json` 생성
-
-```bash
-eas build:configure -p ios
-```
-
-생성 후 아래 형태로 다듬는다.
-
-```jsonc
-{
-  "cli": { "version": ">= 12.0.0", "appVersionSource": "local" },
-  "build": {
-    "preview": {
-      "distribution": "internal",
-      "ios": { "simulator": false },
-      "env": { "EXPO_PUBLIC_API_BASE_URL": "https://..." }
-    },
-    "production": {
-      "ios": { "autoIncrement": "buildNumber" },
-      "env": { "EXPO_PUBLIC_API_BASE_URL": "https://..." }
-    }
-  },
-  "submit": {
-    "production": {
-      "ios": {
-        "appleId": "<Apple ID 이메일>",
-        "ascAppId": "<App Store Connect 앱 ID(숫자)>",
-        "appleTeamId": "<10자리 Team ID>"
-      }
+"submit": {
+  "production": {
+    "ios": {
+      "appleId": "ejto100@gmail.com",
+      "ascAppId": "<2단계에서 확인한 숫자 ID>",
+      "appleTeamId": "<1단계에서 확인한 10자리 Team ID>"
     }
   }
 }
 ```
 
+> **버전 관리 메모**
+> `eas.json`은 `appVersionSource: "remote"` + `production.autoIncrement: true`로 되어 있다.
+> `buildNumber`를 EAS 서버가 관리하며 빌드마다 자동 증가시키므로 수동으로 올릴 필요가 없다.
+> `"local"`을 쓰지 않는 이유: 이 프로젝트는 `app.config.js`(동적 config)를 사용하는데,
+> EAS는 동적 config에 버전을 되써 넣지 못해 autoIncrement가 동작하지 않는다.
+> 사용자에게 보이는 버전 문자열(`version: "1.0.2"`)은 계속 `app.json`에서 온다.
+
 ---
 
-## 4. ⚠️ 환경변수·비밀파일 반입 (가장 흔한 실패 지점)
+## 4. ⚠️ 환경변수 반입 — 가장 흔한 실패 지점
 
 `app.config.js`는 빌드 시점에 `dotenv`로 `.env`를 읽는다.
-그런데 `.env`와 `google-services.json`은 `.gitignore` 대상이고,
-**EAS Build는 git에 추적되는 파일만 클라우드로 업로드한다.**
-조치 없이 빌드하면 `⚠️ Warning: Missing env var: EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS`가 뜨면서
-Google 로그인이 죽은 채로 빌드된다.
+그런데 `.gitignore` 35행의 `.env*` 규칙 때문에 **`.env`는 EAS 클라우드에 올라가지 않는다.**
 
-두 가지 방법 중 하나를 택한다.
+조치 없이 빌드하면 다음 경고가 뜨면서 **Google 로그인이 죽은 채로 IPA가 만들어진다.**
 
-**방법 A — EAS 환경변수 (권장)**
-
-```bash
-eas env:create --name EXPO_PUBLIC_API_BASE_URL   --value "https://..." --environment production
-eas env:create --name EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS    --value "..." --environment production
-eas env:create --name EXPO_PUBLIC_GOOGLE_REDIRECT_URI_IOS --value "..." --environment production
-eas env:create --name EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB    --value "..." --environment production
-eas env:create --name EXPO_PUBLIC_WEB_ORIGIN     --value "..." --environment production
-eas env:create --name EXPO_PUBLIC_API_VERSION    --value "v1"   --environment production
+```
+⚠️ Warning: Missing env var: EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS
 ```
 
-`GoogleService-Info.plist`는 파일이므로 별도 처리한다.
+### 방법 A — EAS 환경변수 (권장)
+
+`.env`의 실제 값으로 6개를 등록한다.
 
 ```bash
-eas env:create --name GOOGLE_SERVICES_PLIST --type file \
-  --value ./GoogleService-Info.plist --environment production --visibility secret
+eas env:create --name EXPO_PUBLIC_API_BASE_URL            --value "..."  --environment production
+eas env:create --name EXPO_PUBLIC_API_VERSION             --value "v1"   --environment production
+eas env:create --name EXPO_PUBLIC_WEB_ORIGIN              --value "..."  --environment production
+eas env:create --name EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS    --value "..."  --environment production
+eas env:create --name EXPO_PUBLIC_GOOGLE_REDIRECT_URI_IOS --value "..."  --environment production
+eas env:create --name EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB    --value "..."  --environment production
 ```
 
-그리고 `app.json`의 `ios.googleServicesFile`을 `process.env.GOOGLE_SERVICES_PLIST` 경로로
-읽도록 `app.config.js`에서 덮어쓴다.
+등록 확인:
 
-**방법 B — `.easignore` 없이 eas.json의 `env` 블록에 직접 기입**
+```bash
+eas env:list --environment production
+```
 
-간단하지만 값이 git에 커밋되므로, 공개 저장소라면 쓰지 말 것.
+### 방법 B — `.easignore`
 
-> 참고: `app.config.js`의 `resolvePlatform()`은 `EAS_BUILD_PLATFORM`을 읽는다.
-> EAS가 iOS 빌드 시 이 값을 `ios`로 자동 설정하므로 별도 조치는 필요 없다.
-> `withAdiRegistration` 플러그인은 android일 때만 적용되므로 iOS에 영향 없다.
+`.easignore` 파일을 만들면 EAS는 `.gitignore` 대신 이 파일을 기준으로 업로드 대상을 정한다.
+즉 `.env`, `google-services.json` 등 gitignore된 파일을 **커밋하지 않고** 클라우드에 보낼 수 있다.
+
+`.gitignore` 내용을 복사한 뒤 아래 줄들을 **제거**하고, 무거운 디렉터리는 반드시 남긴다.
+
+```
+# .easignore — 제거할 줄
+.env*
+google-services.json
+metro.config.js
+adi-registration.properties
+
+# 반드시 유지해야 할 줄 (없으면 업로드 아카이브가 폭증)
+node_modules/
+dist/
+.expo/
+android/app/build/
+```
+
+방법 A가 실수 여지가 적어 권장된다. 방법 B는 CI 없이 혼자 빠르게 돌릴 때만 쓴다.
+
+### 참고: 커밋 상태
+
+EAS Build는 git 추적 파일만 업로드한다. 빌드 전에 `git status`로
+`app.json`, `src/lib/util/authUtils.js`, `app/login.js` 등 iOS 관련 변경분이
+**커밋되어 있는지 반드시 확인**한다. `eas build`가 미커밋 변경을 감지하면
+커밋 여부를 물어보는데, 여기서 Abort하면 이전 상태로 빌드된다.
+
+> `metro.config.js`는 `.gitignore`에 있어 클라우드에 올라가지 않는다.
+> 이 파일은 minify/난독화를 끄는 설정이므로, EAS 빌드에서는 Expo 기본
+> (minify 켜짐) 설정이 적용된다. 프로덕션에는 오히려 바람직하다.
+>
+> `adi-registration.properties`와 `withAdiRegistration` 플러그인은
+> android 플랫폼에서만 동작하므로 iOS 빌드에 영향이 없다.
 
 ---
 
-## 5. 자격증명(인증서 / 프로비저닝) 발급
+## 5. 자격증명 (인증서 / 프로비저닝 / APNs)
 
-EAS가 자동으로 처리한다. 첫 빌드 시 Apple 로그인을 요구하고
-Distribution Certificate, Provisioning Profile, APNs Key를 만들어 저장한다.
+EAS가 자동 처리한다. 첫 빌드에서 Apple 로그인을 요구하며
+Distribution Certificate, Provisioning Profile, APNs Key를 생성해 보관한다.
 
 ```bash
-eas credentials -p ios      # 수동 확인/관리가 필요할 때
+eas credentials -p ios     # 수동 확인/관리가 필요할 때
 ```
 
-2단계 인증(App-specific password 또는 앱 승인)이 필요하니 아이폰을 옆에 두고 진행할 것.
+2단계 인증이 걸리므로 **아이폰을 옆에 두고** 진행한다.
+App-specific password를 미리 만들어두면 더 매끄럽다.
 
 ---
 
-## 6. 빌드
+## 6. 빌드 → 제출
 
 ```bash
-# 내부 테스트용 (선택)
+# (선택) 내부 테스트용
 eas build -p ios --profile preview
 
 # App Store 제출용
 eas build -p ios --profile production
-```
 
-무료 플랜은 대기열이 길어 30분~수 시간 걸릴 수 있다.
-완료되면 `.ipa` 아티팩트 URL이 출력된다.
-
----
-
-## 7. App Store Connect 제출
-
-```bash
+# 업로드
 eas submit -p ios --latest
 ```
 
-또는 `--profile production`으로 eas.json의 submit 설정을 사용한다.
-업로드 후 App Store Connect에서 처리(Processing)에 10~30분 소요된다.
+무료 플랜은 대기열 때문에 30분~수 시간이 걸릴 수 있다.
+업로드 후 App Store Connect의 처리(Processing)에 추가로 10~30분.
 
 ---
 
-## 8. TestFlight → 심사 제출
+## 7. 백엔드 선반영 (빌드 전에 해둘 것)
 
-1. TestFlight 탭에서 빌드 확인 → 수출 규정 준수 응답(3-2에서 미리 처리했다면 생략)
-2. 내부 테스터로 실기기 검증 — **특히 Google 로그인과 푸시 알림을 반드시 확인**
-3. App Store 탭에서 심사 제출 시 준비물:
-   - 스크린샷: 6.9"(iPhone 16 Pro Max) 및 6.5" 각 최소 3장
-   - 앱 설명, 키워드, 프로모션 텍스트
-   - **개인정보처리방침 URL (필수)**
-   - 지원 URL
-   - 연령 등급 설문
-   - **심사용 데모 계정** — 로그인이 필요한 앱이므로 필수.
-     `docs/reviewer-access.md`에 관련 내용이 있으니 참고할 것.
+Apple 로그인이 서버에서 받아지려면 두 가지가 필요하다.
 
----
-
-## 9. 예상 리젝 사유 (사전 점검)
-
-| 항목 | 내용 |
-| --- | --- |
-| Guideline 5.1.1(v) | 계정 생성이 가능한 앱은 **계정 삭제 기능**을 앱 내에 제공해야 함 |
-| Guideline 4.8 | Google 로그인을 제공하면 Sign in with Apple도 함께 제공해야 함 (제3자 소셜 로그인만 있을 경우) |
-| Guideline 2.1 | 데모 계정 미제공 / 로그인 실패 |
-| Guideline 5.1.1 | 개인정보처리방침 URL 누락, 앱 내 수집 항목과 App Privacy 신고 불일치 |
-
-4.8 대응으로 **Sign in with Apple을 구현 완료**했다. 5.1.1(v) 계정 삭제는 기존에 구현되어 있다.
-
-### Sign in with Apple 배포 시 필수 작업
-
-1. **Apple Developer** → Identifiers → `com.pixencrew.teeup` → **Sign in with Apple 체크**
-2. **백엔드 환경변수** 추가 — 없으면 Apple 로그인이 400으로 실패한다.
+1. 환경변수 — 없으면 Apple 로그인이 400으로 실패한다.
    ```
    APPLE_BUNDLE_ID=com.pixencrew.teeup
    ```
-3. **DB enum 마이그레이션** — `users.provider`에 `APPLE` 값 추가 (alembic 미사용이므로 수동 실행)
+2. DB enum 마이그레이션 (alembic 미사용이므로 수동 실행)
    ```sql
    ALTER TABLE users
      MODIFY COLUMN provider ENUM('LOCAL','GOOGLE','APPLE') DEFAULT 'LOCAL';
    ```
-4. `pip install -r requirements.txt` — `cryptography` 신규 추가(RS256 검증용)
+3. `pip install -r requirements.txt` — RS256 검증용 `cryptography` 신규 의존성
 
 ---
 
-## 10. 요약 체크리스트
+## 8. TestFlight 검증
 
-- [ ] Apple Developer Program 가입 및 승인
-- [ ] App Store Connect 앱 레코드 + Identifier(Push capability) 생성
-- [ ] `eas-cli` 설치, `eas login`, `eas init`
-- [ ] Firebase iOS 앱 등록 → `GoogleService-Info.plist` 배치
-- [ ] `app.json` ios 블록 보강 (buildNumber / googleServicesFile / infoPlist)
-- [ ] google-signin 플러그인 `iosUrlScheme` 지정
-- [ ] `eas.json` 생성 및 submit 프로필 작성
-- [ ] EAS 환경변수 등록 (.env가 git에 없음 — 필수)
-- [ ] Sign in with Apple 도입 여부 결정
-- [ ] 계정 삭제 기능 확인
-- [ ] `eas build -p ios --profile production`
-- [ ] `eas submit -p ios --latest`
-- [ ] TestFlight 검증 → 심사 제출
+실기기에서 아래 3개는 **반드시** 확인한다. 심사 리젝의 대부분이 여기서 나온다.
+
+- [ ] Google 로그인
+- [ ] **Apple 로그인** (1단계 capability + 7단계 백엔드가 모두 되어 있어야 성공)
+- [ ] 푸시 알림 수신
+- [ ] 리뷰어 로그인 진입 (로고 7번 탭 → `/reviewer-login`)
+- [ ] 계정 삭제 플로우
+
+> Firebase 프로젝트(`668486530275`)와 Google OAuth 클라이언트 프로젝트(`791884628850`)가
+> 서로 달라서 `GoogleService-Info.plist`에 `CLIENT_ID` / `REVERSED_CLIENT_ID`가 없다.
+> `authUtils.js`에서 `iosClientId`를 env로 직접 주입해 우회하고 있다.
+> 따라서 `EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS`가 EAS에 등록되지 않으면 Google 로그인이 조용히 실패한다.
+
+---
+
+## 9. 심사 제출 준비물
+
+- 스크린샷: 6.9"(iPhone 16 Pro Max) 필수, 6.5" 권장 — 각 최소 3장
+- 앱 설명 / 키워드 / 프로모션 텍스트
+- **개인정보처리방침 URL** (필수)
+- 지원(Support) URL
+- 연령 등급 설문
+- **심사용 데모 계정** — `docs/reviewer-access.md` 참고
+  - `reviewer@teeup.run` / `reviewer1234!`
+  - App Review Information의 Notes에 **"로그인 화면 로고를 7번 탭하면 리뷰어 로그인 화면으로 이동"** 을 반드시 기재할 것. 안 적으면 심사자가 진입 방법을 몰라 2.1로 리젝된다.
+- App Privacy 신고 — 앱이 실제로 수집하는 항목과 일치해야 함
+
+---
+
+## 10. 예상 리젝 사유 대응 현황
+
+| Guideline | 내용 | 대응 |
+| --- | --- | --- |
+| 4.8 | 제3자 소셜 로그인 제공 시 Sign in with Apple도 필수 | ✅ 구현 완료 |
+| 5.1.1(v) | 계정 생성 가능 앱은 앱 내 계정 삭제 제공 | ✅ 구현 완료 |
+| 2.1 | 데모 계정 미제공 / 로그인 실패 | ✅ 리뷰어 계정 — 단, 진입 방법 기재 필수 |
+| 5.1.1 | 개인정보처리방침 URL 누락, App Privacy 불일치 | ❓ 제출 시 확인 |
+| 2.3.x | 스크린샷이 실제 앱과 불일치 | ❓ 제출 시 확인 |
+
+---
+
+## 11. 실행 체크리스트
+
+```
+[ ] 1. Apple Identifier에 Push + Sign in with Apple capability 확인
+[ ] 2. App Store Connect 앱 레코드 생성 → ascAppId 확보
+[ ] 3. npm i -g eas-cli && eas login && eas init
+[ ] 4. eas.json의 ascAppId / appleTeamId placeholder 교체
+[ ] 5. eas env:create ×6 (production)
+[ ] 6. 백엔드 APPLE_BUNDLE_ID + provider enum 마이그레이션 + 배포
+[ ] 7. git status 확인 후 iOS 관련 변경분 전부 커밋
+[ ] 8. eas build -p ios --profile production
+[ ] 9. eas submit -p ios --latest
+[ ] 10. TestFlight에서 Google/Apple 로그인·푸시 검증
+[ ] 11. 스크린샷·개인정보처리방침·데모 계정 안내 작성 후 심사 제출
+```

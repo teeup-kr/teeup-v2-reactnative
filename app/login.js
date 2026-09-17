@@ -39,7 +39,7 @@ if (Platform.OS === 'ios') {
 export default function LoginScreen() {
   const router = useRouter();
   const { refreshAuth } = useAuth();
-  const [reviewerTapCount, setReviewerTapCount] = useState(0);
+  const [_reviewerTapCount, setReviewerTapCount] = useState(0);
   const [errors, setErrors] = useState({
     general: '',
   });
