@@ -505,7 +505,7 @@ export default function UserProfileEditForm({ onMoveToWithdraw }) {
             {/* 생년월일 */}
             <View>
               <Text style={styles.label}>
-                생년월일 <Text style={styles.required}>*</Text>
+                생년월일 <Text style={styles.optional}>(선택)</Text>
               </Text>
 
               {Platform.OS === 'web' ? (
@@ -749,6 +749,7 @@ const styles = StyleSheet.create({
   },
   labelIcon: { marginRight: tokens.spacing.xs2, color: colors.textMuted },
   required: { color: colors.red[500] },
+  optional: { color: colors.gray[400], fontSize: 12 },
 
   input: {
     ...base.formInput,
