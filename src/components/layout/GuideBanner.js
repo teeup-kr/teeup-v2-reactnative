@@ -34,9 +34,12 @@ export default function GuideBanner() {
         accessibilityRole="link"
         accessibilityLabel="사용설명서 열기"
       >
-        <FontAwesome5 name="book-open" size={13} color={colors.white} />
-        <Text style={styles.text}>티업링크 사용설명서 보기</Text>
-        <FontAwesome5 name="external-link-alt" size={11} color={colors.white} />
+        <View style={styles.iconWrap}>
+          <FontAwesome5 name="book-open" size={12} color={colors.primary[600]} />
+        </View>
+        <Text style={styles.text}>티업링크 사용설명서</Text>
+        <Text style={styles.subText}>처음이신가요?</Text>
+        <FontAwesome5 name="external-link-alt" size={11} color={colors.neutral[400]} />
       </Pressable>
     </View>
   );
@@ -54,15 +57,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: tokens.padding.xs,
-    backgroundColor: colors.primary[600],
+    backgroundColor: colors.white,
+    borderTopWidth: 1,
+    borderTopColor: colors.neutral[200],
     paddingHorizontal: tokens.padding.md,
   },
   bannerPressed: {
-    backgroundColor: colors.primary[700],
+    backgroundColor: colors.neutral[100],
+  },
+  iconWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary[50],
   },
   text: {
     fontSize: tokens.font.sm,
     fontWeight: tokens.fontWeight.semibold,
-    color: colors.white,
+    color: colors.neutral[800],
+  },
+  subText: {
+    fontSize: tokens.font.xs,
+    color: colors.neutral[500],
   },
 });
