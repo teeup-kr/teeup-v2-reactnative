@@ -12,8 +12,9 @@ import { useEffect, useRef } from 'react';
 import { BackHandler, Platform, StyleSheet, ToastAndroid, useWindowDimensions, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import BottomNavigationBar, { bottomNavHeight } from '@/components/layout/BottomNavigationBar';
+import BottomNavigationBar from '@/components/layout/BottomNavigationBar';
 import FullMenu from '@/components/layout/FullMenu';
+import GuideBanner, { guideBannerOffset } from '@/components/layout/GuideBanner';
 import { AppLayoutProvider } from '@/context/AppLayoutContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { BlockProvider } from '@/context/BlockContext';
@@ -248,11 +249,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           },
       ]}
     >
-      <View style={[styles.shell, { paddingBottom: isRootEntry ? 0 : bottomNavHeight(insets) }]}>
+      <View style={[styles.shell, { paddingBottom: isRootEntry ? 0 : guideBannerOffset(insets) }]}>
         <View style={styles.main}>
           <Slot />
         </View>
       </View>
+      {!isRootEntry ? <GuideBanner /> : null}
       {!isRootEntry ? <BottomNavigationBar /> : null}
       {!isRootEntry ? <FullMenu /> : null}
       {/* !!!!!!!!!!!!!!!!!!!!! 디버그 오버레이 TODO 출시시 삭제 !!!!!!!!!!!!!!!!!!!!!! */}
