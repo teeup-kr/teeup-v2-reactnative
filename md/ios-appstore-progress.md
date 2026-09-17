@@ -328,3 +328,4 @@ QuickTime Player → 파일 → 새로운 동영상 녹화 → ● 옆 ▾ → �
 | 1.0 (1) | 2026-09-09 | ❌ applesignin 없음 | Guideline 2.1 리젝 |
 | 1.0 (2) | 2026-09-14 | ❌ applesignin 없음 | 제출 안 함 (사용 금지) |
 | 1.0 (3) | 2026-09-17 | ✅ applesignin / aps production | Delivery `e664391c-dc44-4c80-b7b3-aab2949b15a9` |
+| 1.0 (4) | 2026-09-18 | ✅ applesignin / aps production | 사용설명서 배너 포함. Delivery `78659e69-9070-4843-ab87-bc49a6eae318` — **이 빌드로 제출** |
