@@ -231,3 +231,100 @@ xcrun altool --list-providers -u "ejto100@gmail.com" -p "@keychain:AC_PASSWORD"
   iOS용 Google Client ID를 선택한다 (`npm run ios:prebuild` 에 포함되어 있음)
 - Xcode로 열 때는 반드시 `ios/app.xcworkspace` (`.xcodeproj` 아님)
 - **재업로드 시 `app.json` 의 `ios.buildNumber` 를 반드시 증가**시킬 것 (현재 `1`)
+
+---
+
+## 2026-09-17 — 엔타이틀먼트 누락 사고와 빌드 3
+
+### 무슨 일이 있었나
+
+App Store 에 올린 **빌드 1·2 는 Sign in with Apple 과 푸시가 동작할 수 없는 상태**였다.
+원인은 이 문서 앞부분에 "성공한 방법"으로 적어둔 **무서명 아카이브 방식**이다.
+
+```bash
+# 이렇게 하면 안 된다 (엔타이틀먼트가 통째로 빠진다)
+xcodebuild ... CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" archive
+```
+
+`CODE_SIGNING_ALLOWED=NO` 로 아카이브하면 `.app` 에 엔타이틀먼트가 아예 박히지 않고,
+`-exportArchive` 의 재서명은 **아카이브에 없는 엔타이틀먼트를 만들어내지 않는다**.
+그 결과 업로드된 IPA 의 서명 엔타이틀먼트는 아래가 전부였다.
+
+```
+application-identifier / com.apple.developer.team-identifier / beta-reports-active / get-task-allow
+```
+
+App ID 와 프로비저닝 프로파일에는 `com.apple.developer.applesignin` 이 정상으로 들어 있었다.
+즉 **Apple Developer 포털 설정 문제가 아니라 빌드 명령 문제**였다.
+Apple 의 `2.1.0 Performance: App Completeness` 리젝과 정합한다.
+
+### 확인 방법
+
+```bash
+unzip -o -q ~/Desktop/teeup-export/티업링크.ipa -d /tmp/ipa
+codesign -d --entitlements :- /tmp/ipa/Payload/*.app
+```
+
+App Store 제출본에 아래 셋이 **반드시** 있어야 한다.
+
+| 키 | 값 |
+| --- | --- |
+| `com.apple.developer.applesignin` | `Default` |
+| `aps-environment` | `production` |
+| `get-task-allow` | `false` |
+
+### 올바른 빌드 명령 (빌드 3 부터 이 방식)
+
+`ios/app/app.entitlements` 는 prebuild 가 `aps-environment: development` 로 생성하므로,
+배포용 엔타이틀먼트 파일을 따로 두고 아카이브 때 덮어쓴다.
+**`ios/` 는 gitignore 대상이라 prebuild 를 다시 돌리면 이 파일도 사라진다. 그때는 다시 만들어야 한다.**
+
+```bash
+# ios/app/app-release.entitlements
+# aps-environment = production, com.apple.developer.applesignin = [Default]
+
+cd ios
+EAS_BUILD_PLATFORM=ios xcodebuild \
+  -workspace app.xcworkspace -scheme app -configuration Release \
+  -destination 'generic/platform=iOS' \
+  -archivePath ~/Desktop/teeup.xcarchive \
+  -allowProvisioningUpdates \
+  DEVELOPMENT_TEAM=2ZJV4Y7FV5 CODE_SIGN_STYLE=Automatic \
+  CODE_SIGN_ENTITLEMENTS=app/app-release.entitlements \
+  CURRENT_PROJECT_VERSION=3 \
+  archive
+```
+
+아카이브 단계에서는 자동 서명이 **개발용 프로파일**을 고르기 때문에
+`.xcarchive` 안의 엔타이틀먼트는 `aps-environment: development` / `get-task-allow: true` 로 보인다.
+정상이다. `-exportArchive` 가 배포 프로파일로 재서명하면서 `production` / `false` 로 바뀐다.
+**반드시 export 후의 IPA 를 검사할 것.**
+
+### 실기기 설치 (TestFlight 가 안 될 때)
+
+TestFlight 내부 테스팅 그룹에 빌드를 붙여도 아이폰에서 "사용 가능한 빌드 없음"만 뜨는 경우가 있었다.
+케이블로 직접 설치하는 편이 빠르다.
+
+```bash
+# 아이폰: 설정 → 개인정보 보호 및 보안 → 개발자 모드 → 켜기 (재시동)
+xcrun devicectl list devices                     # UDID 확인
+cd ios && EAS_BUILD_PLATFORM=ios xcodebuild \
+  -workspace app.xcworkspace -scheme app -configuration Release \
+  -destination 'id=<UDID>' -derivedDataPath /tmp/dd-dev \
+  -allowProvisioningUpdates -allowProvisioningDeviceRegistration \
+  DEVELOPMENT_TEAM=2ZJV4Y7FV5 CODE_SIGN_STYLE=Automatic build
+xcrun devicectl device install app --device <UDID> /tmp/dd-dev/Build/Products/Release-iphoneos/app.app
+```
+
+### 화면 녹화
+
+QuickTime Player → 파일 → 새로운 동영상 녹화 → ● 옆 ▾ → 카메라: iPhone.
+결과물은 `~/Desktop/teeup-review-video/`.
+
+### 업로드 이력
+
+| 빌드 | 업로드 | 엔타이틀먼트 | 비고 |
+| --- | --- | --- | --- |
+| 1.0 (1) | 2026-09-09 | ❌ applesignin 없음 | Guideline 2.1 리젝 |
+| 1.0 (2) | 2026-09-14 | ❌ applesignin 없음 | 제출 안 함 (사용 금지) |
+| 1.0 (3) | 2026-09-17 | ✅ applesignin / aps production | Delivery `e664391c-dc44-4c80-b7b3-aab2949b15a9` |

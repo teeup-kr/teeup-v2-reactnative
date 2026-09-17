@@ -19,7 +19,7 @@
 | 4 | 시뮬레이터에서 신고·차단·금칙어 E2E 확인, 스크린샷 재촬영 | Claude (로그인은 사용자) | ☐ |
 | 5 | `ios.buildNumber` → `2`, 아카이브 → 업로드 (2026-09-14 완료, Delivery `f7d5801e`) | Claude | ☑ |
 | 6 | iPhone 12 mini (iOS 18.1.1) 에 USB로 빌드 2 직접 설치 → QuickTime 으로 화면 녹화 (2026-09-15 완료) | 사용자+Claude | ☑ |
-| 7 | ASC 1.0 버전의 빌드를 1 → 2 로 교체 | 사용자 | ☐ |
+| 7 | ASC 1.0 버전의 빌드를 **1.0 (3)** 으로 교체 (빌드 1·2 는 엔타이틀먼트 누락본이라 제출 금지) | 사용자 | ☐ |
 | 8 | 아래 답변 + 녹화 영상 회신, 메모 필드에도 기재, 심사 제출 | 사용자 | ☐ |
 
 ### 녹화 결과물 (`~/Desktop/teeup-review-video/`)
@@ -85,14 +85,14 @@
 
 ```
 Thank you for reviewing TeeUp Link. Please find the requested information below.
-We have also uploaded a new build (1.0, build 2) that adds content reporting,
+We have also uploaded a new build (1.0, build 3) that adds content reporting,
 user blocking and objectionable-content filtering, as described in section 7.
 
 ────────────────────────────────────────
 1. SCREEN RECORDING
 ────────────────────────────────────────
 Attached are two screen recordings captured on a physical iPhone 12 mini
-(iOS 18.1.1) running build 1.0 (2).
+(iOS 18.1.1) running build 1.0 (3).
 
 Recording 1 (4:32) begins with launching the app from the Home Screen and
 demonstrates:
@@ -200,7 +200,7 @@ details) is visible only to members of the same club. There is no public
 feed, no cross-club search, and no direct messaging between users. Club
 leaders approve each membership request.
 
-Build 2 includes the following moderation features:
+Build 3 includes the following moderation features:
   • Filtering  : Text submitted for clubs, outings, notices, regulations
                  and profile nicknames is checked against a
                  prohibited-word list on our server and rejected before
