@@ -22,7 +22,7 @@
       "googleServicesFile": "./google-services.json",
       "edgeToEdgeEnabled": false,
       "package": "com.pixencrew.teeup",
-      "versionCode": 3
+      "versionCode": 4
     },
     "web": {
       "bundler": "metro",
