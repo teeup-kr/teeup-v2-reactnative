@@ -73,6 +73,13 @@
         }
       ]
     ],
-    "extra": {}
+    "extra": {},
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "checkAutomatically": "ON_LOAD"
+    }
   }
 }
