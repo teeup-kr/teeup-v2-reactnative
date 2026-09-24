@@ -4,7 +4,7 @@
     "shortName": "TeeUp",
     "slug": "teeup",
     "scheme": "teeup",
-    "version": "1.0",
+    "version": "1.0.1",
     "icon": "./public/icons/icon-1024.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#ffffff",
@@ -31,7 +31,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.pixencrew.teeup",
-      "buildNumber": "4",
+      "buildNumber": "1",
       "supportsTablet": false,
       "usesAppleSignIn": true,
       "googleServicesFile": "./GoogleService-Info.plist",

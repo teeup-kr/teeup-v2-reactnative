@@ -328,4 +328,31 @@ QuickTime Player → 파일 → 새로운 동영상 녹화 → ● 옆 ▾ → �
 | 1.0 (1) | 2026-09-09 | ❌ applesignin 없음 | Guideline 2.1 리젝 |
 | 1.0 (2) | 2026-09-14 | ❌ applesignin 없음 | 제출 안 함 (사용 금지) |
 | 1.0 (3) | 2026-09-17 | ✅ applesignin / aps production | Delivery `e664391c-dc44-4c80-b7b3-aab2949b15a9` |
-| 1.0 (4) | 2026-09-18 | ✅ applesignin / aps production | 사용설명서 배너 포함. Delivery `78659e69-9070-4843-ab87-bc49a6eae318` — **이 빌드로 제출** |
+| 1.0 (4) | 2026-09-18 | ✅ applesignin / aps production | 사용설명서 배너 포함. Delivery `78659e69-9070-4843-ab87-bc49a6eae318` — **심사 통과, 2026-09-20 출시** |
+| 1.0.1 (1) | 2026-09-24 | ✅ applesignin / aps production | EAS Update(OTA) 도입. Delivery `4e085fb0-657c-47f8-af38-7caf6e68d5e8` |
+
+> 1.0 은 2026-09-20 App Store 출시 완료.
+> https://apps.apple.com/kr/app/id6801782217
+
+### ExportOptions.plist
+
+전에는 `/tmp` 에 두었다가 지워져서 export 가 실패한 적이 있다.
+지금은 저장소의 **`scripts/ios-export-options.plist`** 를 쓴다.
+
+```bash
+xcodebuild -exportArchive -archivePath ~/Desktop/teeup.xcarchive \
+  -exportPath ~/Desktop/teeup-export \
+  -exportOptionsPlist scripts/ios-export-options.plist \
+  -allowProvisioningUpdates
+```
+
+### prebuild 후 반드시 다시 만들 것
+
+`npm run ios:prebuild` 는 `ios/` 를 통째로 재생성하므로 **`ios/app/app-release.entitlements` 가 사라진다.**
+(prebuild 가 만드는 `app.entitlements` 는 `aps-environment` 가 `development` 다.)
+아카이브 전에 아래 내용으로 다시 만들고 `CODE_SIGN_ENTITLEMENTS=app/app-release.entitlements` 로 빌드한다.
+
+| 키 | 값 |
+| --- | --- |
+| `aps-environment` | `production` |
+| `com.apple.developer.applesignin` | `Default` |
