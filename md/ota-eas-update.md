@@ -13,8 +13,9 @@
 | --- | --- |
 | `expo-updates` 의존성 추가 | ☑ (`~29.0.20`) |
 | `app.json` 에 `runtimeVersion` (`appVersion` 정책) | ☑ |
-| `app.json` 에 `updates.url` | ☐ — projectId 가 있어야 하므로 `eas update:configure` 가 채운다 |
-| Expo 계정 로그인 / projectId 발급 | ☐ |
+| `app.json` 에 `updates.url` | ☑ `https://u.expo.dev/e3e81f6c-8e50-40e3-a2dd-f5364afa2205` |
+| Expo 프로젝트 | ☑ `jungeuilab/teeup` — projectId `e3e81f6c-8e50-40e3-a2dd-f5364afa2205` |
+| `eas.json` 채널 (development / preview / production) | ☑ |
 | iOS 새 빌드 심사 | ☐ |
 | Android 새 빌드 심사 | ☐ |
 
@@ -23,16 +24,28 @@
 
 ---
 
-## 1. Expo 계정 연결 (최초 1회)
+## 1. Expo 계정 연결 — 완료 (2026-09-24)
 
-```bash
-cd teeup-v2-reactnative
-npx eas-cli login          # Expo 계정
-npx eas-cli init           # projectId 발급 → app.json 의 extra.eas.projectId 에 기입됨
-npx eas-cli update:configure   # updates.url 자동 기입 (https://u.expo.dev/<projectId>)
+`app.json` 에 아래가 들어가 있다. 다시 실행할 필요 없다.
+
+```json
+"owner": "jungeuilab",
+"extra": { "eas": { "projectId": "e3e81f6c-8e50-40e3-a2dd-f5364afa2205" } },
+"runtimeVersion": { "policy": "appVersion" },
+"updates": { "url": "https://u.expo.dev/e3e81f6c-8e50-40e3-a2dd-f5364afa2205", ... }
 ```
 
-`update:configure` 는 `app.json` 만 건드린다. `ios/` 는 prebuild 가, `android/` 는 아래 2번이 반영한다.
+CLI 를 쓸 때는 대화형 로그인 대신 토큰을 쓴다.
+
+```bash
+EXPO_TOKEN=<expo.dev 에서 발급한 토큰> npx eas-cli <명령>
+```
+
+> `eas init` 은 **평가된** 설정을 `app.json` 에 그대로 써넣는다.
+> 이 저장소는 `app.config.js` 가 플랫폼별로 `extra` 를 다시 계산하므로
+> (안드로이드/ iOS Google OAuth 클라이언트 ID 가 다르다),
+> `app.json` 의 `extra` 에는 **`eas.projectId` 만** 남겨야 한다.
+> 실제로 `eas init` 이 안드로이드 값으로 덮어써서 되돌린 이력이 있다.
 
 ---
 
@@ -60,16 +73,27 @@ cd ios && pod install && cd ..
 
 ### Android
 
-`android/` 는 **저장소에 커밋되어 있어** prebuild 가 기존 수정사항을 덮을 수 있다.
-`npx expo prebuild -p android` 를 돌린 뒤 **diff 를 반드시 확인**하고, 아래 meta-data 가
-`android/app/src/main/AndroidManifest.xml` 의 `<application>` 안에 있어야 한다.
+`android/` 는 대부분 gitignore 대상이고 (`build.gradle` 2개와 `gradle.properties` 만 추적),
+`AndroidManifest.xml` 은 **빌드 머신에서 prebuild 로 생성된다.**
+따라서 빌드 전에 최신 `app.json` 을 pull 한 뒤 prebuild 를 **다시** 돌려야 업데이트 설정이 반영된다.
+
+```bash
+git pull
+npx expo prebuild -p android
+grep expo.modules.updates android/app/src/main/AndroidManifest.xml
+```
+
+아래 meta-data 가 `<application>` 안에 있어야 한다.
 
 ```xml
 <meta-data android:name="expo.modules.updates.ENABLED" android:value="true"/>
-<meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://u.expo.dev/<projectId>"/>
-<meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="1.0"/>
+<meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://u.expo.dev/e3e81f6c-8e50-40e3-a2dd-f5364afa2205"/>
+<meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="@string/expo_runtime_version"/>
 <meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="ALWAYS"/>
 ```
+
+> `android/app/debug.keystore` 도 prebuild 가 머신마다 새로 만드는 파일이라 저장소에 없다.
+> Play 업로드 키가 아니다.
 
 ---
 

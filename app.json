@@ -73,13 +73,19 @@
         }
       ]
     ],
-    "extra": {},
+    "extra": {
+      "eas": {
+        "projectId": "e3e81f6c-8e50-40e3-a2dd-f5364afa2205"
+      }
+    },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
       "fallbackToCacheTimeout": 0,
-      "checkAutomatically": "ON_LOAD"
-    }
+      "checkAutomatically": "ON_LOAD",
+      "url": "https://u.expo.dev/e3e81f6c-8e50-40e3-a2dd-f5364afa2205"
+    },
+    "owner": "jungeuilab"
   }
 }
