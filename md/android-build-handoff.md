@@ -48,18 +48,38 @@ cd android && ./gradlew bundleRelease
 
 ## 3. 빠지기 쉬운 함정
 
-### 3-1. 오래된 `android/` 폴더
+### 3-1. `prebuild --clean` 은 선택이 아니라 필수다
 
-`android/` 는 대부분 `.gitignore` 대상이지만 `build.gradle` 3개만 추적된다.
-예전에 받아둔 `android/` 가 남아 있으면 그 안의 값이 섞일 수 있다.
+현재 서버에 남아 있는 `android/` 는 **expo-updates 도입 이전의 산출물**이다.
+그대로 구우면 OTA 가 아예 동작하지 않는다.
 
-```bash
-# 확실히 하려면
-grep -E '^\s+versionCode' android/app/build.gradle   # 4 여야 한다
+```xml
+<!-- android/app/src/main/AndroidManifest.xml (현재) -->
+<meta-data android:name="expo.modules.updates.ENABLED" android:value="false"/>
+<!-- EXPO_UPDATES_URL 없음 -->
 ```
 
-`npx expo prebuild -p android --clean` 을 돌리면 `app.json` 기준으로 재생성된다
-(`app.json` 도 versionCode 4).
+`AndroidManifest.xml` 은 git 추적 대상이 아니라 클론해도 따라오지 않는다.
+반드시 재생성한다.
+
+```bash
+npx expo prebuild -p android --clean
+```
+
+`app.json` 기준으로 다시 만들어지며 updates 설정이 켜진 상태로 들어간다.
+(iOS 의 entitlements 함정은 Android 와 무관하다 — Android 는 `--clean` 해도 된다.)
+
+재생성 후 확인:
+
+```bash
+grep -E '^\s+versionCode|^\s+versionName' android/app/build.gradle
+#   versionCode 4
+#   versionName "1.0.1"
+grep -E 'updates.ENABLED|EXPO_UPDATES_URL' android/app/src/main/AndroidManifest.xml
+#   ENABLED = true, URL = https://u.expo.dev/e3e81f6c-...
+```
+
+`build.gradle` 3개는 추적 대상이라 재생성 후 git diff 가 뜰 수 있다. 값이 위와 같으면 정상이다.
 
 ### 3-2. EAS 로 빌드하면 versionCode 가 달라진다
 
