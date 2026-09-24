@@ -1,7 +1,8 @@
 # App Review 답변 — Guideline 2.1 Information Needed
 
 - 작성일: 2026-09-14 (신고·차단·필터 구현 반영으로 전면 개정)
-- 대상: 버전 1.0 — Apple의 추가 정보 요청에 대한 회신. **빌드 2로 재제출**한다.
+- 2026-09-17 개정: 9/17 리젝의 생년월일·성별 질의 답변(본문 8번) 추가
+- 대상: 버전 1.0 — Apple의 추가 정보 요청에 대한 회신. **빌드 4로 재제출**한다.
 - 회신 위치: App Store Connect → 앱 → 심사 메시지 회신 **+ 앱 심사 정보의 「메모」 필드에도 동일 내용 기재**
 
 > Apple이 "Reply in App Store Connect ... and also add this information to the Notes field"
@@ -221,6 +222,23 @@ Build 4 includes the following moderation features:
                  suspension process (Article 7 and 7-2).
 
 ────────────────────────────────────────
+8. DATE OF BIRTH AND GENDER (2026-09-17 review)
+────────────────────────────────────────
+Date of birth and gender are OPTIONAL. They are not required for
+registration, for signing in, or for any core feature of the app.
+
+They are used only by two golf-specific conveniences:
+  • Automatic team formation for an outing, which can balance groups
+    by age range.
+  • Tee box suggestion (men's / ladies' tees), which uses gender.
+
+In build 1.0 (2) the profile screen incorrectly treated date of birth as
+a required field, and the "complete your profile" gate that appears
+before joining a club also required both fields. Both have been fixed in
+build 1.0 (4): the fields are labeled as optional and every club, outing,
+settlement and score feature works without them.
+
+────────────────────────────────────────
 ADDITIONAL NOTES
 ────────────────────────────────────────
   • Account deletion is available in-app (My → Edit Profile → Delete
@@ -263,6 +281,11 @@ Server-side prohibited-word filter rejects objectionable text before it
 is stored. Any content or user can be reported; users can block other
 users. We act on reports within 24 hours. Terms of Service (Article 7,
 7-2) state zero tolerance for objectionable content and abusive users.
+
+[OPTIONAL FIELDS]
+Date of birth and gender are optional and not required for registration
+or any core feature. They are used only for optional age-balanced team
+formation and tee box suggestion.
 
 [SERVICES]
 Sign in with Apple, Google Sign-In, Firebase Cloud Messaging (push only),
