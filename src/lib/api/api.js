@@ -259,11 +259,11 @@ async function autoFormTeams(meetingId, data) {
 }
 
 async function getTeamsByMeeting(meetingId) {
-  return apiClient.get('/teams', { params: { meeting_id: meetingId } });
+  return apiClient.get('/teams/', { params: { meeting_id: meetingId } });
 }
 
 async function createTeamByMeeting(meetingId, data) {
-  return apiClient.post('/teams', data, { params: { meeting_id: meetingId } });
+  return apiClient.post('/teams/', data, { params: { meeting_id: meetingId } });
 }
 
 async function updateTeam(teamId, data) {
@@ -646,7 +646,7 @@ async function getTerms(type) {
 }
 
 async function getNotices(params = {}) {
-  return apiClient.get('/notices', { params });
+  return apiClient.get('/notices/', { params });
 }
 
 async function getNotice(id) {
@@ -751,7 +751,7 @@ async function registerClubApplication(applicationData) {
 }
 
 async function createClub(data) {
-  return apiClient.post('/clubs', data);
+  return apiClient.post('/clubs/', data);
 }
 
 async function updateClub(clubId, data) {
