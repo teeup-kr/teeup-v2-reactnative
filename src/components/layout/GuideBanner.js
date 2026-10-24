@@ -7,7 +7,7 @@ import { colors } from '@/styles/colors';
 import { tokens } from '@/styles/style';
 
 // 사용설명서(Notion) 배너. 하단 탭바 바로 위에 고정되며, 탭하면 외부 브라우저로 연다.
-export const GUIDE_URL = 'https://justicelab.notion.site/teeup-guide?source=copy_link';
+export const GUIDE_URL = 'https://justicelab.notion.site/teeup-guide';
 
 export const GUIDE_BANNER_HEIGHT = 44;
 
