@@ -928,6 +928,8 @@ export default function MeetingDetailScreen() {
           teamSize: size,
         });
         setPreviewTeams(result.teams || []);
+        // 일괄 비교 모달을 내리고 미리보기를 연다. 모달 위에 모달은 안 뜬다.
+        setBatchFormationOpen(false);
         setTeamPreviewOpen(true);
       },
     [meeting?.team_formation_mode, meeting?.team_size]
@@ -937,6 +939,8 @@ export default function MeetingDetailScreen() {
     () =>
       (item) => {
         setPreviewTeams(item.teams || []);
+        // 히스토리 모달을 내리고 미리보기를 연다. 모달 위에 모달은 안 뜬다.
+        setHistoryOpen(false);
         setTeamPreviewOpen(true);
       },
     []
