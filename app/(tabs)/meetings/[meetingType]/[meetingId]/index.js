@@ -864,7 +864,14 @@ export default function MeetingDetailScreen() {
   );
   const openHistory = useMemo(() => () => setHistoryOpen(true), []);
   const closeHistory = useMemo(() => () => setHistoryOpen(false), []);
-  const openBatchFormation = useMemo(() => () => setBatchFormationOpen(true), []);
+  // 팀 편성 모달을 내리고 연다. iOS 는 모달 위에 모달을 띄우면 아무 일도 안 생긴다.
+  const openBatchFormation = useMemo(
+    () => () => {
+      setTeamFormationOpen(false);
+      setBatchFormationOpen(true);
+    },
+    []
+  );
   const closeBatchFormation = useMemo(() => () => setBatchFormationOpen(false), []);
   const closeTeamPreview = useMemo(
     () => () => {
