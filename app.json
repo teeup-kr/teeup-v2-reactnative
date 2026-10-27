@@ -15,6 +15,7 @@
       "backgroundColor": "#ffffff"
     },
     "android": {
+      "runtimeVersion": "1.0",
       "adaptiveIcon": {
         "foregroundImage": "./public/icons/icon-1024-transparent.png",
         "backgroundColor": "#ffffff"
@@ -30,6 +31,7 @@
       "favicon": "./public/icons/icon-600-transparent-full.png"
     },
     "ios": {
+      "runtimeVersion": "1.0.1",
       "bundleIdentifier": "com.pixencrew.teeup",
       "buildNumber": "1",
       "supportsTablet": false,
@@ -77,9 +79,6 @@
       "eas": {
         "projectId": "e3e81f6c-8e50-40e3-a2dd-f5364afa2205"
       }
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
     },
     "updates": {
       "fallbackToCacheTimeout": 0,
