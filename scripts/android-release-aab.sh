@@ -36,7 +36,8 @@ ANDROID_UPLOAD_STORE_PASSWORD="$REPLY_PW"
 # 여기서 즉시 틀렸다고 알려주는 쪽이 낫다.
 if ! KEYSTORE_LIST=$("$KEYTOOL" -list -keystore "$KEYSTORE" \
       -storepass "$ANDROID_UPLOAD_STORE_PASSWORD" 2>&1); then
-  echo "키스토어를 열 수 없습니다. storePassword 가 틀렸습니다." >&2
+  echo "키스토어를 열 수 없습니다. keytool 이 말한 이유는 이렇다:" >&2
+  printf '%s\n' "$KEYSTORE_LIST" | sed 's/^/  | /' >&2
   exit 1
 fi
 
@@ -59,17 +60,24 @@ else
   read -r ANDROID_UPLOAD_KEY_ALIAS
 fi
 
-ask 'ANDROID_UPLOAD_KEY_PASSWORD'
-ANDROID_UPLOAD_KEY_PASSWORD="$REPLY_PW"
+# PKCS#12 키스토어는 금고와 키가 같은 비밀번호를 쓰는 게 보통이다.
+# 그냥 엔터를 치면 위에서 받은 값을 그대로 쓴다.
+ask 'ANDROID_UPLOAD_KEY_PASSWORD (엔터 = storePassword 와 동일)'
+if [ -z "$REPLY_PW" ]; then
+  ANDROID_UPLOAD_KEY_PASSWORD="$ANDROID_UPLOAD_STORE_PASSWORD"
+  echo "storePassword 와 같은 값을 쓴다."
+else
+  ANDROID_UPLOAD_KEY_PASSWORD="$REPLY_PW"
+fi
 
 # 키 비밀번호도 검증한다. -certreq 는 키스토어를 바꾸지 않고
 # 키를 실제로 열어보는 읽기 전용 동작이다.
-if ! "$KEYTOOL" -certreq -alias "$ANDROID_UPLOAD_KEY_ALIAS" \
+if ! KEY_ERR=$("$KEYTOOL" -certreq -alias "$ANDROID_UPLOAD_KEY_ALIAS" \
       -keystore "$KEYSTORE" \
       -storepass "$ANDROID_UPLOAD_STORE_PASSWORD" \
-      -keypass "$ANDROID_UPLOAD_KEY_PASSWORD" >/dev/null 2>&1; then
-  echo "키를 열 수 없습니다. keyPassword 가 틀렸습니다." >&2
-  echo "(storePassword 와 같은 경우도 많으니 그것도 시도해 보세요.)" >&2
+      -keypass "$ANDROID_UPLOAD_KEY_PASSWORD" 2>&1 >/dev/null); then
+  echo "키를 열 수 없습니다. keytool 이 말한 이유는 이렇다:" >&2
+  printf '%s\n' "$KEY_ERR" | sed 's/^/  | /' >&2
   exit 1
 fi
 
